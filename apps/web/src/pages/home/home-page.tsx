@@ -128,13 +128,7 @@ export function HomePage() {
                   ...test,
                   tag: test.category ? String(test.category) : '테스트',
               }));
-    const finalBalanceGameTests =
-        balanceGameTests.length > 0
-            ? balanceGameTests
-            : BALANCE_GAMES.map((test) => ({
-                  ...test,
-                  tag: test.category ? String(test.category) : '밸런스 게임',
-              }));
+
     const finalTopByTypeTests =
         topByTypeTests.length > 0
             ? topByTypeTests
