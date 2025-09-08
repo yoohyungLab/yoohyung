@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Button,
     Card,
@@ -16,7 +16,7 @@ import {
     SelectValue,
     Textarea,
     Badge,
-} from '@typologylab/ui';
+} from '@/components/ui';
 import { ArrowLeft, ArrowRight, Check, Plus, Trash2, Eye, Save, RefreshCw, Lightbulb, Target, Image, Wand2, Upload, X } from 'lucide-react';
 
 type Step = 'basic' | 'questions' | 'results' | 'preview';

@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@typologylab/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
 import { testApi } from '../../lib/supabase';
 import type { Test } from '../../types/test';
-import { Search, Eye, Edit, Trash2, Globe, Lock, Plus, Calendar, MessageSquare, BarChart3, Download, Copy, Settings } from 'lucide-react';
+import { Search, Eye, Edit, Trash2, Globe, Lock, Plus, Calendar, MessageSquare, BarChart3, Download, Copy } from 'lucide-react';
 
 export function TestListPage() {
     const [tests, setTests] = useState<Test[]>([]);
@@ -243,7 +243,7 @@ export function TestListPage() {
                             type="text"
                             placeholder="테스트 제목, 설명, 카테고리로 검색..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
@@ -252,7 +252,9 @@ export function TestListPage() {
                     <div className="flex gap-2">
                         <select
                             value={statusFilter}
-                            onChange={(e) => setStatusFilter(e.target.value as 'all' | 'published' | 'draft')}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                setStatusFilter(e.target.value as 'all' | 'published' | 'draft')
+                            }
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">전체 상태</option>
@@ -262,7 +264,7 @@ export function TestListPage() {
 
                         <select
                             value={categoryFilter}
-                            onChange={(e) => setCategoryFilter(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setCategoryFilter(e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">전체 카테고리</option>
@@ -527,7 +529,6 @@ export function TestListPage() {
                         setShowDetailModal(false);
                         setSelectedTest(null);
                     }}
-                    onUpdate={loadTests}
                 />
             )}
         </div>
@@ -535,7 +536,7 @@ export function TestListPage() {
 }
 
 // 테스트 상세보기 모달 컴포넌트
-function TestDetailModal({ test, onClose, onUpdate }: { test: Test; onClose: () => void; onUpdate: () => void }) {
+function TestDetailModal({ test, onClose }: { test: Test; onClose: () => void }) {
     const getStatusIcon = (isPublished: boolean) => {
         return isPublished ? <Globe className="w-5 h-5 text-green-600" /> : <Lock className="w-5 h-5 text-yellow-600" />;
     };
@@ -718,7 +719,7 @@ function TestDetailModal({ test, onClose, onUpdate }: { test: Test; onClose: () 
                                 {test.results.map((result, index) => (
                                     <div key={index} className="p-4 border border-gray-200 rounded-lg">
                                         <div className="flex items-center gap-2 mb-2">
-                                            <span className="text-xl">{result.emoji}</span>
+                                            <span className="text-xl">🎯</span>
                                             <span className="font-semibold text-gray-900">{result.title}</span>
                                         </div>
                                         <p className="text-sm text-gray-600">{result.description}</p>

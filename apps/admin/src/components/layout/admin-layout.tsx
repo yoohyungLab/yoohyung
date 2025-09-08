@@ -1,4 +1,3 @@
-import type { ReactNode } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
@@ -58,7 +57,7 @@ const navigation: NavEntry[] = [
 
 // 헬퍼 함수를 컴포넌트 외부로 이동
 function isActivePath(pathname: string, entry: NavEntry) {
-    if (entry.type !==   'item') return false;
+    if (entry.type !== 'item') return false;
     if (entry.href === '/') return pathname === '/';
     const prefixes = entry.match ?? [entry.href];
     return prefixes.some((p) => pathname === p || pathname.startsWith(p + '/'));
@@ -253,11 +252,11 @@ export function AdminLayout() {
                                 aria-label="사용자 메뉴 열기"
                             >
                                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-                                    {adminUser?.name?.charAt(0)}
+                                    {adminUser?.email?.charAt(0).toUpperCase() || 'A'}
                                 </div>
                                 <div className="hidden sm:block text-left">
-                                    <p className="text-sm font-medium text-gray-800">{adminUser?.name}</p>
-                                    <p className="text-xs text-gray-500">{adminUser?.username}</p>
+                                    <p className="text-sm font-medium text-gray-800">관리자</p>
+                                    <p className="text-xs text-gray-500">{adminUser?.email}</p>
                                 </div>
                                 <span className="text-gray-400" aria-hidden>
                                     ▼

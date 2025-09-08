@@ -1,9 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea, Badge } from '@/components/ui';
 import { categoryApi } from '@/lib/supabase';
 import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Save, X, Hash, Search, Filter } from 'lucide-react';
 
@@ -254,7 +250,7 @@ export default function CategoryManagementPage() {
                                 type="text"
                                 placeholder="카테고리 이름이나 표시 이름으로 검색..."
                                 value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                                 className="pl-10 pr-4 py-3 text-base"
                             />
                         </div>
@@ -264,7 +260,9 @@ export default function CategoryManagementPage() {
                             <Filter className="w-5 h-5 text-gray-400" />
                             <select
                                 value={filterActive}
-                                onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
+                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                                    setFilterActive(e.target.value as 'all' | 'active' | 'inactive')
+                                }
                                 className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium"
                             >
                                 <option value="all">전체 보기</option>
@@ -309,7 +307,9 @@ export default function CategoryManagementPage() {
                                 </label>
                                 <Input
                                     value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value.toLowerCase() })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                        setFormData({ ...formData, name: e.target.value.toLowerCase() })
+                                    }
                                     placeholder="personality"
                                     className="font-mono text-base py-3"
                                 />
@@ -321,7 +321,9 @@ export default function CategoryManagementPage() {
                                 </label>
                                 <Input
                                     value={formData.display_name}
-                                    onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
+                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                        setFormData({ ...formData, display_name: e.target.value })
+                                    }
                                     placeholder="성격"
                                     className="text-base py-3"
                                 />
@@ -332,7 +334,9 @@ export default function CategoryManagementPage() {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">설명</label>
                             <Textarea
                                 value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
+                                    setFormData({ ...formData, description: e.target.value })
+                                }
                                 placeholder="카테고리에 대한 상세한 설명을 입력하세요"
                                 rows={3}
                                 className="text-base resize-none"
@@ -344,7 +348,9 @@ export default function CategoryManagementPage() {
                             <Input
                                 type="number"
                                 value={formData.sort_order}
-                                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                                    setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })
+                                }
                                 min="0"
                                 className="w-32 text-base py-3"
                             />

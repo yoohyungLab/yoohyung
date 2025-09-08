@@ -3,7 +3,7 @@ import { AdminLoginPage } from './pages/auth/admin-login-page';
 import { AdminLayout } from './components/layout/admin-layout';
 import { SimplifiedDashboard } from './pages/dashboard-page';
 import { TestListPage } from './pages/tests/test-list-page';
-import { CreateTestPage } from './pages/tests/create-test-page';
+import CreateTestPage from './pages/tests/create-test-page';
 import SectionManagementPage from './pages/sections/section-management-page';
 // import SectionTestManagementPage from './pages/sections/section-test-management-page';
 import CategoryManagementPage from './pages/categories/category-management-page';

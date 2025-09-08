@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@typologylab/ui';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
 import { feedbackApi } from '../../lib/supabase';
-import { Search, Eye, MessageSquare, CheckCircle, Clock, AlertCircle, Download, Trash2, FileText, User, Calendar } from 'lucide-react';
+import { Search, Eye, MessageSquare, CheckCircle, Clock, AlertCircle, Download, FileText, User, Calendar } from 'lucide-react';
 
 interface Feedback {
     id: string;
@@ -358,7 +358,7 @@ export function FeedbackListPage() {
                             type="text"
                             placeholder="제목, 내용, 작성자로 검색..."
                             value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
                             className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         />
                     </div>
@@ -367,7 +367,7 @@ export function FeedbackListPage() {
                     <div className="flex gap-2">
                         <select
                             value={selectedStatus}
-                            onChange={(e) => setSelectedStatus(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedStatus(e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">전체 상태</option>
@@ -380,7 +380,7 @@ export function FeedbackListPage() {
 
                         <select
                             value={selectedCategory}
-                            onChange={(e) => setSelectedCategory(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setSelectedCategory(e.target.value)}
                             className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                             <option value="all">전체 카테고리</option>
@@ -614,7 +614,6 @@ export function FeedbackListPage() {
                         setShowDetailModal(false);
                         setSelectedFeedback(null);
                     }}
-                    onUpdate={loadFeedbacks}
                     onReply={(id) => {
                         setShowDetailModal(false);
                         setShowReplyModal(id);
@@ -629,7 +628,7 @@ export function FeedbackListPage() {
                         <h3 className="text-lg font-semibold mb-4">관리자 답변 추가</h3>
                         <textarea
                             value={replyText}
-                            onChange={(e) => setReplyText(e.target.value)}
+                            onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setReplyText(e.target.value)}
                             placeholder="답변을 입력하세요..."
                             rows={4}
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
@@ -664,7 +663,6 @@ function FeedbackDetailModal({
 }: {
     feedback: Feedback;
     onClose: () => void;
-    onUpdate: () => void;
     onReply: (id: string) => void;
 }) {
     const getStatusIcon = (status: Feedback['status']) => {
