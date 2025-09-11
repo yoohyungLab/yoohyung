@@ -4,8 +4,6 @@ import { AdminLayout } from './widgets/layout/admin-layout';
 import { SimplifiedDashboard } from './pages/dashboard-page';
 import { TestListPage } from './pages/tests/test-list-page';
 import CreateTestPage from './pages/tests/create-test-page';
-import SectionManagementPage from './pages/sections/section-management-page';
-// import SectionTestManagementPage from './pages/sections/section-test-management-page';
 import CategoryManagementPage from './pages/categories/category-management-page';
 import './App.css';
 import { FeedbackListPage } from './pages/feedback/feedback-list-page';
@@ -29,7 +27,6 @@ export default function App() {
                     <Route path="tests/create" element={<CreateTestPage />} />
                     {/* <Route path="tests/:id/edit" element={<EditTestPage />} /> */}
                     <Route path="categories" element={<CategoryManagementPage />} />
-                    <Route path="sections" element={<SectionManagementPage />} />
                     {/* <Route path="settings" element={<SettingsPage />} /> */}
                 </Route>
 

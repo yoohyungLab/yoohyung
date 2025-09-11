@@ -196,14 +196,6 @@ export function AdminLayout() {
                             );
                         })}
                     </nav>
-
-                    {/* 하단 정보 */}
-                    {!sidebarCollapsed && (
-                        <div className="p-4 border-t border-gray-800 text-xs text-gray-400">
-                            <p>관리자 패널 v1.0</p>
-                            <p className="mt-1">© {new Date().getFullYear()} TypologyLab</p>
-                        </div>
-                    )}
                 </div>
             </aside>
 

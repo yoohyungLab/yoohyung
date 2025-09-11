@@ -5,16 +5,6 @@ export function cn(...inputs: ClassValue[]) {
     return twMerge(clsx(inputs));
 }
 
-// 날짜 유틸리티
-export function formatDate(date: Date | string, options?: Intl.DateTimeFormatOptions) {
-    return new Intl.DateTimeFormat('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric',
-        ...options,
-    }).format(new Date(date));
-}
-
 export function formatRelativeTime(date: Date | string) {
     const now = new Date();
     const targetDate = new Date(date);

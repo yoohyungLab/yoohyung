@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
-import { testApi } from '@repo/supabase';
+import { testService } from '@repo/supabase';
 import type { Test } from '../../types/test';
 import { Search, Eye, Edit, Trash2, Globe, Lock, Plus, Calendar, MessageSquare, BarChart3, Download, Copy } from 'lucide-react';
 
@@ -23,17 +23,9 @@ export function TestListPage() {
     const [totalPages, setTotalPages] = useState(1);
     const pageSize = 20;
 
-    useEffect(() => {
-        loadTests();
-    }, []);
-
-    useEffect(() => {
-        filterAndSortTests();
-    }, [filterAndSortTests]);
-
     const loadTests = async () => {
         try {
-            const data = await testApi.getAllTests();
+            const data = await testService.getAllTests();
             setTests(data);
         } catch (error) {
             console.error('테스트 목록을 불러오는데 실패했습니다:', error);
@@ -95,9 +87,17 @@ export function TestListPage() {
         setTotalPages(Math.ceil(filtered.length / pageSize));
     }, [tests, searchTerm, statusFilter, categoryFilter, sortBy, sortOrder, currentPage]);
 
+    useEffect(() => {
+        loadTests();
+    }, []);
+
+    useEffect(() => {
+        filterAndSortTests();
+    }, [filterAndSortTests]);
+
     const handleTogglePublish = async (testId: string, currentStatus: boolean) => {
         try {
-            await testApi.togglePublishStatus(testId, !currentStatus);
+            await testService.togglePublishStatus(testId, !currentStatus);
             await loadTests();
         } catch (error) {
             console.error('상태 변경에 실패했습니다:', error);
@@ -107,7 +107,7 @@ export function TestListPage() {
     const handleDelete = async (testId: string) => {
         if (window.confirm('정말로 이 테스트를 삭제하시겠습니까?')) {
             try {
-                await testApi.deleteTest(testId);
+                await testService.deleteTest(testId);
                 await loadTests();
             } catch (error) {
                 console.error('테스트 삭제에 실패했습니다:', error);
@@ -120,7 +120,7 @@ export function TestListPage() {
 
         try {
             for (const testId of selectedTests) {
-                await testApi.togglePublishStatus(testId, isPublished);
+                await testService.togglePublishStatus(testId, isPublished);
             }
             setSelectedTests([]);
             loadTests();
@@ -135,7 +135,7 @@ export function TestListPage() {
 
         try {
             for (const testId of selectedTests) {
-                await testApi.deleteTest(testId);
+                await testService.deleteTest(testId);
             }
             setSelectedTests([]);
             loadTests();
@@ -185,7 +185,7 @@ export function TestListPage() {
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 p-5">
             {/* 헤더 */}
             <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>

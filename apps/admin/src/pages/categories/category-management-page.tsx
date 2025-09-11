@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea, Badge } from '@repo/ui';
-import { categoryApi } from "@repo/supabase";
-import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Save, X, Hash, Search, Filter } from 'lucide-react';
+import { categoryService } from '@repo/supabase';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Input, Textarea } from '@repo/ui';
+import { Edit, Eye, EyeOff, Hash, Plus, Save, Search, Trash2, X } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface Category {
     id: number;
@@ -28,6 +28,7 @@ export default function CategoryManagementPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterActive, setFilterActive] = useState<'all' | 'active' | 'inactive'>('all');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
     useEffect(() => {
         loadCategories();
@@ -36,7 +37,7 @@ export default function CategoryManagementPage() {
     const loadCategories = async () => {
         try {
             setLoading(true);
-            const data = await categoryApi.getAllCategories();
+            const data = await categoryService.getAllCategories();
             setCategories(data);
         } catch (error) {
             console.error('카테고리 로드 실패:', error);
@@ -60,7 +61,7 @@ export default function CategoryManagementPage() {
                 slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
             };
 
-            await categoryApi.createCategory(categoryData);
+            await categoryService.createCategory(categoryData);
             setShowCreateForm(false);
             setFormData({ name: '', display_name: '', description: '', sort_order: 0 });
             loadCategories();
@@ -88,7 +89,7 @@ export default function CategoryManagementPage() {
                 slug: formData.name.toLowerCase().replace(/\s+/g, '-'),
             };
 
-            await categoryApi.updateCategory(editingCategory.id, categoryData);
+            await categoryService.updateCategory(editingCategory.id, categoryData);
             setEditingCategory(null);
             setFormData({ name: '', display_name: '', description: '', sort_order: 0 });
             loadCategories();
@@ -104,7 +105,7 @@ export default function CategoryManagementPage() {
         if (!confirm('정말로 이 카테고리를 삭제하시겠습니까?\n삭제된 카테고리는 복구할 수 없습니다.')) return;
 
         try {
-            await categoryApi.deleteCategory(id);
+            await categoryService.deleteCategory(id);
             loadCategories();
         } catch (error) {
             console.error('카테고리 삭제 실패:', error);
@@ -114,11 +115,26 @@ export default function CategoryManagementPage() {
 
     const handleToggleActive = async (category: Category) => {
         try {
-            await categoryApi.updateCategory(category.id, { is_active: !category.is_active });
+            await categoryService.updateCategory(category.id, { is_active: !category.is_active });
             loadCategories();
         } catch (error) {
             console.error('카테고리 상태 변경 실패:', error);
             alert('카테고리 상태 변경에 실패했습니다.');
+        }
+    };
+
+    const handleBulkStatusChange = async (isActive: boolean) => {
+        if (selectedCategories.length === 0) return;
+
+        try {
+            for (const categoryId of selectedCategories) {
+                await categoryService.updateCategory(categoryId, { is_active: isActive });
+            }
+            setSelectedCategories([]);
+            loadCategories();
+        } catch (error) {
+            console.error('대량 상태 변경 실패:', error);
+            alert('대량 상태 변경에 실패했습니다.');
         }
     };
 
@@ -169,122 +185,103 @@ export default function CategoryManagementPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-[400px]">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                    <p className="text-gray-600 text-lg">카테고리를 불러오는 중...</p>
-                </div>
+            <div className="flex items-center justify-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <span className="ml-2">카테고리 목록을 불러오는 중...</span>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6 p-6">
-            {/* 헤더 섹션 */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
-                    <div className="flex-1">
-                        <h1 className="text-3xl font-bold text-gray-900 mb-2">📂 카테고리 관리</h1>
-                        <p className="text-gray-600 text-lg">테스트 카테고리를 체계적으로 관리하고 구성하세요</p>
-                    </div>
-                    <div className="flex flex-col items-end gap-2">
-                        <div className="text-3xl font-bold text-blue-600">{categories.length}</div>
-                        <div className="text-sm text-gray-500 font-medium">전체 카테고리</div>
-                    </div>
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">📂 카테고리 관리</h1>
+                    <p className="text-gray-600 mt-1">테스트 카테고리를 체계적으로 관리하고 구성하세요</p>
+                </div>
+                <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">{categories.length}</div>
+                    <div className="text-sm text-gray-500">전체 카테고리</div>
                 </div>
             </div>
 
-            {/* 통계 카드 */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <Card className="border-l-4 border-l-green-500">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">활성 카테고리</p>
-                                <p className="text-3xl font-bold text-green-600">{activeCount}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-                                <Eye className="w-6 h-6 text-green-600" />
-                            </div>
-                        </div>
-                    </CardContent>
+            {/* Stats Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+                <Card className="p-4">
+                    <div className="text-center">
+                        <div className="text-lg font-semibold text-green-600">{activeCount}</div>
+                        <div className="text-sm text-gray-500">활성 카테고리</div>
+                    </div>
                 </Card>
-
-                <Card className="border-l-4 border-l-red-500">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">비활성 카테고리</p>
-                                <p className="text-3xl font-bold text-red-600">{inactiveCount}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-                                <EyeOff className="w-6 h-6 text-red-600" />
-                            </div>
-                        </div>
-                    </CardContent>
+                <Card className="p-4">
+                    <div className="text-center">
+                        <div className="text-lg font-semibold text-red-600">{inactiveCount}</div>
+                        <div className="text-sm text-gray-500">비활성</div>
+                    </div>
                 </Card>
-
-                <Card className="border-l-4 border-l-blue-500">
-                    <CardContent className="p-6">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-sm font-medium text-gray-600">총 카테고리</p>
-                                <p className="text-3xl font-bold text-blue-600">{categories.length}</p>
-                            </div>
-                            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                                <Hash className="w-6 h-6 text-blue-600" />
-                            </div>
-                        </div>
-                    </CardContent>
+                <Card className="p-4">
+                    <div className="text-center">
+                        <div className="text-lg font-semibold text-blue-600">{categories.length}</div>
+                        <div className="text-sm text-gray-500">총 카테고리</div>
+                    </div>
                 </Card>
             </div>
 
-            {/* 검색 및 필터 섹션 */}
-            <Card className="shadow-sm border border-gray-200">
-                <CardContent className="p-6">
-                    <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
-                        {/* 검색 */}
-                        <div className="flex-1 relative min-w-0">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                            <Input
-                                type="text"
-                                placeholder="카테고리 이름이나 표시 이름으로 검색..."
-                                value={searchTerm}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
-                                className="pl-10 pr-4 py-3 text-base"
-                            />
-                        </div>
+            {/* Search & Filters */}
+            <Card className="p-4">
+                <div className="flex flex-col lg:flex-row gap-4">
+                    {/* Search */}
+                    <div className="flex-1 relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                            type="text"
+                            placeholder="카테고리 이름이나 표시 이름으로 검색..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                    </div>
 
-                        {/* 필터 */}
-                        <div className="flex items-center gap-2">
-                            <Filter className="w-5 h-5 text-gray-400" />
-                            <select
-                                value={filterActive}
-                                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                                    setFilterActive(e.target.value as 'all' | 'active' | 'inactive')
-                                }
-                                className="px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white text-gray-700 font-medium"
-                            >
-                                <option value="all">전체 보기</option>
-                                <option value="active">활성만</option>
-                                <option value="inactive">비활성만</option>
-                            </select>
-                        </div>
-
-                        {/* 새 카테고리 추가 버튼 */}
-                        <Button
-                            onClick={handleCreateFormOpen}
-                            className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                    {/* Filters */}
+                    <div className="flex gap-2">
+                        <select
+                            value={filterActive}
+                            onChange={(e) => setFilterActive(e.target.value as 'all' | 'active' | 'inactive')}
+                            className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
-                            <Plus className="w-5 h-5" />새 카테고리
+                            <option value="all">전체 상태</option>
+                            <option value="active">활성</option>
+                            <option value="inactive">비활성</option>
+                        </select>
+
+                        <Button onClick={handleCreateFormOpen} className="flex items-center gap-2">
+                            <Plus className="w-4 h-4" />새 카테고리
                         </Button>
                     </div>
-                </CardContent>
+                </div>
+
+                {/* Bulk Actions */}
+                {selectedCategories.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-600">{selectedCategories.length}개 선택됨</span>
+                            <div className="flex gap-2">
+                                <Button size="sm" variant="outline" onClick={() => handleBulkStatusChange(true)}>
+                                    활성화
+                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => handleBulkStatusChange(false)}>
+                                    비활성화
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                )}
             </Card>
 
             {/* 생성/수정 폼 */}
             {(showCreateForm || editingCategory) && (
-                <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
+                <Card className="border-2 border-blue-200 bg-gradient-to-r from-blue-50 to-indigo-50">
                     <CardHeader className="pb-4">
                         <CardTitle className="flex items-center gap-3 text-blue-800">
                             {editingCategory ? (
@@ -299,19 +296,17 @@ export default function CategoryManagementPage() {
                             )}
                         </CardTitle>
                     </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <CardContent className="space-y-4">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                             <div className="space-y-2">
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">
                                     카테고리 이름 (영문) <span className="text-red-500">*</span>
                                 </label>
                                 <Input
                                     value={formData.name}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                        setFormData({ ...formData, name: e.target.value.toLowerCase() })
-                                    }
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value.toLowerCase() })}
                                     placeholder="personality"
-                                    className="font-mono text-base py-3"
+                                    className="font-mono"
                                 />
                                 <p className="text-xs text-gray-500">소문자, 숫자, 언더스코어만 사용 가능</p>
                             </div>
@@ -321,11 +316,8 @@ export default function CategoryManagementPage() {
                                 </label>
                                 <Input
                                     value={formData.display_name}
-                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                        setFormData({ ...formData, display_name: e.target.value })
-                                    }
+                                    onChange={(e) => setFormData({ ...formData, display_name: e.target.value })}
                                     placeholder="성격"
-                                    className="text-base py-3"
                                 />
                             </div>
                         </div>
@@ -334,12 +326,10 @@ export default function CategoryManagementPage() {
                             <label className="block text-sm font-semibold text-gray-700 mb-2">설명</label>
                             <Textarea
                                 value={formData.description}
-                                onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-                                    setFormData({ ...formData, description: e.target.value })
-                                }
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                                 placeholder="카테고리에 대한 상세한 설명을 입력하세요"
                                 rows={3}
-                                className="text-base resize-none"
+                                className="resize-none"
                             />
                         </div>
 
@@ -348,11 +338,9 @@ export default function CategoryManagementPage() {
                             <Input
                                 type="number"
                                 value={formData.sort_order}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                                    setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })
-                                }
+                                onChange={(e) => setFormData({ ...formData, sort_order: parseInt(e.target.value) || 0 })}
                                 min="0"
-                                className="w-32 text-base py-3"
+                                className="w-32"
                             />
                             <p className="text-xs text-gray-500">숫자가 작을수록 먼저 표시됩니다</p>
                         </div>
@@ -361,7 +349,7 @@ export default function CategoryManagementPage() {
                             <Button
                                 onClick={editingCategory ? handleUpdateCategory : handleCreateCategory}
                                 disabled={isSubmitting}
-                                className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:opacity-50"
+                                className="flex items-center gap-2"
                             >
                                 {isSubmitting ? (
                                     <>
@@ -370,13 +358,13 @@ export default function CategoryManagementPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <Save className="w-5 h-5" />
+                                        <Save className="w-4 h-4" />
                                         {editingCategory ? '수정 완료' : '카테고리 생성'}
                                     </>
                                 )}
                             </Button>
-                            <Button variant="outline" onClick={cancelEdit} className="flex items-center gap-2 px-6 py-3">
-                                <X className="w-5 h-5" />
+                            <Button variant="outline" onClick={cancelEdit} className="flex items-center gap-2">
+                                <X className="w-4 h-4" />
                                 취소
                             </Button>
                         </div>
@@ -384,117 +372,137 @@ export default function CategoryManagementPage() {
                 </Card>
             )}
 
-            {/* 카테고리 목록 */}
-            <div className="space-y-4">
-                {sortedCategories.length === 0 ? (
-                    <Card className="border-2 border-dashed border-gray-300 bg-gray-50">
-                        <CardContent className="p-12 text-center">
-                            <div className="text-6xl mb-6">📂</div>
-                            <h3 className="text-xl font-semibold text-gray-900 mb-3">카테고리가 없습니다</h3>
-                            <p className="text-gray-600 mb-6 max-w-md mx-auto">
-                                {searchTerm || filterActive !== 'all'
-                                    ? '검색 조건에 맞는 카테고리가 없습니다. 다른 검색어를 시도해보세요.'
-                                    : '첫 번째 카테고리를 생성하여 테스트 분류를 시작해보세요!'}
-                            </p>
-                            {!searchTerm && filterActive === 'all' && (
-                                <Button
-                                    onClick={handleCreateFormOpen}
-                                    className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700"
-                                >
-                                    <Plus className="w-5 h-5" />첫 번째 카테고리 생성하기
-                                </Button>
-                            )}
-                        </CardContent>
-                    </Card>
-                ) : (
-                    sortedCategories.map((category) => (
-                        <Card
-                            key={category.id}
-                            className={`transition-all duration-200 hover:shadow-md border-l-4 ${
-                                !category.is_active ? 'opacity-75 bg-gray-50 border-l-gray-400' : 'border-l-blue-500'
-                            }`}
-                        >
-                            <CardContent className="p-6">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4 flex-1 min-w-0">
-                                        <div className="flex-shrink-0">
-                                            <GripVertical className="text-gray-400 w-5 h-5" />
+            {/* Category List */}
+            <div className="bg-white rounded-lg border overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead className="bg-gray-50 border-b">
+                            <tr>
+                                <th className="px-4 py-3 text-left">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedCategories.length === categories.length && categories.length > 0}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedCategories(categories.map((c) => c.id));
+                                            } else {
+                                                setSelectedCategories([]);
+                                            }
+                                        }}
+                                        className="rounded border-gray-300"
+                                    />
+                                </th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">표시 이름</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">이름</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">설명</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">상태</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">순서</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">수정일</th>
+                                <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">액션</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-200">
+                            {sortedCategories.map((category) => (
+                                <tr key={category.id} className="hover:bg-gray-50">
+                                    <td className="px-4 py-3">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedCategories.includes(category.id)}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedCategories((prev) => [...prev, category.id]);
+                                                } else {
+                                                    setSelectedCategories((prev) => prev.filter((id) => id !== category.id));
+                                                }
+                                            }}
+                                            className="rounded border-gray-300"
+                                        />
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-sm font-medium text-gray-900">{category.display_name}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-sm text-gray-500 font-mono">{category.name}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-sm text-gray-500 max-w-xs truncate">{category.description || '-'}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <Badge
+                                            className={`flex items-center gap-1 w-fit ${
+                                                category.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                                            }`}
+                                        >
+                                            {category.is_active ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                                            {category.is_active ? '활성' : '비활성'}
+                                        </Badge>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-sm text-gray-900">{category.sort_order}</div>
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="text-sm text-gray-900">
+                                            {new Date(category.updated_at).toLocaleDateString('ko-KR', {
+                                                year: 'numeric',
+                                                month: 'short',
+                                                day: 'numeric',
+                                            })}
                                         </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-xl font-semibold text-gray-900 truncate">{category.display_name}</h3>
-                                                <Badge
-                                                    variant="outline"
-                                                    className={`text-xs font-medium ${
-                                                        category.is_active
-                                                            ? 'border-green-200 text-green-700 bg-green-50'
-                                                            : 'border-gray-200 text-gray-600 bg-gray-50'
-                                                    }`}
-                                                >
-                                                    {category.is_active ? '활성' : '비활성'}
-                                                </Badge>
-                                            </div>
-                                            <p className="text-sm text-gray-600 font-mono mb-1">{category.name}</p>
-                                            {category.description && (
-                                                <p className="text-sm text-gray-500 line-clamp-2">{category.description}</p>
-                                            )}
-                                        </div>
-                                    </div>
-
-                                    <div className="flex items-center gap-4 flex-shrink-0">
-                                        <div className="text-right mr-4">
-                                            <Badge variant="outline" className="text-xs font-medium mb-2">
-                                                순서: {category.sort_order}
-                                            </Badge>
-                                            <div className="text-xs text-gray-500">
-                                                {new Date(category.updated_at).toLocaleDateString('ko-KR', {
-                                                    year: 'numeric',
-                                                    month: 'short',
-                                                    day: 'numeric',
-                                                    hour: '2-digit',
-                                                    minute: '2-digit',
-                                                })}
-                                            </div>
-                                        </div>
-
-                                        <div className="flex items-center gap-1">
+                                    </td>
+                                    <td className="px-4 py-3">
+                                        <div className="flex items-center gap-2">
                                             <Button
-                                                variant="ghost"
                                                 size="sm"
+                                                variant="outline"
                                                 onClick={() => handleToggleActive(category)}
-                                                className={`hover:bg-gray-100 p-2 ${
-                                                    category.is_active ? 'text-green-600' : 'text-gray-600'
-                                                }`}
-                                                title={category.is_active ? '비활성화' : '활성화'}
+                                                className={category.is_active ? 'text-green-600' : 'text-gray-600'}
                                             >
                                                 {category.is_active ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
                                             </Button>
+
                                             <Button
-                                                variant="ghost"
                                                 size="sm"
+                                                variant="outline"
                                                 onClick={() => startEdit(category)}
-                                                className="hover:bg-blue-50 text-blue-600 p-2"
-                                                title="수정"
+                                                className="text-blue-600 hover:bg-blue-50"
                                             >
                                                 <Edit className="w-4 h-4" />
                                             </Button>
+
                                             <Button
-                                                variant="ghost"
                                                 size="sm"
+                                                variant="outline"
                                                 onClick={() => handleDeleteCategory(category.id)}
-                                                className="hover:bg-red-50 text-red-600 p-2"
-                                                title="삭제"
+                                                className="text-red-600 border-red-600 hover:bg-red-50"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </Button>
                                         </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))
-                )}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
+
+            {/* Empty State */}
+            {sortedCategories.length === 0 && !loading && (
+                <Card className="p-12 text-center">
+                    <Hash className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">카테고리가 없습니다</h3>
+                    <p className="text-gray-500 mb-6">
+                        {searchTerm || filterActive !== 'all'
+                            ? '검색 조건에 맞는 카테고리가 없습니다. 다른 검색어를 시도해보세요.'
+                            : '첫 번째 카테고리를 생성하여 테스트 분류를 시작해보세요!'}
+                    </p>
+                    {!searchTerm && filterActive === 'all' && (
+                        <Button onClick={handleCreateFormOpen} className="flex items-center gap-2">
+                            <Plus className="w-4 h-4" />첫 번째 카테고리 생성하기
+                        </Button>
+                    )}
+                </Card>
+            )}
         </div>
     );
 }
