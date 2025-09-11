@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import { supabase } from '@repo/supabase';
 import type { Test, CreateTestRequest } from '@/types/test';
 
 interface DBQuestion {
@@ -222,7 +222,7 @@ export const testService = {
 
         return {
             totalTests: tests?.length || 0,
-            publishedTests: tests?.filter((t) => (t as any).is_published).length || 0,
+            publishedTests: tests?.filter((t) => (t as { is_published?: boolean }).is_published).length || 0,
             totalResponses: responses?.length || 0,
             todayResponses,
         };

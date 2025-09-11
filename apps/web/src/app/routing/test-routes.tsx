@@ -1,11 +1,15 @@
-import { EgenTetoTestPage, TestCallbackPage, TestResultPage } from '@/pages/tests/egen-teto';
-import { ResultPage } from '@/pages/tests/result-page';
-import DynamicTestPage from '@/pages/tests/dynamic-test-page';
-import DynamicResultPage from '@/pages/tests/dynamic-result-page';
-import { LoginPage } from '@/pages/auth/login';
-import { default as RegisterPage } from '@/pages/auth/register';
-import AuthCallbackPage from '@/pages/auth/auth-callback-page';
-import { FeedbackPage, FeedbackNewPage, FeedbackDetailPage } from '@/pages/feedback';
+import EgenTetoTestPage from '@/app/tests/egen-teto/page';
+import TestCallbackPage from '@/app/tests/egen-teto/callback/page';
+import TestResultPage from '@/app/tests/egen-teto/result/page';
+import ResultPage from '@/app/tests/result/page';
+import DynamicTestPage from '@/app/tests/[slug]/page';
+import DynamicResultPage from '@/app/tests/[slug]/result/page';
+import LoginPage from '@/app/auth/login/page';
+import RegisterPage from '@/app/auth/register/page';
+import AuthCallbackPage from '@/app/auth/callback/page';
+import FeedbackPage from '@/app/feedback/page';
+import FeedbackNewPage from '@/app/feedback/new/page';
+import FeedbackDetailPage from '@/app/feedback/[id]/page';
 // import FeedbackEditPage from '@/pages/feedback/feedback-edit-page';
 
 // 테스트 라우트 설정을 객체로 관리

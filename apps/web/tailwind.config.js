@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
-module.exports = {
+export default {
+    darkMode: ['class'],
     content: [
         './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
         './src/components/**/*.{js,ts,jsx,tsx,mdx}',
@@ -9,11 +10,17 @@ module.exports = {
         './src/widgets/**/*.{js,ts,jsx,tsx,mdx}',
         './src/shared/**/*.{js,ts,jsx,tsx,mdx}',
     ],
+    prefix: '',
     theme: {
-        extend: {
-            maxWidth: {
-                mobile: '480px',
+        container: {
+            center: true,
+            padding: '2rem',
+            screens: {
+                '2xl': '1400px',
             },
+        },
+        extend: {
+            // shadcn/ui 색상 시스템
             colors: {
                 border: 'hsl(var(--border))',
                 input: 'hsl(var(--input))',
@@ -48,6 +55,49 @@ module.exports = {
                     DEFAULT: 'hsl(var(--card))',
                     foreground: 'hsl(var(--card-foreground))',
                 },
+                // 기존 커스텀 색상들 유지
+                pink: {
+                    50: '#fff5f7',
+                    100: '#ffe0e8',
+                    200: '#ffb6c1',
+                    500: '#ff6b9a',
+                },
+            },
+            // 기존 설정들 유지
+            boxShadow: {
+                soft: '0 4px 12px rgba(0, 0, 0, 0.05)',
+            },
+            fontFamily: {
+                sans: [
+                    'Pretendard',
+                    '-apple-system',
+                    'BlinkMacSystemFont',
+                    'system-ui',
+                    'Roboto',
+                    'Helvetica Neue',
+                    'Segoe UI',
+                    'Apple SD Gothic Neo',
+                    'Noto Sans KR',
+                    'Malgun Gothic',
+                    'Apple Color Emoji',
+                    'Segoe UI Emoji',
+                    'Segoe UI Symbol',
+                    'sans-serif',
+                ],
+            },
+            // 기존 screens 설정 유지하면서 shadcn/ui와 통합
+            screens: {
+                xs: '475px',
+                sm: '640px',
+                md: '768px',
+                lg: '1024px',
+                xl: '1280px',
+                '2xl': '1536px',
+            },
+            maxWidth: {
+                mobile: '480px',
+                tablet: '768px',
+                desktop: '1024px',
             },
             borderRadius: {
                 lg: 'var(--radius)',
@@ -56,22 +106,17 @@ module.exports = {
             },
             keyframes: {
                 'accordion-down': {
-                    from: { height: 0 },
+                    from: { height: '0' },
                     to: { height: 'var(--radix-accordion-content-height)' },
                 },
                 'accordion-up': {
                     from: { height: 'var(--radix-accordion-content-height)' },
-                    to: { height: 0 },
-                },
-                fadeIn: {
-                    '0%': { opacity: '0', transform: 'translateY(10px)' },
-                    '100%': { opacity: '1', transform: 'translateY(0)' },
+                    to: { height: '0' },
                 },
             },
             animation: {
                 'accordion-down': 'accordion-down 0.2s ease-out',
                 'accordion-up': 'accordion-up 0.2s ease-out',
-                fadeIn: 'fadeIn 200ms ease-out',
             },
         },
     },

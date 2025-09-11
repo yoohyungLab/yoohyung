@@ -8,7 +8,7 @@ export function useTestResult() {
     const searchParams = useSearchParams();
 
     // const resultType = searchParams.get('type') as TestResult | null;
-    const resultType = searchParams?.get('type') as any | null;
+    const resultType = searchParams?.get('type') as string | null;
     const isShared = searchParams?.get('shared') === 'true';
 
     const getResultData = () => {

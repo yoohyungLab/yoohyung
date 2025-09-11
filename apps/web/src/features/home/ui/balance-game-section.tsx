@@ -1,16 +1,16 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 interface BalanceGame {
-    id: string
-    question: string
-    optionA: string
-    optionB: string
-    votesA: number
-    votesB: number
+    id: string;
+    question: string;
+    optionA: string;
+    optionB: string;
+    votesA: number;
+    votesB: number;
 }
 
 interface BalanceGameSectionProps {
-    games?: BalanceGame[]
+    games?: BalanceGame[];
 }
 
 export function BalanceGameSection({ games = [] }: BalanceGameSectionProps) {
@@ -39,9 +39,9 @@ export function BalanceGameSection({ games = [] }: BalanceGameSectionProps) {
             votesA: 42,
             votesB: 58,
         },
-    ]
+    ];
 
-    const gameData = games.length > 0 ? games : defaultGames
+    const gameData = games.length > 0 ? games : defaultGames;
 
     return (
         <section className="mb-12">
@@ -67,7 +67,7 @@ export function BalanceGameSection({ games = [] }: BalanceGameSectionProps) {
                                 <span className="text-sm text-gray-500">{game.votesA}%</span>
                             </div>
                             <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
+                                <div
                                     className="bg-blue-500 h-2 rounded-full transition-all duration-300"
                                     style={{ width: `${game.votesA}%` }}
                                 />
@@ -84,5 +84,5 @@ export function BalanceGameSection({ games = [] }: BalanceGameSectionProps) {
                 ))}
             </div>
         </section>
-    )
+    );
 }

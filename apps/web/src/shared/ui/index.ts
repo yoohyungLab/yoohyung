@@ -1,3 +1,1 @@
-export * from './cards/carousel-card';
-export * from './cards/home-card';
-export * from './carousel';
+// UI 컴포넌트들은 이제 @repo/ui에서 import

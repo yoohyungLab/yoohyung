@@ -1,4 +1,6 @@
 import React from 'react';
+import Link from 'next/link';
+import Image from 'next/image';
 
 export const Footer = () => {
     return (
@@ -6,7 +8,7 @@ export const Footer = () => {
             <div className="px-4 py-6">
                 {/* 로고 및 설명 */}
                 <div className="flex items-center mb-10">
-                    <img src="/icons/logo.svg" alt="로고" className="w-10 h-10 mr-2" />
+                    <Image src="/icons/logo.svg" alt="로고" width={40} height={40} className="mr-2" />
                     <div>
                         <h3 className="text-lg font-bold text-gray-900">유형연구소</h3>
                         <p className="text-sm text-gray-600">나는 누구일까? 알아보는 재미!</p>
@@ -17,18 +19,18 @@ export const Footer = () => {
                 <div className="mb-6">
                     <h4 className="text-sm font-semibold text-gray-900 mb-3">다른 테스트도 궁금하다면?</h4>
                     <div className="grid grid-cols-2 gap-2">
-                        <a href="/tests/egen-teto" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
+                        <Link href="/tests/egen-teto" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
                             에겐·테토 테스트
-                        </a>
-                        <a href="/tests/mbti" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
+                        </Link>
+                        <Link href="/tests/mbti" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
                             MBTI 테스트
-                        </a>
-                        <a href="/tests/enneagram" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
+                        </Link>
+                        <Link href="/tests/enneagram" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
                             에니어그램
-                        </a>
-                        <a href="/tests/iq" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
+                        </Link>
+                        <Link href="/tests/iq" className="text-sm text-gray-600 hover:text-pink-500 py-1 transition-colors">
                             IQ 퀴즈
-                        </a>
+                        </Link>
                     </div>
                 </div>
 

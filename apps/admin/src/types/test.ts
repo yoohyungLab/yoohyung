@@ -23,7 +23,7 @@ export interface TestResult {
     backgroundImage?: string;
     condition: {
         type: 'score' | 'pattern';
-        value: any;
+        value: number | string;
     };
 }
 

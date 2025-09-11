@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import { supabase } from '@repo/supabase';
 
 export interface Profile {
     id: string;
@@ -240,7 +240,7 @@ export const profileService = {
             if (tests) testDetails = tests as PartialTestForActivity[];
         }
 
-        return (responses as any[]).map((item) => {
+        return (responses as unknown[]).map((item: { id: string; test_id: string; completed_at?: string; created_at: string }) => {
             const testInfo = testDetails.find((t) => t.id === item.test_id);
             const isCompleted = !!item.completed_at;
             return {

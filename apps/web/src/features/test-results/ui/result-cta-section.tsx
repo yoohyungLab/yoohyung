@@ -8,7 +8,7 @@ interface ResultCtaSectionProps {
     };
 }
 
-export function ResultCtaSection({ result }: ResultCtaSectionProps) {
+export function ResultCtaSection({}: ResultCtaSectionProps) {
     return (
         <div className="bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg p-6 text-white">
             <h2 className="text-xl font-bold mb-4">결과 공유하기</h2>

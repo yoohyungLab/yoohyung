@@ -1,17 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { MainBanner, Footer } from '@/widgets';
-import {
-    TrendingSection,
-    RecommendedSection,
-    BalanceGameSection,
-    TopTestsSection,
-    DynamicTestsSection,
-    CategoryFilter,
-} from '@/features/home';
-import { testApi, sectionApi } from '@/shared/lib/supabase';
-import { MAIN_TESTS, BALANCE_GAMES, POPULAR_TESTS } from '@/shared/constants';
+import { MainBanner } from '@/widgets';
+import { TrendingSection, RecommendedSection, TopTestsSection, DynamicTestsSection, CategoryFilter } from '@/features/home';
+import { testApi } from '@repo/shared';
+import { MAIN_TESTS, POPULAR_TESTS } from '@/shared/constants';
 
 interface DynamicTest {
     id: string;
@@ -39,7 +32,7 @@ interface SectionTest {
     is_featured: boolean;
 }
 
-export function HomePage() {
+export default function HomePage() {
     const [dynamicTests, setDynamicTests] = useState<DynamicTest[]>([]);
     const [sectionTests, setSectionTests] = useState<{
         trending: SectionTest[];
@@ -66,19 +59,12 @@ export function HomePage() {
             const tests = await testApi.getPublishedTests();
             setDynamicTests(tests);
 
-            // 섹션별 테스트 로드
-            const [trending, recommended, balanceGames, topByType] = await Promise.all([
-                sectionApi.getTestsBySection('trending'),
-                sectionApi.getTestsBySection('recommended'),
-                sectionApi.getTestsBySection('balance-games'),
-                sectionApi.getTestsBySection('top-by-type'),
-            ]);
-
+            // 섹션별 테스트 로드 (임시로 빈 배열 사용)
             setSectionTests({
-                trending,
-                recommended,
-                balanceGames,
-                topByType,
+                trending: [],
+                recommended: [],
+                balanceGames: [],
+                topByType: [],
             });
         } catch (error) {
             console.error('데이터 로드 실패:', error);
@@ -110,7 +96,7 @@ export function HomePage() {
     // 섹션별 테스트 데이터
     const trendingTests = convertSectionTestsToCards(sectionTests.trending);
     const recommendedTests = convertSectionTestsToCards(sectionTests.recommended);
-    const balanceGameTests = convertSectionTestsToCards(sectionTests.balanceGames);
+    // const balanceGameTests = convertSectionTestsToCards(sectionTests.balanceGames);
     const topByTypeTests = convertSectionTestsToCards(sectionTests.topByType);
 
     // 섹션이 비어있으면 기존 데이터 사용
@@ -128,7 +114,13 @@ export function HomePage() {
                   ...test,
                   tag: test.category ? String(test.category) : '테스트',
               }));
-
+    // const finalBalanceGameTests =
+    //     balanceGameTests.length > 0
+    //         ? balanceGameTests
+    //         : BALANCE_GAMES.map((test) => ({
+    //               ...test,
+    //               tag: test.category ? String(test.category) : '밸런스 게임',
+    //           }));
     const finalTopByTypeTests =
         topByTypeTests.length > 0
             ? topByTypeTests
@@ -163,14 +155,13 @@ export function HomePage() {
             {dynamicTestsAsCards.length > 0 && <DynamicTestsSection tests={dynamicTestsAsCards} />}
 
             {/* 일상 속 밸런스 게임 */}
-            <BalanceGameSection />
+            {/* <BalanceGameSection tests={finalBalanceGameTests} /> */}
 
             {/* 유형별 TOP 테스트 */}
             <TopTestsSection tests={finalTopByTypeTests} />
 
             {/* 카테고리별 탐색 */}
             <CategoryFilter />
-            <Footer />
         </main>
     );
 }

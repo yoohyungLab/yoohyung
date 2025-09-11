@@ -1,4 +1,4 @@
-import { Button, Card, CardContent, CardHeader, CardTitle } from '@typologylab/ui';
+import { Button, Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
 import { Activity, BarChart3, ExternalLink, FileText, Plus, RefreshCw, Target, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';

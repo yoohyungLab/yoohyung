@@ -13,7 +13,7 @@ interface DynamicTestsSectionProps {
 }
 
 export function DynamicTestsSection({ tests }: DynamicTestsSectionProps) {
-    const { isFavorite, toggleFavorite } = useFavorites();
+    const { toggleFavorite, isFavorite } = useFavorites();
 
     if (tests.length === 0) return null;
 

@@ -12,7 +12,7 @@ interface ResultCtaSectionProps {
     onSubscribe: () => void;
 }
 
-export function ResultCtaSection({ resultType, totalScore, isLoggedIn, onShare, onSave, onSignUp, onSubscribe }: ResultCtaSectionProps) {
+export function ResultCtaSection({ totalScore, isLoggedIn, onShare, onSave, onSignUp, onSubscribe }: ResultCtaSectionProps) {
     const [showMoreTests, setShowMoreTests] = useState(false);
 
     // 추천 테스트 생성 (태그 기반)

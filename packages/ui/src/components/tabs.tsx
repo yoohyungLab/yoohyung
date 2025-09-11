@@ -1,63 +1,87 @@
+'use client';
+
 import * as React from 'react';
 import { cn } from '../lib/utils';
 
-interface TabsProps {
+const TabsContext = React.createContext<{
+    value: string;
+    onValueChange: (value: string) => void;
+}>({
+    value: '',
+    onValueChange: () => {},
+});
+
+const Tabs = ({
+    value,
+    onValueChange,
+    children,
+    ...props
+}: {
     value: string;
     onValueChange: (value: string) => void;
     children: React.ReactNode;
-    className?: string;
-}
-
-interface TabsListProps {
-    children: React.ReactNode;
-    className?: string;
-}
-
-interface TabsTriggerProps {
-    value: string;
-    children: React.ReactNode;
-    className?: string;
-    'data-state'?: string;
-}
-
-interface TabsContentProps {
-    value: string;
-    children: React.ReactNode;
-    className?: string;
-}
-
-export const Tabs: React.FC<TabsProps> = ({ value, onValueChange, children, className }) => {
+} & React.HTMLAttributes<HTMLDivElement>) => {
     return (
-        <div className={cn('w-full', className)}>
-            {React.Children.map(children, (child) => {
-                if (React.isValidElement(child)) {
-                    return React.cloneElement(child, { value, onValueChange } as any);
-                }
-                return child;
-            })}
-        </div>
+        <TabsContext.Provider value={{ value, onValueChange }}>
+            <div {...props}>{children}</div>
+        </TabsContext.Provider>
     );
 };
 
-export const TabsList: React.FC<TabsListProps> = ({ children, className }) => {
-    return <div className={cn('inline-flex h-10 items-center justify-center rounded-md bg-gray-100 p-1', className)}>{children}</div>;
-};
+const TabsList = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDivElement>>(({ className, ...props }, ref) => (
+    <div
+        ref={ref}
+        className={cn('inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground', className)}
+        {...props}
+    />
+));
 
-export const TabsTrigger: React.FC<TabsTriggerProps> = ({ value, children, className, 'data-state': dataState, ...props }) => {
+const TabsTrigger = React.forwardRef<
+    HTMLButtonElement,
+    React.ButtonHTMLAttributes<HTMLButtonElement> & {
+        value: string;
+    }
+>(({ className, value, ...props }, ref) => {
+    const { value: selectedValue, onValueChange } = React.useContext(TabsContext);
+
     return (
         <button
+            ref={ref}
             className={cn(
-                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pink-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 data-[state=active]:bg-white data-[state=active]:text-gray-900 data-[state=active]:shadow-sm',
+                'inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+                selectedValue === value ? 'bg-background text-foreground shadow-sm' : 'hover:bg-background/50',
                 className
             )}
-            data-state={dataState}
+            onClick={() => onValueChange(value)}
             {...props}
-        >
-            {children}
-        </button>
+        />
     );
-};
+});
 
-export const TabsContent: React.FC<TabsContentProps> = ({ value, children, className }) => {
-    return <div className={cn('mt-2', className)}>{children}</div>;
-};
+const TabsContent = React.forwardRef<
+    HTMLDivElement,
+    React.HTMLAttributes<HTMLDivElement> & {
+        value: string;
+    }
+>(({ className, value, ...props }, ref) => {
+    const { value: selectedValue } = React.useContext(TabsContext);
+
+    if (selectedValue !== value) return null;
+
+    return (
+        <div
+            ref={ref}
+            className={cn(
+                'mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+                className
+            )}
+            {...props}
+        />
+    );
+});
+
+TabsList.displayName = 'TabsList';
+TabsTrigger.displayName = 'TabsTrigger';
+TabsContent.displayName = 'TabsContent';
+
+export { Tabs, TabsList, TabsTrigger, TabsContent };

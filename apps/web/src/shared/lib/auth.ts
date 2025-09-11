@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { supabase } from '@/shared/lib/supabase';
+import { supabase } from '@repo/shared';
 
 interface User {
     id: string;

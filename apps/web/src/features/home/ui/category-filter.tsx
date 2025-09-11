@@ -1,4 +1,4 @@
-interface CategoryFilterProps {}
+'use client';
 
 export function CategoryFilter() {
     return (

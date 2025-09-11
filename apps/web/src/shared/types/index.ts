@@ -54,7 +54,7 @@ export interface Feedback {
 }
 
 // API 응답 타입
-export interface ApiResponse<T = any> {
+export interface ApiResponse<T = unknown> {
     data: T;
     message?: string;
     success: boolean;
@@ -71,7 +71,7 @@ export interface Pagination {
 // 분석 이벤트 타입
 export interface AnalyticsEvent {
     event: string;
-    properties?: Record<string, any>;
+    properties?: Record<string, unknown>;
     userId?: string;
     sessionId?: string;
 }

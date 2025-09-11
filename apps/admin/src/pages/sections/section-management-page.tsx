@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '@typologylab/ui';
-import { sectionApi } from '@/lib/supabase';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea } from '@repo/ui';
+import { sectionApi } from '@repo/supabase';
 import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Settings } from 'lucide-react';
 
 interface Section {

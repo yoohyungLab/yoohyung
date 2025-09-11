@@ -1,8 +1,7 @@
 'use client';
 
-import Link from 'next/link';
 import { Heart } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@repo/shared';
 
 interface HomeCardProps {
     id: string;
@@ -11,12 +10,19 @@ interface HomeCardProps {
     tag: string;
     isFavorite: boolean;
     onToggleFavorite: (id: string) => void;
+    href?: string;
+    className?: string;
 }
 
-export function HomeCard({ id, title, image, tag, isFavorite, onToggleFavorite }: HomeCardProps) {
-    return (
-        <div className="group relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-            <Link href={`/tests/${id}`} className="block">
+export function HomeCard({ id, title, image, tag, isFavorite, onToggleFavorite, href = `/tests/${id}`, className }: HomeCardProps) {
+    const CardContent = (
+        <div
+            className={cn(
+                'group relative bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow',
+                className
+            )}
+        >
+            <div className="block">
                 <div className="aspect-square relative overflow-hidden">
                     <img
                         src={image}
@@ -48,7 +54,17 @@ export function HomeCard({ id, title, image, tag, isFavorite, onToggleFavorite }
                         </button>
                     </div>
                 </div>
-            </Link>
+            </div>
         </div>
     );
+
+    if (href) {
+        return (
+            <a href={href} className="block">
+                {CardContent}
+            </a>
+        );
+    }
+
+    return CardContent;
 }

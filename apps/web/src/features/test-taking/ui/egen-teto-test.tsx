@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { EGEN_TETO_QUESTIONS, EGEN_TETO_RESULTS } from '@/shared/constants';
+import { EGEN_TETO_QUESTIONS } from '@/shared/constants';
 import { trackTestStarted, trackTestCompleted } from '@/shared/lib/analytics';
 
 interface Answer {
@@ -54,8 +54,8 @@ export function EgenTetoTest() {
             const normalizedScore = Math.max(0, Math.min(100, ((totalScore + 20) / 40) * 100)); // -20~20을 0~100으로 변환
 
             // 결과 계산
-            const egenCount = newAnswers.filter((a) => a.type.includes('에겐')).length;
-            const tetoCount = newAnswers.filter((a) => a.type.includes('테토')).length;
+            // const egenCount = newAnswers.filter((a) => a.type.includes('에겐')).length;
+            // const tetoCount = newAnswers.filter((a) => a.type.includes('테토')).length;
 
             let resultType: string;
             if (normalizedScore >= 70) {

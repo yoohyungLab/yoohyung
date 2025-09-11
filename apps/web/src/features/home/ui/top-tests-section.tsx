@@ -13,7 +13,7 @@ interface TopTestsSectionProps {
 }
 
 export function TopTestsSection({ tests }: TopTestsSectionProps) {
-    const { isFavorite, toggleFavorite } = useFavorites();
+    const { toggleFavorite, isFavorite } = useFavorites();
 
     return (
         <section className="space-y-4 mt-12">

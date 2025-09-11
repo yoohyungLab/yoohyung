@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, Button, Input } from '@typologylab/ui';
-import { sectionApi, testApi } from '@/lib/supabase';
+import { Card, CardContent, CardHeader, CardTitle, Button } from '@repo/ui';
+import { sectionApi, testApi } from '@repo/supabase';
 import { Plus, Trash2, Star, StarOff, GripVertical, ArrowLeft } from 'lucide-react';
 
 interface Section {
@@ -44,9 +44,9 @@ export default function SectionTestManagementPage() {
         if (sectionId) {
             loadSectionData();
         }
-    }, [sectionId]);
+    }, [sectionId, loadSectionData]);
 
-    const loadSectionData = async () => {
+    const loadSectionData = useCallback(async () => {
         if (!sectionId) return;
 
         try {
@@ -73,7 +73,7 @@ export default function SectionTestManagementPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [sectionId]);
 
     const handleAddTestToSection = async () => {
         if (!sectionId || !selectedTestId) return;

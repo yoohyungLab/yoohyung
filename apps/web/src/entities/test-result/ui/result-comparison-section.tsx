@@ -3,7 +3,7 @@ interface ResultComparisonSectionProps {
     resultType: string;
 }
 
-export function ResultComparisonSection({ totalScore, resultType }: ResultComparisonSectionProps) {
+export function ResultComparisonSection({ totalScore }: ResultComparisonSectionProps) {
     // 비슷한 사람 비율 데이터 (실제로는 API에서 가져와야 함)
     const getSimilarTypes = (score: number) => {
         if (score >= 80) {

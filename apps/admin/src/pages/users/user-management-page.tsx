@@ -1,7 +1,7 @@
 import { Clock, Download, Eye, Search, Trash2, UserCheck, Users, UserX } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@typologylab/ui';
-import { profileApi, type Profile, type ProfileFilters, type ProfileStats, type ProfileWithActivity } from '../../lib/supabase';
+import { useEffect, useState, useCallback } from 'react';
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { profileApi, type Profile, type ProfileFilters, type ProfileStats, type ProfileWithActivity } from '@repo/supabase';
 
 export function UserManagementPage() {
     // State
@@ -10,7 +10,6 @@ export function UserManagementPage() {
     const [error, setError] = useState<string | null>(null);
     const [selectedProfile, setSelectedProfile] = useState<ProfileWithActivity | null>(null);
     const [showProfileModal, setShowProfileModal] = useState(false);
-    const [showFilters, setShowFilters] = useState(false);
     const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
 
     // Filters
@@ -43,7 +42,7 @@ export function UserManagementPage() {
         console.log('UserManagementPage mounted');
         loadProfiles();
         loadStats();
-    }, []);
+    }, [loadProfiles]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -61,10 +60,10 @@ export function UserManagementPage() {
         if (filters.search !== undefined) {
             loadProfiles();
         }
-    }, [filters]);
+    }, [filters, loadProfiles]);
 
     // API calls
-    const loadProfiles = async () => {
+    const loadProfiles = useCallback(async () => {
         console.log('Loading profiles...');
         setLoading(true);
         setError(null);
@@ -91,7 +90,7 @@ export function UserManagementPage() {
         } finally {
             setLoading(false);
         }
-    };
+    }, [filters, statusFilter, providerFilter, currentPage]);
 
     const loadStats = async () => {
         console.log('Loading stats...');
@@ -566,16 +565,16 @@ export function UserManagementPage() {
 }
 
 // Profile Detail Modal Component
-function ProfileDetailModal({ profile, onClose, onUpdate }: { profile: ProfileWithActivity; onClose: () => void; onUpdate: () => void }) {
-    const [activities, setActivities] = useState<any[]>([]);
-    const [feedbacks, setFeedbacks] = useState<any[]>([]);
+function ProfileDetailModal({ profile, onClose }: { profile: ProfileWithActivity; onClose: () => void }) {
+    const [activities, setActivities] = useState<unknown[]>([]);
+    const [feedbacks, setFeedbacks] = useState<unknown[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         loadActivities();
-    }, [profile.id]);
+    }, [profile.id, loadActivities]);
 
-    const loadActivities = async () => {
+    const loadActivities = useCallback(async () => {
         setLoading(true);
         try {
             const [activitiesData, feedbacksData] = await Promise.all([
@@ -589,7 +588,7 @@ function ProfileDetailModal({ profile, onClose, onUpdate }: { profile: ProfileWi
             console.error('활동 내역 조회 실패:', error);
         }
         setLoading(false);
-    };
+    }, [profile.id]);
 
     const getStatusBadge = (status: string) => {
         switch (status) {

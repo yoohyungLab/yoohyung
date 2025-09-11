@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
-import { feedbackApi } from '../../lib/supabase';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import { feedbackApi } from '@repo/supabase';
 import { Search, Eye, MessageSquare, CheckCircle, Clock, AlertCircle, Download, FileText, User, Calendar } from 'lucide-react';
 
 interface Feedback {
@@ -40,7 +40,7 @@ export function FeedbackListPage() {
 
     useEffect(() => {
         loadFeedbacks();
-    }, [currentPage, selectedStatus, selectedCategory]);
+    }, [currentPage, loadFeedbacks]);
 
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -49,9 +49,9 @@ export function FeedbackListPage() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchTerm]);
+    }, [searchTerm, loadFeedbacks]);
 
-    const loadFeedbacks = async () => {
+    const loadFeedbacks = useCallback(async () => {
         setLoading(true);
         setError(null);
 
@@ -97,7 +97,7 @@ export function FeedbackListPage() {
             setLoading(false);
             console.log('로딩 완료');
         }
-    };
+    }, [selectedStatus, selectedCategory, searchTerm, currentPage]);
 
     const handleStatusToggle = async (id: string, currentStatus: Feedback['status']) => {
         let newStatus: Feedback['status'] = 'pending';
@@ -655,16 +655,7 @@ export function FeedbackListPage() {
 }
 
 // 상세보기 모달 컴포넌트
-function FeedbackDetailModal({
-    feedback,
-    onClose,
-    onUpdate,
-    onReply,
-}: {
-    feedback: Feedback;
-    onClose: () => void;
-    onReply: (id: string) => void;
-}) {
+function FeedbackDetailModal({ feedback, onClose, onReply }: { feedback: Feedback; onClose: () => void; onReply: (id: string) => void }) {
     const getStatusIcon = (status: Feedback['status']) => {
         switch (status) {
             case 'pending':

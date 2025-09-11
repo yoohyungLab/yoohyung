@@ -1,5 +1,5 @@
 {
-    "name": "@acme/types",
+    "name": "@repo/types",
     "version": "0.0.0",
     "private": true,
     "type": "module",
@@ -10,5 +10,8 @@
     ],
     "scripts": {
         "build": "tsc -p tsconfig.json"
+    },
+    "devDependencies": {
+        "typescript": "^5.7.2"
     }
 }

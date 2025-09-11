@@ -1,16 +1,17 @@
-import Link from 'next/link'
+import Link from 'next/link';
+import Image from 'next/image';
 
 interface PopularTest {
-    id: string
-    title: string
-    description: string
-    participants: number
-    rating: number
-    image: string
+    id: string;
+    title: string;
+    description: string;
+    participants: number;
+    rating: number;
+    image: string;
 }
 
 interface PopularTestSectionProps {
-    tests?: PopularTest[]
+    tests?: PopularTest[];
 }
 
 export function PopularTestSection({ tests = [] }: PopularTestSectionProps) {
@@ -39,9 +40,9 @@ export function PopularTestSection({ tests = [] }: PopularTestSectionProps) {
             rating: 4.6,
             image: '/images/egen-teto/thumbnail.png',
         },
-    ]
+    ];
 
-    const testData = tests.length > 0 ? tests : defaultTests
+    const testData = tests.length > 0 ? tests : defaultTests;
 
     return (
         <section className="mb-12">
@@ -59,10 +60,11 @@ export function PopularTestSection({ tests = [] }: PopularTestSectionProps) {
                         className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow group block"
                     >
                         <div className="aspect-[4/3] relative overflow-hidden">
-                            <img
+                            <Image
                                 src={test.image}
                                 alt={test.title}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
                             <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-full">
@@ -73,9 +75,7 @@ export function PopularTestSection({ tests = [] }: PopularTestSectionProps) {
                             <h3 className="text-lg font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
                                 {test.title}
                             </h3>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                                {test.description}
-                            </p>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{test.description}</p>
                             <div className="flex items-center justify-between text-sm text-gray-500">
                                 <span>{test.participants.toLocaleString()}명 참여</span>
                                 <span className="text-blue-600 font-medium">시작하기 →</span>
@@ -85,5 +85,5 @@ export function PopularTestSection({ tests = [] }: PopularTestSectionProps) {
                 ))}
             </div>
         </section>
-    )
+    );
 }

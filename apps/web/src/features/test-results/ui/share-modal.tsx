@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+// import { useState } from 'react';
 
 interface ShareModalProps {
     isOpen: boolean;
@@ -12,7 +12,7 @@ interface ShareModalProps {
     };
 }
 
-export function ShareModal({ isOpen, onClose, result }: ShareModalProps) {
+export function ShareModal({ isOpen, onClose }: ShareModalProps) {
     if (!isOpen) return null;
 
     return (

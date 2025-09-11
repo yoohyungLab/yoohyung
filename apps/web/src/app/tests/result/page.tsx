@@ -1,56 +1,63 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
-import { ResultDetails, ResultComparisonSection, ResultCtaSection, ShareModal } from '@/entities/test-result'
-import { EGEN_TETO_RESULTS, EGEN_TETO_RESULT_BG_IMAGES } from '@/shared/constants'
-import { TestResult } from '@/shared/types/result'
-import { trackResultViewed, trackResultShared, trackCtaClicked } from '@/shared/lib/analytics'
+import { useState, useEffect, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { ResultDetails, ResultComparisonSection, ResultCtaSection, ShareModal } from '@/entities/test-result';
+import { EGEN_TETO_RESULTS } from '@/shared/constants';
+import { TestResult } from '@/shared/types';
+import { trackResultViewed, trackResultShared, trackCtaClicked } from '@/shared/lib/analytics';
 
-export default function ResultPage() {
-    const router = useRouter()
-    const searchParams = useSearchParams()
-    const [isShareModalOpen, setIsShareModalOpen] = useState(false)
-    const [isLoggedIn, setIsLoggedIn] = useState(false)
+function ResultPageContent() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
+    const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+    const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-    const resultType = searchParams.get('type') as TestResult | null
-    const isShared = searchParams.get('shared') === 'true'
+    const resultType = searchParams.get('type') as TestResult | null;
+    // const isShared = searchParams.get('shared') === 'true'
 
     // 세션 스토리지에서 결과 데이터 가져오기
     const getResultData = () => {
-        if (typeof window === 'undefined') return null
-        const storedData = sessionStorage.getItem('testResult')
+        if (typeof window === 'undefined') return null;
+        const storedData = sessionStorage.getItem('testResult');
         if (storedData) {
             try {
-                return JSON.parse(storedData)
+                return JSON.parse(storedData);
             } catch (error) {
-                console.error('Failed to parse stored result data:', error)
-                return null
+                console.error('Failed to parse stored result data:', error);
+                return null;
             }
         }
-        return null
-    }
+        return null;
+    };
 
-    const resultDataFromStorage = getResultData()
-    const scoreParam = resultDataFromStorage?.score
-    const genderParam = resultDataFromStorage?.gender as 'male' | 'female' | null
+    const resultDataFromStorage = getResultData();
+    const scoreParam = resultDataFromStorage?.score;
+    const genderParam = resultDataFromStorage?.gender as 'male' | 'female' | null;
 
-    const isValid = resultType && EGEN_TETO_RESULTS[resultType] && scoreParam !== null && genderParam
+    const isValid = resultType && EGEN_TETO_RESULTS[resultType] && scoreParam !== null && genderParam;
+
+    // 로그인 상태 확인 (실제로는 인증 상태를 확인해야 함)
+    useEffect(() => {
+        if (typeof window === 'undefined') return;
+        // 임시로 로컬 스토리지에서 로그인 상태 확인
+        const authToken = localStorage.getItem('authToken');
+        setIsLoggedIn(!!authToken);
+    }, []);
 
     // 유효하지 않은 결과인 경우 리다이렉트
     useEffect(() => {
         if (!isValid) {
-            router.push('/tests/egen-teto')
+            router.push('/tests/egen-teto');
         }
-    }, [isValid, router])
+    }, [isValid, router]);
 
-    // 로그인 상태 확인 (실제로는 인증 상태를 확인해야 함)
+    // 페이지 뷰 트래킹
     useEffect(() => {
-        if (typeof window === 'undefined') return
-        // 임시로 로컬 스토리지에서 로그인 상태 확인
-        const authToken = localStorage.getItem('authToken')
-        setIsLoggedIn(!!authToken)
-    }, [])
+        if (resultType) {
+            trackResultViewed('egen-teto', resultType, isLoggedIn);
+        }
+    }, [resultType, isLoggedIn]);
 
     if (!isValid) {
         return (
@@ -60,54 +67,49 @@ export default function ResultPage() {
                     <p className="text-gray-600">결과를 불러오는 중...</p>
                 </div>
             </div>
-        )
+        );
     }
 
-    const data = EGEN_TETO_RESULTS[resultType]
-    const totalScore = parseInt(scoreParam, 10)
-    const egenPct = totalScore
-    const tetoPct = 100 - totalScore
-    const bgImage = EGEN_TETO_RESULT_BG_IMAGES[resultType] || '/images/egen-teto/bg-mixed.jpg'
+    const data = EGEN_TETO_RESULTS[resultType];
+    const totalScore = parseInt(scoreParam, 10);
+    const egenPct = totalScore;
+    const tetoPct = 100 - totalScore;
+    // const bgImage = EGEN_TETO_RESULT_BG_IMAGES[resultType] || '/images/egen-teto/bg-mixed.jpg'
 
     // 이벤트 핸들러들
     const handleShare = () => {
-        setIsShareModalOpen(true)
-        trackResultShared('modal_opened', 'egen-teto', resultType)
-    }
+        setIsShareModalOpen(true);
+        trackResultShared('modal_opened', 'egen-teto', resultType);
+    };
 
     const handleSave = () => {
         if (isLoggedIn) {
             // 로그인된 사용자: 마이페이지로 이동
-            router.push('/mypage')
+            router.push('/mypage');
         } else {
             // 비로그인 사용자: 이메일 입력 모달 또는 가입 페이지로 이동
-            router.push('/auth/signup?redirect=/tests/result')
+            router.push('/auth/signup?redirect=/tests/result');
         }
-        trackCtaClicked('save', 'egen-teto')
-    }
+        trackCtaClicked('save', 'egen-teto');
+    };
 
     const handleSignUp = () => {
-        router.push('/auth/signup?redirect=/tests/result')
-        trackCtaClicked('signup', 'egen-teto')
-    }
+        router.push('/auth/signup?redirect=/tests/result');
+        trackCtaClicked('signup', 'egen-teto');
+    };
 
     const handleSubscribe = () => {
         // 알림 구독 로직
-        console.log('알림 구독 요청')
-        trackCtaClicked('subscribe', 'egen-teto')
-    }
+        console.log('알림 구독 요청');
+        trackCtaClicked('subscribe', 'egen-teto');
+    };
 
     const handleRestart = () => {
         if (typeof window !== 'undefined') {
-            sessionStorage.removeItem('testResult')
+            sessionStorage.removeItem('testResult');
         }
-        router.push('/tests/egen-teto')
-    }
-
-    // 페이지 뷰 트래킹
-    useEffect(() => {
-        trackResultViewed('egen-teto', resultType, isLoggedIn)
-    }, [resultType, isLoggedIn])
+        router.push('/tests/egen-teto');
+    };
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -188,5 +190,22 @@ export default function ResultPage() {
                 </div>
             </div>
         </div>
-    )
+    );
+}
+
+export default function ResultPage() {
+    return (
+        <Suspense
+            fallback={
+                <div className="flex items-center justify-center h-screen">
+                    <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                        <p className="text-gray-600">결과를 불러오는 중...</p>
+                    </div>
+                </div>
+            }
+        >
+            <ResultPageContent />
+        </Suspense>
+    );
 }

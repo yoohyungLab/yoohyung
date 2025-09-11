@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea, Badge } from '@/components/ui';
-import { categoryApi } from '@/lib/supabase';
+import { Card, CardContent, CardHeader, CardTitle, Button, Input, Textarea, Badge } from '@repo/ui';
+import { categoryApi } from "@repo/supabase";
 import { Plus, Edit, Trash2, Eye, EyeOff, GripVertical, Save, X, Hash, Search, Filter } from 'lucide-react';
 
 interface Category {

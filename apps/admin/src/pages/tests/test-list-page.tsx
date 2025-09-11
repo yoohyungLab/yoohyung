@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@/components/ui';
-import { testApi } from '../../lib/supabase';
+import { Card, CardContent, CardHeader, CardTitle, Button, Badge } from '@repo/ui';
+import { testApi } from '@repo/supabase';
 import type { Test } from '../../types/test';
 import { Search, Eye, Edit, Trash2, Globe, Lock, Plus, Calendar, MessageSquare, BarChart3, Download, Copy } from 'lucide-react';
 
@@ -29,7 +29,7 @@ export function TestListPage() {
 
     useEffect(() => {
         filterAndSortTests();
-    }, [tests, searchTerm, statusFilter, categoryFilter, sortBy, sortOrder, currentPage]);
+    }, [filterAndSortTests]);
 
     const loadTests = async () => {
         try {
@@ -42,7 +42,7 @@ export function TestListPage() {
         }
     };
 
-    const filterAndSortTests = () => {
+    const filterAndSortTests = useCallback(() => {
         const filtered = tests.filter((test) => {
             const matchesSearch =
                 test.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -93,7 +93,7 @@ export function TestListPage() {
 
         setFilteredTests(paginatedData);
         setTotalPages(Math.ceil(filtered.length / pageSize));
-    };
+    }, [tests, searchTerm, statusFilter, categoryFilter, sortBy, sortOrder, currentPage]);
 
     const handleTogglePublish = async (testId: string, currentStatus: boolean) => {
         try {

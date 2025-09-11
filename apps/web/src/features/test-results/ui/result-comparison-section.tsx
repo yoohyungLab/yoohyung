@@ -28,3 +28,9 @@ export function ResultComparisonSection({ result }: ResultComparisonSectionProps
         </div>
     );
 }
+
+
+
+
+
+

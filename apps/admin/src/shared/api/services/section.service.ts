@@ -1,4 +1,4 @@
-import { supabase } from '@/shared/lib/supabaseClient';
+import { supabase } from "@repo/supabase";
 
 export const sectionService = {
     async getAllSections() {

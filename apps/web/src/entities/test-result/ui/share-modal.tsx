@@ -50,8 +50,8 @@ export function ShareModal({ isOpen, onClose, resultType, totalScore, title, des
 
     const handleKakaoShare = () => {
         // 카카오톡 공유 (실제 구현 시 Kakao SDK 필요)
-        if (window.Kakao) {
-            window.Kakao.Share.sendDefault({
+        if ((window as unknown as { Kakao?: { Share: { sendDefault: (options: unknown) => void } } }).Kakao) {
+            (window as unknown as { Kakao: { Share: { sendDefault: (options: unknown) => void } } }).Kakao.Share.sendDefault({
                 objectType: 'text',
                 text: `나의 성향 테스트 결과: ${title}`,
                 link: {

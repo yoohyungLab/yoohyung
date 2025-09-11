@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@/shared/lib/supabase';
+import { supabase } from '@repo/shared';
 import { useAuth } from '@/shared/lib/auth';
 
 interface FavoriteContentId {

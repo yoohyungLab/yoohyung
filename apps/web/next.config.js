@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+    transpilePackages: ['@side-project/ui', '@side-project/shared'],
     images: {
         domains: ['localhost'],
         unoptimized: true, // 개발 환경에서 이미지 최적화 비활성화
