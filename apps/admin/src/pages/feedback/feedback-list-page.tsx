@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Button, Badge, DataTable, Pagination, type Column } from '@repo/ui';
-import { FilterBar, AdminCard, AdminCardHeader, AdminCardContent, DataState, StatsCards, BulkActions } from '../../shared/components';
+import React, { useCallback, useEffect, useState } from 'react';
+import { usePagination } from '@repo/shared';
 import { feedbackService } from '@repo/supabase';
+import { DataTable, type Column } from '@repo/ui';
+import { AdminCard, BulkActions, DataState, FilterBar } from '../../components/ui';
 import { useColumnRenderers } from '../../shared/hooks';
-import { Eye, MessageSquare, CheckCircle, Clock, AlertCircle, Download, FileText, User, Calendar } from 'lucide-react';
+import { PAGINATION } from '../../shared/lib';
+import { Eye, MessageSquare, CheckCircle, Clock, AlertCircle, User, Calendar } from 'lucide-react';
 
 interface Feedback {
     id: string;
@@ -36,33 +38,31 @@ export function FeedbackListPage() {
     const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-    const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
+    const [modalFeedback, setModalFeedback] = useState<Feedback | null>(null);
     const [showReplyModal, setShowReplyModal] = useState<string | null>(null);
     const [replyText, setReplyText] = useState('');
     const [selectedFeedbacks, setSelectedFeedbacks] = useState<string[]>([]);
-
-    // Filters and pagination
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
         category: 'all',
-        page: 1,
     });
-    const [pagination, setPagination] = useState({
-        totalPages: 1,
-        totalFeedbacks: 0,
+    const [totalFeedbacks, setTotalFeedbacks] = useState(0);
+    const pagination = usePagination({
+        totalItems: totalFeedbacks,
+        defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
     });
-    const pageSize = 20;
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters((prev: typeof filters) => ({ ...prev, page: 1 }));
-        }, 300);
+    // 간단한 통계
+    const [stats, setStats] = useState({
+        pending: 0,
+        in_progress: 0,
+        completed: 0,
+        replied: 0,
+        rejected: 0,
+    });
 
-        return () => clearTimeout(timer);
-    }, [filters.search, filters.status, filters.category]);
-
+    // API calls
     const loadFeedbacks = useCallback(async () => {
         setLoading(true);
         setError(null);
@@ -85,66 +85,72 @@ export function FeedbackListPage() {
                 });
 
                 // 페이지네이션
-                const startIndex = (filters.page - 1) * pageSize;
-                const endIndex = startIndex + pageSize;
+                const startIndex = (pagination.currentPage - 1) * pagination.pageSize;
+                const endIndex = startIndex + pagination.pageSize;
                 const paginatedData = filtered.slice(startIndex, endIndex);
 
                 setFeedbacks(paginatedData);
-                setPagination({
-                    totalFeedbacks: filtered.length,
-                    totalPages: Math.ceil(filtered.length / pageSize),
-                });
+                setTotalFeedbacks(filtered.length);
             } else {
                 setError('데이터 형식이 올바르지 않습니다.');
             }
         } catch (error) {
-            console.error('피드백 불러오기 실패:', error);
+            console.error('피드백 목록 로딩 실패:', error);
             setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, pagination.currentPage, pagination.pageSize]);
 
-    const handleStatusToggle = async (id: string, currentStatus: Feedback['status']) => {
-        let newStatus: Feedback['status'] = 'pending';
-
-        switch (currentStatus) {
-            case 'pending':
-                newStatus = 'in_progress';
-                break;
-            case 'in_progress':
-                newStatus = 'completed';
-                break;
-            case 'completed':
-                newStatus = 'pending';
-                break;
-            default:
-                newStatus = 'pending';
-        }
-
+    const loadStats = useCallback(async () => {
         try {
-            await feedbackService.updateFeedbackStatus(id, newStatus);
-            loadFeedbacks();
+            const statsData = await feedbackService.getFeedbackStats();
+            setStats({
+                pending: statsData.pending,
+                in_progress: statsData.inProgress,
+                completed: statsData.completed,
+                replied: statsData.replied,
+                rejected: statsData.rejected,
+            });
         } catch (error) {
-            console.error('상태 업데이트 실패:', error);
-            setError(error instanceof Error ? error.message : '상태 업데이트에 실패했습니다.');
+            console.error('통계 로딩 실패:', error);
+        }
+    }, []);
+
+    // 필터 변경 시 첫 페이지로 이동하고 데이터 로딩
+    useEffect(() => {
+        if (pagination.currentPage !== 1) {
+            pagination.setPage(1);
+        } else {
+            loadFeedbacks();
+            loadStats();
+        }
+    }, [filters.search, filters.status, filters.category, loadFeedbacks, loadStats, pagination]);
+
+    // 페이지 변경 시에만 피드백 로딩
+    useEffect(() => {
+        loadFeedbacks();
+    }, [pagination.currentPage, pagination.pageSize, loadFeedbacks]);
+
+    // 개별 피드백 상태 변경 - 서버 요청 후 즉시 UI 업데이트
+    const handleStatusChange = async (feedbackId: string, newStatus: Feedback['status']) => {
+        try {
+            await feedbackService.updateFeedbackStatus(feedbackId, newStatus);
+            // 상태 변경 후 즉시 UI 업데이트
+            setFeedbacks((prev) => prev.map((f) => (f.id === feedbackId ? { ...f, status: newStatus } : f)));
+            // 통계도 즉시 업데이트
+            setStats((prev) => ({
+                ...prev,
+                [newStatus]: prev[newStatus] + 1,
+                [feedbacks.find((f) => f.id === feedbackId)?.status || 'pending']:
+                    prev[feedbacks.find((f) => f.id === feedbackId)?.status || 'pending'] - 1,
+            }));
+        } catch (error) {
+            console.error('상태 변경 실패:', error);
         }
     };
 
-    const handleAddReply = async (id: string) => {
-        if (!replyText.trim()) return;
-
-        try {
-            await feedbackService.addAdminReply(id, replyText);
-            setShowReplyModal(null);
-            setReplyText('');
-            loadFeedbacks();
-        } catch (error) {
-            console.error('답변 추가 실패:', error);
-            setError(error instanceof Error ? error.message : '답변 추가에 실패했습니다.');
-        }
-    };
-
+    // 대량 상태 변경 - 선택된 여러 피드백 상태를 한번에 변경
     const handleBulkStatusChange = async (status: Feedback['status']) => {
         if (selectedFeedbacks.length === 0) return;
 
@@ -154,64 +160,52 @@ export function FeedbackListPage() {
             }
             setSelectedFeedbacks([]);
             loadFeedbacks();
+            loadStats();
         } catch (error) {
             console.error('대량 상태 변경 실패:', error);
-            setError(error instanceof Error ? error.message : '대량 상태 변경에 실패했습니다.');
         }
     };
 
+    // 피드백 삭제 처리 - 확인 후 삭제하고 목록 새로고침
+    const handleDeleteFeedback = async (feedbackId: string) => {
+        if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
+
+        try {
+            await feedbackService.deleteFeedback(feedbackId);
+            loadFeedbacks();
+            loadStats();
+        } catch (error) {
+            console.error('삭제 처리 실패:', error);
+        }
+    };
+
+    // 답변 추가 핸들러
+    const handleAddReply = async (id: string) => {
+        if (!replyText.trim()) return;
+
+        try {
+            await feedbackService.addAdminReply(id, replyText);
+            setShowReplyModal(null);
+            setReplyText('');
+            loadFeedbacks();
+            loadStats();
+        } catch (error) {
+            console.error('답변 추가 실패:', error);
+            setError(error instanceof Error ? error.message : '답변 추가에 실패했습니다.');
+        }
+    };
+
+    // 필터 변경 - 검색어, 상태, 카테고리 필터 업데이트
     const handleFilterChange = (key: keyof typeof filters, value: string) => {
         setFilters((prev: typeof filters) => ({ ...prev, [key]: value }));
     };
-
-    const handlePageChange = (page: number) => {
-        setFilters((prev: typeof filters) => ({ ...prev, page }));
-    };
-
-    const handleExportFeedbacks = async () => {
-        try {
-            // 현재 필터된 모든 데이터를 가져와서 CSV로 변환
-            const allData = await feedbackService.getAllFeedbacks();
-            const csvContent = convertToCSV(allData);
-            downloadCSV(csvContent, 'feedbacks_export.csv');
-        } catch (error) {
-            console.error('내보내기 실패:', error);
-        }
-    };
-
-    const convertToCSV = (data: Feedback[]) => {
-        const headers = ['ID', '제목', '카테고리', '상태', '작성자', '작성일', '조회수', '내용'];
-        const rows = data.map((feedback) => [
-            feedback.id,
-            feedback.title,
-            CATEGORY_MAP[feedback.category] || feedback.category,
-            feedback.status,
-            feedback.author_name,
-            new Date(feedback.created_at).toLocaleDateString('ko-KR'),
-            feedback.views,
-            feedback.content.replace(/\n/g, ' ').substring(0, 100),
-        ]);
-
-        return [headers, ...rows].map((row) => row.map((field) => `"${field}"`).join(',')).join('\n');
-    };
-
-    const downloadCSV = (content: string, filename: string) => {
-        const blob = new Blob(['\uFEFF' + content], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = filename;
-        link.click();
-    };
-
-    useEffect(() => {
-        loadFeedbacks();
-    }, [loadFeedbacks]);
 
     // Table columns definition
     const columns: Column<Feedback>[] = [
         {
             id: 'title',
             header: '제목',
+            accessorKey: 'title',
             cell: ({ row }) => (
                 <div className="flex items-center gap-2">
                     {renderers.renderTitleWithContent(row.original.title, row.original.content)}
@@ -237,7 +231,7 @@ export function FeedbackListPage() {
         {
             id: 'created_at',
             header: '작성일',
-            cell: ({ row }) => renderers.renderDate(row.original.created_at, { showIcon: true }),
+            cell: ({ row }) => renderers.renderDate(row.original.created_at),
         },
         {
             id: 'views',
@@ -247,82 +241,52 @@ export function FeedbackListPage() {
         {
             id: 'actions',
             header: '액션',
-            cell: ({ row }) => (
-                <div className="flex items-center gap-2">
-                    {renderers.renderActions(row.original.id, row.original, [
-                        {
-                            type: 'view',
-                            onClick: (id, data) => {
-                                setSelectedFeedback(data);
-                                setShowDetailModal(true);
-                            },
-                        },
-                        {
-                            type: 'reply',
-                            onClick: (id) => setShowReplyModal(id),
-                            condition: (data) => !data.admin_reply,
-                        },
-                    ])}
-                    {renderers.renderFeedbackStatusSelect(row.original.id, row.original, (id, status) =>
-                        handleStatusToggle(id, status as Feedback['status'])
-                    )}
-                </div>
-            ),
+            cell: ({ row }) =>
+                renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
+                    {
+                        type: 'reply',
+                        onClick: (id) => setShowReplyModal(id),
+                        condition: (data) => !data.admin_reply,
+                    },
+                    {
+                        type: 'status',
+                        onClick: (id, data) => handleStatusChange(id, (data?.status as Feedback['status']) || 'pending'),
+                    },
+                    {
+                        type: 'delete',
+                        onClick: (id) => handleDeleteFeedback(id),
+                    },
+                ]),
         },
     ];
 
     return (
         <div className="space-y-6 p-5">
-            {/* 헤더 */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">💌 건의사항 관리</h1>
-                    <p className="text-gray-600 mt-1">사용자들의 건의사항을 확인하고 관리하세요</p>
+            {/* 간단한 통계 */}
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">검토중</div>
+                    <div className="text-2xl font-bold text-yellow-600">{stats.pending}</div>
                 </div>
-                <div className="text-right">
-                    <div className="text-2xl font-bold text-blue-600">{pagination.totalFeedbacks.toLocaleString()}</div>
-                    <div className="text-sm text-gray-500">전체 건의사항</div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">진행중</div>
+                    <div className="text-2xl font-bold text-blue-600">{stats.in_progress}</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">완료</div>
+                    <div className="text-2xl font-bold text-green-600">{stats.completed}</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">답변완료</div>
+                    <div className="text-2xl font-bold text-purple-600">{stats.replied}</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">반려</div>
+                    <div className="text-2xl font-bold text-red-600">{stats.rejected}</div>
                 </div>
             </div>
 
-            {/* 통계 카드 */}
-            <StatsCards
-                stats={[
-                    {
-                        id: 'pending',
-                        label: '검토중',
-                        value: feedbacks.filter((f: Feedback) => f.status === 'pending').length,
-                        color: 'yellow',
-                    },
-                    {
-                        id: 'in_progress',
-                        label: '진행중',
-                        value: feedbacks.filter((f: Feedback) => f.status === 'in_progress').length,
-                        color: 'blue',
-                    },
-                    {
-                        id: 'completed',
-                        label: '완료',
-                        value: feedbacks.filter((f: Feedback) => f.status === 'completed').length,
-                        color: 'green',
-                    },
-                    {
-                        id: 'replied',
-                        label: '답변완료',
-                        value: feedbacks.filter((f: Feedback) => f.status === 'replied').length,
-                        color: 'purple',
-                    },
-                    {
-                        id: 'rejected',
-                        label: '반려',
-                        value: feedbacks.filter((f: Feedback) => f.status === 'rejected').length,
-                        color: 'red',
-                    },
-                ]}
-                columns={5}
-            />
-
-            {/* 검색 및 필터 */}
+            {/* Search & Filters */}
             <AdminCard>
                 <FilterBar
                     filters={[
@@ -363,41 +327,38 @@ export function FeedbackListPage() {
                             ],
                         },
                     ]}
-                    actions={
-                        <Button onClick={handleExportFeedbacks} variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            내보내기
-                        </Button>
-                    }
-                />
-
-                {/* 대량 작업 */}
-                <BulkActions
-                    selectedCount={selectedFeedbacks.length}
-                    actions={[
-                        {
-                            id: 'in_progress',
-                            label: '진행중으로',
-                            onClick: () => handleBulkStatusChange('in_progress'),
-                        },
-                        {
-                            id: 'completed',
-                            label: '완료로',
-                            onClick: () => handleBulkStatusChange('completed'),
-                        },
-                        {
-                            id: 'rejected',
-                            label: '반려',
-                            variant: 'destructive',
-                            onClick: () => handleBulkStatusChange('rejected'),
-                            className: 'text-red-600 border-red-600 hover:bg-red-50',
-                        },
-                    ]}
-                    onClear={() => setSelectedFeedbacks([])}
+                    hasActiveFilters={filters.search !== '' || filters.status !== 'all' || filters.category !== 'all'}
+                    onClear={() => {
+                        setFilters({ search: '', status: 'all', category: 'all' });
+                    }}
                 />
             </AdminCard>
 
-            {/* 테이블 */}
+            {/* Bulk Actions */}
+            <BulkActions
+                selectedCount={selectedFeedbacks.length}
+                actions={[
+                    {
+                        id: 'in_progress',
+                        label: '진행중으로',
+                        onClick: () => handleBulkStatusChange('in_progress'),
+                    },
+                    {
+                        id: 'completed',
+                        label: '완료로',
+                        onClick: () => handleBulkStatusChange('completed'),
+                    },
+                    {
+                        id: 'rejected',
+                        label: '반려',
+                        variant: 'destructive',
+                        onClick: () => handleBulkStatusChange('rejected'),
+                    },
+                ]}
+                onClear={() => setSelectedFeedbacks([])}
+            />
+
+            {/* Feedback List */}
             <DataState loading={loading} error={error} data={feedbacks} onRetry={loadFeedbacks}>
                 <DataTable
                     data={feedbacks}
@@ -406,34 +367,42 @@ export function FeedbackListPage() {
                     selectedItems={selectedFeedbacks}
                     onSelectionChange={setSelectedFeedbacks}
                     getRowId={(feedback: Feedback) => feedback.id}
-                    totalCount={pagination.totalFeedbacks}
+                    totalCount={totalFeedbacks}
                     totalLabel="건의사항"
                     onRowClick={(feedback: Feedback) => {
-                        setSelectedFeedback(feedback);
-                        setShowDetailModal(true);
+                        setModalFeedback(feedback);
                     }}
                 />
             </DataState>
 
-            {/* 페이지네이션 */}
-            <Pagination
-                currentPage={filters.page}
-                totalPages={pagination.totalPages}
-                totalItems={pagination.totalFeedbacks}
-                pageSize={pageSize}
-                onPageChange={handlePageChange}
-            />
+            {/* Pagination */}
+            <div className="flex items-center justify-center space-x-2">
+                <button
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                    onClick={() => pagination.setPage(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage <= 1}
+                >
+                    이전
+                </button>
+                <span className="text-sm text-muted-foreground">
+                    {pagination.currentPage} / {pagination.totalPages}
+                </span>
+                <button
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                    onClick={() => pagination.setPage(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage >= pagination.totalPages}
+                >
+                    다음
+                </button>
+            </div>
 
-            {/* 상세보기 모달 */}
-            {showDetailModal && selectedFeedback && (
+            {/* Feedback Detail Modal */}
+            {modalFeedback && (
                 <FeedbackDetailModal
-                    feedback={selectedFeedback}
-                    onClose={() => {
-                        setShowDetailModal(false);
-                        setSelectedFeedback(null);
-                    }}
+                    feedback={modalFeedback}
+                    onClose={() => setModalFeedback(null)}
                     onReply={(id) => {
-                        setShowDetailModal(false);
+                        setModalFeedback(null);
                         setShowReplyModal(id);
                     }}
                 />
@@ -452,18 +421,22 @@ export function FeedbackListPage() {
                             className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4"
                         />
                         <div className="flex gap-2 justify-end">
-                            <Button
-                                variant="outline"
+                            <button
+                                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500"
                                 onClick={() => {
                                     setShowReplyModal(null);
                                     setReplyText('');
                                 }}
                             >
                                 취소
-                            </Button>
-                            <Button onClick={() => handleAddReply(showReplyModal)} disabled={!replyText.trim()}>
+                            </button>
+                            <button
+                                className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                                onClick={() => handleAddReply(showReplyModal)}
+                                disabled={!replyText.trim()}
+                            >
                                 답변 추가
-                            </Button>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -552,9 +525,9 @@ function FeedbackDetailModal({ feedback, onClose, onReply }: { feedback: Feedbac
             <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6 border-b border-gray-200 flex items-center justify-between">
                     <h2 className="text-xl font-semibold">건의사항 상세보기</h2>
-                    <Button variant="outline" onClick={onClose}>
+                    <button className="text-gray-400 hover:text-gray-600 text-xl" onClick={onClose}>
                         ✕
-                    </Button>
+                    </button>
                 </div>
 
                 <div className="p-6 space-y-6">
@@ -580,78 +553,40 @@ function FeedbackDetailModal({ feedback, onClose, onReply }: { feedback: Feedbac
 
                         {/* 상태 및 액션 */}
                         <div className="flex items-center gap-3 ml-4">
-                            <Badge variant="outline" className="whitespace-nowrap">
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">
                                 {getCategoryLabel(feedback.category)}
-                            </Badge>
-                            <Badge className={`flex items-center gap-1 whitespace-nowrap ${getStatusColor(feedback.status)}`}>
+                            </span>
+                            <span className={`px-2 py-1 text-xs rounded flex items-center gap-1 ${getStatusColor(feedback.status)}`}>
                                 {getStatusIcon(feedback.status)}
                                 {getStatusText(feedback.status)}
-                            </Badge>
+                            </span>
 
                             {!feedback.admin_reply && (
-                                <Button
-                                    size="sm"
+                                <button
+                                    className="px-3 py-1 text-sm font-medium text-white bg-purple-600 rounded hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500"
                                     onClick={() => onReply(feedback.id)}
-                                    className="bg-purple-600 hover:bg-purple-700 whitespace-nowrap"
                                 >
-                                    <MessageSquare className="w-4 h-4 mr-1" />
+                                    <MessageSquare className="w-4 h-4 mr-1 inline" />
                                     답변 추가
-                                </Button>
+                                </button>
                             )}
-
-                            {feedback.attached_file_url && (
-                                <Button size="sm" variant="outline" className="whitespace-nowrap">
-                                    <Download className="w-4 h-4 mr-1" />
-                                    첨부파일
-                                </Button>
-                            )}
-                        </div>
-                    </div>
-
-                    {/* 상태 변경 툴바 */}
-                    <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                        <div className="flex items-center">
-                            <span className="text-sm font-medium text-gray-700 mr-5">상태 변경:</span>
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="outline" className="text-yellow-600 border-yellow-600 hover:bg-yellow-50">
-                                    검토중
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-blue-600 border-blue-600 hover:bg-blue-50">
-                                    진행중
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-green-600 border-green-600 hover:bg-green-50">
-                                    완료
-                                </Button>
-                                <Button size="sm" variant="outline" className="text-red-600 border-red-600 hover:bg-red-50">
-                                    반려
-                                </Button>
-                            </div>
                         </div>
                     </div>
 
                     {/* 내용 */}
-                    <AdminCard>
-                        <AdminCardHeader title="내용" />
-                        <AdminCardContent>
-                            <div className="bg-gray-50 rounded-lg p-4">
-                                <p className="text-gray-900 whitespace-pre-wrap">{feedback.content}</p>
-                            </div>
-                        </AdminCardContent>
-                    </AdminCard>
+                    <div className="bg-gray-50 rounded-lg p-4">
+                        <p className="text-gray-900 whitespace-pre-wrap">{feedback.content}</p>
+                    </div>
 
                     {/* 관리자 답변 */}
                     {feedback.admin_reply && (
-                        <AdminCard variant="bordered">
-                            <AdminCardHeader title="관리자 답변" icon={<MessageSquare className="w-5 h-5 text-purple-600" />} />
-                            <AdminCardContent>
-                                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
-                                    <p className="text-purple-900">{feedback.admin_reply}</p>
-                                    {feedback.admin_reply_at && (
-                                        <p className="text-sm text-purple-600 mt-2">{formatDate(feedback.admin_reply_at)}</p>
-                                    )}
-                                </div>
-                            </AdminCardContent>
-                        </AdminCard>
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <h4 className="font-medium text-purple-900 mb-2">관리자 답변</h4>
+                            <p className="text-purple-900">{feedback.admin_reply}</p>
+                            {feedback.admin_reply_at && (
+                                <p className="text-sm text-purple-600 mt-2">{formatDate(feedback.admin_reply_at)}</p>
+                            )}
+                        </div>
                     )}
                 </div>
             </div>

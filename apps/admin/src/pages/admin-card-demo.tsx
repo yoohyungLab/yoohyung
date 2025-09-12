@@ -1,5 +1,5 @@
 import React from 'react';
-import { AdminCard, AdminCardHeader, AdminCardContent, AdminCardTitle } from '../shared/components';
+import { AdminCard, AdminCardHeader, AdminCardContent, AdminCardTitle } from '../components/ui';
 import { Button, Badge } from '@repo/ui';
 import { Users, Settings, BarChart3, MessageSquare } from 'lucide-react';
 

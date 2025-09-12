@@ -17,6 +17,7 @@ export const getStatusConfig = (status: string) => {
             };
         case PROFILE_STATUS.INACTIVE:
             return {
+                text: '비활성',
                 color: 'bg-yellow-100 text-yellow-800',
             };
         case PROFILE_STATUS.DELETED:

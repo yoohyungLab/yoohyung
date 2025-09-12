@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card } from '@repo/ui';
-import { cn } from '../lib/utils';
+import { cn } from '../../shared/lib/utils';
 
 export interface StatCard {
     id: string;

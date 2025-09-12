@@ -37,7 +37,7 @@ export const DefaultSelect = React.forwardRef<HTMLButtonElement, DefaultSelectPr
                 <SelectTrigger ref={ref} className={`${sizeClasses[size]} ${variantClasses[variant]} ${className || ''}`}>
                     <SelectValue placeholder={placeholder} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-white border border-gray-200 shadow-lg">
                     {options.map((option) => (
                         <SelectItem key={option.value} value={option.value} disabled={option.disabled}>
                             {option.label}

@@ -1,53 +1,33 @@
-import { formatDate } from '@repo/shared';
-import { profileService, type Profile, type ProfileFilters, type ProfileStats, type ProfileWithActivity } from '@repo/supabase';
-import { Badge, Button, DataTable, Pagination, type Column } from '@repo/ui';
-import { Eye, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useState } from 'react';
-import { ProfileDetailModal } from '../../features/users';
-import { AdminCard, DataState, FilterBar, StatsCards, BulkActions } from '../../shared/components';
-import { PAGINATION } from '../../shared/lib';
+import React, { useCallback, useEffect, useState } from 'react';
+import { usePagination } from '@repo/shared';
+import { profileService, type Profile, type ProfileFilters, type ProfileWithActivity } from '@repo/supabase';
+import { DataTable, type Column } from '@repo/ui';
+import { ProfileDetailModal } from '../../components/user';
+import { AdminCard, BulkActions, DataState, FilterBar } from '../../components/ui';
 import { useColumnRenderers } from '../../shared/hooks';
+import { PAGINATION } from '../../shared/lib';
 
 export function UserManagementPage() {
     const renderers = useColumnRenderers();
 
-    // Core state
     const [profiles, setProfiles] = useState<Profile[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
-
-    // Modal state
-    const [selectedProfile, setSelectedProfile] = useState<ProfileWithActivity | null>(null);
-    const [showProfileModal, setShowProfileModal] = useState(false);
-
-    // Selection state
+    const [modalProfile, setModalProfile] = useState<ProfileWithActivity | null>(null);
     const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
-
-    // Filters and pagination
     const [filters, setFilters] = useState({
         search: '',
         status: 'all',
         provider: 'all',
-        page: 1,
     });
-    const [pagination, setPagination] = useState({
-        totalPages: 1,
-        totalProfiles: 0,
+    const [totalProfiles, setTotalProfiles] = useState(0);
+    const pagination = usePagination({
+        totalItems: totalProfiles,
+        defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
     });
 
-    // Stats
-    const [stats, setStats] = useState<ProfileStats>({
-        total: 0,
-        active: 0,
-        inactive: 0,
-        deleted: 0,
-        today: 0,
-        this_week: 0,
-        this_month: 0,
-        email_signups: 0,
-        google_signups: 0,
-        kakao_signups: 0,
-    });
+    // 간단한 통계 (필요한 것만)
+    const [stats, setStats] = useState({ active: 0, inactive: 0, deleted: 0 });
 
     // API calls
     const loadProfiles = useCallback(async () => {
@@ -58,57 +38,67 @@ export function UserManagementPage() {
             const apiFilters: ProfileFilters = {
                 search: filters.search || undefined,
                 status: filters.status !== 'all' ? (filters.status as Profile['status']) : undefined,
-                provider: filters.provider !== 'all' ? filters.provider : undefined,
+                provider: filters.provider !== 'all' ? (filters.provider as 'email' | 'google' | 'kakao') : undefined,
             };
 
-            const data = await profileService.getProfiles(apiFilters, filters.page, PAGINATION.DEFAULT_PAGE_SIZE);
+            const data = await profileService.getProfiles(apiFilters, pagination.currentPage, pagination.pageSize);
             setProfiles(data.profiles);
-            setPagination({
-                totalPages: data.totalPages,
-                totalProfiles: data.total,
-            });
+            setTotalProfiles(data.total);
         } catch (error) {
             console.error('프로필 목록 로딩 실패:', error);
             setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
         } finally {
             setLoading(false);
         }
-    }, [filters]);
+    }, [filters, pagination.currentPage, pagination.pageSize]);
 
     const loadStats = useCallback(async () => {
         try {
             const statsData = await profileService.getProfileStats();
-            setStats(statsData);
+            setStats({
+                active: statsData.active,
+                inactive: statsData.inactive,
+                deleted: statsData.deleted,
+            });
         } catch (error) {
             console.error('통계 로딩 실패:', error);
         }
     }, []);
 
-    // Effects
+    // 필터 변경 시 첫 페이지로 이동하고 데이터 로딩
+    useEffect(() => {
+        if (pagination.currentPage !== 1) {
+            pagination.setPage(1);
+        } else {
+            loadProfiles();
+            loadStats();
+        }
+    }, [filters.search, filters.status, filters.provider, loadProfiles, loadStats, pagination]);
+
+    // 페이지 변경 시에만 프로필 로딩
     useEffect(() => {
         loadProfiles();
-        loadStats();
-    }, [loadProfiles, loadStats]);
+    }, [pagination.currentPage, pagination.pageSize, loadProfiles]);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setFilters((prev: typeof filters) => ({ ...prev, page: 1 }));
-        }, PAGINATION.DEBOUNCE_DELAY);
-
-        return () => clearTimeout(timer);
-    }, [filters.search, filters.status, filters.provider]);
-
-    // Event handlers
+    // 개별 사용자 상태 변경 - 서버 요청 후 즉시 UI 업데이트
     const handleStatusChange = async (profileId: string, newStatus: Profile['status']) => {
         try {
             await profileService.updateProfileStatus(profileId, newStatus);
-            loadProfiles();
-            loadStats();
+            // 상태 변경 후 즉시 UI 업데이트
+            setProfiles((prev) => prev.map((p) => (p.id === profileId ? { ...p, status: newStatus } : p)));
+            // 통계도 즉시 업데이트
+            setStats((prev) => ({
+                ...prev,
+                [newStatus]: prev[newStatus] + 1,
+                [profiles.find((p) => p.id === profileId)?.status || 'active']:
+                    prev[profiles.find((p) => p.id === profileId)?.status || 'active'] - 1,
+            }));
         } catch (error) {
             console.error('상태 변경 실패:', error);
         }
     };
 
+    // 대량 상태 변경 - 선택된 여러 사용자 상태를 한번에 변경
     const handleBulkStatusChange = async (status: Profile['status']) => {
         if (selectedProfiles.length === 0) return;
 
@@ -122,6 +112,7 @@ export function UserManagementPage() {
         }
     };
 
+    // 사용자 탈퇴 처리 - 확인 후 삭제하고 목록 새로고침
     const handleDeleteProfile = async (profileId: string) => {
         if (!confirm('정말로 이 사용자를 탈퇴 처리하시겠습니까?')) return;
 
@@ -134,12 +125,9 @@ export function UserManagementPage() {
         }
     };
 
+    // 필터 변경 - 검색어, 상태, 가입경로 필터 업데이트
     const handleFilterChange = (key: keyof typeof filters, value: string) => {
         setFilters((prev: typeof filters) => ({ ...prev, [key]: value }));
-    };
-
-    const handlePageChange = (page: number) => {
-        setFilters((prev: typeof filters) => ({ ...prev, page }));
     };
 
     // Table columns definition
@@ -174,22 +162,10 @@ export function UserManagementPage() {
             id: 'actions',
             header: '액션',
             cell: ({ row }) =>
-                renderers.renderActions(row.original.id, row.original, [
-                    {
-                        type: 'view',
-                        onClick: async (id) => {
-                            try {
-                                const details = await profileService.getProfileDetails(id);
-                                setSelectedProfile(details);
-                                setShowProfileModal(true);
-                            } catch (error) {
-                                console.error('프로필 상세 조회 실패:', error);
-                            }
-                        },
-                    },
+                renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
                     {
                         type: 'status',
-                        onClick: (id, data) => handleStatusChange(id, data.status as Profile['status']),
+                        onClick: (id, data) => handleStatusChange(id, (data?.status as Profile['status']) || 'active'),
                     },
                     {
                         type: 'delete',
@@ -206,25 +182,21 @@ export function UserManagementPage() {
 
     return (
         <div className="space-y-6 p-5">
-            {/* Header */}
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">👥 사용자 관리</h1>
-                    <p className="text-gray-600 mt-1">등록된 모든 사용자를 조회하고 관리하세요</p>
+            {/* 간단한 통계 */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">활성 사용자</div>
+                    <div className="text-2xl font-bold text-green-600">{stats.active}</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">비활성</div>
+                    <div className="text-2xl font-bold text-yellow-600">{stats.inactive}</div>
+                </div>
+                <div className="bg-white p-4 rounded-lg border border-gray-200">
+                    <div className="text-sm text-gray-600">탈퇴</div>
+                    <div className="text-2xl font-bold text-red-600">{stats.deleted}</div>
                 </div>
             </div>
-
-            {/* Stats Cards */}
-            <StatsCards
-                stats={[
-                    { id: 'active', label: '활성 사용자', value: stats.active, color: 'green' },
-                    { id: 'inactive', label: '비활성', value: stats.inactive, color: 'yellow' },
-                    { id: 'deleted', label: '탈퇴', value: stats.deleted, color: 'red' },
-                    { id: 'today', label: '오늘 가입', value: stats.today, color: 'purple' },
-                    { id: 'this_week', label: '이번 주', value: stats.this_week, color: 'indigo' },
-                    { id: 'this_month', label: '이번 달', value: stats.this_month, color: 'pink' },
-                ]}
-            />
 
             {/* Search & Filters */}
             <AdminCard>
@@ -262,42 +234,36 @@ export function UserManagementPage() {
                             ],
                         },
                     ]}
-                    actions={
-                        <>
-                            {/* TODO: CSV 내보내기 버튼 추가 예정 */}
-                            {/* <Button onClick={handleExportProfiles} variant="outline">
-                            <Download className="w-4 h-4 mr-2" />
-                            내보내기
-                            </Button> */}
-                        </>
-                    }
-                />
-
-                {/* Bulk Actions */}
-                <BulkActions
-                    selectedCount={selectedProfiles.length}
-                    actions={[
-                        {
-                            id: 'activate',
-                            label: '활성화',
-                            onClick: () => handleBulkStatusChange('active'),
-                        },
-                        {
-                            id: 'deactivate',
-                            label: '비활성화',
-                            onClick: () => handleBulkStatusChange('inactive'),
-                        },
-                        {
-                            id: 'delete',
-                            label: '탈퇴 처리',
-                            variant: 'destructive',
-                            onClick: () => handleBulkStatusChange('deleted'),
-                            className: 'text-red-600 border-red-600 hover:bg-red-50',
-                        },
-                    ]}
-                    onClear={() => setSelectedProfiles([])}
+                    hasActiveFilters={filters.search !== '' || filters.status !== 'all' || filters.provider !== 'all'}
+                    onClear={() => {
+                        setFilters({ search: '', status: 'all', provider: 'all' });
+                    }}
                 />
             </AdminCard>
+
+            {/* Bulk Actions */}
+            <BulkActions
+                selectedCount={selectedProfiles.length}
+                actions={[
+                    {
+                        id: 'activate',
+                        label: '활성화',
+                        onClick: () => handleBulkStatusChange('active'),
+                    },
+                    {
+                        id: 'deactivate',
+                        label: '비활성화',
+                        onClick: () => handleBulkStatusChange('inactive'),
+                    },
+                    {
+                        id: 'delete',
+                        label: '탈퇴 처리',
+                        variant: 'destructive',
+                        onClick: () => handleBulkStatusChange('deleted'),
+                    },
+                ]}
+                onClear={() => setSelectedProfiles([])}
+            />
 
             {/* User List */}
             <DataState loading={loading} error={error} data={profiles} onRetry={loadProfiles}>
@@ -308,30 +274,37 @@ export function UserManagementPage() {
                     selectedItems={selectedProfiles}
                     onSelectionChange={setSelectedProfiles}
                     getRowId={(profile: Profile) => profile.id}
-                    totalCount={pagination.totalProfiles}
+                    totalCount={totalProfiles}
                     totalLabel="사용자"
+                    onRowClick={(profile: Profile) => {
+                        setModalProfile(profile as ProfileWithActivity);
+                    }}
                 />
             </DataState>
 
             {/* Pagination */}
-            <Pagination
-                currentPage={filters.page}
-                totalPages={pagination.totalPages}
-                totalItems={pagination.totalProfiles}
-                pageSize={PAGINATION.DEFAULT_PAGE_SIZE}
-                onPageChange={handlePageChange}
-            />
+            <div className="flex items-center justify-center space-x-2">
+                <button
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                    onClick={() => pagination.setPage(pagination.currentPage - 1)}
+                    disabled={pagination.currentPage <= 1}
+                >
+                    이전
+                </button>
+                <span className="text-sm text-muted-foreground">
+                    {pagination.currentPage} / {pagination.totalPages}
+                </span>
+                <button
+                    className="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                    onClick={() => pagination.setPage(pagination.currentPage + 1)}
+                    disabled={pagination.currentPage >= pagination.totalPages}
+                >
+                    다음
+                </button>
+            </div>
 
             {/* Profile Detail Modal */}
-            {showProfileModal && selectedProfile && (
-                <ProfileDetailModal
-                    profile={selectedProfile}
-                    onClose={() => {
-                        setShowProfileModal(false);
-                        setSelectedProfile(null);
-                    }}
-                />
-            )}
+            {modalProfile && <ProfileDetailModal profile={modalProfile} onClose={() => setModalProfile(null)} />}
         </div>
     );
 }

@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, Button } from '@repo/ui';
 import { profileService, type ProfileWithActivity, type ProfileActivity, type ProfileFeedback } from '@repo/supabase';
-import { getStatusConfig, getProviderText, formatDuration } from '../../shared/lib';
-import { AdminCard, AdminCardHeader, AdminCardContent } from '../../shared/components';
+import { getStatusConfig, getProviderText } from '../../shared/lib';
+import { formatDuration } from '@repo/shared';
+import { AdminCard, AdminCardHeader, AdminCardContent } from '../ui';
 
 interface ProfileDetailModalProps {
     profile: ProfileWithActivity;

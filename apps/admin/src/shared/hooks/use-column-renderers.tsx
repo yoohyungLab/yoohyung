@@ -212,7 +212,7 @@ export function useColumnRenderers() {
                                     onValueChange={(value: string) => action.onClick(id, { ...data, status: value })}
                                     options={profileOptions}
                                     size="sm"
-                                    className="w-24"
+                                    className="w-24 bg-white"
                                 />
                             );
                         }

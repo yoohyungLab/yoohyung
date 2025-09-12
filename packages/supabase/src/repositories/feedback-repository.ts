@@ -16,6 +16,7 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
         super(supabase, 'feedbacks');
     }
 
+    // 테스트 아이디로 피드백 조회
     async findByTestId(testId: string): Promise<Feedback[]> {
         const { data, error } = await this.supabase.from('feedbacks').select('*').eq('test_id', testId);
 
@@ -23,6 +24,7 @@ export class FeedbackRepository extends BaseRepository<Feedback> {
         return data || [];
     }
 
+    // 사용자 아이디로 피드백 조회
     async findByUserId(userId: string): Promise<Feedback[]> {
         const { data, error } = await this.supabase.from('feedbacks').select('*').eq('user_id', userId);
 

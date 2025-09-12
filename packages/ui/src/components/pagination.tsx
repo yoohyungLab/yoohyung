@@ -1,116 +1,64 @@
-import React from 'react';
-import { Button } from './button';
+import * as React from 'react';
+import { ChevronLeft, ChevronRight, MoreHorizontal } from 'lucide-react';
+
 import { cn } from '../lib/utils';
+import { ButtonProps, buttonVariants } from './button';
 
-export interface PaginationProps {
-    currentPage: number;
-    totalPages: number;
-    totalItems: number;
-    pageSize: number;
-    onPageChange: (page: number) => void;
-    className?: string;
-    showInfo?: boolean;
-    showPageNumbers?: boolean;
-    maxVisiblePages?: number;
-}
+const Pagination = ({ className, ...props }: React.ComponentProps<'nav'>) => (
+    <nav role="navigation" aria-label="pagination" className={cn('mx-auto flex w-full justify-center', className)} {...props} />
+);
+Pagination.displayName = 'Pagination';
 
-export function Pagination({
-    currentPage,
-    totalPages,
-    totalItems,
-    pageSize,
-    onPageChange,
-    className,
-    showInfo = true,
-    showPageNumbers = true,
-    maxVisiblePages = 5,
-}: PaginationProps) {
-    if (totalPages <= 1) return null;
+const PaginationContent = ({ className, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
+    <ul className={cn('flex flex-row items-center gap-1', className)} {...props} />
+);
+PaginationContent.displayName = 'PaginationContent';
 
-    const startItem = (currentPage - 1) * pageSize + 1;
-    const endItem = Math.min(currentPage * pageSize, totalItems);
+const PaginationItem = ({ className, ...props }: React.HTMLAttributes<HTMLLIElement>) => <li className={cn('', className)} {...props} />;
+PaginationItem.displayName = 'PaginationItem';
 
-    const getVisiblePages = () => {
-        const pages: (number | string)[] = [];
-        const halfVisible = Math.floor(maxVisiblePages / 2);
+type PaginationLinkProps = {
+    isActive?: boolean;
+} & Pick<ButtonProps, 'size'> &
+    React.ComponentProps<'a'>;
 
-        let startPage = Math.max(1, currentPage - halfVisible);
-        let endPage = Math.min(totalPages, currentPage + halfVisible);
+const PaginationLink = ({ className, isActive, size = 'icon', ...props }: PaginationLinkProps) => (
+    <a
+        aria-current={isActive ? 'page' : undefined}
+        className={cn(
+            buttonVariants({
+                variant: isActive ? 'outline' : 'ghost',
+                size,
+            }),
+            className
+        )}
+        {...props}
+    />
+);
+PaginationLink.displayName = 'PaginationLink';
 
-        // Adjust if we're near the beginning or end
-        if (endPage - startPage + 1 < maxVisiblePages) {
-            if (startPage === 1) {
-                endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
-            } else {
-                startPage = Math.max(1, endPage - maxVisiblePages + 1);
-            }
-        }
+const PaginationPrevious = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
+    <PaginationLink aria-label="Go to previous page" size="default" className={cn('gap-1 pl-2.5', className)} {...props}>
+        <ChevronLeft className="h-4 w-4" />
+        <span>Previous</span>
+    </PaginationLink>
+);
+PaginationPrevious.displayName = 'PaginationPrevious';
 
-        // Add first page and ellipsis if needed
-        if (startPage > 1) {
-            pages.push(1);
-            if (startPage > 2) {
-                pages.push('...');
-            }
-        }
+const PaginationNext = ({ className, ...props }: React.ComponentProps<typeof PaginationLink>) => (
+    <PaginationLink aria-label="Go to next page" size="default" className={cn('gap-1 pr-2.5', className)} {...props}>
+        <span>Next</span>
+        <ChevronRight className="h-4 w-4" />
+    </PaginationLink>
+);
+PaginationNext.displayName = 'PaginationNext';
 
-        // Add visible pages
-        for (let i = startPage; i <= endPage; i++) {
-            pages.push(i);
-        }
+const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<'span'>) => (
+    <span aria-hidden className={cn('flex h-9 w-9 items-center justify-center', className)} {...props}>
+        <MoreHorizontal className="h-4 w-4" />
+        <span className="sr-only">More pages</span>
+    </span>
+);
+PaginationEllipsis.displayName = 'PaginationEllipsis';
 
-        // Add ellipsis and last page if needed
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                pages.push('...');
-            }
-            pages.push(totalPages);
-        }
-
-        return pages;
-    };
-
-    return (
-        <div className={cn('px-4 py-3 border-t border-gray-200 flex items-center justify-between', className)}>
-            {showInfo && (
-                <div className="text-sm text-gray-500">
-                    전체 {totalItems.toLocaleString()}개 중 {startItem}-{endItem}개 표시
-                </div>
-            )}
-
-            <div className="flex items-center gap-2">
-                <Button size="sm" variant="outline" disabled={currentPage === 1} onClick={() => onPageChange(currentPage - 1)}>
-                    이전
-                </Button>
-
-                {showPageNumbers && (
-                    <div className="flex items-center gap-1">
-                        {getVisiblePages().map((page, index) => (
-                            <React.Fragment key={index}>
-                                {page === '...' ? (
-                                    <span className="px-2 py-1 text-sm text-gray-500">...</span>
-                                ) : (
-                                    <Button
-                                        size="sm"
-                                        variant={page === currentPage ? 'default' : 'outline'}
-                                        onClick={() => onPageChange(page as number)}
-                                        className={cn(
-                                            'min-w-[32px] h-8',
-                                            page === currentPage && 'bg-blue-600 hover:bg-blue-700 text-white'
-                                        )}
-                                    >
-                                        {page}
-                                    </Button>
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                )}
-
-                <Button size="sm" variant="outline" disabled={currentPage === totalPages} onClick={() => onPageChange(currentPage + 1)}>
-                    다음
-                </Button>
-            </div>
-        </div>
-    );
-}
+export { Pagination, PaginationContent, PaginationLink, PaginationItem, PaginationPrevious, PaginationNext, PaginationEllipsis };
