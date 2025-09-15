@@ -1,4 +1,4 @@
-import { supabase } from "@repo/supabase";
+import { supabase } from '@repo/shared';
 
 export interface AdminUser {
     id: string;

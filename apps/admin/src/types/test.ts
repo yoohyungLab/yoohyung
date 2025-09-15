@@ -1,60 +1,6 @@
-export interface Question {
-    id: string;
-    order: number;
-    text: string;
-    options: QuestionOption[];
-    group?: string;
-}
+// Admin 전용 타입들은 packages/supabase/types에서 가져와서 사용
+// 필요한 경우에만 여기서 확장 타입 정의
 
-export interface QuestionOption {
-    id: string;
-    text: string;
-    score: number;
-    color?: string;
-    style?: string;
-}
-
-export interface TestResult {
-    id: string;
-    title: string;
-    description: string;
-    keywords: string[];
-    recommendations: string[];
-    backgroundImage?: string;
-    condition: {
-        type: 'score' | 'pattern';
-        value: number | string;
-    };
-}
-
-export interface Test {
-    id: string;
-    slug: string;
-    title: string;
-    category: string;
-    description: string;
-    emoji: string;
-    thumbnailImage?: string;
-    startMessage: string;
-    questions: Question[];
-    results: TestResult[];
-    isPublished: boolean;
-    tags: string[];
-    createdBy: string;
-    createdAt: string;
-    updatedAt: string;
-}
-
-export interface CreateTestRequest {
-    slug: string;
-    title: string;
-    category: string;
-    description: string;
-    emoji: string;
-    thumbnailImage?: string;
-    startMessage: string;
-    questions: Question[];
-    results: TestResult[];
-    isPublished: boolean;
-    tags: string[];
-}
+// Re-export all types from packages/supabase for convenience
+export type * from '@repo/supabase/types';
+export type * from '@repo/supabase/types/admin';

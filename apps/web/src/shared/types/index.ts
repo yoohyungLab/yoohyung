@@ -41,17 +41,8 @@ export interface User {
     updatedAt: string;
 }
 
-// 피드백 관련 타입
-export interface Feedback {
-    id: string;
-    category: string;
-    title: string;
-    content: string;
-    status: 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
-    userId?: string;
-    createdAt: string;
-    updatedAt: string;
-}
+// 피드백 관련 타입은 packages/supabase/types에서 가져옴
+export type { Feedback } from '@repo/supabase/types';
 
 // API 응답 타입
 export interface ApiResponse<T = unknown> {

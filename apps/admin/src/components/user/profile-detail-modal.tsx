@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, Button } from '@repo/ui';
-import { profileService, type ProfileWithActivity, type ProfileActivity, type ProfileFeedback } from '@repo/supabase';
-import { getStatusConfig, getProviderText } from '../../shared/lib';
+import { profileService, type ProfileWithActivity, type ProfileActivity, type ProfileFeedback } from '../../api/profile.service';
+import { getProfileStatusConfig, getProviderText } from '../../shared/lib';
 import { formatDuration } from '@repo/shared';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '../ui';
 
@@ -36,7 +36,7 @@ export function ProfileDetailModal({ profile, onClose }: ProfileDetailModalProps
     }, [loadActivities]);
 
     const getStatusBadge = (status: string) => {
-        const statusConfig = getStatusConfig(status);
+        const statusConfig = getProfileStatusConfig(status);
         return <Badge className={statusConfig.color}>{statusConfig.text}</Badge>;
     };
 
@@ -71,7 +71,7 @@ export function ProfileDetailModal({ profile, onClose }: ProfileDetailModalProps
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">상태</label>
                                     {(() => {
-                                        const statusConfig = getStatusConfig(profile.status);
+                                        const statusConfig = getProfileStatusConfig(profile.status);
                                         return <Badge className={`w-fit ${statusConfig.color}`}>{statusConfig.text}</Badge>;
                                     })()}
                                 </div>

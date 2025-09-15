@@ -320,7 +320,6 @@ export function SimplifiedDashboard() {
                                 <div key={test.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
                                     <div className="flex items-center gap-4">
                                         <span className="text-lg font-bold text-gray-600">#{index + 1}</span>
-                                        <span className="text-2xl">{test.emoji}</span>
                                         <div>
                                             <p className="font-medium text-gray-900">{test.title}</p>
                                             <p className="text-sm text-gray-500">오늘 {formatNumber(test.todayResponses)}명 응답</p>

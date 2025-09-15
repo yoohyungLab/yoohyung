@@ -1,4 +1,4 @@
-import { supabase } from '@repo/supabase';
+import { supabase } from '@repo/shared';
 
 export interface Profile {
     id: string;
@@ -14,7 +14,10 @@ export interface Profile {
 export interface ProfileWithActivity extends Profile {
     activity?: {
         total_responses: number;
-        last_activity: string;
+        unique_tests: number;
+        avg_completion_rate: number;
+        avg_duration_sec: number;
+        top_result_type: string | null;
         activity_score: number;
     };
 }
@@ -36,6 +39,25 @@ export interface ProfileStats {
     email_signups: number;
     google_signups: number;
     kakao_signups: number;
+}
+
+export interface ProfileActivity {
+    id: string;
+    test_emoji: string;
+    test_title: string;
+    started_at: string | null;
+    status: 'completed' | 'in_progress' | 'abandoned';
+    result_type: string;
+    duration_sec: number;
+}
+
+export interface ProfileFeedback {
+    id: string;
+    title: string;
+    category: string;
+    status: string;
+    created_at: string;
+    admin_reply?: string | null;
 }
 
 interface ProfileActivityStats {

@@ -3,14 +3,14 @@
     "version": "0.0.0",
     "private": true,
     "type": "module",
-    "main": "dist/index.js",
-    "types": "dist/index.d.ts",
+    "main": "src/index.tsx",
+    "types": "src/index.tsx",
     "exports": {
         ".": {
-            "import": "./dist/index.js",
-            "types": "./dist/index.d.ts"
+            "import": "./src/index.tsx",
+            "types": "./src/index.tsx"
         },
-        "./styles": "./dist/styles.css"
+        "./styles": "./src/styles.css"
     },
     "files": [
         "dist"
@@ -22,7 +22,7 @@
     "dependencies": {
         "@radix-ui/react-dialog": "^1.1.14",
         "@radix-ui/react-label": "^2.1.7",
-        "@radix-ui/react-select": "^2.2.5",
+
         "@radix-ui/react-slot": "^1.2.3",
         "@radix-ui/react-switch": "^1.0.3",
         "@repo/shared": "workspace:*",

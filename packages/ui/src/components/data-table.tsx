@@ -110,7 +110,7 @@ export function DataTable<T>({
                                 onClick={() => onRowClick?.(row)}
                             >
                                 {selectable && getRowId && (
-                                    <td className="px-4 py-3">
+                                    <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
                                         <input
                                             type="checkbox"
                                             checked={selectedItems.includes(getRowId(row))}

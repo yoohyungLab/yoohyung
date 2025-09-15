@@ -1,6 +1,36 @@
-import { supabase } from '../client';
+import { supabase } from '@repo/shared';
+import type { Feedback, FeedbackFilters, AdminFeedbackResponse } from '@repo/supabase/types';
 
 export const feedbackService = {
+    async getFeedbacks(filters: FeedbackFilters = {}, page: number = 1, pageSize: number = 20): Promise<AdminFeedbackResponse> {
+        let query = supabase.from('feedbacks').select('*', { count: 'exact' });
+
+        // 필터 적용
+        if (filters.status && filters.status !== 'all') {
+            query = query.eq('status', filters.status);
+        }
+        if (filters.category && filters.category !== 'all') {
+            query = query.eq('category', filters.category);
+        }
+        if (filters.search) {
+            query = query.or(`title.ilike.%${filters.search}%,content.ilike.%${filters.search}%,author_name.ilike.%${filters.search}%`);
+        }
+
+        // 페이징 및 정렬
+        const { data, count, error } = await query
+            .order('created_at', { ascending: false })
+            .range((page - 1) * pageSize, page * pageSize - 1);
+
+        if (error) throw error;
+
+        return {
+            feedbacks: data || [],
+            total: count || 0,
+            totalPages: Math.ceil((count || 0) / pageSize),
+            currentPage: page,
+        };
+    },
+
     async getMyFeedbacks(userId: string) {
         try {
             const { data, error } = await supabase
@@ -97,6 +127,20 @@ export const feedbackService = {
         if (error) throw error;
     },
 
+    async bulkUpdateStatus(feedbackIds: string[], status: string): Promise<number> {
+        const { data, error } = await supabase
+            .from('feedbacks')
+            .update({
+                status,
+                updated_at: new Date().toISOString(),
+            })
+            .in('id', feedbackIds)
+            .select();
+
+        if (error) throw error;
+        return data?.length || 0;
+    },
+
     async getFeedbackStats() {
         const { data, error } = await supabase.from('feedbacks').select('status, created_at');
         if (error) throw error;
@@ -109,7 +153,7 @@ export const feedbackService = {
         const stats = {
             total: data?.length || 0,
             pending: data?.filter((f) => f.status === 'pending').length || 0,
-            inProgress: data?.filter((f) => f.status === 'in_progress').length || 0,
+            in_progress: data?.filter((f) => f.status === 'in_progress').length || 0,
             completed: data?.filter((f) => f.status === 'completed').length || 0,
             replied: data?.filter((f) => f.status === 'replied').length || 0,
             rejected: data?.filter((f) => f.status === 'rejected').length || 0,

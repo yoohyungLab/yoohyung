@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { MainBanner } from '@/widgets';
 import { TrendingSection, RecommendedSection, TopTestsSection, DynamicTestsSection, CategoryFilter } from '@/features/home';
-import { testApi } from '@repo/shared';
+import { testApi } from '../../api/test.api';
 import { MAIN_TESTS, POPULAR_TESTS } from '@/shared/constants';
 
 interface DynamicTest {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge, IconButton, DefaultSelect } from '@repo/ui';
 import { Eye, Trash2, MessageSquare, User, Calendar, FileText } from 'lucide-react';
-import { getStatusConfig, getProviderText } from '../lib/utils';
+import { getProfileStatusConfig, getProviderText } from '../lib/utils';
 import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
 
 interface RenderOptions {
@@ -39,18 +39,13 @@ export function useColumnRenderers() {
 
     // 가입경로 렌더링
     const renderProvider = (provider: string) => {
-        return <Badge variant="outline">{getProviderText(provider)}</Badge>;
+        return <span className="text-sm text-gray-900">{getProviderText(provider)}</span>;
     };
 
     // 상태 렌더링 (Badge)
     const renderStatus = (status: string) => {
-        const statusConfig = getStatusConfig(status);
-        return (
-            <Badge className={`flex items-center gap-1 w-fit ${statusConfig.color}`}>
-                {statusConfig.icon}
-                {statusConfig.text}
-            </Badge>
-        );
+        const statusConfig = getProfileStatusConfig(status);
+        return <Badge className={`${statusConfig.color}`}>{statusConfig.text}</Badge>;
     };
 
     // 날짜 렌더링
@@ -91,9 +86,9 @@ export function useColumnRenderers() {
     const renderCategory = (category: string, categoryMap?: Record<string, string>) => {
         const displayName = categoryMap?.[category] || category;
         return (
-            <Badge variant="outline" className="text-xs">
+            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 h-6">
                 {displayName}
-            </Badge>
+            </span>
         );
     };
 
@@ -154,10 +149,11 @@ export function useColumnRenderers() {
             type: 'view' | 'edit' | 'delete' | 'status' | 'reply';
             onClick: (id: string, data?: Record<string, unknown>) => void;
             condition?: (data: Record<string, unknown>) => boolean;
+            statusOptions?: Array<{ value: string; label: string }>;
         }>
     ) => {
         return (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                 {actions.map((action, index) => {
                     // 조건이 있고 false면 렌더링하지 않음
                     if (action.condition && !action.condition(data)) {
@@ -200,7 +196,7 @@ export function useColumnRenderers() {
                                 />
                             );
                         case 'status': {
-                            const profileOptions = [
+                            const statusOptions = action.statusOptions || [
                                 { value: 'active', label: '활성' },
                                 { value: 'inactive', label: '비활성' },
                                 { value: 'deleted', label: '탈퇴' },
@@ -210,7 +206,7 @@ export function useColumnRenderers() {
                                     key={index}
                                     value={data.status as string}
                                     onValueChange={(value: string) => action.onClick(id, { ...data, status: value })}
-                                    options={profileOptions}
+                                    options={statusOptions}
                                     size="sm"
                                     className="w-24 bg-white"
                                 />

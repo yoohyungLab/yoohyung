@@ -1,3 +1,4 @@
+// 순수 UI 컴포넌트들만 여기에 포함
 export * from './admin-card';
 export * from './bulk-actions';
 export * from './data-state';

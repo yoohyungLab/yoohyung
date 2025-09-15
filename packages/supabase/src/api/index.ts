@@ -1,9 +1,2 @@
-// Admin Services
-export { feedbackService } from './feedback.service';
-export { testService } from './test.service';
-export { categoryService } from './category.service';
-export { profileService } from './profile.service';
-export { adminAuthService } from './admin-auth.service';
-
-// Types
-export type { Profile, ProfileWithActivity, ProfileFilters, ProfileStats, ProfileActivity, ProfileFeedback } from './profile.service';
+// API 서비스들이 각 앱으로 이동했습니다.
+// 이제 이 패키지는 타입과 클라이언트만 제공합니다.
