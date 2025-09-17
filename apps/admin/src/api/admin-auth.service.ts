@@ -1,10 +1,5 @@
 import { supabase } from '@repo/shared';
-
-export interface AdminUser {
-    id: string;
-    email: string;
-    role: 'admin';
-}
+import type { AdminUser } from '@repo/supabase';
 
 export const adminAuthService = {
     // 관리자 로그인 (Supabase Auth 사용)
@@ -66,3 +61,6 @@ export const adminAuthService = {
         return { id: data.user.id, email, role: 'admin' };
     },
 };
+
+
+

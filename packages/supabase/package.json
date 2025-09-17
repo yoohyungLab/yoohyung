@@ -14,7 +14,9 @@
     "scripts": {
         "build": "tsc",
         "dev": "tsc --watch",
-        "clean": "rm -rf dist"
+        "clean": "rm -rf dist",
+        "generate-types": "supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts",
+        "generate-types-local": "supabase gen types typescript --local > src/types/database.ts"
     },
     "dependencies": {
         "@supabase/supabase-js": "^2.39.0"

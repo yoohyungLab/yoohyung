@@ -1,16 +1,16 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Link } from 'react-router-dom';
-import { usePagination } from '@repo/shared';
-import { testService } from '../../api/test.service';
-import { categoryService, type Category } from '../../api/category.service';
-import { DataTable, type Column, DefaultPagination, Badge, Button } from '@repo/ui';
-import { AdminCard, BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { TestDetailModal } from '@/components/test/test-detail-modal';
+import { AdminCard, BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { useColumnRenderers } from '@/shared/hooks';
 import { PAGINATION } from '@/shared/lib/constants';
-import { Plus, Eye, Edit, Globe, Lock, Trash2, Download, Calendar, Clock } from 'lucide-react';
-import type { Test, TestType, TestStatus } from '../../types/test';
-import { getTestTypeInfo, getTestStatusInfo, formatTestDuration, calculateEstimatedTime } from '@/shared/lib/test-utils';
+import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
+import { usePagination } from '@repo/shared';
+import { Badge, Button, DataTable, DefaultPagination, type Column } from '@repo/ui';
+import { Edit, Globe, Lock, Trash2 } from 'lucide-react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { categoryService } from '../../api/category.service';
+import { testService } from '../../api/test.service';
+import type { Test, TestStatus, TestType } from '@repo/supabase';
 
 export function TestListPage() {
     const renderers = useColumnRenderers();
@@ -22,7 +22,7 @@ export function TestListPage() {
     const [totalTests, setTotalTests] = useState(0);
     const [selectedTest, setSelectedTest] = useState<Test | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
-    const [apiCategories, setApiCategories] = useState<any[]>([]);
+    const [apiCategories, setApiCategories] = useState<{ name: string; is_active: boolean }[]>([]);
     const [filters, setFilters] = useState({
         search: '',
         status: 'all' as 'all' | TestStatus,
@@ -39,9 +39,9 @@ export function TestListPage() {
     const stats = useMemo(
         () => ({
             total: tests.length,
-            published: tests.filter((t) => t.status === 'published').length,
-            draft: tests.filter((t) => t.status === 'draft').length,
-            scheduled: tests.filter((t) => t.status === 'scheduled').length,
+            published: tests.length, // status 컬럼이 없으므로 모든 테스트를 published로 간주
+            draft: 0, // status 컬럼이 없으므로 0
+            scheduled: 0, // status 컬럼이 없으므로 0
             responses: tests.reduce((sum, test) => sum + (test.responseCount || 0), 0),
         }),
         [tests]
@@ -85,13 +85,15 @@ export function TestListPage() {
             const matchesSearch =
                 test.title.toLowerCase().includes(filters.search.toLowerCase()) ||
                 (test.description || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                test.category.toLowerCase().includes(filters.search.toLowerCase());
+                (test.category || '').toLowerCase().includes(filters.search.toLowerCase());
 
-            const matchesStatus = filters.status === 'all' || test.status === filters.status;
+            // status 필터링 제거 (status 컬럼이 없음)
+            const matchesStatus = true;
 
-            const matchesType = filters.type === 'all' || test.type === filters.type;
+            // type 필터링 제거 (type 컬럼이 없음)
+            const matchesType = true;
 
-            const matchesCategory = filters.category === 'all' || test.category === filters.category;
+            const matchesCategory = filters.category === 'all' || (test.category || '') === filters.category;
 
             return matchesSearch && matchesStatus && matchesType && matchesCategory;
         });
@@ -102,18 +104,18 @@ export function TestListPage() {
         loadCategories();
     }, [loadData, loadCategories]);
 
-    // 상태 변경 핸들러
+    // 상태 변경 핸들러 (status 컬럼이 없으므로 UI만 업데이트)
     const handleTogglePublish = useCallback(async (testId: string, currentStatus: boolean) => {
         try {
-            const updatedTest = await testService.togglePublishStatus(testId, !currentStatus);
-            // 상태 즉시 업데이트 - status와 isPublished 둘 다 업데이트
+            await testService.togglePublishStatus(testId, !currentStatus);
+            // UI 상태만 업데이트 (실제 DB에는 status 컬럼이 없음)
             setTests((prev) =>
                 prev.map((test) =>
                     test.id === testId
                         ? {
                               ...test,
-                              status: updatedTest.status,
-                              isPublished: updatedTest.status === 'published',
+                              status: !currentStatus ? 'published' : 'draft',
+                              isPublished: !currentStatus,
                           }
                         : test
                 )
@@ -138,14 +140,25 @@ export function TestListPage() {
         [loadData]
     );
 
-    // 대량 상태 변경
+    // 대량 상태 변경 (UI만 업데이트)
     const handleBulkPublish = async (isPublished: boolean) => {
         if (selectedTests.length === 0) return;
 
         try {
             await Promise.all(selectedTests.map((testId) => testService.togglePublishStatus(testId, isPublished)));
+            // UI 상태 업데이트
+            setTests((prev) =>
+                prev.map((test) =>
+                    selectedTests.includes(test.id)
+                        ? {
+                              ...test,
+                              status: isPublished ? 'published' : 'draft',
+                              isPublished: isPublished,
+                          }
+                        : test
+                )
+            );
             setSelectedTests([]);
-            loadData();
         } catch (error) {
             console.error('대량 상태 변경 실패:', error);
         }
@@ -200,17 +213,14 @@ export function TestListPage() {
                 id: 'status',
                 header: '상태',
                 cell: ({ row }) => {
-                    const statusInfo = getTestStatusInfo(row.original.status || 'draft');
+                    // status 컬럼이 없으므로 기본값으로 처리
+                    const status = row.original.status || 'draft';
+                    const statusInfo = getTestStatusInfo(status);
                     return (
                         <div>
                             <Badge variant="outline" className="text-xs">
                                 {statusInfo.name}
                             </Badge>
-                            {row.original.status === 'scheduled' && row.original.scheduledAt && (
-                                <div className="text-xs mt-1 text-gray-500">
-                                    {new Date(row.original.scheduledAt).toLocaleDateString('ko-KR')}
-                                </div>
-                            )}
                         </div>
                     );
                 },
@@ -240,12 +250,12 @@ export function TestListPage() {
                             variant="outline"
                             onClick={(e) => {
                                 e.stopPropagation();
-                                handleTogglePublish(row.original.id, row.original.status === 'published');
+                                handleTogglePublish(row.original.id, row.original.isPublished || false);
                             }}
-                            className={row.original.status === 'published' ? 'text-yellow-600' : 'text-green-600'}
-                            title={row.original.status === 'published' ? '비공개로 전환' : '공개로 전환'}
+                            className={row.original.isPublished ? 'text-yellow-600' : 'text-green-600'}
+                            title={row.original.isPublished ? '비공개로 전환' : '공개로 전환'}
                         >
-                            {row.original.status === 'published' ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+                            {row.original.isPublished ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
                         </Button>
                         <Button
                             size="sm"
@@ -263,7 +273,7 @@ export function TestListPage() {
                 ),
             },
         ],
-        [renderers, handleTogglePublish, handleDelete]
+        [handleTogglePublish, handleDelete]
     );
 
     return (
@@ -288,15 +298,6 @@ export function TestListPage() {
                         search: {
                             placeholder: '테스트 제목, 설명, 카테고리로 검색',
                         },
-                        status: {
-                            options: [
-                                { value: 'all', label: '전체 상태' },
-                                { value: 'published', label: '공개' },
-                                { value: 'draft', label: '초안' },
-                                { value: 'scheduled', label: '예약' },
-                                { value: 'archived', label: '보관' },
-                            ],
-                        },
                         category: {
                             options: [{ value: 'all', label: '전체 카테고리' }, ...categories],
                         },
@@ -304,24 +305,11 @@ export function TestListPage() {
                     onFilterChange={(newFilters) => {
                         setFilters({
                             search: newFilters.search || '',
-                            status: (newFilters.status as 'all' | TestStatus) || 'all',
-                            type: (newFilters.type as 'all' | TestType) || 'all',
+                            status: 'all', // status 필터 제거
+                            type: 'all', // type 필터 제거
                             category: newFilters.category || 'all',
                         });
                     }}
-                    actions={
-                        <div className="flex gap-2">
-                            <Button variant="outline">
-                                <Download className="w-4 h-4 mr-2" />
-                                내보내기
-                            </Button>
-                            <Link to="/tests/create">
-                                <Button className="flex items-center gap-2">
-                                    <Plus className="w-4 h-4" />새 테스트
-                                </Button>
-                            </Link>
-                        </div>
-                    }
                 />
             </AdminCard>
 
@@ -384,7 +372,11 @@ export function TestListPage() {
                         // 모달에 표시된 테스트 정보도 업데이트
                         const updatedTest = tests.find((t) => t.id === testId);
                         if (updatedTest) {
-                            setSelectedTest(updatedTest);
+                            setSelectedTest({
+                                ...updatedTest,
+                                status: !currentStatus ? 'published' : 'draft',
+                                isPublished: !currentStatus,
+                            });
                         }
                     }}
                     onDelete={handleDelete}

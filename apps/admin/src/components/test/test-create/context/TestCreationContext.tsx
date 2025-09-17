@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { TestCreationContextType, Step, TestType } from '../types';
+import { TestCreationContextType, Step, TestType } from '../../test-creation/types';
 
 const TestCreationContext = createContext<TestCreationContextType | undefined>(undefined);
 
@@ -57,7 +57,7 @@ export const TestCreationProvider: React.FC<TestCreationProviderProps> = ({ chil
             features: [],
             match_results: [],
             jobs: [],
-            bg_image_url: '',
+            background_image_url: '',
             theme_color: '#3B82F6',
             condition: { type: 'score', min: 0, max: 30 },
         },

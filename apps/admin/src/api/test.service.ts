@@ -10,187 +10,219 @@ import type {
     TestResult,
     TestResultInsert,
     UserTestResponse,
-    Category,
     TestStatus,
-    TestType,
-} from '../types/test';
+    TestWithDetails,
+} from '@repo/supabase';
 
-// Admin UI 호환을 위한 확장 인터페이스
-export interface TestWithDetails extends Omit<Test, 'response_count'> {
-    category?: Category;
-    questions?: TestQuestion[];
-    results?: TestResult[];
-    question_count?: number;
-    result_count?: number;
-    response_count?: number | null;
-    completion_rate?: number;
-    // Admin UI 호환 필드들
-    category_name?: string;
-    emoji?: string;
-    thumbnailImage?: string;
-    startMessage?: string;
-    scheduledAt?: string;
-    responseCount?: number;
-    completionRate?: number;
-    estimatedTime?: number;
-    createdBy?: string;
-    createdAt: string;
-    updatedAt: string;
-    isPublished?: boolean;
+export interface TestFilters {
+    search?: string;
+    status?: TestStatus;
+    type?: string;
+    category?: string;
 }
 
 export const testService = {
     async getAllTests(): Promise<TestWithDetails[]> {
-        const { data, error } = await supabase
-            .from('tests')
-            .select(
-                `
-                *,
-                categories!tests_category_id_fkey (
-                    id,
-                    name,
-                    slug
-                ),
-                test_questions (count),
-                test_results (count),
-                user_test_responses (count)
-            `
-            )
-            .order('created_at', { ascending: false });
+        const { data, error } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
 
         if (error) throw error;
 
         // Admin UI 호환 포맷으로 변환
-        return (data || []).map((item) => {
-            const questionCount = (item as any).test_questions?.[0]?.count || 0;
-            const resultCount = (item as any).test_results?.[0]?.count || 0;
-
+        return (data || []).map((item: Test) => {
             return {
                 ...item,
                 // 호환 필드 매핑
-                category: item.categories?.name || '',
-                category_name: item.categories?.name || '',
+                category: '기타', // 기본값
+                category_name: '기타', // 기본값
                 emoji: '📝', // 기본값
+                status: 'draft', // 기본값 (UI 호환용)
+                type: 'psychology', // 기본값 (UI 호환용)
                 thumbnailImage: item.thumbnail_url || '',
-                startMessage: item.intro_text || '',
-                scheduledAt: item.scheduled_at || '',
+                startMessage: '',
+                scheduledAt: '',
                 responseCount: item.response_count || 0,
-                completionRate:
-                    item.completion_count && item.response_count ? Math.round((item.completion_count / item.response_count) * 100) : 0,
-                estimatedTime: item.estimated_time || 5,
-                share_count: item.share_count || 0,
-                completion_count: item.completion_count || 0,
-                createdBy: item.author_id || '',
+                completionRate: 0,
+                estimatedTime: 5,
+                share_count: 0,
+                completion_count: 0,
+                createdBy: '',
                 createdAt: item.created_at,
                 updatedAt: item.updated_at,
-                isPublished: item.status === 'published',
-                question_count: questionCount,
-                result_count: resultCount,
-                response_count: (item as any).user_test_responses?.[0]?.count || 0,
-                // Admin UI가 기대하는 배열 형태로 생성 (length 속성만 필요)
-                questions: new Array(questionCount).fill({}),
-                results: new Array(resultCount).fill({}),
+                isPublished: false, // 기본값 (UI 호환용)
+                question_count: 0, // 기본값
+                result_count: 0, // 기본값
+                response_count: item.response_count || 0,
+                // Admin UI가 기대하는 배열 형태로 생성
+                questions: [],
+                results: [],
             };
         }) as TestWithDetails[];
     },
 
     async getPublishedTests(): Promise<TestWithDetails[]> {
-        const { data, error } = await supabase
-            .from('tests')
-            .select(
-                `
-                *,
-                categories!tests_category_id_fkey (
-                    id,
-                    name,
-                    slug
-                )
-            `
-            )
-            .eq('status', 'published')
-            .order('created_at', { ascending: false });
+        // status 컬럼이 없으므로 모든 테스트를 가져와서 UI에서 필터링
+        const { data, error } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
 
         if (error) throw error;
 
-        return (data || []).map((item) => ({
+        return (data || []).map((item: Test) => ({
             ...item,
-            category: item.categories?.name || '',
-            category_name: item.categories?.name || '',
-            emoji: '',
+            category: '기타', // 기본값
+            category_name: '기타', // 기본값
+            emoji: '📝', // 기본값
+            status: 'published', // UI 호환용
+            type: 'psychology', // UI 호환용
             thumbnailImage: item.thumbnail_url || '',
-            startMessage: item.intro_text || '',
-            scheduledAt: item.scheduled_at || '',
+            startMessage: '',
+            scheduledAt: '',
             responseCount: item.response_count || 0,
-            completionRate:
-                item.completion_count && item.response_count ? Math.round((item.completion_count / item.response_count) * 100) : 0,
-            estimatedTime: item.estimated_time || 5,
-            share_count: item.share_count || 0,
-            completion_count: item.completion_count || 0,
-            createdBy: item.author_id || '',
+            completionRate: 0,
+            estimatedTime: 5,
+            share_count: 0,
+            completion_count: 0,
+            createdBy: '',
             createdAt: item.created_at,
             updatedAt: item.updated_at,
-            isPublished: item.status === 'published',
+            isPublished: true, // UI 호환용
             questions: [],
             results: [],
         })) as TestWithDetails[];
     },
 
     async getTestById(id: string): Promise<TestWithDetails> {
-        const { data, error } = await supabase
-            .from('tests')
-            .select(
-                `
-                *,
-                categories!tests_category_id_fkey (
-                    id,
-                    name,
-                    slug
-                ),
-                test_questions (
-                    *,
-                    test_choices (*)
-                ),
-                test_results (*)
-            `
-            )
-            .eq('id', id)
-            .single();
+        const { data, error } = await supabase.from('tests').select('*').eq('id', id).maybeSingle();
 
         if (error) throw error;
+        if (!data) throw new Error(`Test with id ${id} not found`);
 
         return {
             ...data,
-            category: data.categories?.name || '',
-            category_name: data.categories?.name || '',
-            emoji: '',
+            category: '기타', // 기본값
+            category_name: '기타', // 기본값
+            emoji: '📝', // 기본값
+            status: 'draft', // UI 호환용
+            type: 'psychology', // UI 호환용
             thumbnailImage: data.thumbnail_url || '',
-            startMessage: data.intro_text || '',
-            scheduledAt: data.scheduled_at || '',
+            startMessage: '',
+            scheduledAt: '',
             responseCount: data.response_count || 0,
-            completionRate:
-                data.completion_count && data.response_count ? Math.round((data.completion_count / data.response_count) * 100) : 0,
-            estimatedTime: data.estimated_time || 5,
-            share_count: data.share_count || 0,
-            completion_count: data.completion_count || 0,
-            createdBy: data.author_id || '',
+            completionRate: 0,
+            estimatedTime: 5,
+            share_count: 0,
+            completion_count: 0,
+            createdBy: '',
             createdAt: data.created_at,
             updatedAt: data.updated_at,
-            isPublished: data.status === 'published',
-            questions: data.test_questions || [],
-            results: data.test_results || [],
+            isPublished: false, // UI 호환용
+            questions: [], // 기본값
+            results: [], // 기본값
         } as TestWithDetails;
     },
 
-    async createTest(testData: TestInsert): Promise<Test> {
-        const { data, error } = await supabase.from('tests').insert([testData]).select().single();
-        if (error) throw error;
-        return data as Test;
+    // 테스트와 관련된 모든 데이터를 가져오는 함수 (수정용)
+    async getTestWithDetails(id: string): Promise<{
+        test: Test;
+        questions: Array<TestQuestion & { choices: TestChoice[] }>;
+        results: TestResult[];
+    }> {
+        // 1. 테스트 기본 정보 가져오기
+        const { data: testData, error: testError } = await supabase.from('tests').select('*').eq('id', id).maybeSingle();
+
+        if (testError) throw testError;
+        if (!testData) throw new Error(`Test with id ${id} not found`);
+
+        // 2. 질문들과 선택지들 가져오기
+        const { data: questionsData, error: questionsError } = await supabase
+            .from('test_questions')
+            .select(
+                `
+                *,
+                choices:test_choices(*)
+            `
+            )
+            .eq('test_id', id)
+            .order('question_order');
+
+        if (questionsError) throw questionsError;
+
+        // 3. 결과들 가져오기
+        const { data: resultsData, error: resultsError } = await supabase
+            .from('test_results')
+            .select('*')
+            .eq('test_id', id)
+            .order('result_order');
+
+        if (resultsError) throw resultsError;
+
+        return {
+            test: testData as Test,
+            questions: (questionsData || []) as Array<TestQuestion & { choices: TestChoice[] }>,
+            results: (resultsData || []) as TestResult[],
+        };
     },
 
-    async updateTest(id: string, testData: TestUpdate): Promise<Test> {
+    async createTest(testData: TestInsert): Promise<TestWithDetails> {
+        const { data, error } = await supabase.from('tests').insert([testData]).select().single();
+        if (error) throw error;
+
+        // TestWithDetails 형식으로 변환
+        return {
+            ...data,
+            category: '기타',
+            category_name: '기타',
+            emoji: '📝',
+            status: 'draft',
+            type: 'psychology',
+            thumbnailImage: data.thumbnail_url || '',
+            startMessage: '',
+            scheduledAt: '',
+            responseCount: data.response_count || 0,
+            completionRate: 0,
+            estimatedTime: 5,
+            share_count: 0,
+            completion_count: 0,
+            createdBy: '',
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            isPublished: false,
+            question_count: 0,
+            result_count: 0,
+            response_count: data.response_count || 0,
+            questions: [],
+            results: [],
+        } as TestWithDetails;
+    },
+
+    async updateTest(id: string, testData: TestUpdate): Promise<TestWithDetails> {
         const { data, error } = await supabase.from('tests').update(testData).eq('id', id).select().single();
         if (error) throw error;
-        return data as Test;
+
+        // TestWithDetails 형식으로 변환
+        return {
+            ...data,
+            category: '기타',
+            category_name: '기타',
+            emoji: '📝',
+            status: 'draft',
+            type: 'psychology',
+            thumbnailImage: data.thumbnail_url || '',
+            startMessage: '',
+            scheduledAt: '',
+            responseCount: data.response_count || 0,
+            completionRate: 0,
+            estimatedTime: 5,
+            share_count: 0,
+            completion_count: 0,
+            createdBy: '',
+            createdAt: data.created_at,
+            updatedAt: data.updated_at,
+            isPublished: false,
+            question_count: 0,
+            result_count: 0,
+            response_count: data.response_count || 0,
+            questions: [],
+            results: [],
+        } as TestWithDetails;
     },
 
     async deleteTest(id: string): Promise<void> {
@@ -199,10 +231,10 @@ export const testService = {
     },
 
     async togglePublishStatus(id: string, isPublished: boolean): Promise<Test> {
-        const status: TestStatus = isPublished ? 'published' : 'draft';
+        // status 컬럼이 없으므로 updated_at만 업데이트
         const { data, error } = await supabase
             .from('tests')
-            .update({ status, updated_at: new Date().toISOString() })
+            .update({ updated_at: new Date().toISOString() })
             .eq('id', id)
             .select()
             .single();
@@ -335,20 +367,20 @@ export const testService = {
         totalResponses: number;
         todayResponses: number;
     }> {
-        const { data: tests, error: testsError } = await supabase.from('tests').select('id, status');
+        const { data: tests, error: testsError } = await supabase.from('tests').select('id');
         if (testsError) throw testsError;
 
-        const { data: responses, error: responsesError } = await supabase.from('user_test_responses').select('test_id, created_at');
+        const { data: responses, error: responsesError } = await supabase.from('user_test_responses').select('test_id, created_date');
         if (responsesError) throw responsesError;
 
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const todayResponses = responses?.filter((r) => new Date(r.created_at) >= today).length || 0;
+        const todayResponses = responses?.filter((r: UserTestResponse) => new Date(r.created_date || '') >= today).length || 0;
 
         return {
             totalTests: tests?.length || 0,
-            publishedTests: tests?.filter((t) => t.status === 'published').length || 0,
+            publishedTests: tests?.length || 0, // status 컬럼이 없으므로 모든 테스트를 published로 간주
             totalResponses: responses?.length || 0,
             todayResponses,
         };

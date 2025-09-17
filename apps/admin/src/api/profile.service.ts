@@ -1,109 +1,14 @@
 import { supabase } from '@repo/shared';
-
-export interface Profile {
-    id: string;
-    email: string;
-    name: string;
-    avatar_url: string;
-    provider: string;
-    status: 'active' | 'inactive' | 'deleted';
-    created_at: string;
-    updated_at: string;
-}
-
-export interface ProfileWithActivity extends Profile {
-    activity?: {
-        total_responses: number;
-        unique_tests: number;
-        avg_completion_rate: number;
-        avg_duration_sec: number;
-        top_result_type: string | null;
-        activity_score: number;
-    };
-}
-
-export interface ProfileFilters {
-    search?: string;
-    status?: 'all' | 'active' | 'inactive' | 'deleted';
-    provider?: 'all' | 'email' | 'google' | 'kakao';
-}
-
-export interface ProfileStats {
-    total: number;
-    active: number;
-    inactive: number;
-    deleted: number;
-    today: number;
-    this_week: number;
-    this_month: number;
-    email_signups: number;
-    google_signups: number;
-    kakao_signups: number;
-}
-
-export interface ProfileActivity {
-    id: string;
-    test_emoji: string;
-    test_title: string;
-    started_at: string | null;
-    status: 'completed' | 'in_progress' | 'abandoned';
-    result_type: string;
-    duration_sec: number;
-}
-
-export interface ProfileFeedback {
-    id: string;
-    title: string;
-    category: string;
-    status: string;
-    created_at: string;
-    admin_reply?: string | null;
-}
-
-interface ProfileActivityStats {
-    total_responses: number;
-    unique_tests: number;
-    avg_completion_rate: number;
-    avg_duration_sec: number;
-    top_result_type: string | null;
-    activity_score: number;
-}
-
-interface ProfileActivityItem {
-    id: string;
-    test_id: string | null;
-    test_title: string;
-    test_category: number | string | null;
-    test_emoji: string;
-    started_at: string | null;
-    completed_at: string | null;
-    status: 'completed' | 'in_progress';
-    duration_sec: number;
-    result_type: string;
-}
-
-interface PartialTestForActivity {
-    id: string;
-    title: string;
-    category_id: number | null;
-}
-
-interface FeedbackSummary {
-    id: string;
-    title: string;
-    content: string;
-    category: string;
-    visibility: string | null;
-    status: string;
-    user_id: string;
-    author_name: string;
-    author_email: string;
-    admin_reply: string | null;
-    admin_reply_at: string | null;
-    views: number;
-    created_at: string;
-    updated_at: string;
-}
+import type {
+    Profile,
+    ProfileFilters,
+    ProfileStats,
+    ProfileWithActivity,
+    Feedback,
+    ProfileActivityStats,
+    ProfileActivityItem,
+    PartialTestForActivity,
+} from '@repo/supabase';
 
 export const profileService = {
     async getProfiles(
@@ -154,15 +59,15 @@ export const profileService = {
 
         return {
             total: data?.length || 0,
-            active: data?.filter((p) => p.status === 'active').length || 0,
-            inactive: data?.filter((p) => p.status === 'inactive').length || 0,
-            deleted: data?.filter((p) => p.status === 'deleted').length || 0,
-            today: data?.filter((p) => new Date(p.created_at) >= today).length || 0,
-            this_week: data?.filter((p) => new Date(p.created_at) >= thisWeek).length || 0,
-            this_month: data?.filter((p) => new Date(p.created_at) >= thisMonth).length || 0,
-            email_signups: data?.filter((p) => p.provider === 'email').length || 0,
-            google_signups: data?.filter((p) => p.provider === 'google').length || 0,
-            kakao_signups: data?.filter((p) => p.provider === 'kakao').length || 0,
+            active: data?.filter((p: Profile) => p.status === 'active').length || 0,
+            inactive: data?.filter((p: Profile) => p.status === 'inactive').length || 0,
+            deleted: data?.filter((p: Profile) => p.status === 'deleted').length || 0,
+            today: data?.filter((p: Profile) => new Date(p.created_at || '') >= today).length || 0,
+            this_week: data?.filter((p: Profile) => new Date(p.created_at || '') >= thisWeek).length || 0,
+            this_month: data?.filter((p: Profile) => new Date(p.created_at || '') >= thisMonth).length || 0,
+            email_signups: data?.filter((p: Profile) => p.provider === 'email').length || 0,
+            google_signups: data?.filter((p: Profile) => p.provider === 'google').length || 0,
+            kakao_signups: data?.filter((p: Profile) => p.provider === 'kakao').length || 0,
         };
     },
 
@@ -180,7 +85,7 @@ export const profileService = {
         return { ...(profile as Profile), activity: activityStats };
     },
 
-    async updateProfileStatus(profileId: string, status: Profile['status']): Promise<Profile> {
+    async updateProfileStatus(profileId: string, status: string): Promise<Profile> {
         const { data, error } = await supabase
             .from('profiles')
             .update({
@@ -194,7 +99,7 @@ export const profileService = {
         return data as Profile;
     },
 
-    async bulkUpdateStatus(profileIds: string[], status: Profile['status']): Promise<number> {
+    async bulkUpdateStatus(profileIds: string[], status: string): Promise<number> {
         const { data, error } = await supabase
             .from('profiles')
             .update({
@@ -227,8 +132,8 @@ export const profileService = {
         }
 
         const totalResponses = responses.length;
-        const uniqueTests = new Set(responses.map((r) => r.test_id).filter(Boolean)).size;
-        const completedResponses = responses.filter((r) => r.completed_at);
+        const uniqueTests = new Set(responses.map((r: ProfileActivityItem) => r.test_id).filter(Boolean)).size;
+        const completedResponses = responses.filter((r: ProfileActivityItem) => r.completed_at);
         const avgCompletionRate = totalResponses > 0 ? completedResponses.length / totalResponses : 0;
         const avgDuration = 0;
         const activityScore = Math.round(totalResponses * 10 + uniqueTests * 20 + avgCompletionRate * 100);
@@ -255,14 +160,14 @@ export const profileService = {
             return [];
         }
 
-        const testIds = responses.map((r) => r.test_id).filter(Boolean) as string[];
+        const testIds = responses.map((r: ProfileActivityItem) => r.test_id).filter(Boolean) as string[];
         let testDetails: PartialTestForActivity[] = [];
         if (testIds.length > 0) {
             const { data: tests } = await supabase.from('tests').select('id, title, category_id').in('id', testIds);
             if (tests) testDetails = tests as PartialTestForActivity[];
         }
 
-        return (responses as any[]).map((item) => {
+        return (responses as ProfileActivityItem[]).map((item) => {
             const testInfo = testDetails.find((t) => t.id === item.test_id);
             const isCompleted = !!item.completed_at;
             return {
@@ -280,18 +185,16 @@ export const profileService = {
         });
     },
 
-    async getProfileFeedbacks(profileId: string): Promise<FeedbackSummary[]> {
+    async getProfileFeedbacks(profileId: string): Promise<Feedback[]> {
         const { data, error } = await supabase
             .from('feedbacks')
-            .select(
-                'id, title, content, category, visibility, status, user_id, author_name, author_email, admin_reply, admin_reply_at, views, created_at, updated_at'
-            )
+            .select('*')
             .eq('user_id', profileId)
             .order('created_at', { ascending: false })
             .limit(5);
 
         if (error) return [];
-        return (data as FeedbackSummary[]) || [];
+        return (data as Feedback[]) || [];
     },
 
     getDefaultActivityStats(): ProfileActivityStats {

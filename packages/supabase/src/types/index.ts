@@ -63,24 +63,76 @@ export interface TestWithDetails extends Test {
     category?: Category;
     questions?: TestQuestion[];
     results?: TestResult[];
-    questionCount?: number;
-    resultCount?: number;
+    question_count?: number;
+    result_count?: number;
+    completion_rate?: number;
+    // Admin UI 호환 필드들 (실제 DB 컬럼이 아닌 UI용)
+    category_name?: string;
+    emoji?: string;
+    thumbnailImage?: string;
+    startMessage?: string;
+    scheduledAt?: string;
     responseCount?: number;
     completionRate?: number;
-    // 기존 Admin 인터페이스 호환을 위한 추가 필드들
+    estimatedTime?: number;
+    createdBy?: string;
+    createdAt: string;
+    updatedAt: string;
     isPublished?: boolean;
-    thumbnailImage?: string;
-    emoji?: string;
-    scheduledAt?: string;
-    updatedAt?: string;
+    // UI 호환용 필드들 (실제 DB에는 없음)
+    category_string?: string;
+    share_count?: number;
+    completion_count?: number;
 }
 
 export interface ProfileWithActivity extends Profile {
     activity?: {
         total_responses: number;
-        last_activity: string;
+        unique_tests: number;
+        avg_completion_rate: number;
+        avg_duration_sec: number;
+        top_result_type: string | null;
         activity_score: number;
     };
+}
+
+// 프로필 활동 관련 타입들
+export interface ProfileActivity {
+    id: string;
+    test_emoji: string;
+    test_title: string;
+    started_at: string | null;
+    status: 'completed' | 'in_progress' | 'abandoned';
+    result_type: string;
+    duration_sec: number;
+}
+
+export interface ProfileActivityStats {
+    total_responses: number;
+    unique_tests: number;
+    avg_completion_rate: number;
+    avg_duration_sec: number;
+    top_result_type: string | null;
+    activity_score: number;
+}
+
+export interface ProfileActivityItem {
+    id: string;
+    test_id: string | null;
+    test_title: string;
+    test_category: number | string | null;
+    test_emoji: string;
+    started_at: string | null;
+    completed_at: string | null;
+    status: 'completed' | 'in_progress';
+    duration_sec: number;
+    result_type: string;
+}
+
+export interface PartialTestForActivity {
+    id: string;
+    title: string;
+    category_id: number | null;
 }
 
 // 필터링 인터페이스들
@@ -93,7 +145,9 @@ export interface ProfileFilters {
 export interface FeedbackFilters {
     search?: string;
     status?: 'all' | FeedbackStatus;
-    category?: 'all' | string;
+    category?: string;
+    page?: number;
+    pageSize?: number;
 }
 
 export interface TestFilters {

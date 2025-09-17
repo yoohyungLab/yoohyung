@@ -1,15 +1,5 @@
 import { supabase } from '@repo/shared';
-
-export interface Category {
-    id: number;
-    name: string;
-    description?: string;
-    sort_order: number;
-    is_active: boolean;
-    slug: string;
-    created_at: string;
-    updated_at: string;
-}
+import type { Category } from '@repo/supabase';
 
 export interface CategoryFilters {
     search?: string;
@@ -82,8 +72,8 @@ export const categoryService = {
 
         return {
             total: data.length,
-            active: data.filter((c) => c.is_active).length,
-            inactive: data.filter((c) => !c.is_active).length,
+            active: data.filter((c: Category) => c.is_active).length,
+            inactive: data.filter((c: Category) => !c.is_active).length,
         };
     },
 

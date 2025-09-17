@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useEffect, useMemo, useState } from 'react';
 import { useAdminAuth } from '../../hooks/useAdminAuth';
+import { Plus } from 'lucide-react';
 
 type NavEntry =
     | {
@@ -216,9 +217,10 @@ export function AdminLayout() {
                             <button
                                 onClick={() => navigate('/tests/create')}
                                 className="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-md bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                title="테스트 만들기 (단축키: C)"
+                                title="테스트 만들기"
                             >
-                                ➕ 테스트 만들기
+                                <Plus className="w-4 h-4 text-white" />
+                                테스트 만들기
                             </button>
                         )}
 

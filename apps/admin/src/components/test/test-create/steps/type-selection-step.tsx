@@ -7,16 +7,9 @@ interface TypeSelectionStepProps {
     onSelectType: (type: any) => void;
 }
 
-export const TypeSelectionStep: React.FC<TypeSelectionStepProps> = ({ selectedType, onSelectType }) => {
-    const getTypeConfig = () => testTypes.find((t) => t.id === selectedType);
-
+export const TypeSelectionStep = ({ selectedType, onSelectType }: TypeSelectionStepProps) => {
     return (
         <div className="space-y-8">
-            <div className="text-center">
-                <h2 className="text-2xl font-bold text-gray-900 mb-2">어떤 테스트를 만들고 싶나요?</h2>
-                <p className="text-gray-600">테스트 유형에 따라 최적화된 작성 도구를 제공합니다</p>
-            </div>
-
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {testTypes.map((type) => (
                     <Card
@@ -60,24 +53,6 @@ export const TypeSelectionStep: React.FC<TypeSelectionStepProps> = ({ selectedTy
                     </Card>
                 ))}
             </div>
-
-            {selectedType && (
-                <Card className="border-blue-200 bg-blue-50">
-                    <CardContent className="p-6">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-blue-500 text-white rounded-full flex items-center justify-center">
-                                <span className="text-sm font-bold">{getTypeConfig()?.name[0] || 'T'}</span>
-                            </div>
-                            <div>
-                                <h3 className="font-semibold text-blue-900">{getTypeConfig()?.name} 테스트가 선택되었습니다</h3>
-                                <p className="text-sm text-blue-700">
-                                    {getTypeConfig()?.description}에 최적화된 작성 도구를 사용할 수 있습니다.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 };

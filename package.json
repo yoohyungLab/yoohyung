@@ -10,7 +10,10 @@
         "dev": "turbo dev",
         "build": "turbo build",
         "lint": "turbo lint",
-        "test": "turbo test"
+        "test": "turbo test",
+        "types": "cd packages/supabase && pnpm generate-types",
+        "types-local": "cd packages/supabase && pnpm generate-types-local",
+        "type-check": "turbo type-check"
     },
     "devDependencies": {
         "supabase": "^2.40.7",

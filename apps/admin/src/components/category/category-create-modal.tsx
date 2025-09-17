@@ -94,10 +94,9 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess }: CategoryCrea
 
                     {/* 카테고리명 */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">
-                            카테고리명 <span className="text-red-500">*</span>
-                        </label>
                         <DefaultInput
+                            label="카테고리명"
+                            required
                             placeholder="예: test_idea"
                             value={formData.name}
                             onChange={(e) => handleChange('name', e.target.value)}
@@ -121,8 +120,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess }: CategoryCrea
 
                     {/* 순서 */}
                     <div className="space-y-2">
-                        <label className="text-sm font-medium text-gray-700">정렬 순서</label>
                         <DefaultInput
+                            label="정렬 순서"
                             type="number"
                             placeholder="0"
                             value={formData.sort_order}

@@ -1,5 +1,12 @@
 import { supabase } from '@repo/shared';
-import type { Feedback, FeedbackFilters, AdminFeedbackResponse } from '@repo/supabase/types';
+import type { Feedback, FeedbackFilters } from '@repo/supabase';
+
+export interface AdminFeedbackResponse {
+    feedbacks: Feedback[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+}
 
 export const feedbackService = {
     async getFeedbacks(filters: FeedbackFilters = {}, page: number = 1, pageSize: number = 20): Promise<AdminFeedbackResponse> {
@@ -152,14 +159,14 @@ export const feedbackService = {
 
         const stats = {
             total: data?.length || 0,
-            pending: data?.filter((f) => f.status === 'pending').length || 0,
-            in_progress: data?.filter((f) => f.status === 'in_progress').length || 0,
-            completed: data?.filter((f) => f.status === 'completed').length || 0,
-            replied: data?.filter((f) => f.status === 'replied').length || 0,
-            rejected: data?.filter((f) => f.status === 'rejected').length || 0,
-            today: data?.filter((f) => new Date(f.created_at) >= today).length || 0,
-            thisWeek: data?.filter((f) => new Date(f.created_at) >= thisWeek).length || 0,
-            thisMonth: data?.filter((f) => new Date(f.created_at) >= thisMonth).length || 0,
+            pending: data?.filter((f: Feedback) => f.status === 'pending').length || 0,
+            in_progress: data?.filter((f: Feedback) => f.status === 'in_progress').length || 0,
+            completed: data?.filter((f: Feedback) => f.status === 'completed').length || 0,
+            replied: data?.filter((f: Feedback) => f.status === 'replied').length || 0,
+            rejected: data?.filter((f: Feedback) => f.status === 'rejected').length || 0,
+            today: data?.filter((f: Feedback) => new Date(f.created_at) >= today).length || 0,
+            thisWeek: data?.filter((f: Feedback) => new Date(f.created_at) >= thisWeek).length || 0,
+            thisMonth: data?.filter((f: Feedback) => new Date(f.created_at) >= thisMonth).length || 0,
         };
 
         return stats;
