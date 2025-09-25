@@ -11,7 +11,6 @@ export { dashboardService } from './services/dashboard.service';
 export * from './types';
 
 // Re-export service types for convenience
-export type * from './services/user.service';
 export type * from './services/test.service';
 export type * from './services/feedback.service';
 export type * from './services/category.service';

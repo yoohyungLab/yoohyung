@@ -10,19 +10,19 @@ export const adminAuthService = {
 			password,
 		});
 		if (!error && data?.user) {
-			if ((data.user.email || '').toLowerCase() !== 'admin@typologylab.com') {
+			if ((data.user.email || '').toLowerCase() !== 'admin@pickid.com') {
 				await supabase.auth.signOut();
 				throw new Error('관리자 계정이 아닙니다.');
 			}
 			return {
 				id: data.user.id,
-				email: data.user.email || 'admin@typologylab.com',
+				email: data.user.email || 'admin@pickid.com',
 				role: 'admin',
 			};
 		}
 
 		// 2) 로그인 실패 시: 관리자 이메일이라면 자동 회원가입 시도
-		if ((email || '').toLowerCase() === 'admin@typologylab.com') {
+		if ((email || '').toLowerCase() === 'admin@pickid.com') {
 			const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
 				email,
 				password,
@@ -39,7 +39,7 @@ export const adminAuthService = {
 			if (signUpData.user) {
 				return {
 					id: signUpData.user.id,
-					email: signUpData.user.email || 'admin@typologylab.com',
+					email: signUpData.user.email || 'admin@pickid.com',
 					role: 'admin',
 				};
 			}
@@ -60,7 +60,7 @@ export const adminAuthService = {
 		const { data, error } = await supabase.auth.getUser();
 		if (error || !data?.user) return null;
 		const email = (data.user.email || '').toLowerCase();
-		if (email !== 'admin@typologylab.com') return null;
+		if (email !== 'admin@pickid.com') return null;
 		return { id: data.user.id, email, role: 'admin' };
 	},
 };

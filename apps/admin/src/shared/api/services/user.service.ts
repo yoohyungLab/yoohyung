@@ -1,9 +1,13 @@
 import { supabase } from '@repo/shared';
-import type { User } from '@repo/supabase';
-import type { UserFilters, UserStats, UserWithActivity, UserActivityStats, UserActivityItem, Feedback } from '../types';
-
-// Re-export types for convenience
-export type { UserWithActivity, UserActivityItem, Feedback };
+import type {
+	User,
+	UserFilters,
+	UserWithActivity,
+	UserActivityStats,
+	UserActivityItem,
+	Feedback,
+} from '@repo/supabase';
+import type { UserStats } from '../types';
 
 export const userService = {
 	async getUsers(

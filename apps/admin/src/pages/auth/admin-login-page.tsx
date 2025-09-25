@@ -49,7 +49,7 @@ export function AdminLoginPage() {
 
 	useEffect(() => {
 		setFormData({
-			email: 'admin@typologylab.com',
+			email: 'admin@pickid.com',
 			password: 'string',
 		});
 	}, []);
@@ -60,7 +60,7 @@ export function AdminLoginPage() {
 				{/* 로고/제목 */}
 				<div className="text-center mb-8">
 					<h1 className="text-3xl font-bold text-gray-900 mb-2">🔐 관리자 로그인</h1>
-					<p className="text-gray-600">유형연구소 관리자 페이지</p>
+					<p className="text-gray-600">픽키드 관리자 페이지</p>
 				</div>
 
 				{/* 로그인 폼 */}

@@ -4,7 +4,7 @@ import { useUsers } from '@/hooks';
 import { useColumnRenderers } from '@/shared/hooks';
 import { FILTER_PROVIDER_OPTIONS, FILTER_STATUS_OPTIONS, PAGINATION } from '@/shared/lib/constants';
 import { usePagination } from '@repo/shared';
-import type { User } from '@repo/supabase';
+import type { User, UserFilters } from '@repo/supabase';
 import { DataTable, DefaultPagination, type Column } from '@repo/ui';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -27,7 +27,7 @@ export function UserListPage() {
 
 	const [modalUser, setModalUser] = useState<User | null>(null);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-	const [filters, setFilters] = useState({
+	const [filters, setFilters] = useState<UserFilters>({
 		search: '',
 		status: 'all',
 		provider: 'all',
@@ -150,12 +150,16 @@ export function UserListPage() {
 						options: [...FILTER_PROVIDER_OPTIONS],
 					},
 				}}
-				values={filters}
+				values={{
+					search: filters.search || '',
+					status: filters.status || 'all',
+					provider: filters.provider || 'all',
+				}}
 				onFilterChange={(newFilters) => {
 					setFilters({
 						search: newFilters.search || '',
-						status: newFilters.status || 'all',
-						provider: newFilters.provider || 'all',
+						status: (newFilters.status as 'all' | 'active' | 'inactive' | 'deleted') || 'all',
+						provider: (newFilters.provider as 'all' | 'email' | 'google' | 'kakao') || 'all',
 					});
 				}}
 			/>

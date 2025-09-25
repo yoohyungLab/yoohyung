@@ -9,6 +9,7 @@ import { FeedbackListPage } from './pages/feedback/feedback-list-page';
 import { UserListPage } from './pages/users/user-list-page';
 import { CreateTestPage } from './pages/tests/create-test-page';
 import { EditTestPage } from './pages/tests/edit-test-page';
+import { UserResponsesPage } from './pages/responses/user-responses-page';
 // import SettingsPage from './pages/settings/settings-page';
 
 export default function App() {
@@ -27,6 +28,7 @@ export default function App() {
 					<Route path="tests/create" element={<CreateTestPage />} />
 					<Route path="tests/:id/edit" element={<EditTestPage />} />
 					<Route path="categories" element={<CategoryListPage />} />
+					<Route path="responses" element={<UserResponsesPage />} />
 					{/* <Route path="settings" element={<SettingsPage />} /> */}
 				</Route>
 

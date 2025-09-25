@@ -1,14 +1,17 @@
-import type { User, UserWithActivity, UserActivityItem, Feedback } from '@repo/supabase';
+// User 관련 타입들을 supabase에서 가져옴
+export type {
+	User,
+	UserInsert,
+	UserUpdate,
+	UserWithActivity,
+	UserActivityItem,
+	UserActivityStats,
+	UserFilters,
+	UserStatus,
+	Feedback,
+} from '@repo/supabase';
 
-// Re-export types for convenience
-export type { UserWithActivity, UserActivityItem, Feedback };
-
-export interface UserFilters {
-	search?: string;
-	status?: 'all' | 'active' | 'inactive' | 'deleted';
-	provider?: 'all' | 'email' | 'google' | 'kakao';
-}
-
+// UserStats는 admin에서만 사용하므로 여기서 정의
 export interface UserStats {
 	total: number;
 	active: number;
@@ -20,13 +23,4 @@ export interface UserStats {
 	email_signups: number;
 	google_signups: number;
 	kakao_signups: number;
-}
-
-export interface UserActivityStats {
-	total_responses: number;
-	unique_tests: number;
-	avg_completion_rate: number;
-	avg_duration_sec: number;
-	top_result_type: string | null;
-	activity_score: number;
 }

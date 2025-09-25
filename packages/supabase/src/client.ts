@@ -5,7 +5,7 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 	auth: {
-		storageKey: 'typologylab-admin-auth', // 고유한 storage key
+		storageKey: 'pickid-admin-auth', // 고유한 storage key
 		persistSession: true,
 	},
 });

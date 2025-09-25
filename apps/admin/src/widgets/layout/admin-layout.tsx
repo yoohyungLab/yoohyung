@@ -183,7 +183,7 @@ export function AdminLayout() {
 				<div className="flex flex-col h-full">
 					{/* 로고/토글 */}
 					<div className="flex items-center justify-between h-16 px-3 border-b border-gray-800">
-						{!sidebarCollapsed && <h1 className="font-bold text-lg tracking-tight">TypologyLab</h1>}
+						{!sidebarCollapsed && <h1 className="font-bold text-lg tracking-tight">PickID</h1>}
 						<button
 							onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
 							className="text-gray-300 hover:text-white p-1 rounded focus:outline-none focus:ring-2 focus:ring-white/30"

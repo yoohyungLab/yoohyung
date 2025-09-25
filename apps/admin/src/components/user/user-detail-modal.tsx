@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, IconBadge, IconButton } from '@repo/ui';
-import { userService, type UserWithActivity, type UserActivityItem, type Feedback } from '@/shared/api';
+import { userService } from '@/shared/api';
+import type { UserWithActivity, UserActivityItem, Feedback } from '@repo/supabase';
 import { getUserStatusConfig, getProviderText, getStatusIcon, formatDate, getDaysSinceJoin } from '../../shared/lib';
 import { formatDuration } from '@repo/shared';
 import { X, User, Mail, Calendar, Activity, MessageSquare, Clock, Target, TrendingUp, Hash, Users } from 'lucide-react';

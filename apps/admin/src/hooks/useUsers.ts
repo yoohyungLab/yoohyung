@@ -1,12 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
-import { userService, type UserFilters } from '@/shared/api';
-import type { User } from '@repo/supabase';
-
-type UserStats = {
-	active: number;
-	inactive: number;
-	deleted: number;
-};
+import { userService } from '@/shared/api';
+import type { User, UserFilters } from '@repo/supabase';
+import type { UserStats } from '@/shared/api/types';
 
 export const useUsers = () => {
 	const [users, setUsers] = useState<User[]>([]);
@@ -14,9 +9,16 @@ export const useUsers = () => {
 	const [error, setError] = useState<string | null>(null);
 	const [totalUsers, setTotalUsers] = useState(0);
 	const [stats, setStats] = useState<UserStats>({
+		total: 0,
 		active: 0,
 		inactive: 0,
 		deleted: 0,
+		today: 0,
+		this_week: 0,
+		this_month: 0,
+		email_signups: 0,
+		google_signups: 0,
+		kakao_signups: 0,
 	});
 
 	// 자동으로 모든 사용자 로드
@@ -33,11 +35,7 @@ export const useUsers = () => {
 
 				setUsers(userResult.users);
 				setTotalUsers(userResult.total);
-				setStats({
-					active: statsResult.active,
-					inactive: statsResult.inactive,
-					deleted: statsResult.deleted,
-				});
+				setStats(statsResult);
 			} catch (err) {
 				const errorMessage = err instanceof Error ? err.message : '사용자를 불러오는데 실패했습니다.';
 				setError(errorMessage);
@@ -61,11 +59,7 @@ export const useUsers = () => {
 
 			setUsers(userResult.users);
 			setTotalUsers(userResult.total);
-			setStats({
-				active: statsResult.active,
-				inactive: statsResult.inactive,
-				deleted: statsResult.deleted,
-			});
+			setStats(statsResult);
 
 			return userResult;
 		} catch (err) {

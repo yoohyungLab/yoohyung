@@ -13,6 +13,7 @@ export default defineConfig(({ mode }) => {
 		resolve: {
 			alias: {
 				'@': path.resolve(__dirname, 'src'),
+				'@repo/ui': path.resolve(__dirname, '../../packages/ui/src'),
 			},
 		},
 		define: {
