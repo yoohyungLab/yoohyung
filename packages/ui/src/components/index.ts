@@ -7,6 +7,7 @@ export * from './data-table';
 export * from './default-pagination';
 export * from './dialog';
 export * from './drawer';
+export * from './icon-badge';
 export * from './icon-button';
 export * from './label';
 export * from './pagination';

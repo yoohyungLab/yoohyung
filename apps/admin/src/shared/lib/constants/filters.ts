@@ -1,48 +1,26 @@
-// 필터 관련 상수들
-export const FILTER_STATUS_OPTIONS = [
-    { value: 'all', label: '전체 상태' },
-    { value: 'active', label: '활성' },
-    { value: 'inactive', label: '비활성' },
-    { value: 'deleted', label: '탈퇴' },
-] as const;
+// 필터 관련 상수들 - options.ts에서 재export
+export {
+	FILTER_USER_STATUS_OPTIONS as FILTER_STATUS_OPTIONS,
+	FILTER_USER_PROVIDER_OPTIONS as FILTER_PROVIDER_OPTIONS,
+	FILTER_CATEGORY_STATUS_OPTIONS,
+	FILTER_FEEDBACK_STATUS_OPTIONS,
+	FILTER_FEEDBACK_CATEGORY_OPTIONS,
+	FILTER_TEST_STATUS_OPTIONS,
+	FILTER_TEST_TYPE_OPTIONS,
+	SEARCH_PLACEHOLDERS,
+} from './options';
 
-export const FILTER_PROVIDER_OPTIONS = [
-    { value: 'all', label: '전체 가입경로' },
-    { value: 'email', label: '이메일' },
-    { value: 'google', label: '구글' },
-    { value: 'kakao', label: '카카오' },
-] as const;
-
-export const FILTER_FEEDBACK_STATUS_OPTIONS = [
-    { value: 'all', label: '전체 상태' },
-    { value: 'pending', label: '검토중' },
-    { value: 'in_progress', label: '진행중' },
-    { value: 'completed', label: '완료' },
-    { value: 'replied', label: '답변완료' },
-    { value: 'rejected', label: '반려' },
-] as const;
-
-export const FILTER_FEEDBACK_CATEGORY_OPTIONS = [
-    { value: 'all', label: '전체 카테고리' },
-    { value: 'test_idea', label: '새 테스트 아이디어' },
-    { value: 'feature', label: '기능 개선 건의' },
-    { value: 'bug_report', label: '오류 신고' },
-    { value: 'design', label: '디자인 관련' },
-    { value: 'mobile', label: '모바일 이슈' },
-    { value: 'other', label: '기타 의견' },
-] as const;
-
-export const FILTER_TEST_STATUS_OPTIONS = [
-    { value: 'all', label: '전체 상태' },
-    { value: 'draft', label: '초안' },
-    { value: 'published', label: '게시됨' },
-    { value: 'archived', label: '보관됨' },
-] as const;
-
-// 검색 관련
-export const SEARCH_PLACEHOLDERS = {
-    USER: '이메일 또는 이름으로 검색',
-    FEEDBACK: '제목 또는 내용으로 검색',
-    TEST: '테스트명으로 검색',
-    CATEGORY: '카테고리명으로 검색',
-} as const;
+// 라벨과 색상 상수들도 재export
+export {
+	USER_STATUS_LABELS,
+	USER_PROVIDER_LABELS,
+	USER_STATUS_COLORS,
+	CATEGORY_STATUS_LABELS,
+	CATEGORY_STATUS_COLORS,
+	TEST_STATUS_LABELS,
+	TEST_TYPE_LABELS,
+	TEST_STATUS_COLORS,
+	FEEDBACK_STATUS_LABELS,
+	FEEDBACK_CATEGORY_LABELS,
+	FEEDBACK_STATUS_COLORS,
+} from './options';

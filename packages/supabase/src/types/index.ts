@@ -20,9 +20,9 @@ export type Test = Tables<'tests'>['Row'];
 export type TestInsert = Tables<'tests'>['Insert'];
 export type TestUpdate = Tables<'tests'>['Update'];
 
-export type Profile = Tables<'profiles'>['Row'];
-export type ProfileInsert = Tables<'profiles'>['Insert'];
-export type ProfileUpdate = Tables<'profiles'>['Update'];
+export type User = Tables<'users'>['Row'];
+export type UserInsert = Tables<'users'>['Insert'];
+export type UserUpdate = Tables<'users'>['Update'];
 
 export type Feedback = Tables<'feedbacks'>['Row'];
 export type FeedbackInsert = Tables<'feedbacks'>['Insert'];
@@ -56,155 +56,139 @@ export type FavoriteUpdate = Tables<'favorites'>['Update'];
 export type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
 export type TestStatus = 'draft' | 'published' | 'scheduled' | 'archived';
 export type FeedbackStatus = 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
-export type ProfileStatus = 'active' | 'inactive' | 'deleted';
+export type UserStatus = 'active' | 'inactive' | 'deleted';
 
 // 확장 타입들 (Admin에서 사용)
 export interface TestWithDetails extends Test {
-    category?: Category;
-    questions?: TestQuestion[];
-    results?: TestResult[];
-    question_count?: number;
-    result_count?: number;
-    completion_rate?: number;
-    // Admin UI 호환 필드들 (실제 DB 컬럼이 아닌 UI용)
-    category_name?: string;
-    emoji?: string;
-    thumbnailImage?: string;
-    startMessage?: string;
-    scheduledAt?: string;
-    responseCount?: number;
-    completionRate?: number;
-    estimatedTime?: number;
-    createdBy?: string;
-    createdAt: string;
-    updatedAt: string;
-    isPublished?: boolean;
-    // UI 호환용 필드들 (실제 DB에는 없음)
-    category_string?: string;
-    share_count?: number;
-    completion_count?: number;
+	category?: Category;
+	questions?: TestQuestion[];
+	results?: TestResult[];
+	question_count?: number;
+	result_count?: number;
+	completion_rate?: number;
+	// Admin UI 호환 필드들 (실제 DB 컬럼이 아닌 UI용)
+	category_name?: string;
+	emoji?: string;
+	thumbnailImage?: string;
+	startMessage?: string;
+	scheduledAt?: string;
+	responseCount?: number;
+	completionRate?: number;
+	estimatedTime?: number;
+	createdBy?: string;
+	createdAt: string;
+	updatedAt: string;
+	isPublished?: boolean;
+	// UI 호환용 필드들 (실제 DB에는 없음)
+	category_string?: string;
+	share_count?: number;
+	completion_count?: number;
 }
 
-export interface ProfileWithActivity extends Profile {
-    activity?: {
-        total_responses: number;
-        unique_tests: number;
-        avg_completion_rate: number;
-        avg_duration_sec: number;
-        top_result_type: string | null;
-        activity_score: number;
-    };
+// 중첩된 테스트 데이터 타입 (RPC 함수용)
+export interface TestWithNestedDetails {
+	test: Test;
+	questions: QuestionWithChoices[];
+	results: TestResult[];
 }
 
-// 프로필 활동 관련 타입들
-export interface ProfileActivity {
-    id: string;
-    test_emoji: string;
-    test_title: string;
-    started_at: string | null;
-    status: 'completed' | 'in_progress' | 'abandoned';
-    result_type: string;
-    duration_sec: number;
+export interface QuestionWithChoices {
+	id: string;
+	question_text: string;
+	question_order: number;
+	image_url: string | null;
+	created_at: string;
+	updated_at: string;
+	choices: TestChoice[];
 }
 
-export interface ProfileActivityStats {
-    total_responses: number;
-    unique_tests: number;
-    avg_completion_rate: number;
-    avg_duration_sec: number;
-    top_result_type: string | null;
-    activity_score: number;
+// TestListItem은 TestWithDetails와 중복이므로 제거
+
+export interface UserWithActivity extends User {
+	activity?: {
+		total_responses: number;
+		unique_tests: number;
+		avg_completion_rate: number;
+		avg_duration_sec: number;
+		top_result_type: string | null;
+		activity_score: number;
+	};
 }
 
-export interface ProfileActivityItem {
-    id: string;
-    test_id: string | null;
-    test_title: string;
-    test_category: number | string | null;
-    test_emoji: string;
-    started_at: string | null;
-    completed_at: string | null;
-    status: 'completed' | 'in_progress';
-    duration_sec: number;
-    result_type: string;
+// ProfileActivity는 ProfileActivityItem과 중복이므로 제거
+
+export interface UserActivityStats {
+	total_responses: number;
+	unique_tests: number;
+	avg_completion_rate: number;
+	avg_duration_sec: number;
+	top_result_type: string | null;
+	activity_score: number;
 }
 
-export interface PartialTestForActivity {
-    id: string;
-    title: string;
-    category_id: number | null;
+// 실제 user_test_responses 테이블 기반으로 수정
+export interface UserActivityItem {
+	id: string;
+	user_id: string | null;
+	test_id: string | null;
+	result_id: string | null;
+	responses: Database['public']['Tables']['user_test_responses']['Row']['responses'];
+	score: number | null;
+	started_at: string | null;
+	completed_at: string | null;
+	created_at: string | null;
+	created_date: string | null;
+	// UI에서 추가로 필요한 필드들
+	test_title?: string;
+	test_category?: number | string | null;
+	test_emoji?: string;
+	status?: 'completed' | 'in_progress';
+	duration_sec?: number;
+	result_type?: string;
 }
+
+// PartialTestForActivity는 내부적으로만 사용되므로 제거
 
 // 필터링 인터페이스들
-export interface ProfileFilters {
-    search?: string;
-    status?: 'all' | ProfileStatus;
-    provider?: 'all' | 'email' | 'google' | 'kakao';
+export interface UserFilters {
+	search?: string;
+	status?: 'all' | UserStatus;
+	provider?: 'all' | 'email' | 'google' | 'kakao';
 }
 
 export interface FeedbackFilters {
-    search?: string;
-    status?: 'all' | FeedbackStatus;
-    category?: string;
-    page?: number;
-    pageSize?: number;
+	search?: string;
+	status?: 'all' | FeedbackStatus;
+	category?: string;
+	page?: number;
+	pageSize?: number;
 }
 
 export interface TestFilters {
-    search?: string;
-    status?: 'all' | TestStatus;
-    type?: 'all' | TestType;
-    category?: 'all' | string;
+	search?: string;
+	status?: 'all' | TestStatus;
+	type?: 'all' | TestType;
+	category?: 'all' | string;
 }
 
-// 통계 인터페이스들
-export interface ProfileStats {
-    total: number;
-    active: number;
-    inactive: number;
-    deleted: number;
-    today: number;
-    this_week: number;
-    this_month: number;
-    email_signups: number;
-    google_signups: number;
-    kakao_signups: number;
+export interface CategoryFilters {
+	search?: string;
+	status?: 'all' | 'active' | 'inactive';
 }
 
-export interface FeedbackStats {
-    total: number;
-    pending: number;
-    in_progress: number;
-    completed: number;
-    replied: number;
-    rejected: number;
-    today: number;
-    this_week: number;
-    this_month: number;
-}
-
-export interface TestStats {
-    total: number;
-    published: number;
-    draft: number;
-    scheduled: number;
-    archived: number;
-    responses: number;
-    today: number;
-    this_week: number;
-    this_month: number;
-}
+// 통계는 쿼리로 동적으로 가져옴 (RPC 함수 없음)
 
 // 폼 데이터 인터페이스들
-export interface FeedbackFormData extends Omit<FeedbackInsert, 'id' | 'created_at' | 'updated_at' | 'status' | 'views'> {}
+export interface FeedbackFormData
+	extends Omit<FeedbackInsert, 'id' | 'created_at' | 'updated_at' | 'status' | 'views'> {}
 
 export interface TestFormData extends Omit<TestInsert, 'id' | 'created_at' | 'updated_at'> {
-    questions?: TestQuestionFormData[];
-    results?: TestResultFormData[];
+	questions?: TestQuestionFormData[];
+	results?: TestResultFormData[];
 }
 
 export interface TestQuestionFormData extends Omit<TestQuestionInsert, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-    choices?: TestChoiceFormData[];
+	choices?: TestChoiceFormData[];
 }
 
 export interface TestChoiceFormData extends Omit<TestChoiceInsert, 'id' | 'question_id' | 'created_at'> {}

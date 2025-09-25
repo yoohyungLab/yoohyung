@@ -1,261 +1,252 @@
 import React from 'react';
 import { Badge, IconButton, DefaultSelect } from '@repo/ui';
-import { Eye, Trash2, MessageSquare, User, Calendar, FileText } from 'lucide-react';
-import { getProfileStatusConfig, getProviderText } from '../lib/utils';
+import { Eye, Trash2, MessageSquare, User, Calendar, FileText, Pencil } from 'lucide-react';
+import { getUserStatusConfig, getProviderText } from '../lib/utils';
 import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
+import { TEST_STATUS_OPTIONS, FEEDBACK_STATUS_OPTIONS } from '@/shared/lib/constants';
 
 interface RenderOptions {
-    showAvatar?: boolean;
-    showIcon?: boolean;
-    maxLength?: number;
-    dateFormat?: 'short' | 'long' | 'time';
+	showAvatar?: boolean;
+	showIcon?: boolean;
+	maxLength?: number;
+	dateFormat?: 'short' | 'long' | 'time';
 }
 
 export function useColumnRenderers() {
-    // 기본 텍스트 렌더링
-    const renderText = (value: string | null | undefined, options?: RenderOptions) => {
-        if (!value) return <span className="text-gray-400">-</span>;
+	// 기본 텍스트 렌더링
+	const renderText = (value: string | null | undefined, options?: RenderOptions) => {
+		if (!value) return <span className="text-gray-400">-</span>;
 
-        const { maxLength = 50 } = options || {};
-        const displayValue = value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
+		const { maxLength = 50 } = options || {};
+		const displayValue = value.length > maxLength ? `${value.substring(0, maxLength)}...` : value;
 
-        return <span className="text-sm text-gray-900">{displayValue}</span>;
-    };
+		return <span className="text-sm text-gray-900">{displayValue}</span>;
+	};
 
-    // 이메일 렌더링
-    const renderEmail = (email: string) => {
-        return <div className="text-sm text-gray-900">{email}</div>;
-    };
+	// 이메일 렌더링
+	const renderEmail = (email: string) => {
+		return <div className="text-sm text-gray-900">{email}</div>;
+	};
 
-    // 이름 + 아바타 렌더링
-    const renderNameWithAvatar = (name: string, avatarUrl?: string | null) => {
-        return (
-            <div className="flex items-center gap-2">
-                {avatarUrl && <img src={avatarUrl} alt={name} className="w-6 h-6 rounded-full" />}
-                <span className="text-sm font-medium text-gray-900">{name}</span>
-            </div>
-        );
-    };
+	// 이름 + 아바타 렌더링
+	const renderNameWithAvatar = (name: string, avatarUrl?: string | null) => {
+		return (
+			<div className="flex items-center gap-2">
+				{avatarUrl && <img src={avatarUrl} alt={name} className="w-6 h-6 rounded-full" />}
+				<span className="text-sm font-medium text-gray-900">{name}</span>
+			</div>
+		);
+	};
 
-    // 가입경로 렌더링
-    const renderProvider = (provider: string) => {
-        return <span className="text-sm text-gray-900">{getProviderText(provider)}</span>;
-    };
+	// 가입경로 렌더링
+	const renderProvider = (provider: string) => {
+		return <span className="text-sm text-gray-900">{getProviderText(provider)}</span>;
+	};
 
-    // 상태 렌더링 (Badge)
-    const renderStatus = (status: string) => {
-        const statusConfig = getProfileStatusConfig(status);
-        return <Badge className={`${statusConfig.color}`}>{statusConfig.text}</Badge>;
-    };
+	// 상태 렌더링 (Badge)
+	const renderStatus = (status: string) => {
+		const statusConfig = getUserStatusConfig(status);
+		return <Badge className={`${statusConfig.color}`}>{statusConfig.text}</Badge>;
+	};
 
-    // 날짜 렌더링
-    const renderDate = (dateString: string, options?: RenderOptions) => {
-        const { dateFormat = 'short', showIcon = false } = options || {};
+	// 날짜 렌더링
+	const renderDate = (dateString: string, options?: RenderOptions) => {
+		const { dateFormat = 'short', showIcon = false } = options || {};
 
-        let formattedDate: string;
-        switch (dateFormat) {
-            case 'long':
-                formattedDate = formatDateLong(dateString);
-                break;
-            case 'time':
-                formattedDate = formatTime(dateString);
-                break;
-            default:
-                formattedDate = formatDate(dateString);
-        }
+		let formattedDate: string;
+		switch (dateFormat) {
+			case 'long':
+				formattedDate = formatDateLong(dateString);
+				break;
+			case 'time':
+				formattedDate = formatTime(dateString);
+				break;
+			default:
+				formattedDate = formatDate(dateString);
+		}
 
-        if (showIcon) {
-            return (
-                <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{formattedDate}</span>
-                </div>
-            );
-        }
+		if (showIcon) {
+			return (
+				<div className="flex items-center gap-2">
+					<Calendar className="w-4 h-4 text-gray-400" />
+					<span className="text-sm text-gray-900">{formattedDate}</span>
+				</div>
+			);
+		}
 
-        return <div className="text-sm text-gray-900">{formattedDate}</div>;
-    };
+		return <div className="text-sm text-gray-900">{formattedDate}</div>;
+	};
 
-    // 숫자 렌더링
-    const renderNumber = (value: number | null | undefined) => {
-        if (value === null || value === undefined) return <span className="text-gray-400">-</span>;
-        return <span className="text-sm text-gray-900">{value.toLocaleString()}</span>;
-    };
+	// 숫자 렌더링
+	const renderNumber = (value: number | null | undefined) => {
+		if (value === null || value === undefined) return <span className="text-gray-400">-</span>;
+		return <span className="text-sm text-gray-900">{value.toLocaleString()}</span>;
+	};
 
-    // 카테고리 렌더링
-    const renderCategory = (category: string, categoryMap?: Record<string, string>) => {
-        const displayName = categoryMap?.[category] || category;
-        return (
-            <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 h-6">
-                {displayName}
-            </span>
-        );
-    };
+	// 카테고리 렌더링
+	const renderCategory = (category: string, categoryMap?: Record<string, string>) => {
+		const displayName = categoryMap?.[category] || category;
+		return (
+			<span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 h-6">
+				{displayName}
+			</span>
+		);
+	};
 
-    // 제목 + 내용 렌더링
-    const renderTitleWithContent = (title: string, content: string, options?: RenderOptions) => {
-        const { maxLength = 50 } = options || {};
-        return (
-            <div>
-                <div className="font-medium text-gray-900">{title.length > maxLength ? `${title.substring(0, maxLength)}...` : title}</div>
-                <div className="text-sm text-gray-500">{content.length > 30 ? `${content.substring(0, 30)}...` : content}</div>
-            </div>
-        );
-    };
+	// 제목 + 내용 렌더링
+	const renderTitleWithContent = (title: string, content: string, options?: RenderOptions) => {
+		const { maxLength = 50 } = options || {};
+		return (
+			<div>
+				<div className="font-medium text-gray-900">
+					{title.length > maxLength ? `${title.substring(0, maxLength)}...` : title}
+				</div>
+				<div className="text-sm text-gray-500">{content.length > 30 ? `${content.substring(0, 30)}...` : content}</div>
+			</div>
+		);
+	};
 
-    // 작성자 렌더링
-    const renderAuthor = (authorName: string, showIcon = true) => {
-        if (showIcon) {
-            return (
-                <div className="flex items-center gap-2">
-                    <User className="w-4 h-4 text-gray-400" />
-                    <span className="text-sm text-gray-900">{authorName}</span>
-                </div>
-            );
-        }
-        return <span className="text-sm text-gray-900">{authorName}</span>;
-    };
+	// 작성자 렌더링
+	const renderAuthor = (authorName: string, showIcon = true) => {
+		if (showIcon) {
+			return (
+				<div className="flex items-center gap-2">
+					<User className="w-4 h-4 text-gray-400" />
+					<span className="text-sm text-gray-900">{authorName}</span>
+				</div>
+			);
+		}
+		return <span className="text-sm text-gray-900">{authorName}</span>;
+	};
 
-    // 피드백 상태 Select 렌더링
-    const renderFeedbackStatusSelect = (
-        id: string,
-        data: Record<string, unknown>,
-        onStatusChange: (id: string, status: string) => void
-    ) => {
-        const feedbackOptions = [
-            { value: 'pending', label: '검토중' },
-            { value: 'in_progress', label: '진행중' },
-            { value: 'completed', label: '완료' },
-            { value: 'replied', label: '답변완료' },
-            { value: 'rejected', label: '반려' },
-        ];
+	// 피드백 상태 Select 렌더링
+	const renderFeedbackStatusSelect = (
+		id: string,
+		data: Record<string, unknown>,
+		onStatusChange: (id: string, status: string) => void
+	) => {
+		return (
+			<DefaultSelect
+				value={data.status as string}
+				onValueChange={(value: string) => onStatusChange(id, value)}
+				options={[...FEEDBACK_STATUS_OPTIONS]}
+				size="sm"
+				className="w-28"
+			/>
+		);
+	};
 
-        return (
-            <DefaultSelect
-                value={data.status as string}
-                onValueChange={(value: string) => onStatusChange(id, value)}
-                options={feedbackOptions}
-                size="sm"
-                className="w-28"
-            />
-        );
-    };
+	// 액션 버튼들 렌더링
+	const renderActions = (
+		id: string,
+		data: Record<string, unknown>,
+		actions: Array<{
+			type: 'view' | 'edit' | 'delete' | 'status' | 'reply';
+			onClick: (id: string, data?: Record<string, unknown>) => void;
+			condition?: (data: Record<string, unknown>) => boolean;
+			statusOptions?: Array<{ value: string; label: string }>;
+		}>
+	) => {
+		return (
+			<div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+				{actions.map((action, index) => {
+					// 조건이 있고 false면 렌더링하지 않음
+					if (action.condition && !action.condition(data)) {
+						return null;
+					}
 
-    // 액션 버튼들 렌더링
-    const renderActions = (
-        id: string,
-        data: Record<string, unknown>,
-        actions: Array<{
-            type: 'view' | 'edit' | 'delete' | 'status' | 'reply';
-            onClick: (id: string, data?: Record<string, unknown>) => void;
-            condition?: (data: Record<string, unknown>) => boolean;
-            statusOptions?: Array<{ value: string; label: string }>;
-        }>
-    ) => {
-        return (
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                {actions.map((action, index) => {
-                    // 조건이 있고 false면 렌더링하지 않음
-                    if (action.condition && !action.condition(data)) {
-                        return null;
-                    }
+					switch (action.type) {
+						case 'view':
+							return (
+								<IconButton
+									key={index}
+									size="sm"
+									variant="outline"
+									icon={<Eye className="w-4 h-4" />}
+									aria-label="보기"
+									onClick={() => action.onClick(id, data)}
+								/>
+							);
+						case 'edit':
+							return (
+								<IconButton
+									key={index}
+									size="sm"
+									variant="outline"
+									icon={<Pencil className="w-4 h-4" />}
+									aria-label="수정"
+									onClick={() => action.onClick(id, data)}
+								/>
+							);
+						case 'delete':
+							return (
+								<IconButton
+									key={index}
+									size="sm"
+									variant="outline"
+									icon={<Trash2 className="w-4 h-4" />}
+									aria-label="삭제"
+									onClick={() => action.onClick(id, data)}
+									className="text-red-600 border-red-600 hover:bg-red-50"
+								/>
+							);
+						case 'status': {
+							const statusOptions = action.statusOptions || [...TEST_STATUS_OPTIONS];
+							return (
+								<DefaultSelect
+									key={index}
+									value={data.status as string}
+									onValueChange={(value: string) => action.onClick(id, { ...data, status: value })}
+									options={statusOptions}
+									size="sm"
+									className="w-28 min-w-28 bg-white"
+								/>
+							);
+						}
+						case 'reply':
+							return (
+								<IconButton
+									key={index}
+									size="sm"
+									icon={<MessageSquare className="w-4 h-4" />}
+									aria-label="답변"
+									onClick={() => action.onClick(id, data)}
+									className="bg-purple-600 hover:bg-purple-700 text-white"
+								/>
+							);
+						default:
+							return null;
+					}
+				})}
+			</div>
+		);
+	};
 
-                    switch (action.type) {
-                        case 'view':
-                            return (
-                                <IconButton
-                                    key={index}
-                                    size="sm"
-                                    variant="outline"
-                                    icon={<Eye className="w-4 h-4" />}
-                                    aria-label="보기"
-                                    onClick={() => action.onClick(id, data)}
-                                />
-                            );
-                        case 'edit':
-                            return (
-                                <IconButton
-                                    key={index}
-                                    size="sm"
-                                    variant="outline"
-                                    icon="✏️"
-                                    aria-label="수정"
-                                    onClick={() => action.onClick(id, data)}
-                                />
-                            );
-                        case 'delete':
-                            return (
-                                <IconButton
-                                    key={index}
-                                    size="sm"
-                                    variant="outline"
-                                    icon={<Trash2 className="w-4 h-4" />}
-                                    aria-label="삭제"
-                                    onClick={() => action.onClick(id, data)}
-                                    className="text-red-600 border-red-600 hover:bg-red-50"
-                                />
-                            );
-                        case 'status': {
-                            const statusOptions = action.statusOptions || [
-                                { value: 'active', label: '활성' },
-                                { value: 'inactive', label: '비활성' },
-                                { value: 'deleted', label: '탈퇴' },
-                            ];
-                            return (
-                                <DefaultSelect
-                                    key={index}
-                                    value={data.status as string}
-                                    onValueChange={(value: string) => action.onClick(id, { ...data, status: value })}
-                                    options={statusOptions}
-                                    size="sm"
-                                    className="w-24 bg-white"
-                                />
-                            );
-                        }
-                        case 'reply':
-                            return (
-                                <IconButton
-                                    key={index}
-                                    size="sm"
-                                    icon={<MessageSquare className="w-4 h-4" />}
-                                    aria-label="답변"
-                                    onClick={() => action.onClick(id, data)}
-                                    className="bg-purple-600 hover:bg-purple-700 text-white"
-                                />
-                            );
-                        default:
-                            return null;
-                    }
-                })}
-            </div>
-        );
-    };
+	// 파일 첨부 표시
+	const renderFileAttachment = (fileUrl?: string | null) => {
+		if (!fileUrl) return null;
+		return <FileText className="w-4 h-4 text-blue-500" />;
+	};
 
-    // 파일 첨부 표시
-    const renderFileAttachment = (fileUrl?: string | null) => {
-        if (!fileUrl) return null;
-        return <FileText className="w-4 h-4 text-blue-500" />;
-    };
+	// 지속시간 렌더링
+	const renderDuration = (seconds: number) => {
+		return <span className="text-sm text-gray-900">{formatDuration(seconds)}</span>;
+	};
 
-    // 지속시간 렌더링
-    const renderDuration = (seconds: number) => {
-        return <span className="text-sm text-gray-900">{formatDuration(seconds)}</span>;
-    };
-
-    return {
-        renderText,
-        renderEmail,
-        renderNameWithAvatar,
-        renderProvider,
-        renderStatus,
-        renderDate,
-        renderNumber,
-        renderCategory,
-        renderTitleWithContent,
-        renderAuthor,
-        renderActions,
-        renderFeedbackStatusSelect,
-        renderFileAttachment,
-        renderDuration,
-    };
+	return {
+		renderText,
+		renderEmail,
+		renderNameWithAvatar,
+		renderProvider,
+		renderStatus,
+		renderDate,
+		renderNumber,
+		renderCategory,
+		renderTitleWithContent,
+		renderAuthor,
+		renderActions,
+		renderFeedbackStatusSelect,
+		renderFileAttachment,
+		renderDuration,
+	};
 }

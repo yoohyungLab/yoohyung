@@ -1,1 +1,1 @@
-export * from './profile-detail-modal';
+export * from './user-detail-modal';

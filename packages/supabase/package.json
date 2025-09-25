@@ -1,27 +1,27 @@
 {
-    "name": "@repo/supabase",
-    "version": "0.0.0",
-    "private": true,
-    "main": "./dist/index.js",
-    "types": "./dist/index.d.ts",
-    "exports": {
-        ".": {
-            "types": "./dist/index.d.ts",
-            "import": "./dist/index.js",
-            "require": "./dist/index.js"
-        }
-    },
-    "scripts": {
-        "build": "tsc",
-        "dev": "tsc --watch",
-        "clean": "rm -rf dist",
-        "generate-types": "supabase gen types typescript --project-id YOUR_PROJECT_ID > src/types/database.ts",
-        "generate-types-local": "supabase gen types typescript --local > src/types/database.ts"
-    },
-    "dependencies": {
-        "@supabase/supabase-js": "^2.39.0"
-    },
-    "devDependencies": {
-        "typescript": "^5.3.0"
-    }
+	"name": "@repo/supabase",
+	"version": "0.0.0",
+	"private": true,
+	"main": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js",
+			"require": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc",
+		"dev": "tsc --watch",
+		"clean": "rm -rf dist",
+		"generate-types": "node -r dotenv/config -e \"require('child_process').execSync('supabase gen types typescript --project-id ' + process.env.SUPABASE_PROJECT_ID + ' > src/types/database.ts', {stdio: 'inherit'})\"",
+		"generate-types-local": "supabase gen types typescript --local > src/types/database.ts"
+	},
+	"dependencies": {
+		"@supabase/supabase-js": "^2.39.0"
+	},
+	"devDependencies": {
+		"typescript": "^5.3.0"
+	}
 }

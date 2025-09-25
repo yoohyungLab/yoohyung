@@ -12,27 +12,27 @@ import { EditTestPage } from './pages/tests/edit-test-page';
 // import SettingsPage from './pages/settings/settings-page';
 
 export default function App() {
-    return (
-        <Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
-            <Routes>
-                {/* 관리자 로그인 페이지 */}
-                <Route path="/auth" element={<AdminLoginPage />} />
+	return (
+		<Router future={{ v7_relativeSplatPath: true, v7_startTransition: true }}>
+			<Routes>
+				{/* 관리자 로그인 페이지 */}
+				<Route path="/auth" element={<AdminLoginPage />} />
 
-                {/* 관리자 대시보드 (보호된 라우트) */}
-                <Route path="/" element={<AdminLayout />}>
-                    <Route index element={<SimplifiedDashboard />} />
-                    <Route path="users" element={<UserListPage />} />
-                    <Route path="feedbacks" element={<FeedbackListPage />} />
-                    <Route path="tests" element={<TestListPage />} />
-                    <Route path="tests/create" element={<CreateTestPage />} />
-                    <Route path="tests/:id/edit" element={<EditTestPage />} />
-                    <Route path="categories" element={<CategoryListPage />} />
-                    {/* <Route path="settings" element={<SettingsPage />} /> */}
-                </Route>
+				{/* 관리자 대시보드 (보호된 라우트) */}
+				<Route path="/" element={<AdminLayout />}>
+					<Route index element={<SimplifiedDashboard />} />
+					<Route path="users" element={<UserListPage />} />
+					<Route path="feedbacks" element={<FeedbackListPage />} />
+					<Route path="tests" element={<TestListPage />} />
+					<Route path="tests/create" element={<CreateTestPage />} />
+					<Route path="tests/:id/edit" element={<EditTestPage />} />
+					<Route path="categories" element={<CategoryListPage />} />
+					{/* <Route path="settings" element={<SettingsPage />} /> */}
+				</Route>
 
-                {/* 기본 리다이렉트 */}
-                <Route path="*" element={<Navigate to="/auth" replace />} />
-            </Routes>
-        </Router>
-    );
+				{/* 기본 리다이렉트 */}
+				<Route path="*" element={<Navigate to="/auth" replace />} />
+			</Routes>
+		</Router>
+	);
 }

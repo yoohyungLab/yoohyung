@@ -1,221 +1,132 @@
 import * as React from 'react';
-import { Button, cn, DefaultSelect, DefaultInput, SearchInput, type SelectOption } from '@repo/ui';
+import { Button, cn, DefaultSelect, SearchInput, type SelectOption } from '@repo/ui';
 import { X } from 'lucide-react';
-import {
-    FILTER_STATUS_OPTIONS,
-    FILTER_PROVIDER_OPTIONS,
-    FILTER_FEEDBACK_CATEGORY_OPTIONS,
-    SEARCH_PLACEHOLDERS,
-} from '../../shared/lib/constants';
 
-interface Filter {
-    id: string;
-    type: 'search' | 'select' | 'date';
-    placeholder?: string;
-    options?: readonly SelectOption[];
-    value: string;
-    onChange: (value: string) => void;
-    className?: string;
-}
-
-interface CommonFilterConfig {
-    search?:
-        | boolean
-        | {
-              placeholder?: string;
-          };
-    status?:
-        | boolean
-        | {
-              options?: readonly SelectOption[];
-          };
-    provider?:
-        | boolean
-        | {
-              options?: readonly SelectOption[];
-          };
-    category?:
-        | boolean
-        | {
-              options?: readonly SelectOption[];
-          };
-    date?:
-        | boolean
-        | {
-              placeholder?: string;
-          };
+interface FilterConfig {
+	search?: boolean;
+	status?: {
+		options: SelectOption[];
+	};
+	provider?: {
+		options: SelectOption[];
+	};
+	category?: {
+		options: SelectOption[];
+	};
+	date?: boolean;
 }
 
 export interface FilterBarProps {
-    filters?: Filter[];
-    commonFilters?: CommonFilterConfig;
-    onFilterChange?: (filters: Record<string, string>) => void;
-    actions?: React.ReactNode;
-    className?: string;
-    onClear?: () => void;
-    hasActiveFilters?: boolean;
+	filters: FilterConfig;
+	values: Record<string, string>;
+	onFilterChange: (filters: Record<string, string>) => void;
+	actions?: React.ReactNode;
+	className?: string;
 }
 
-export function FilterBar({ filters, commonFilters, onFilterChange, actions, className, onClear, hasActiveFilters }: FilterBarProps) {
-    // 공통 필터용 내부 상태
-    const [internalFilters, setInternalFilters] = React.useState({
-        search: '',
-        status: 'all',
-        provider: 'all',
-        category: 'all',
-        date: '',
-    });
+export function FilterBar({ filters, values, onFilterChange, actions, className }: FilterBarProps) {
+	const handleFilterChange = (key: string, value: string) => {
+		onFilterChange({ ...values, [key]: value });
+	};
 
-    const handleInternalFilterChange = React.useCallback(
-        (key: string, value: string) => {
-            const newFilters = { ...internalFilters, [key]: value };
-            setInternalFilters(newFilters);
-            onFilterChange?.(newFilters);
-        },
-        [internalFilters, onFilterChange]
-    );
+	const clearFilters = () => {
+		const clearedFilters = Object.keys(values || {}).reduce(
+			(acc, key) => {
+				acc[key] = key === 'search' ? '' : 'all';
+				return acc;
+			},
+			{} as Record<string, string>
+		);
+		onFilterChange(clearedFilters);
+	};
 
-    const clearInternalFilters = React.useCallback(() => {
-        const clearedFilters = {
-            search: '',
-            status: 'all',
-            provider: 'all',
-            category: 'all',
-            date: '',
-        };
-        setInternalFilters(clearedFilters);
-        onFilterChange?.(clearedFilters);
-    }, [onFilterChange]);
+	const hasActiveFilters = Object.entries(values || {}).some(([key, value]) => {
+		return key === 'search' ? value !== '' : value !== 'all';
+	});
 
-    const internalHasActiveFilters =
-        internalFilters.search !== '' ||
-        internalFilters.status !== 'all' ||
-        internalFilters.provider !== 'all' ||
-        internalFilters.category !== 'all' ||
-        internalFilters.date !== '';
+	return (
+		<div className={cn('space-y-4', className)}>
+			{/* Filters Card */}
+			<div className="border-0 shadow-sm bg-white rounded-lg">
+				<div className="p-4">
+					<div className="flex gap-3 items-center justify-between">
+						<div className="flex gap-3 items-center flex-1">
+							{/* Search Filter */}
+							{filters?.search && (
+								<div className="relative flex-1 max-w-sm">
+									<SearchInput
+										{...{
+											value: values.search || '',
+											onChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+												handleFilterChange('search', e.target.value),
+											onClear: () => handleFilterChange('search', ''),
+											showClear: true,
+											className: 'w-full',
+										}}
+									/>
+								</div>
+							)}
 
-    // 공통 필터 생성
-    const generateCommonFilters = (): Filter[] => {
-        if (!commonFilters) return [];
+							{/* Status Filter */}
+							{filters?.status && (
+								<DefaultSelect
+									value={values.status || 'all'}
+									onValueChange={(value) => handleFilterChange('status', value)}
+									options={filters.status.options}
+									className="w-[140px]"
+								/>
+							)}
 
-        const result: Filter[] = [];
+							{/* Provider Filter */}
+							{filters?.provider && (
+								<DefaultSelect
+									value={values.provider || 'all'}
+									onValueChange={(value) => handleFilterChange('provider', value)}
+									options={filters.provider.options}
+									className="w-[140px]"
+								/>
+							)}
 
-        if (commonFilters.search) {
-            const searchConfig = typeof commonFilters.search === 'boolean' ? {} : commonFilters.search;
-            result.push({
-                id: 'search',
-                type: 'search',
-                placeholder: searchConfig.placeholder || SEARCH_PLACEHOLDERS.USER,
-                value: internalFilters.search,
-                onChange: (value) => handleInternalFilterChange('search', value),
-            });
-        }
+							{/* Category Filter */}
+							{filters?.category && (
+								<DefaultSelect
+									value={values.category || 'all'}
+									onValueChange={(value) => handleFilterChange('category', value)}
+									options={filters.category.options}
+									className="w-[140px]"
+								/>
+							)}
 
-        if (commonFilters.status) {
-            const statusConfig = typeof commonFilters.status === 'boolean' ? {} : commonFilters.status;
-            result.push({
-                id: 'status',
-                type: 'select',
-                options: statusConfig.options || FILTER_STATUS_OPTIONS,
-                value: internalFilters.status,
-                onChange: (value) => handleInternalFilterChange('status', value),
-            });
-        }
+							{/* Date Filter */}
+							{filters?.date && (
+								<input
+									type="date"
+									placeholder="날짜 선택"
+									value={values.date || ''}
+									onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('date', e.target.value)}
+									className="w-[140px] px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+								/>
+							)}
 
-        if (commonFilters.provider) {
-            const providerConfig = typeof commonFilters.provider === 'boolean' ? {} : commonFilters.provider;
-            result.push({
-                id: 'provider',
-                type: 'select',
-                options: providerConfig.options || FILTER_PROVIDER_OPTIONS,
-                value: internalFilters.provider,
-                onChange: (value) => handleInternalFilterChange('provider', value),
-            });
-        }
+							{/* Clear Filters */}
+							{hasActiveFilters && (
+								<Button
+									variant="ghost"
+									size="sm"
+									onClick={clearFilters}
+									className="h-9 px-2 text-muted-foreground hover:text-foreground"
+								>
+									<X className="h-4 w-4 mr-1" />
+									필터 초기화
+								</Button>
+							)}
+						</div>
 
-        if (commonFilters.category) {
-            const categoryConfig = typeof commonFilters.category === 'boolean' ? {} : commonFilters.category;
-            result.push({
-                id: 'category',
-                type: 'select',
-                options: categoryConfig.options || FILTER_FEEDBACK_CATEGORY_OPTIONS,
-                value: internalFilters.category,
-                onChange: (value) => handleInternalFilterChange('category', value),
-            });
-        }
-
-        if (commonFilters.date) {
-            const dateConfig = typeof commonFilters.date === 'boolean' ? {} : commonFilters.date;
-            result.push({
-                id: 'date',
-                type: 'date',
-                placeholder: dateConfig.placeholder || '날짜 선택',
-                value: internalFilters.date,
-                onChange: (value) => handleInternalFilterChange('date', value),
-            });
-        }
-
-        return result;
-    };
-
-    const finalFilters = commonFilters ? generateCommonFilters() : filters || [];
-    const finalHasActiveFilters = hasActiveFilters ?? internalHasActiveFilters;
-    const finalOnClear = onClear ?? clearInternalFilters;
-
-    return (
-        <div className={cn('space-y-4', className)}>
-            {/* Filters Row */}
-            <div className="flex flex-wrap items-center gap-3">
-                {finalFilters.map((filter) => (
-                    <div key={filter.id} className={cn('min-w-0', filter.className)}>
-                        {filter.type === 'search' ? (
-                            <SearchInput
-                                placeholder={filter.placeholder}
-                                value={filter.value}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => filter.onChange(e.target.value)}
-                                onClear={() => filter.onChange('')}
-                                showClear={true}
-                                className="w-[250px]"
-                            />
-                        ) : filter.type === 'date' ? (
-                            <DefaultInput
-                                type="date"
-                                placeholder={filter.placeholder}
-                                value={filter.value}
-                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => filter.onChange(e.target.value)}
-                                className="h-9 w-[140px]"
-                            />
-                        ) : (
-                            <DefaultSelect
-                                value={filter.value}
-                                onValueChange={filter.onChange}
-                                options={filter.options ? [...filter.options] : []}
-                                className="w-[140px]"
-                            />
-                        )}
-                    </div>
-                ))}
-
-                {/* Clear Filters */}
-                {finalHasActiveFilters && finalOnClear && (
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={finalOnClear}
-                        className="h-9 px-2 text-muted-foreground hover:text-foreground"
-                    >
-                        <X className="h-4 w-4 mr-1" />
-                        필터 초기화
-                    </Button>
-                )}
-            </div>
-
-            {/* Actions Row */}
-            {actions && (
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">{actions}</div>
-                </div>
-            )}
-        </div>
-    );
+						{/* Actions */}
+						{actions && <div className="flex items-center gap-2">{actions}</div>}
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }

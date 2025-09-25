@@ -1,22 +1,25 @@
 {
-    "name": "side-project-monorepo",
-    "private": true,
-    "packageManager": "pnpm@9.12.0",
-    "workspaces": [
-        "apps/*",
-        "packages/*"
-    ],
-    "scripts": {
-        "dev": "turbo dev",
-        "build": "turbo build",
-        "lint": "turbo lint",
-        "test": "turbo test",
-        "types": "cd packages/supabase && pnpm generate-types",
-        "types-local": "cd packages/supabase && pnpm generate-types-local",
-        "type-check": "turbo type-check"
-    },
-    "devDependencies": {
-        "supabase": "^2.40.7",
-        "turbo": "^2.0.0"
-    }
+	"name": "side-project-monorepo",
+	"private": true,
+	"packageManager": "pnpm@9.12.0",
+	"workspaces": [
+		"apps/*",
+		"packages/*"
+	],
+	"scripts": {
+		"dev": "turbo dev",
+		"build": "turbo build",
+		"lint": "turbo lint",
+		"test": "turbo test",
+		"types": "cd packages/supabase && pnpm generate-types",
+		"types-local": "cd packages/supabase && pnpm generate-types-local",
+		"type-check": "turbo type-check"
+	},
+	"devDependencies": {
+		"@types/react": "^18.2.0",
+		"@types/react-dom": "^18.2.0",
+		"dotenv": "^17.2.2",
+		"supabase": "^2.40.7",
+		"turbo": "^2.0.0"
+	}
 }

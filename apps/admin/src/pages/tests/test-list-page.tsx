@@ -1,387 +1,349 @@
-import { TestDetailModal } from '@/components/test/test-detail-modal';
-import { AdminCard, BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
-import { useColumnRenderers } from '@/shared/hooks';
-import { PAGINATION } from '@/shared/lib/constants';
-import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
+import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { usePagination } from '@repo/shared';
-import { Badge, Button, DataTable, DefaultPagination, type Column } from '@repo/ui';
-import { Edit, Globe, Lock, Trash2 } from 'lucide-react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { categoryService } from '../../api/category.service';
-import { testService } from '../../api/test.service';
+import { testService } from '@/shared/api';
 import type { Test, TestStatus, TestType } from '@repo/supabase';
+import { DataTable, type Column, DefaultPagination, Badge } from '@repo/ui';
+import { TestDetailModal } from '@/components/test/test-detail-modal';
+import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
+import { useColumnRenderers } from '@/shared/hooks';
+import { PAGINATION, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
+import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
 
 export function TestListPage() {
-    const renderers = useColumnRenderers();
+	const navigate = useNavigate();
+	const renderers = useColumnRenderers();
 
-    const [tests, setTests] = useState<Test[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [selectedTests, setSelectedTests] = useState<string[]>([]);
-    const [totalTests, setTotalTests] = useState(0);
-    const [selectedTest, setSelectedTest] = useState<Test | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState(false);
-    const [apiCategories, setApiCategories] = useState<{ name: string; is_active: boolean }[]>([]);
-    const [filters, setFilters] = useState({
-        search: '',
-        status: 'all' as 'all' | TestStatus,
-        type: 'all' as 'all' | TestType,
-        category: 'all',
-    });
+	const [tests, setTests] = useState<Test[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
+	const [modalTest, setModalTest] = useState<Test | null>(null);
+	const [selectedTests, setSelectedTests] = useState<string[]>([]);
+	const [totalTests, setTotalTests] = useState(0);
+	const [filters, setFilters] = useState({
+		search: '',
+		status: 'all' as 'all' | TestStatus,
+		type: 'all' as 'all' | TestType,
+		category: 'all',
+	});
 
-    const pagination = usePagination({
-        totalItems: totalTests,
-        defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
-    });
+	const pagination = usePagination({
+		totalItems: totalTests,
+		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+	});
 
-    // 통계 계산
-    const stats = useMemo(
-        () => ({
-            total: tests.length,
-            published: tests.length, // status 컬럼이 없으므로 모든 테스트를 published로 간주
-            draft: 0, // status 컬럼이 없으므로 0
-            scheduled: 0, // status 컬럼이 없으므로 0
-            responses: tests.reduce((sum, test) => sum + (test.responseCount || 0), 0),
-        }),
-        [tests]
-    );
+	// 간단한 통계 (필요한 것만)
+	const [stats, setStats] = useState({
+		total: 0,
+		published: 0,
+		draft: 0,
+		scheduled: 0,
+		responses: 0,
+	});
 
-    // 카테고리 목록 (API에서 가져온 데이터 사용)
-    const categories = useMemo(() => {
-        return apiCategories.filter((cat) => cat.is_active).map((cat) => ({ value: cat.name, label: cat.name }));
-    }, [apiCategories]);
+	// 모든 데이터를 한번에 로딩
+	const loadData = useCallback(
+		async (includeStats = false) => {
+			setLoading(true);
+			setError(null);
 
-    // 카테고리 로딩
-    const loadCategories = useCallback(async () => {
-        try {
-            const result = await categoryService.getCategories({ status: 'active' }, 1, 100);
-            setApiCategories(result.categories);
-        } catch (error) {
-            console.error('카테고리 로딩 실패:', error);
-        }
-    }, []);
+			try {
+				const data = await testService.getAllTests();
 
-    // 데이터 로딩
-    const loadData = useCallback(async () => {
-        setLoading(true);
-        setError(null);
+				// 필터링 적용
+				const filteredData = data.filter((test) => {
+					const matchesSearch =
+						test.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+						(test.description || '').toLowerCase().includes(filters.search.toLowerCase());
 
-        try {
-            const data = await testService.getAllTests();
-            setTests(data as Test[]);
-            setTotalTests(data.length);
-        } catch (error) {
-            console.error('테스트 목록 로딩 실패:', error);
-            setError(error instanceof Error ? error.message : '테스트 목록을 불러오는데 실패했습니다.');
-        } finally {
-            setLoading(false);
-        }
-    }, []);
+					// status 필터링
+					const testStatus = test.status || 'draft';
+					const matchesStatus = filters.status === 'all' || testStatus === filters.status;
 
-    // 필터링된 데이터
-    const filteredTests = useMemo(() => {
-        return tests.filter((test) => {
-            const matchesSearch =
-                test.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-                (test.description || '').toLowerCase().includes(filters.search.toLowerCase()) ||
-                (test.category || '').toLowerCase().includes(filters.search.toLowerCase());
+					// type 필터링
+					const matchesType = filters.type === 'all' || test.type === filters.type;
 
-            // status 필터링 제거 (status 컬럼이 없음)
-            const matchesStatus = true;
+					return matchesSearch && matchesStatus && matchesType;
+				});
 
-            // type 필터링 제거 (type 컬럼이 없음)
-            const matchesType = true;
+				setTests(filteredData as Test[]);
+				setTotalTests(filteredData.length);
 
-            const matchesCategory = filters.category === 'all' || (test.category || '') === filters.category;
+				// 통계 계산
+				if (includeStats) {
+					const total = data.length;
+					const published = data.filter((test) => test.status === 'published').length;
+					const draft = data.filter((test) => test.status === 'draft').length;
+					const scheduled = data.filter((test) => test.status === 'scheduled').length;
+					const responses = data.reduce((sum, test) => sum + (test.response_count || 0), 0);
 
-            return matchesSearch && matchesStatus && matchesType && matchesCategory;
-        });
-    }, [tests, filters]);
+					setStats({
+						total,
+						published,
+						draft,
+						scheduled,
+						responses,
+					});
+				}
+			} catch (error) {
+				console.error('데이터 로딩 실패:', error);
+				setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
+			} finally {
+				setLoading(false);
+			}
+		},
+		[filters.search, filters.status, filters.type]
+	);
 
-    useEffect(() => {
-        loadData();
-        loadCategories();
-    }, [loadData, loadCategories]);
+	// 필터 변경 시 첫 페이지로 이동하고 데이터 로딩 (초기 로딩 포함)
+	useEffect(() => {
+		loadData(true); // 통계도 함께 로딩
+	}, [filters.search, filters.status, filters.type, filters.category, loadData]);
 
-    // 상태 변경 핸들러 (status 컬럼이 없으므로 UI만 업데이트)
-    const handleTogglePublish = useCallback(async (testId: string, currentStatus: boolean) => {
-        try {
-            await testService.togglePublishStatus(testId, !currentStatus);
-            // UI 상태만 업데이트 (실제 DB에는 status 컬럼이 없음)
-            setTests((prev) =>
-                prev.map((test) =>
-                    test.id === testId
-                        ? {
-                              ...test,
-                              status: !currentStatus ? 'published' : 'draft',
-                              isPublished: !currentStatus,
-                          }
-                        : test
-                )
-            );
-        } catch (error) {
-            console.error('상태 변경 실패:', error);
-        }
-    }, []);
+	// 개별 테스트 상태 변경 - 서버 요청 후 즉시 UI 업데이트
+	const handleTogglePublish = useCallback(async (testId: string, newStatus: string) => {
+		try {
+			const isPublished = newStatus === 'published';
+			await testService.togglePublishStatus(testId, isPublished);
+			// 상태 변경 후 즉시 UI 업데이트
+			setTests((prev) =>
+				prev.map((test) =>
+					test.id === testId
+						? {
+								...test,
+								status: newStatus as 'published' | 'draft',
+						  }
+						: test
+				)
+			);
+			// 통계도 즉시 업데이트
+			setStats((prev) => ({
+				...prev,
+				published: isPublished ? prev.published + 1 : prev.published - 1,
+				draft: isPublished ? prev.draft - 1 : prev.draft + 1,
+			}));
+		} catch (error) {
+			console.error('상태 변경 실패:', error);
+		}
+	}, []);
 
-    // 삭제 핸들러
-    const handleDelete = useCallback(
-        async (testId: string) => {
-            if (!confirm('정말로 이 테스트를 삭제하시겠습니까?')) return;
+	// 테스트 삭제 처리 - 확인 후 삭제하고 목록 새로고침
+	const handleDelete = useCallback(
+		async (testId: string) => {
+			if (!confirm('정말로 이 테스트를 삭제하시겠습니까?')) return;
 
-            try {
-                await testService.deleteTest(testId);
-                loadData();
-            } catch (error) {
-                console.error('테스트 삭제 실패:', error);
-            }
-        },
-        [loadData]
-    );
+			try {
+				await testService.deleteTest(testId);
+				loadData(true); // 통계도 함께 새로고침
+			} catch (error) {
+				console.error('테스트 삭제 실패:', error);
+			}
+		},
+		[loadData]
+	);
 
-    // 대량 상태 변경 (UI만 업데이트)
-    const handleBulkPublish = async (isPublished: boolean) => {
-        if (selectedTests.length === 0) return;
+	// 대량 상태 변경 - 선택된 여러 테스트 상태를 한번에 변경
+	const handleBulkPublish = async (isPublished: boolean) => {
+		if (selectedTests.length === 0) return;
 
-        try {
-            await Promise.all(selectedTests.map((testId) => testService.togglePublishStatus(testId, isPublished)));
-            // UI 상태 업데이트
-            setTests((prev) =>
-                prev.map((test) =>
-                    selectedTests.includes(test.id)
-                        ? {
-                              ...test,
-                              status: isPublished ? 'published' : 'draft',
-                              isPublished: isPublished,
-                          }
-                        : test
-                )
-            );
-            setSelectedTests([]);
-        } catch (error) {
-            console.error('대량 상태 변경 실패:', error);
-        }
-    };
+		try {
+			await Promise.all(selectedTests.map((testId) => testService.togglePublishStatus(testId, isPublished)));
+			setSelectedTests([]);
+			loadData(true); // 통계도 함께 새로고침
+		} catch (error) {
+			console.error('대량 상태 변경 실패:', error);
+		}
+	};
 
-    // 대량 삭제
-    const handleBulkDelete = async () => {
-        if (selectedTests.length === 0) return;
-        if (!confirm(`선택한 ${selectedTests.length}개의 테스트를 삭제하시겠습니까?`)) return;
+	// 대량 삭제
+	const handleBulkDelete = async () => {
+		if (selectedTests.length === 0) return;
+		if (!confirm(`선택한 ${selectedTests.length}개의 테스트를 삭제하시겠습니까?`)) return;
 
-        try {
-            await Promise.all(selectedTests.map((testId) => testService.deleteTest(testId)));
-            setSelectedTests([]);
-            loadData();
-        } catch (error) {
-            console.error('대량 삭제 실패:', error);
-        }
-    };
+		try {
+			await Promise.all(selectedTests.map((testId) => testService.deleteTest(testId)));
+			setSelectedTests([]);
+			loadData(true); // 통계도 함께 새로고침
+		} catch (error) {
+			console.error('대량 삭제 실패:', error);
+		}
+	};
 
-    // 테이블 컬럼 정의
-    const columns: Column<Test>[] = useMemo(
-        () => [
-            {
-                id: 'title',
-                header: '테스트',
-                cell: ({ row }) => (
-                    <div
-                        className="cursor-pointer min-w-0"
-                        onClick={() => {
-                            setSelectedTest(row.original);
-                            setShowDetailModal(true);
-                        }}
-                    >
-                        <div className="font-medium text-gray-900 truncate">{row.original.title}</div>
-                    </div>
-                ),
-            },
+	// Table columns definition (memoized for performance)
+	const columns: Column<Test>[] = useMemo(
+		() => [
+			{
+				id: 'title',
+				header: '테스트',
+				cell: ({ row }) => (
+					<div className="min-w-0">
+						<div className="font-medium text-gray-900 truncate">{row.original.title}</div>
+					</div>
+				),
+			},
+			{
+				id: 'type',
+				header: '유형',
+				cell: ({ row }) => {
+					const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
+					return (
+						<Badge variant="outline" className="text-xs">
+							{typeInfo.name}
+						</Badge>
+					);
+				},
+			},
+			{
+				id: 'status',
+				header: '상태',
+				cell: ({ row }) => {
+					const status = row.original.status || 'draft';
+					const statusInfo = getTestStatusInfo(status);
+					return (
+						<Badge variant="outline" className="text-xs">
+							{statusInfo.name}
+						</Badge>
+					);
+				},
+			},
+			{
+				id: 'responses',
+				header: '응답수',
+				cell: ({ row }) => renderers.renderNumber(row.original.response_count || 0),
+			},
+			{
+				id: 'created_at',
+				header: '생성일',
+				cell: ({ row }) => renderers.renderDate(row.original.created_at),
+			},
+			{
+				id: 'actions',
+				header: '액션',
+				cell: ({ row }) =>
+					renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
+						{
+							type: 'edit',
+							onClick: () => navigate(`/tests/${row.original.id}/edit`),
+						},
+						{
+							type: 'status',
+							onClick: (id, data) => handleTogglePublish(id, data?.status as string),
+							statusOptions: [...TEST_STATUS_OPTIONS],
+						},
+						{
+							type: 'delete',
+							onClick: (id) => handleDelete(id),
+						},
+					]),
+			},
+		],
+		[renderers, handleTogglePublish, handleDelete, navigate]
+	);
 
-            {
-                id: 'type',
-                header: '유형',
-                cell: ({ row }) => {
-                    const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
-                    return (
-                        <Badge variant="outline" className="text-xs">
-                            {typeInfo.name}
-                        </Badge>
-                    );
-                },
-            },
-            {
-                id: 'status',
-                header: '상태',
-                cell: ({ row }) => {
-                    // status 컬럼이 없으므로 기본값으로 처리
-                    const status = row.original.status || 'draft';
-                    const statusInfo = getTestStatusInfo(status);
-                    return (
-                        <div>
-                            <Badge variant="outline" className="text-xs">
-                                {statusInfo.name}
-                            </Badge>
-                        </div>
-                    );
-                },
-            },
-            {
-                id: 'completion_count',
-                header: '완료수',
-                cell: ({ row }) => <div className="text-sm font-medium">{row.original.completion_count || 0}</div>,
-            },
-            {
-                id: 'share_count',
-                header: '공유수',
-                cell: ({ row }) => <div className="text-sm font-medium">{row.original.share_count || 0}</div>,
-            },
-            {
-                id: 'actions',
-                header: '액션',
-                cell: ({ row }) => (
-                    <div className="flex items-center gap-1">
-                        <Link to={`/tests/${row.original.id}/edit`}>
-                            <Button size="sm" variant="outline" title="수정">
-                                <Edit className="w-4 h-4" />
-                            </Button>
-                        </Link>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleTogglePublish(row.original.id, row.original.isPublished || false);
-                            }}
-                            className={row.original.isPublished ? 'text-yellow-600' : 'text-green-600'}
-                            title={row.original.isPublished ? '비공개로 전환' : '공개로 전환'}
-                        >
-                            {row.original.isPublished ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-                        </Button>
-                        <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleDelete(row.original.id);
-                            }}
-                            className="text-red-600 border-red-600 hover:bg-red-50"
-                            title="삭제"
-                        >
-                            <Trash2 className="w-4 h-4" />
-                        </Button>
-                    </div>
-                ),
-            },
-        ],
-        [handleTogglePublish, handleDelete]
-    );
+	return (
+		<div className="space-y-6 p-5">
+			{/* 간단한 통계 */}
+			<StatsCards
+				stats={[
+					{ id: 'total', label: '전체 테스트', value: stats.total },
+					{ id: 'published', label: '공개', value: stats.published },
+					{ id: 'draft', label: '초안', value: stats.draft },
+					{ id: 'scheduled', label: '예약', value: stats.scheduled },
+					{ id: 'responses', label: '총 응답', value: stats.responses },
+				]}
+				columns={5}
+			/>
 
-    return (
-        <div className="space-y-6 p-5">
-            {/* 통계 카드 */}
-            <StatsCards
-                stats={[
-                    { id: 'total', label: '전체 테스트', value: stats.total, variant: 'default' },
-                    { id: 'published', label: '공개', value: stats.published, variant: 'success' },
-                    { id: 'draft', label: '초안', value: stats.draft, variant: 'secondary' },
-                    { id: 'scheduled', label: '예약', value: stats.scheduled, variant: 'info' },
-                    { id: 'responses', label: '총 응답', value: stats.responses, variant: 'warning' },
-                ]}
-                columns={5}
-                style="badge"
-            />
+			{/* Search & Filters */}
+			<FilterBar
+				filters={{
+					search: true,
+					status: {
+						options: [
+							{ value: 'all', label: '전체 상태' },
+							{ value: 'published', label: '공개' },
+							{ value: 'draft', label: '초안' },
+							{ value: 'scheduled', label: '예약' },
+						],
+					},
+				}}
+				values={filters}
+				onFilterChange={(newFilters) => {
+					setFilters({
+						search: newFilters.search || '',
+						status: (newFilters.status as 'all' | TestStatus) || 'all',
+						type: 'all',
+						category: 'all',
+					});
+				}}
+			/>
 
-            {/* 필터 및 검색 */}
-            <AdminCard>
-                <FilterBar
-                    commonFilters={{
-                        search: {
-                            placeholder: '테스트 제목, 설명, 카테고리로 검색',
-                        },
-                        category: {
-                            options: [{ value: 'all', label: '전체 카테고리' }, ...categories],
-                        },
-                    }}
-                    onFilterChange={(newFilters) => {
-                        setFilters({
-                            search: newFilters.search || '',
-                            status: 'all', // status 필터 제거
-                            type: 'all', // type 필터 제거
-                            category: newFilters.category || 'all',
-                        });
-                    }}
-                />
-            </AdminCard>
+			{/* Bulk Actions */}
+			<BulkActions
+				selectedCount={selectedTests.length}
+				actions={[
+					{
+						id: 'publish',
+						label: '공개',
+						onClick: () => handleBulkPublish(true),
+					},
+					{
+						id: 'unpublish',
+						label: '비공개',
+						onClick: () => handleBulkPublish(false),
+					},
+					{
+						id: 'delete',
+						label: '삭제',
+						variant: 'destructive',
+						onClick: handleBulkDelete,
+					},
+				]}
+				onClear={() => setSelectedTests([])}
+			/>
 
-            {/* 대량 작업 */}
-            <BulkActions
-                selectedCount={selectedTests.length}
-                actions={[
-                    {
-                        id: 'publish',
-                        label: '공개',
-                        onClick: () => handleBulkPublish(true),
-                    },
-                    {
-                        id: 'unpublish',
-                        label: '비공개',
-                        onClick: () => handleBulkPublish(false),
-                    },
-                    {
-                        id: 'delete',
-                        label: '삭제',
-                        variant: 'destructive',
-                        onClick: handleBulkDelete,
-                    },
-                ]}
-                onClear={() => setSelectedTests([])}
-            />
+			{/* Test List */}
+			<DataState loading={loading} error={error} data={tests} onRetry={() => loadData(true)}>
+				<DataTable
+					data={tests}
+					columns={columns}
+					selectable={true}
+					selectedItems={selectedTests}
+					onSelectionChange={setSelectedTests}
+					getRowId={(test: Test) => test.id}
+					onRowClick={(test: Test) => {
+						setModalTest(test);
+					}}
+				/>
+			</DataState>
 
-            {/* 테스트 목록 */}
-            <DataState loading={loading} error={error} data={filteredTests} onRetry={loadData}>
-                <DataTable
-                    data={filteredTests}
-                    columns={columns}
-                    selectable={true}
-                    selectedItems={selectedTests}
-                    onSelectionChange={setSelectedTests}
-                    getRowId={(test: Test) => test.id}
-                    totalCount={filteredTests.length}
-                    totalLabel="테스트"
-                />
-            </DataState>
+			{/* Pagination */}
+			<DefaultPagination
+				currentPage={pagination.currentPage}
+				totalPages={pagination.totalPages}
+				onPageChange={pagination.setPage}
+				className="mt-6"
+			/>
 
-            {/* 페이지네이션 */}
-            <DefaultPagination
-                currentPage={pagination.currentPage}
-                totalPages={pagination.totalPages}
-                onPageChange={pagination.setPage}
-                className="mt-6"
-            />
-
-            {/* 테스트 상세 모달 */}
-            {showDetailModal && selectedTest && (
-                <TestDetailModal
-                    test={selectedTest}
-                    onClose={() => {
-                        setShowDetailModal(false);
-                        setSelectedTest(null);
-                    }}
-                    onTogglePublish={async (testId: string, currentStatus: boolean) => {
-                        await handleTogglePublish(testId, currentStatus);
-                        // 모달에 표시된 테스트 정보도 업데이트
-                        const updatedTest = tests.find((t) => t.id === testId);
-                        if (updatedTest) {
-                            setSelectedTest({
-                                ...updatedTest,
-                                status: !currentStatus ? 'published' : 'draft',
-                                isPublished: !currentStatus,
-                            });
-                        }
-                    }}
-                    onDelete={handleDelete}
-                />
-            )}
-        </div>
-    );
+			{/* Test Detail Modal */}
+			{modalTest && (
+				<TestDetailModal
+					test={modalTest}
+					onClose={() => setModalTest(null)}
+					onTogglePublish={async (testId: string, currentStatus: boolean) => {
+						await handleTogglePublish(testId, currentStatus ? 'published' : 'draft');
+						// 모달에 표시된 테스트 정보도 업데이트
+						const updatedTest = tests.find((t) => t.id === testId);
+						if (updatedTest) {
+							setModalTest({
+								...updatedTest,
+								status: !currentStatus ? 'published' : 'draft',
+							});
+						}
+					}}
+					onDelete={handleDelete}
+				/>
+			)}
+		</div>
+	);
 }
