@@ -2,14 +2,35 @@ import React from 'react';
 import { Badge } from '@repo/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
-import { testTypes } from '../../../../constants/testData';
+import { testTypes } from '@/constants/testData';
 import type { BasicInfo } from '../types';
-import type { QuestionCreationData, ResultCreationData } from '@/shared/api/services/test.service';
+// ResultData 타입 정의 (useTestCreation과 일치)
+interface ResultData {
+	result_name: string;
+	result_order: number;
+	description: string | null;
+	match_conditions: { type: 'score'; min: number; max: number };
+	background_image_url: string | null;
+	theme_color: string;
+	features: Record<string, unknown>;
+}
+
+interface QuestionData {
+	question_text: string;
+	question_order: number;
+	image_url: string | null;
+	choices: {
+		choice_text: string;
+		choice_order: number;
+		score: number;
+		is_correct: boolean;
+	}[];
+}
 
 interface PreviewStepProps {
 	testData: BasicInfo;
-	questions: QuestionCreationData[];
-	results: ResultCreationData[];
+	questions: QuestionData[];
+	results: ResultData[];
 	selectedType: string;
 }
 
@@ -25,11 +46,11 @@ export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, r
 		{ check: questions.length >= 3, text: '질문이 3개 이상 작성되었나요?' },
 		{ check: results.length >= 2, text: '결과가 2개 이상 설정되었나요?' },
 		{
-			check: questions.every((q: any) => q.choices?.length >= 2),
+			check: questions.every((q: QuestionData) => q.choices?.length >= 2),
 			text: '모든 질문에 선택지가 2개 이상인가요?',
 		},
 		{
-			check: results.every((r: any) => r.description?.length > 20),
+			check: results.every((r: ResultData) => (r.description?.length || 0) > 20),
 			text: '모든 결과에 충분한 내용이 있나요?',
 		},
 	];
@@ -85,14 +106,14 @@ export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, r
 					/>
 					<AdminCardContent>
 						<div className="space-y-3">
-							{questions.slice(0, 3).map((question: any, index: number) => (
+							{questions.slice(0, 3).map((question: QuestionData, index: number) => (
 								<div key={index} className="p-3 bg-gray-50 rounded-lg">
 									<div className="flex items-start gap-3">
 										<div className="w-6 h-6 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0">
 											{index + 1}
 										</div>
 										<div className="flex-1">
-											<p className="font-medium text-gray-900">{question.text || '질문 없음'}</p>
+											<p className="font-medium text-gray-900">{question.question_text || '질문 없음'}</p>
 											<p className="text-sm text-gray-500 mt-1">{question.choices?.length || 0}개 선택지</p>
 										</div>
 									</div>
@@ -118,7 +139,7 @@ export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, r
 					/>
 					<AdminCardContent>
 						<div className="space-y-3">
-							{results.map((result: any, index: number) => (
+							{results.map((result: ResultData, index: number) => (
 								<div key={index} className="p-3 bg-gray-50 rounded-lg">
 									<div className="flex items-start gap-3">
 										<div
@@ -128,13 +149,13 @@ export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, r
 											}}
 										/>
 										<div className="flex-1">
-											<p className="font-medium text-gray-900">{result.name || '결과 없음'}</p>
+											<p className="font-medium text-gray-900">{result.result_name || '결과 없음'}</p>
 											<p className="text-sm text-gray-600 mt-1">
 												{result.description?.substring(0, 60) || '설명 없음'}...
 											</p>
-											{selectedType === 'psychology' && result.condition && (
+											{selectedType === 'psychology' && result.match_conditions && (
 												<p className="text-xs text-gray-500 mt-1">
-													{result.condition.min}-{result.condition.max}점
+													{result.match_conditions.min}-{result.match_conditions.max}점
 												</p>
 											)}
 										</div>

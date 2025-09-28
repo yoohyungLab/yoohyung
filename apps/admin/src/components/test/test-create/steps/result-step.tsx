@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { Button, DefaultInput, DefaultTextarea, Label, Badge } from '@repo/ui';
 import { Plus, Trash2, X } from 'lucide-react';
-import { testTypes } from '../../../../constants/testData';
+import { testTypes } from '@/constants/testData';
 import { ImageUpload } from '../components/image-upload';
-import type { ResultCreationData } from '../../../../shared/api/services/test.service';
+// ResultData 타입 정의 (useTestCreation과 일치)
+interface ResultData {
+	result_name: string;
+	result_order: number;
+	description: string | null;
+	match_conditions: { type: 'score'; min: number; max: number };
+	background_image_url: string | null;
+	theme_color: string;
+	features: Record<string, unknown>;
+}
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 
 interface ResultStepProps {
-	results: ResultCreationData[];
+	results: ResultData[];
 	selectedType: string;
 	onAddResult: () => void;
 	onRemoveResult: (resultIndex: number) => void;
-	onUpdateResult: (resultIndex: number, updates: Partial<ResultCreationData>) => void;
+	onUpdateResult: (resultIndex: number, updates: Partial<ResultData>) => void;
 }
 
 export const ResultStep: React.FC<ResultStepProps> = ({
@@ -98,12 +107,9 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 		}
 	};
 
-	const renderScoreRange = (result: ResultCreationData, resultIndex: number) => {
+	const renderScoreRange = (result: ResultData, resultIndex: number) => {
 		if (selectedType !== 'psychology') return null;
-		const conditions = result.match_conditions as {
-			min?: number;
-			max?: number;
-		};
+		const conditions = result.match_conditions;
 
 		return (
 			<div>
@@ -140,12 +146,9 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 		);
 	};
 
-	const renderScoreBadge = (result: ResultCreationData) => {
+	const renderScoreBadge = (result: ResultData) => {
 		if (selectedType !== 'psychology') return null;
-		const conditions = result.match_conditions as {
-			min?: number;
-			max?: number;
-		};
+		const conditions = result.match_conditions;
 		return (
 			<Badge variant="outline" className="bg-blue-50">
 				{conditions?.min || 0}-{conditions?.max || 10}점
@@ -371,7 +374,7 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 
 									<div className="space-y-4 mb-6">
 										{Object.entries(result.features || {}).map(([featureKey, values]) =>
-											renderFeature(resultIndex, featureKey, values)
+											renderFeature(resultIndex, featureKey, values as string | string[])
 										)}
 									</div>
 

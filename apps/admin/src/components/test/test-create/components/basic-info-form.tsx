@@ -1,5 +1,6 @@
 import React from 'react';
-import { DefaultInput, DefaultTextarea, DefaultSelect } from '@repo/ui';
+import { DefaultInput, DefaultTextarea, DefaultSelect, Button } from '@repo/ui';
+import { RefreshCw } from 'lucide-react';
 import { BasicInfoFormProps } from '../types';
 
 const TIME_OPTIONS = [
@@ -10,7 +11,13 @@ const TIME_OPTIONS = [
 	{ value: '15', label: '15분 (심화)' },
 ];
 
-export function BasicInfoForm({ testData, selectedType, onUpdateTestData, onUpdateTitle }: BasicInfoFormProps) {
+export function BasicInfoForm({
+	testData,
+	selectedType,
+	onUpdateTestData,
+	onUpdateTitle,
+	onRegenerateShortCode,
+}: BasicInfoFormProps) {
 	return (
 		<div className="space-y-6">
 			<div>
@@ -22,6 +29,30 @@ export function BasicInfoForm({ testData, selectedType, onUpdateTestData, onUpda
 					placeholder="예: 나는 어떤 MBTI 유형일까?"
 				/>
 				{testData.slug && <p className="text-sm text-gray-500 mt-1">URL: /tests/{testData.slug}</p>}
+			</div>
+
+			<div>
+				<label className="block text-sm font-medium text-gray-700 mb-2">테스트 코드 (공유용)</label>
+				<div className="flex gap-2">
+					<DefaultInput
+						value={testData.short_code}
+						onChange={(e) => onUpdateTestData({ ...testData, short_code: e.target.value })}
+						placeholder="예: ABC123"
+						className="flex-1"
+					/>
+					{onRegenerateShortCode && (
+						<Button
+							type="button"
+							variant="outline"
+							onClick={onRegenerateShortCode}
+							className="px-3 py-2"
+							title="새 코드 생성"
+						>
+							<RefreshCw className="w-4 h-4" />
+						</Button>
+					)}
+				</div>
+				<p className="text-sm text-gray-500 mt-1">테스트 공유 시 사용할 고유 코드입니다. (예: /t/ABC123)</p>
 			</div>
 
 			<DefaultTextarea

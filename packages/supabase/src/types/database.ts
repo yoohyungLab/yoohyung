@@ -220,7 +220,7 @@ export type Database = {
 						isOneToOne: false;
 						referencedRelation: 'test_questions';
 						referencedColumns: ['id'];
-					},
+					}
 				];
 			};
 			test_questions: {
@@ -258,7 +258,7 @@ export type Database = {
 						isOneToOne: false;
 						referencedRelation: 'tests';
 						referencedColumns: ['id'];
-					},
+					}
 				];
 			};
 			test_results: {
@@ -308,7 +308,7 @@ export type Database = {
 						isOneToOne: false;
 						referencedRelation: 'tests';
 						referencedColumns: ['id'];
-					},
+					}
 				];
 			};
 			tests: {
@@ -476,7 +476,7 @@ export type Database = {
 						isOneToOne: false;
 						referencedRelation: 'tests';
 						referencedColumns: ['id'];
-					},
+					}
 				];
 			};
 		};
@@ -630,6 +630,220 @@ export type Database = {
 				Args: { new_status: string; test_uuid: string };
 				Returns: Json;
 			};
+			// Analytics RPC functions
+			get_dashboard_overview_stats: {
+				Args: Record<PropertyKey, never>;
+				Returns: {
+					total: number;
+					published: number;
+					draft: number;
+					scheduled: number;
+					totalResponses: number;
+					totalCompletions: number;
+					completionRate: number;
+					avgCompletionTime: number;
+					anomalies: number;
+				};
+			};
+			get_test_detailed_stats: {
+				Args: { test_uuid: string };
+				Returns: {
+					test_id: string;
+					test_title: string;
+					total_responses: number;
+					total_views: number;
+					completion_rate: number;
+					average_score: number;
+					average_completion_time: number;
+					device_breakdown: {
+						mobile: number;
+						desktop: number;
+						tablet: number;
+					};
+					recent_responses: number;
+					popular_results: Array<{
+						result_name: string;
+						count: number;
+						percentage: number;
+					}>;
+					response_trend: Array<{
+						date: string;
+						count: number;
+					}>;
+				};
+			};
+			get_test_basic_stats: {
+				Args: { test_uuid: string };
+				Returns: {
+					responses: number;
+					completions: number;
+					completionRate: number;
+					avgTime: number;
+					avgScore: number;
+					deviceBreakdown: {
+						mobile: number;
+						desktop: number;
+						tablet: number;
+					};
+				};
+			};
+			get_responses_chart_data: {
+				Args: { test_uuid: string; days?: number };
+				Returns: Array<{
+					date: string;
+					responses: number;
+					completions: number;
+				}>;
+			};
+			get_user_responses_stats: {
+				Args: { test_uuid: string };
+				Returns: {
+					total_responses: number;
+					unique_users: number;
+					completion_rate: number;
+					avg_completion_time: number;
+					device_breakdown: {
+						mobile: number;
+						desktop: number;
+						tablet: number;
+					};
+				};
+			};
+			export_user_responses: {
+				Args: { test_uuid: string; limit_count?: number; offset_count?: number };
+				Returns: Array<{
+					id: string;
+					user_id: string | null;
+					test_id: string | null;
+					result_id: string | null;
+					responses: Json;
+					score: number | null;
+					started_at: string | null;
+					completed_at: string | null;
+					completion_time_seconds: number | null;
+					ip_address: string | null;
+					user_agent: string | null;
+					referrer: string | null;
+					device_type: string | null;
+					created_at: string | null;
+				}>;
+			};
+			get_test_analytics_data: {
+				Args: { test_uuid: string; days?: number };
+				Returns: {
+					overview: {
+						total_responses: number;
+						total_views: number;
+						completion_rate: number;
+						avg_completion_time: number;
+						avg_score: number;
+					};
+					trends: Array<{
+						date: string;
+						responses: number;
+						completions: number;
+					}>;
+					device_breakdown: {
+						mobile: number;
+						desktop: number;
+						tablet: number;
+					};
+					popular_results: Array<{
+						result_name: string;
+						count: number;
+						percentage: number;
+					}>;
+				};
+			};
+			// Marketing RPC functions
+			get_marketing_funnel: {
+				Args: { from_date: string; to_date: string; source?: string; medium?: string; campaign?: string };
+				Returns: {
+					visits: number;
+					test_starts: number;
+					test_completes: number;
+					sign_ups: number;
+					start_rate: number;
+					complete_rate: number;
+					sign_up_rate: number;
+				};
+			};
+			get_channel_performance: {
+				Args: { from_date: string; to_date: string };
+				Returns: Array<{
+					source: string;
+					medium: string;
+					campaign: string;
+					sessions: number;
+					start_rate: number;
+					complete_rate: number;
+					sign_up_rate: number;
+					avg_dwell_time: number;
+					avg_question_depth: number;
+					share_rate: number;
+				}>;
+			};
+			get_landing_performance: {
+				Args: { from_date: string; to_date: string };
+				Returns: Array<{
+					url: string;
+					sessions: number;
+					bounce_rate: number;
+					start_rate: number;
+					complete_rate: number;
+					avg_dwell_time: number;
+					conversion_value: number;
+				}>;
+			};
+			get_cohort_analysis: {
+				Args: { from_date: string; to_date: string };
+				Returns: Array<{
+					cohort: string;
+					users: number;
+					retention_1d: number;
+					retention_7d: number;
+					retention_30d: number;
+					ltv: number;
+				}>;
+			};
+			get_marketing_insights: {
+				Args: { from_date: string; to_date: string };
+				Returns: {
+					top_performing_channel: string;
+					best_converting_landing: string;
+					highest_ltv_cohort: string;
+					recommendations: string[];
+					anomalies: Array<{
+						metric: string;
+						change: number;
+						description: string;
+					}>;
+				};
+			};
+			export_marketing_data: {
+				Args: { from_date: string; to_date: string; format?: string };
+				Returns: Json;
+			};
+			get_utm_sources: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ source: string; count: number }>;
+			};
+			get_utm_mediums: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ medium: string; count: number }>;
+			};
+			get_utm_campaigns: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ campaign: string; count: number }>;
+			};
+			get_devices: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ device: string; count: number }>;
+			};
+			get_regions: {
+				Args: Record<PropertyKey, never>;
+				Returns: Array<{ region: string; count: number }>;
+			};
 		};
 		Enums: {
 			[_ in never]: never;
@@ -653,23 +867,23 @@ export type Tables<
 	}
 		? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
 				DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
-		: never = never,
+		: never = never
 > = DefaultSchemaTableNameOrOptions extends {
 	schema: keyof DatabaseWithoutInternals;
 }
 	? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
 			DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
 			Row: infer R;
-		}
+	  }
 		? R
 		: never
 	: DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-		? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
-				Row: infer R;
-			}
-			? R
-			: never
-		: never;
+	? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+			Row: infer R;
+	  }
+		? R
+		: never
+	: never;
 
 export type TablesInsert<
 	DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
@@ -677,22 +891,22 @@ export type TablesInsert<
 		schema: keyof DatabaseWithoutInternals;
 	}
 		? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-		: never = never,
+		: never = never
 > = DefaultSchemaTableNameOrOptions extends {
 	schema: keyof DatabaseWithoutInternals;
 }
 	? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
 			Insert: infer I;
-		}
+	  }
 		? I
 		: never
 	: DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-		? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
-				Insert: infer I;
-			}
-			? I
-			: never
-		: never;
+	? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+			Insert: infer I;
+	  }
+		? I
+		: never
+	: never;
 
 export type TablesUpdate<
 	DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables'] | { schema: keyof DatabaseWithoutInternals },
@@ -700,22 +914,22 @@ export type TablesUpdate<
 		schema: keyof DatabaseWithoutInternals;
 	}
 		? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
-		: never = never,
+		: never = never
 > = DefaultSchemaTableNameOrOptions extends {
 	schema: keyof DatabaseWithoutInternals;
 }
 	? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
 			Update: infer U;
-		}
+	  }
 		? U
 		: never
 	: DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-		? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
-				Update: infer U;
-			}
-			? U
-			: never
-		: never;
+	? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+			Update: infer U;
+	  }
+		? U
+		: never
+	: never;
 
 export type Enums<
 	DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums'] | { schema: keyof DatabaseWithoutInternals },
@@ -723,14 +937,14 @@ export type Enums<
 		schema: keyof DatabaseWithoutInternals;
 	}
 		? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
-		: never = never,
+		: never = never
 > = DefaultSchemaEnumNameOrOptions extends {
 	schema: keyof DatabaseWithoutInternals;
 }
 	? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
 	: DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-		? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
-		: never;
+	? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+	: never;
 
 export type CompositeTypes<
 	PublicCompositeTypeNameOrOptions extends
@@ -740,14 +954,14 @@ export type CompositeTypes<
 		schema: keyof DatabaseWithoutInternals;
 	}
 		? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
-		: never = never,
+		: never = never
 > = PublicCompositeTypeNameOrOptions extends {
 	schema: keyof DatabaseWithoutInternals;
 }
 	? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
 	: PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-		? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
-		: never;
+	? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+	: never;
 
 export const Constants = {
 	public: {

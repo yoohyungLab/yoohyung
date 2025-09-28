@@ -76,8 +76,6 @@ export interface TestWithDetails extends Test {
 	completionRate?: number;
 	estimatedTime?: number;
 	createdBy?: string;
-	createdAt: string;
-	updatedAt: string;
 	isPublished?: boolean;
 	// UI 호환용 필드들 (실제 DB에는 없음)
 	category_string?: string;
@@ -102,8 +100,7 @@ export interface QuestionWithChoices {
 	choices: TestChoice[];
 }
 
-// TestListItem은 TestWithDetails와 중복이므로 제거
-
+// User 활동 관련 타입들 (Admin에서 사용)
 export interface UserWithActivity extends User {
 	activity?: {
 		total_responses: number;
@@ -115,8 +112,6 @@ export interface UserWithActivity extends User {
 	};
 }
 
-// ProfileActivity는 ProfileActivityItem과 중복이므로 제거
-
 export interface UserActivityStats {
 	total_responses: number;
 	unique_tests: number;
@@ -126,18 +121,8 @@ export interface UserActivityStats {
 	activity_score: number;
 }
 
-// 실제 user_test_responses 테이블 기반으로 수정
-export interface UserActivityItem {
-	id: string;
-	user_id: string | null;
-	test_id: string | null;
-	result_id: string | null;
-	responses: Database['public']['Tables']['user_test_responses']['Row']['responses'];
-	score: number | null;
-	started_at: string | null;
-	completed_at: string | null;
-	created_at: string | null;
-	created_date: string | null;
+// UserTestResponse를 확장한 UI용 타입
+export interface UserActivityItem extends UserTestResponse {
 	// UI에서 추가로 필요한 필드들
 	test_title?: string;
 	test_category?: number | string | null;
@@ -146,8 +131,6 @@ export interface UserActivityItem {
 	duration_sec?: number;
 	result_type?: string;
 }
-
-// PartialTestForActivity는 내부적으로만 사용되므로 제거
 
 // 필터링 인터페이스들
 export interface UserFilters {
@@ -176,7 +159,59 @@ export interface CategoryFilters {
 	status?: 'all' | 'active' | 'inactive';
 }
 
-// 통계는 쿼리로 동적으로 가져옴 (RPC 함수 없음)
+// Analytics 관련 타입들
+export interface AnalyticsFilters {
+	search?: string;
+	status?: 'all' | TestStatus;
+	category?: 'all' | 'personality' | 'career' | 'relationship';
+	timeRange?: 'today' | '7d' | '30d' | 'custom';
+	// RPC 함수용 필터들
+	test_id?: string;
+	category_id?: string;
+	device_type?: string;
+	date_from?: string;
+	date_to?: string;
+	days_back?: number;
+}
+
+export interface AnalyticsStats {
+	total: number;
+	published: number;
+	draft: number;
+	scheduled: number;
+	totalResponses: number;
+	totalCompletions: number;
+	completionRate: number;
+	avgCompletionTime: number;
+	anomalies: number;
+}
+
+// RPC 함수 반환 타입들 (Supabase에서 자동 생성된 타입 사용)
+export type TestDetailedStats = Database['public']['Functions']['get_test_detailed_stats']['Returns'];
+export type DashboardOverviewStats = Database['public']['Functions']['get_dashboard_overview_stats']['Returns'];
+export type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];
+export type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
+export type UserResponseStats = Database['public']['Functions']['get_user_responses_stats']['Returns'];
+export type ExportData = Database['public']['Functions']['export_user_responses']['Returns'][0];
+
+// 차트 데이터는 클라이언트에서 변환하므로 별도 타입 정의
+export interface ResponseChartData {
+	labels: string[];
+	datasets: Array<{
+		label: string;
+		data: number[];
+		backgroundColor: string;
+		borderColor: string;
+		fill: boolean;
+	}>;
+}
+
+// Export 타입들
+export interface ExportFilters {
+	test_id?: string;
+	date_from?: string;
+	date_to?: string;
+}
 
 // 폼 데이터 인터페이스들
 export interface FeedbackFormData

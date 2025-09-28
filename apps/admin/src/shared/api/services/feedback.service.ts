@@ -1,46 +1,18 @@
 import { supabase } from '@repo/shared';
 import type { Feedback } from '@repo/supabase';
-import type { FeedbackFilters, FeedbackStats, AdminFeedbackResponse } from '../types';
+import type { FeedbackStats, AdminFeedbackResponse } from '@/shared/types';
 
 // Re-export types for convenience
 export type { AdminFeedbackResponse, FeedbackStats };
 
 // 피드백 서비스 - 실제 사용되는 함수들만 포함
 export const feedbackService = {
-	// 피드백 목록 조회 (필터링, 페이징 포함)
-	async getFeedbacks(
-		filters: FeedbackFilters = {},
-		page: number = 1,
-		pageSize: number = 20
-	): Promise<AdminFeedbackResponse> {
-		let query = supabase.from('feedbacks').select('*', { count: 'exact' });
-
-		// 필터 적용
-		if (filters.status && filters.status !== 'all') {
-			query = query.eq('status', filters.status);
-		}
-		if (filters.category && filters.category !== 'all') {
-			query = query.eq('category', filters.category);
-		}
-		if (filters.search) {
-			query = query.or(
-				`title.ilike.%${filters.search}%,content.ilike.%${filters.search}%,author_name.ilike.%${filters.search}%`
-			);
-		}
-
-		// 페이징 및 정렬
-		const { data, count, error } = await query
-			.order('created_at', { ascending: false })
-			.range((page - 1) * pageSize, page * pageSize - 1);
+	// 피드백 목록 조회
+	async getFeedbacks(): Promise<Feedback[]> {
+		const { data, error } = await supabase.from('feedbacks').select('*').order('created_at', { ascending: false });
 
 		if (error) throw error;
-
-		return {
-			feedbacks: data || [],
-			total: count || 0,
-			totalPages: Math.ceil((count || 0) / pageSize),
-			currentPage: page,
-		};
+		return data || [];
 	},
 
 	// 피드백 상태 업데이트

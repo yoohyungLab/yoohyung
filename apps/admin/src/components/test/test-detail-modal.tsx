@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Button, IconButton } from '@repo/ui';
-import { EmptyState } from '../ui';
+import { LoadingState } from '@/components/ui';
+import { EmptyState } from '@/components/ui';
 import { formatDateLong } from '@repo/shared';
-import { AdminCard, AdminCardHeader, AdminCardContent } from '../ui/admin-card';
+import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import {
 	X,
 	Edit,
@@ -23,9 +24,10 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import type { Test, TestWithNestedDetails } from '@repo/supabase';
+import type { Test, TestWithNestedDetails, Category } from '@repo/supabase';
 import { getTestTypeInfo, getTestStatusInfo } from '@/shared/lib/test-utils';
-import { testService } from '@/shared/api/services/test.service';
+import { testService } from '@/shared/api';
+import { categoryService } from '@/shared/api/services/category.service';
 
 type TestDetailModalProps = {
 	test: Test;
@@ -41,6 +43,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 	const [previewQuestionIndex, setPreviewQuestionIndex] = useState(-1);
 	const [testDetails, setTestDetails] = useState<TestWithNestedDetails | null>(null);
 	const [loading, setLoading] = useState(false);
+	const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
 
 	const typeInfo = getTestTypeInfo(test.type || 'psychology');
 	const statusInfo = getTestStatusInfo(test.status || 'draft');
@@ -50,8 +53,12 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 		const fetchTestDetails = async () => {
 			setLoading(true);
 			try {
-				const details = await testService.getTestWithDetails(test.id);
+				const [details, categoryList] = await Promise.all([
+					testService.getTestWithDetails(test.id),
+					categoryService.getCategories(),
+				]);
 				setTestDetails(details);
+				setCategories(categoryList.map((cat: Category) => ({ id: cat.id, name: cat.name })));
 			} catch (error) {
 				console.error('테스트 상세 정보를 가져오는데 실패했습니다:', error);
 			} finally {
@@ -78,6 +85,17 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 		completionRate:
 			test.response_count && test.view_count ? Math.round((test.response_count / test.view_count) * 100) : 0,
 	};
+
+	// 카테고리 정보 가져오기
+	const getCategoryNames = (categoryIds: string[] | null) => {
+		if (!categoryIds || categoryIds.length === 0) return ['미분류'];
+		return categoryIds.map((id) => {
+			const category = categories.find((cat) => cat.id === id);
+			return category ? category.name : '알 수 없음';
+		});
+	};
+
+	const categoryNames = getCategoryNames(test.category_ids);
 
 	const tabs = [
 		{ id: 'basic', label: '기본 정보', icon: Hash },
@@ -136,7 +154,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									)}
 								</div>
 
-								<div className="flex items-center gap-3 mb-3">
+								<div className="flex items-center gap-3 mb-3 flex-wrap">
 									<div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-gray-300 bg-white/80 text-sm">
 										<span className="w-2 h-2 rounded-full bg-blue-500"></span>
 										{typeInfo.name}
@@ -214,18 +232,18 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 						{tabs.map((tab) => {
 							const Icon = tab.icon;
 							return (
-								<button
+								<IconButton
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
+									icon={<Icon className="w-4 h-4" />}
+									label={tab.label}
+									variant={activeTab === tab.id ? 'default' : 'ghost'}
 									className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
 										activeTab === tab.id
 											? 'bg-white text-blue-600 shadow-sm font-medium'
 											: 'text-gray-600 hover:text-gray-800 hover:bg-white/60'
 									}`}
-								>
-									<Icon className="w-4 h-4" />
-									<span className="text-sm">{tab.label}</span>
-								</button>
+								/>
 							);
 						})}
 					</div>
@@ -269,6 +287,19 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 													<div className="mt-1 text-gray-900 text-sm">{test.intro_text}</div>
 												</div>
 											)}
+											<div>
+												<label className="text-sm font-medium text-gray-700">카테고리</label>
+												<div className="mt-1 flex flex-wrap gap-2">
+													{categoryNames.map((categoryName, index) => (
+														<span
+															key={index}
+															className="inline-flex items-center px-2 py-1 rounded-full bg-purple-100 text-purple-700 text-xs font-medium"
+														>
+															{categoryName}
+														</span>
+													))}
+												</div>
+											</div>
 										</div>
 									</AdminCardContent>
 								</AdminCard>
@@ -376,7 +407,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								/>
 								<AdminCardContent>
 									{loading ? (
-										<div className="text-center py-8 text-gray-500">질문 데이터를 불러오는 중...</div>
+										<LoadingState message="질문 데이터를 불러오는 중..." size="sm" className="py-8" />
 									) : testDetails?.questions && testDetails.questions.length > 0 ? (
 										<div className="max-h-96 overflow-y-auto">
 											{testDetails.questions.map((question, index) => (
@@ -479,7 +510,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								/>
 								<AdminCardContent>
 									{loading ? (
-										<div className="text-center py-8 text-gray-500">결과 데이터를 불러오는 중...</div>
+										<LoadingState message="결과 데이터를 불러오는 중..." size="sm" className="py-8" />
 									) : testDetails?.results && testDetails.results.length > 0 ? (
 										<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
 											{testDetails.results.map((result, index) => (
@@ -799,38 +830,27 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								<Copy className="w-4 h-4 mr-2" />
 								복제하기
 							</Button>
-							<Button
+							<IconButton
 								variant="outline"
 								size="sm"
 								onClick={handleTogglePublish}
+								icon={test.status === 'published' ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
+								label={test.status === 'published' ? '비공개 전환' : '공개 전환'}
 								className={
 									test.status === 'published'
 										? 'text-yellow-600 border-yellow-300 hover:bg-yellow-50'
 										: 'text-green-600 border-green-300 hover:bg-green-50'
 								}
-							>
-								{test.status === 'published' ? (
-									<>
-										<Lock className="w-4 h-4 mr-2" />
-										비공개 전환
-									</>
-								) : (
-									<>
-										<Globe className="w-4 h-4 mr-2" />
-										공개 전환
-									</>
-								)}
-							</Button>
-							<Button
+							/>
+							<IconButton
 								size="sm"
 								onClick={() => {
 									// 수정 페이지로 이동하는 로직
 									window.location.href = `/tests/${test.id}/edit`;
 								}}
-							>
-								<Edit className="w-4 h-4 mr-2" />
-								수정하기
-							</Button>
+								icon={<Edit className="w-4 h-4" />}
+								label="수정하기"
+							/>
 							<Button
 								variant="outline"
 								size="sm"

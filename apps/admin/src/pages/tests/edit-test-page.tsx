@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@repo/ui';
-import { LoadingState, ErrorState } from '@/components/ui';
+import { ErrorState } from '@/components/ui';
+import { LoadingState } from '@/components/ui';
 import { ArrowLeft, ArrowRight, Check, RefreshCw, ExternalLink } from 'lucide-react';
 import { testService } from '@/shared/api/services/test.service';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';

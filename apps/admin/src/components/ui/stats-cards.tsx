@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@repo/ui';
-import { cn } from '../../shared/lib/utils';
+import { cn } from '@/shared/lib/utils';
 import {
 	Hash,
 	TrendingUp,
@@ -108,6 +108,13 @@ const getIcon = (id: string, customIcon?: React.ReactNode) => {
 		pending: <Clock className="w-4 h-4" />,
 		rejected: <XCircle className="w-4 h-4" />,
 		favorites: <Star className="w-4 h-4" />,
+		// 피드백 상태별 아이콘
+		in_progress: <Activity className="w-4 h-4" />,
+		replied: <MessageSquare className="w-4 h-4" />,
+		// 사용자 상태별 아이콘
+		deleted: <XCircle className="w-4 h-4" />,
+		// 테스트 상태별 아이콘
+		scheduled: <Clock className="w-4 h-4" />,
 	};
 	return iconMap[id] || <Hash className="w-4 h-4" />;
 };
@@ -132,6 +139,13 @@ const getColor = (id: string, customColor?: string) => {
 		pending: 'yellow',
 		rejected: 'red',
 		favorites: 'pink',
+		// 피드백 상태별 색상
+		in_progress: 'blue',
+		replied: 'purple',
+		// 사용자 상태별 색상
+		deleted: 'red',
+		// 테스트 상태별 색상
+		scheduled: 'yellow',
 	};
 	return colorMap[id] || 'gray';
 };

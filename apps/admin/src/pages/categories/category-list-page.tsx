@@ -1,4 +1,4 @@
-import React, { useCallback, useState, useMemo, useEffect } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { usePagination } from '@repo/shared';
 import { DataTable, type Column, DefaultPagination, Badge, Button } from '@repo/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
@@ -6,12 +6,8 @@ import { CategoryCreateModal, CategorySortModal } from '@/components/category';
 import { useColumnRenderers } from '@/shared/hooks';
 import { useCategories } from '@/hooks/useCategories';
 import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/shared/lib/constants';
-import { getCategoryStatusBadgeVariant, getCategoryStatusText } from '@/shared/lib/utils';
-import type { CategoryFilters, Category } from '@repo/supabase';
-
-type CategoryWithStatus = Category & {
-	status?: 'active' | 'inactive';
-};
+import { getCategoryStatusText, getCategoryStatusStyle } from '@/shared/lib/utils';
+import type { Category } from '@repo/supabase';
 
 export default function CategoryListPage() {
 	const renderers = useColumnRenderers();
@@ -21,45 +17,27 @@ export default function CategoryListPage() {
 		categories,
 		loading,
 		error,
-		totalCategories,
+		filters,
 		stats,
-		fetchCategories,
+		loadCategories,
+		createCategory,
+		updateCategory,
 		updateCategoryStatus,
 		bulkUpdateStatus,
 		deleteCategory,
+		updateFilters,
 	} = useCategories();
 
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
-	const [filters, setFilters] = useState({
-		search: '',
-		status: 'all',
-	});
 	const pagination = usePagination({
-		totalItems: totalCategories,
+		totalItems: categories.length,
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
 	// 모달 상태
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showSortModal, setShowSortModal] = useState(false);
-	const [editingCategory, setEditingCategory] = useState<CategoryWithStatus | null>(null);
-
-	// 필터 변경 시 데이터 로딩
-	const loadData = useCallback(async () => {
-		await fetchCategories(
-			{
-				search: filters.search || undefined,
-				status: filters.status !== 'all' ? filters.status : undefined,
-			} as CategoryFilters,
-			pagination.currentPage,
-			pagination.pageSize
-		);
-	}, [filters.search, filters.status, pagination.currentPage, pagination.pageSize, fetchCategories]);
-
-	// 필터나 페이지 변경 시 데이터 로딩
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
+	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
 	// 액션 핸들러들
 	const handleStatusChange = useCallback(
@@ -77,10 +55,14 @@ export default function CategoryListPage() {
 
 	const handleDeleteCategory = useCallback(
 		async (categoryId: string) => {
-			if (!confirm('정말로 이 카테고리를 삭제하시겠습니까?')) return;
+			const category = categories.find((c) => c.id === categoryId);
+			const categoryName = category?.name || '이 카테고리';
+
+			if (!confirm(`정말로 "${categoryName}" 카테고리를 삭제하시겠습니까?`)) return;
+
 			await deleteCategory(categoryId);
 		},
-		[deleteCategory]
+		[deleteCategory, categories]
 	);
 
 	// 편집 모달 열기
@@ -96,19 +78,33 @@ export default function CategoryListPage() {
 	);
 
 	// 모달 핸들러들
-	const handleCreateSuccess = () => {
+	const handleCreateSuccess = async (categoryData?: {
+		name: string;
+		slug: string;
+		description?: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) => {
+		if (editingCategory && categoryData) {
+			// 수정
+			await updateCategory(editingCategory.id, categoryData);
+		} else if (categoryData) {
+			// 생성
+			await createCategory(categoryData);
+		}
+
 		setEditingCategory(null);
 		setShowCreateModal(false);
-		loadData();
 	};
 
-	const handleSortSuccess = () => {
+	const handleSortSuccess = async () => {
 		setShowSortModal(false);
-		loadData();
+		// 순서 변경 후 전체 데이터 다시 로드
+		await loadCategories();
 	};
 
 	// Table columns definition (memoized for performance)
-	const columns: Column<CategoryWithStatus>[] = useMemo(
+	const columns: Column<Category>[] = useMemo(
 		() => [
 			{
 				id: 'name',
@@ -141,7 +137,10 @@ export default function CategoryListPage() {
 				cell: ({ row }) => {
 					const isActive = row.original.is_active ?? false;
 					return (
-						<Badge variant={getCategoryStatusBadgeVariant(isActive)} className="h-6">
+						<Badge
+							variant="outline"
+							className={`h-6 font-medium transition-colors ${getCategoryStatusStyle(isActive)}`}
+						>
 							{getCategoryStatusText(isActive)}
 						</Badge>
 					);
@@ -187,8 +186,8 @@ export default function CategoryListPage() {
 			<StatsCards
 				stats={[
 					{ id: 'total', label: '전체', value: stats.total },
-					{ id: 'active', label: '활성', value: stats.active },
-					{ id: 'inactive', label: '비활성', value: stats.inactive },
+					{ id: 'active', label: '활성', value: stats.active, color: 'blue' },
+					{ id: 'inactive', label: '비활성', value: stats.inactive, color: 'red' },
 				]}
 				columns={3}
 			/>
@@ -205,11 +204,14 @@ export default function CategoryListPage() {
 						],
 					},
 				}}
-				values={filters}
+				values={{
+					search: filters.search || '',
+					status: filters.status || 'all',
+				}}
 				onFilterChange={(newFilters) => {
-					setFilters({
+					updateFilters({
 						search: newFilters.search || '',
-						status: newFilters.status || 'all',
+						status: (newFilters.status as 'all' | 'active' | 'inactive') || 'all',
 					});
 				}}
 				actions={
@@ -243,14 +245,14 @@ export default function CategoryListPage() {
 			/>
 
 			{/* Category List */}
-			<DataState loading={loading} error={error} data={categories} onRetry={loadData}>
+			<DataState loading={loading} error={error} data={categories}>
 				<DataTable
 					data={categories}
 					columns={columns}
 					selectable={true}
 					selectedItems={selectedCategories}
 					onSelectionChange={setSelectedCategories}
-					getRowId={(category: CategoryWithStatus) => category.id}
+					getRowId={(category: Category) => category.id}
 				/>
 			</DataState>
 

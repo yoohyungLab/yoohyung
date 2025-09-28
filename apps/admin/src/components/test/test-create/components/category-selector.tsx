@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { categoryService, Category } from '../../../../shared/api/services/category.service';
+import { LoadingState } from '@/components/ui';
+import { categoryService, Category } from '@/shared/api/services/category.service';
 import { CategorySelectorProps } from '../types';
 
 const CategoryButton = ({
@@ -39,7 +40,7 @@ export function CategorySelector({ selectedCategoryIds, onCategoryToggle }: Cate
 				카테고리 <span className="text-red-500">*</span>
 			</label>
 			{loading ? (
-				<div className="text-center py-4 text-gray-500 mt-2">카테고리를 불러오는 중...</div>
+				<LoadingState message="카테고리를 불러오는 중..." size="sm" className="py-4 mt-2" />
 			) : (
 				<div className="grid grid-cols-2 gap-2 mt-2">
 					{categories.map((category) => (

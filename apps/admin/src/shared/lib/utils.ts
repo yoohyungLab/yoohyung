@@ -76,14 +76,53 @@ export const getStatusBadgeVariant = (
 	}
 };
 
+// 피드백 상태에 따른 커스텀 스타일 가져오기 (더 구체적인 색상)
+export const getFeedbackStatusStyle = (status: string) => {
+	switch (status) {
+		case 'pending':
+			return 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+		case 'in_progress':
+			return 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200';
+		case 'completed':
+			return 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
+		case 'replied':
+			return 'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200';
+		case 'rejected':
+			return 'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200';
+		default:
+			return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200';
+	}
+};
+
 // 카테고리 상태 텍스트 가져오기
 export const getCategoryStatusText = (is_active: boolean): string => {
 	return is_active ? '활성' : '비활성';
 };
 
-// 카테고리 상태에 따른 뱃지 variant 가져오기
-export const getCategoryStatusBadgeVariant = (is_active: boolean): 'success' | 'secondary' => {
-	return is_active ? 'success' : 'secondary';
+// 카테고리 상태에 따른 뱃지 variant 가져오기 (더 명확한 색상)
+export const getCategoryStatusBadgeVariant = (is_active: boolean): 'default' | 'destructive' => {
+	return is_active ? 'default' : 'destructive';
+};
+
+// 카테고리 상태에 따른 커스텀 스타일 가져오기
+export const getCategoryStatusStyle = (is_active: boolean) => {
+	return is_active
+		? 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200'
+		: 'bg-red-100 text-red-800 border-red-200 hover:bg-red-200';
+};
+
+// 테스트 상태에 따른 커스텀 스타일 가져오기
+export const getTestStatusStyle = (status: string) => {
+	switch (status) {
+		case 'published':
+			return 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200';
+		case 'draft':
+			return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200';
+		case 'scheduled':
+			return 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200';
+		default:
+			return 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200';
+	}
 };
 
 // 프로필 상태에 따른 아이콘 가져오기

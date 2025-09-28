@@ -1,5 +1,6 @@
 import type { Feedback } from '@repo/supabase';
 
+// todo: 추후 수정
 export interface FeedbackFilters {
 	search?: string;
 	status?: 'all' | 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';

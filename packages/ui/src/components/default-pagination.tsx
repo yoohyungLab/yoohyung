@@ -93,6 +93,7 @@ export function DefaultPagination({
 								<PaginationLink
 									onClick={() => onPageChange(page as number)}
 									isActive={currentPage === page}
+									size="default"
 									className="cursor-pointer"
 								>
 									{page}

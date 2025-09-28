@@ -1,7 +1,8 @@
 import React from 'react';
-import { DefaultInput, DefaultSelect, DefaultTextarea, IconButton, Switch } from '@repo/ui';
-import { X } from 'lucide-react';
-import { useCategories } from '../../../../hooks';
+import { DefaultInput, DefaultSelect, DefaultTextarea, IconButton, Switch, Button } from '@repo/ui';
+import { LoadingState } from '@/components/ui';
+import { X, RefreshCw } from 'lucide-react';
+import { useCategories } from '@/hooks';
 import { ThumbnailUpload } from '../components';
 import type { BasicInfo } from '../types';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
@@ -11,10 +12,11 @@ interface BasicInfoStepProps {
 	selectedType: string;
 	onUpdateTestData: (data: Partial<BasicInfo>) => void;
 	onUpdateTitle: (title: string) => void;
+	onRegenerateShortCode?: () => void;
 }
 
 export const BasicInfoStep = (props: BasicInfoStepProps) => {
-	const { testData, selectedType, onUpdateTestData, onUpdateTitle } = props;
+	const { testData, selectedType, onUpdateTestData, onUpdateTitle, onRegenerateShortCode } = props;
 
 	const { categories, loading, error, fetchCategories } = useCategories();
 
@@ -30,6 +32,30 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 						onChange={(e) => onUpdateTitle(e.target.value)}
 						placeholder="예: 나는 어떤 MBTI 유형일까?"
 					/>
+
+					<div>
+						<label className="block text-sm font-medium text-gray-700 mb-2">테스트 코드 (공유용)</label>
+						<div className="flex gap-2">
+							<DefaultInput
+								value={testData.short_code}
+								onChange={(e) => onUpdateTestData({ ...testData, short_code: e.target.value })}
+								placeholder="예: ABC123"
+								className="flex-1"
+							/>
+							{onRegenerateShortCode && (
+								<Button
+									type="button"
+									variant="outline"
+									onClick={onRegenerateShortCode}
+									className="px-3 py-2"
+									title="새 코드 생성"
+								>
+									<RefreshCw className="w-4 h-4" />
+								</Button>
+							)}
+						</div>
+						<p className="text-sm text-gray-500 mt-1">테스트 공유 시 사용할 고유 코드입니다. (예: /t/ABC123)</p>
+					</div>
 
 					<DefaultTextarea
 						label="테스트 설명"
@@ -109,7 +135,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 									/>
 								</div>
 							) : loading ? (
-								<div className="text-center py-4 text-gray-500">카테고리를 불러오는 중...</div>
+								<LoadingState message="카테고리를 불러오는 중..." size="sm" className="py-4" />
 							) : (
 								<div className="grid grid-cols-2 gap-2">
 									{categories.map((category) => (

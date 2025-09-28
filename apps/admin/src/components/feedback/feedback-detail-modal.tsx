@@ -3,7 +3,7 @@ import type { Feedback } from '@repo/supabase';
 import { Badge, IconBadge, IconButton } from '@repo/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Calendar, CheckCircle, Clock, Eye, Mail, MessageSquare, Paperclip, Reply, User, X } from 'lucide-react';
-import { getPriorityColor, getStatusText } from '../../shared/lib/utils';
+import { getPriorityColor, getStatusText } from '@/shared/lib/utils';
 
 interface FeedbackDetailModalProps {
 	feedback: Feedback;
@@ -238,31 +238,6 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 
 						{/* 사이드바 정보 */}
 						<aside className="space-y-6">
-							{/* 작성자 정보 */}
-							<AdminCard variant="modal" padding="sm">
-								<AdminCardHeader
-									variant="modal"
-									title={
-										<div className="text-lg flex items-center gap-2">
-											<User className="w-5 h-5 text-green-600" />
-											작성자 정보
-										</div>
-									}
-								/>
-								<AdminCardContent className="space-y-3">
-									<div>
-										<label className="text-sm font-medium text-gray-700">이름</label>
-										<div className="mt-1 text-gray-900">{feedback.author_name}</div>
-									</div>
-									{feedback.updated_at !== feedback.created_at && (
-										<div>
-											<label className="text-sm font-medium text-gray-700">수정일</label>
-											<div className="mt-1 text-gray-900 text-sm">{formatDateLong(feedback.updated_at)}</div>
-										</div>
-									)}
-								</AdminCardContent>
-							</AdminCard>
-
 							{/* 처리 현황 */}
 							<AdminCard variant="modal" padding="sm">
 								<AdminCardHeader
@@ -278,14 +253,28 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 									<div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
 										<span className="text-sm text-gray-600">접수일</span>
 										<span className="text-sm font-medium">
-											{new Date(feedback.created_at).toLocaleDateString('ko-KR')}
+											{new Date(feedback.created_at).toLocaleString('ko-KR', {
+												year: 'numeric',
+												month: '2-digit',
+												day: '2-digit',
+												hour: '2-digit',
+												minute: '2-digit',
+												hour12: false,
+											})}
 										</span>
 									</div>
 									{feedback.admin_reply_at && (
 										<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 											<span className="text-sm text-gray-600">답변일</span>
 											<span className="text-sm font-medium">
-												{new Date(feedback.admin_reply_at).toLocaleDateString('ko-KR')}
+												{new Date(feedback.admin_reply_at).toLocaleString('ko-KR', {
+													year: 'numeric',
+													month: '2-digit',
+													day: '2-digit',
+													hour: '2-digit',
+													minute: '2-digit',
+													hour12: false,
+												})}
 											</span>
 										</div>
 									)}

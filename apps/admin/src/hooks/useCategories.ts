@@ -1,108 +1,74 @@
-import { useState, useCallback, useEffect } from 'react';
-import { categoryService } from '../shared/api/services/category.service';
-import type { CategoryFilters, CategoryStats } from '../shared/api/services/category.service';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { categoryService } from '@/shared/api';
 import type { Category } from '@repo/supabase';
 
-type CategoryWithStatus = Category & {
-	status?: 'active' | 'inactive';
-};
+interface CategoryFilters {
+	search?: string;
+	status?: 'all' | 'active' | 'inactive';
+}
+
+interface CategoryStats {
+	total: number;
+	active: number;
+	inactive: number;
+}
 
 export const useCategories = () => {
-	const [categories, setCategories] = useState<CategoryWithStatus[]>([]);
+	const [categories, setCategories] = useState<Category[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [totalCategories, setTotalCategories] = useState(0);
-	const [stats, setStats] = useState<CategoryStats>({
-		total: 0,
-		active: 0,
-		inactive: 0,
+	const [filters, setFilters] = useState<CategoryFilters>({
+		search: '',
+		status: 'all',
 	});
 
-	// 자동으로 모든 카테고리 로드
-	useEffect(() => {
-		const loadInitialData = async () => {
-			try {
-				setLoading(true);
-				setError(null);
-
-				const [categoryResult, statsResult] = await Promise.all([
-					categoryService.getCategories({}, 1, 20),
-					categoryService.getCategoryStats(),
-				]);
-
-				const categoriesWithStatus = categoryResult.categories.map((c: Category) => ({
-					...c,
-					status: c.is_active ? ('active' as const) : ('inactive' as const),
-				}));
-
-				setCategories(categoriesWithStatus);
-				setTotalCategories(categoryResult.total);
-				setStats(statsResult);
-			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : '카테고리를 불러오는데 실패했습니다.';
-				setError(errorMessage);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		loadInitialData();
-	}, []);
-
-	const fetchCategories = useCallback(async (filters?: CategoryFilters, page: number = 1, pageSize: number = 20) => {
-		try {
-			setLoading(true);
-			setError(null);
-
-			const [categoryResult, statsResult] = await Promise.all([
-				categoryService.getCategories(filters || {}, page, pageSize),
-				categoryService.getCategoryStats(),
-			]);
-
-			const categoriesWithStatus = categoryResult.categories.map((c) => ({
-				...c,
-				status: c.is_active ? ('active' as const) : ('inactive' as const),
-			}));
-
-			setCategories(categoriesWithStatus);
-			setTotalCategories(categoryResult.total);
-			setStats(statsResult);
-
+	// 통계 계산
+	const stats = useMemo((): CategoryStats => {
+		if (categories.length === 0) {
 			return {
-				categories: categoriesWithStatus,
-				total: categoryResult.total,
-				totalPages: categoryResult.totalPages,
-				currentPage: categoryResult.currentPage,
+				total: 0,
+				active: 0,
+				inactive: 0,
 			};
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '카테고리를 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
 		}
-	}, []);
 
-	const fetchActiveCategories = useCallback(async () => {
+		return {
+			total: categories.length,
+			active: categories.filter((category) => category.is_active).length,
+			inactive: categories.filter((category) => !category.is_active).length,
+		};
+	}, [categories]);
+
+	// 필터링된 카테고리
+	const filteredCategories = useMemo(() => {
+		return categories.filter((category) => {
+			const matchesSearch =
+				!filters.search ||
+				category.name.toLowerCase().includes(filters.search.toLowerCase()) ||
+				category.description?.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesStatus =
+				filters.status === 'all' ||
+				(filters.status === 'active' && category.is_active) ||
+				(filters.status === 'inactive' && !category.is_active);
+			return matchesSearch && matchesStatus;
+		});
+	}, [categories, filters]);
+
+	// 데이터 로딩
+	const loadCategories = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
-			const data = await categoryService.getActiveCategories();
-			const categoriesWithStatus = data.map((c: Category) => ({
-				...c,
-				status: c.is_active ? ('active' as const) : ('inactive' as const),
-			}));
-			setCategories(categoriesWithStatus);
-			return categoriesWithStatus;
+			const data = await categoryService.getCategories();
+			setCategories(data);
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '활성 카테고리를 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
+			setError(err instanceof Error ? err.message : '카테고리를 불러오는데 실패했습니다.');
 		} finally {
 			setLoading(false);
 		}
 	}, []);
 
+	// 카테고리 생성
 	const createCategory = useCallback(
 		async (categoryData: {
 			name: string;
@@ -112,117 +78,87 @@ export const useCategories = () => {
 			is_active?: boolean;
 		}) => {
 			try {
-				setLoading(true);
-				setError(null);
 				const newCategory = await categoryService.createCategory(categoryData);
-				const categoryWithStatus = {
-					...newCategory,
-					status: newCategory.is_active ? ('active' as const) : ('inactive' as const),
-				};
-				setCategories((prev) => [...prev, categoryWithStatus]);
-				return categoryWithStatus;
+				setCategories((prev) => [newCategory, ...prev]); // 맨 앞에 추가
+				return newCategory;
 			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : '카테고리 생성에 실패했습니다.';
-				setError(errorMessage);
+				setError(err instanceof Error ? err.message : '카테고리 생성에 실패했습니다.');
 				throw err;
-			} finally {
-				setLoading(false);
 			}
 		},
 		[]
 	);
 
-	const updateCategory = useCallback(async (id: string, categoryData: Partial<Category>) => {
+	// 카테고리 수정
+	const updateCategory = useCallback(async (id: string, updates: Partial<Category>) => {
 		try {
-			setLoading(true);
-			setError(null);
-			const updatedCategory = await categoryService.updateCategory(id, categoryData);
-			const categoryWithStatus = {
-				...updatedCategory,
-				status: updatedCategory.is_active ? ('active' as const) : ('inactive' as const),
-			};
-			setCategories((prev) => prev.map((cat) => (cat.id === id ? categoryWithStatus : cat)));
-			return categoryWithStatus;
+			const updatedCategory = await categoryService.updateCategory(id, updates);
+			setCategories((prev) => prev.map((cat) => (cat.id === id ? updatedCategory : cat)));
+			return updatedCategory;
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '카테고리 수정에 실패했습니다.';
-			setError(errorMessage);
+			setError(err instanceof Error ? err.message : '카테고리 수정에 실패했습니다.');
 			throw err;
-		} finally {
-			setLoading(false);
 		}
 	}, []);
 
+	// 상태 변경
 	const updateCategoryStatus = useCallback(async (id: string, isActive: boolean) => {
 		try {
-			setLoading(true);
-			setError(null);
 			const updatedCategory = await categoryService.updateCategoryStatus(id, isActive);
-			const categoryWithStatus = {
-				...updatedCategory,
-				status: updatedCategory.is_active ? ('active' as const) : ('inactive' as const),
-			};
-			setCategories((prev) => prev.map((cat) => (cat.id === id ? categoryWithStatus : cat)));
-			return categoryWithStatus;
+			setCategories((prev) => prev.map((cat) => (cat.id === id ? updatedCategory : cat)));
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '카테고리 상태 변경에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
+			setError(err instanceof Error ? err.message : '카테고리 상태 변경에 실패했습니다.');
 		}
 	}, []);
 
+	// 대량 상태 변경
 	const bulkUpdateStatus = useCallback(
 		async (categoryIds: string[], isActive: boolean) => {
 			try {
-				setLoading(true);
-				setError(null);
 				await categoryService.bulkUpdateStatus(categoryIds, isActive);
 				// 상태 업데이트 후 전체 데이터 다시 로드
-				await fetchCategories();
-				return categoryIds.length;
+				await loadCategories();
 			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : '카테고리 일괄 상태 변경에 실패했습니다.';
-				setError(errorMessage);
-				throw err;
-			} finally {
-				setLoading(false);
+				setError(err instanceof Error ? err.message : '카테고리 일괄 상태 변경에 실패했습니다.');
 			}
 		},
-		[fetchCategories]
+		[loadCategories]
 	);
 
+	// 삭제
 	const deleteCategory = useCallback(async (id: string) => {
 		try {
-			setLoading(true);
-			setError(null);
 			await categoryService.deleteCategory(id);
 			setCategories((prev) => prev.filter((cat) => cat.id !== id));
-			setTotalCategories((prev) => prev - 1);
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
+			setError(err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다.');
 		}
 	}, []);
 
-	const clearError = useCallback(() => setError(null), []);
+	// 필터 업데이트
+	const updateFilters = useCallback((newFilters: Partial<CategoryFilters>) => {
+		setFilters((prev) => ({ ...prev, ...newFilters }));
+	}, []);
+
+	// 초기 로딩
+	useEffect(() => {
+		loadCategories();
+	}, [loadCategories]);
 
 	return {
-		categories,
+		categories: filteredCategories,
 		loading,
 		error,
-		totalCategories,
+		filters,
 		stats,
-		fetchCategories,
-		fetchActiveCategories,
+		loadCategories,
+		fetchCategories: loadCategories, // 별칭 추가
 		createCategory,
 		updateCategory,
 		updateCategoryStatus,
 		bulkUpdateStatus,
 		deleteCategory,
-		clearError,
+
+		updateFilters,
 	};
 };

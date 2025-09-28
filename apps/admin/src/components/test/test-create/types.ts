@@ -30,6 +30,7 @@ export interface BasicInfoFormProps {
 	selectedType: string;
 	onUpdateTestData: (data: Partial<BasicInfo>) => void;
 	onUpdateTitle: (title: string) => void;
+	onRegenerateShortCode?: () => void;
 }
 
 export interface CategorySelectorProps {

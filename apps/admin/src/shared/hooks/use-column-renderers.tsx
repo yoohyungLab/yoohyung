@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge, IconButton, DefaultSelect } from '@repo/ui';
-import { Eye, Trash2, MessageSquare, User, Calendar, FileText, Pencil } from 'lucide-react';
-import { getUserStatusConfig, getProviderText } from '../lib/utils';
+import { Eye, Trash2, MessageSquare, Calendar, FileText, Pencil } from 'lucide-react';
+import { getUserStatusConfig, getProviderText, getUserStatusStyle, getUserStatusIcon } from '@/shared/lib/utils';
 import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
 import { TEST_STATUS_OPTIONS, FEEDBACK_STATUS_OPTIONS } from '@/shared/lib/constants';
 
@@ -109,12 +109,7 @@ export function useColumnRenderers() {
 	// 작성자 렌더링
 	const renderAuthor = (authorName: string, showIcon = true) => {
 		if (showIcon) {
-			return (
-				<div className="flex items-center gap-2">
-					<User className="w-4 h-4 text-gray-400" />
-					<span className="text-sm text-gray-900">{authorName}</span>
-				</div>
-			);
+			return <div className="text-sm text-gray-900">{authorName}</div>;
 		}
 		return <span className="text-sm text-gray-900">{authorName}</span>;
 	};

@@ -1,6 +1,23 @@
 // dashboardService.ts
 import { supabase } from '@repo/shared';
 
+// 캐시를 위한 Map
+const cache = new Map<string, { data: unknown; timestamp: number }>();
+const CACHE_DURATION = 2 * 60 * 1000; // 2분 (대시보드는 더 자주 업데이트)
+
+// 캐시 유틸리티 함수
+const getCachedData = (key: string) => {
+	const cached = cache.get(key);
+	if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+		return cached.data;
+	}
+	return null;
+};
+
+const setCachedData = (key: string, data: unknown) => {
+	cache.set(key, { data, timestamp: Date.now() });
+};
+
 export interface DashboardStats {
 	totalTests: number;
 	publishedTests: number;
@@ -50,44 +67,93 @@ class DashboardService {
 	 * 대시보드 핵심 통계 조회
 	 */
 	async getDashboardStats(): Promise<DashboardStats> {
-		const { data, error } = await supabase.rpc('get_dashboard_stats');
-
-		if (error) {
-			console.error('대시보드 통계 조회 실패:', error);
-			throw new Error('대시보드 통계를 불러올 수 없습니다.');
+		const cacheKey = 'dashboard_stats';
+		const cachedData = getCachedData(cacheKey);
+		if (cachedData) {
+			return cachedData as DashboardStats;
 		}
 
-		return data;
+		try {
+			const { data, error } = await supabase.rpc('get_dashboard_stats');
+
+			if (error) {
+				console.error('대시보드 통계 조회 실패:', error);
+				throw new Error('대시보드 통계를 불러올 수 없습니다.');
+			}
+
+			const result = data as DashboardStats;
+			setCachedData(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error('Error in getDashboardStats:', error);
+			// 에러 발생 시 기본값 반환
+			return {
+				totalTests: 0,
+				publishedTests: 0,
+				todayResponses: 0,
+				weeklyResponses: 0,
+				todayVisitors: 0,
+				weeklyCompletionRate: 0,
+				responseGrowth: 0,
+				visitorGrowth: 0,
+			};
+		}
 	}
 
 	/**
 	 * 오늘의 인기 테스트 TOP N 조회
 	 */
 	async getTopTestsToday(limit: number = 3): Promise<TopTest[]> {
-		const { data, error } = await supabase.rpc('get_top_tests_today', {
-			limit_count: limit,
-		});
-
-		if (error) {
-			console.error('인기 테스트 조회 실패:', error);
-			throw new Error('인기 테스트를 불러올 수 없습니다.');
+		const cacheKey = `top_tests_${limit}`;
+		const cachedData = getCachedData(cacheKey);
+		if (cachedData) {
+			return cachedData as TopTest[];
 		}
 
-		return data || [];
+		try {
+			const { data, error } = await supabase.rpc('get_top_tests_today', {
+				limit_count: limit,
+			});
+
+			if (error) {
+				console.error('인기 테스트 조회 실패:', error);
+				throw new Error('인기 테스트를 불러올 수 없습니다.');
+			}
+
+			const result = data || [];
+			setCachedData(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error('Error in getTopTestsToday:', error);
+			return [];
+		}
 	}
 
 	/**
 	 * 대시보드 알림 조회
 	 */
 	async getDashboardAlerts(): Promise<DashboardAlert[]> {
-		const { data, error } = await supabase.rpc('get_dashboard_alerts');
-
-		if (error) {
-			console.error('알림 조회 실패:', error);
-			throw new Error('알림을 불러올 수 없습니다.');
+		const cacheKey = 'dashboard_alerts';
+		const cachedData = getCachedData(cacheKey);
+		if (cachedData) {
+			return cachedData as DashboardAlert[];
 		}
 
-		return data || [];
+		try {
+			const { data, error } = await supabase.rpc('get_dashboard_alerts');
+
+			if (error) {
+				console.error('알림 조회 실패:', error);
+				throw new Error('알림을 불러올 수 없습니다.');
+			}
+
+			const result = data || [];
+			setCachedData(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error('Error in getDashboardAlerts:', error);
+			return [];
+		}
 	}
 
 	/**
@@ -130,7 +196,7 @@ class DashboardService {
 		}
 
 		const breakdown = { mobile: 0, desktop: 0, tablet: 0 };
-		data.forEach((row) => {
+		data.forEach((row: any) => {
 			const device = row.device_type?.toLowerCase() || 'desktop';
 			if (device.includes('mobile') || device.includes('phone')) {
 				breakdown.mobile++;
@@ -158,7 +224,7 @@ class DashboardService {
 			return 0;
 		}
 
-		const totalTime = data.reduce((sum, row) => sum + (row.completion_time_seconds || 0), 0);
+		const totalTime = data.reduce((sum: number, row: any) => sum + (row.completion_time_seconds || 0), 0);
 		return Math.round(totalTime / data.length);
 	}
 
@@ -183,8 +249,8 @@ class DashboardService {
 			};
 		}
 
-		const uniqueUsers = new Set(data.map((r) => r.session_id)).size;
-		const completedResponses = data.filter((r) => r.completed_at).length;
+		const uniqueUsers = new Set(data.map((r: any) => r.session_id)).size;
+		const completedResponses = data.filter((r: any) => r.completed_at).length;
 		const completionRate = data.length > 0 ? (completedResponses / data.length) * 100 : 0;
 
 		return {
@@ -213,7 +279,7 @@ class DashboardService {
 
 		// 날짜별 응답 수 집계
 		const dailyCount: Record<string, number> = {};
-		data.forEach((row) => {
+		data.forEach((row: any) => {
 			const date = row.created_date || new Date(row.created_at).toISOString().split('T')[0];
 			dailyCount[date] = (dailyCount[date] || 0) + 1;
 		});
@@ -231,6 +297,74 @@ class DashboardService {
 		}
 
 		return trends;
+	}
+
+	/**
+	 * 캐시 무효화
+	 */
+	invalidateCache(pattern?: string) {
+		if (pattern) {
+			// 특정 패턴의 캐시만 무효화
+			for (const key of cache.keys()) {
+				if (key.includes(pattern)) {
+					cache.delete(key);
+				}
+			}
+		} else {
+			// 모든 캐시 무효화
+			cache.clear();
+		}
+	}
+
+	/**
+	 * 캐시 상태 조회
+	 */
+	getCacheInfo() {
+		return {
+			size: cache.size,
+			keys: Array.from(cache.keys()),
+			entries: Array.from(cache.entries()).map(([key, value]) => ({
+				key,
+				age: Date.now() - value.timestamp,
+				expiresIn: CACHE_DURATION - (Date.now() - value.timestamp),
+			})),
+		};
+	}
+
+	/**
+	 * 대시보드 전체 데이터 한번에 조회 (성능 최적화)
+	 */
+	async getDashboardOverview() {
+		const cacheKey = 'dashboard_overview';
+		const cachedData = getCachedData(cacheKey);
+		if (cachedData) {
+			return cachedData;
+		}
+
+		try {
+			const [stats, alerts, topTests, realtimeStats, weeklyTrends] = await Promise.all([
+				this.getDashboardStats(),
+				this.getDashboardAlerts(),
+				this.getTopTestsToday(3),
+				this.getRealtimeStats(),
+				this.getWeeklyTrends(),
+			]);
+
+			const result = {
+				stats,
+				alerts,
+				topTests,
+				realtimeStats,
+				weeklyTrends,
+				lastUpdated: new Date(),
+			};
+
+			setCachedData(cacheKey, result);
+			return result;
+		} catch (error) {
+			console.error('Error in getDashboardOverview:', error);
+			throw error;
+		}
 	}
 }
 

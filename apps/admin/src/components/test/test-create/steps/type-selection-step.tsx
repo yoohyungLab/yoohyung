@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '@repo/ui';
-import { testTypes } from '../../../../constants/testData';
+import { testTypes } from '@/constants/testData';
 
 interface TypeSelectionStepProps {
 	selectedType: any;

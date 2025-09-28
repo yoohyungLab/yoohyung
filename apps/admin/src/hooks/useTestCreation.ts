@@ -1,17 +1,46 @@
 import { useState, useCallback } from 'react';
 import { testService } from '@/shared/api';
-import type { QuestionCreationData, ResultCreationData, CompleteTestData } from '@/shared/api/services/test.service';
-import type { TestInsert } from '@repo/supabase';
+import type { TestInsert, TestQuestionInsert, TestResultInsert } from '@repo/supabase';
 
-/**
- * 새 테스트 생성 과정의 폼 상태 관리 훅
- * @returns 5단계 생성 프로세스의 상태와 메서드들
- */
+// 간단한 타입 정의
+interface QuestionData {
+	question_text: string;
+	question_order: number;
+	image_url: string | null;
+	choices: {
+		choice_text: string;
+		choice_order: number;
+		score: number;
+		is_correct: boolean;
+	}[];
+}
+
+interface ResultData {
+	result_name: string;
+	result_order: number;
+	description: string | null;
+	match_conditions: { type: 'score'; min: number; max: number };
+	background_image_url: string | null;
+	theme_color: string;
+	features: Record<string, unknown>;
+}
+
 export const useTestCreation = () => {
-	// 테스트 생성 관련 상태
 	const [step, setStep] = useState(1);
 	const [type, setType] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
+
+	// short_code 생성 함수
+	const generateShortCode = useCallback(() => {
+		const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+		let result = '';
+		for (let i = 0; i < 6; i++) {
+			result += chars.charAt(Math.floor(Math.random() * chars.length));
+		}
+		return result;
+	}, []);
+
+	// 기본 정보
 	const [basicInfo, setBasicInfo] = useState<Partial<TestInsert>>({
 		title: '',
 		description: '',
@@ -20,7 +49,7 @@ export const useTestCreation = () => {
 		response_count: 0,
 		view_count: 0,
 		category_ids: [],
-		short_code: '',
+		short_code: generateShortCode(),
 		intro_text: '',
 		status: 'draft',
 		estimated_time: 5,
@@ -29,7 +58,9 @@ export const useTestCreation = () => {
 		type: 'psychology',
 		published_at: null,
 	});
-	const [questions, setQuestions] = useState<QuestionCreationData[]>([
+
+	// 질문들
+	const [questions, setQuestions] = useState<QuestionData[]>([
 		{
 			question_text: '',
 			question_order: 0,
@@ -40,12 +71,14 @@ export const useTestCreation = () => {
 			],
 		},
 	]);
-	const [results, setResults] = useState<ResultCreationData[]>([
+
+	// 결과들
+	const [results, setResults] = useState<ResultData[]>([
 		{
 			result_name: '',
 			result_order: 0,
 			description: null,
-			match_conditions: { type: 'score' as const, min: 0, max: 30 },
+			match_conditions: { type: 'score', min: 0, max: 30 },
 			background_image_url: null,
 			theme_color: '#3B82F6',
 			features: {},
@@ -56,8 +89,8 @@ export const useTestCreation = () => {
 	const nextStep = useCallback(() => setStep((prev) => Math.min(prev + 1, 5)), []);
 	const prevStep = useCallback(() => setStep((prev) => Math.max(prev - 1, 1)), []);
 
-	// 기본 정보 관리
-	const updateBasicInfo = useCallback((updates: any) => {
+	// 기본 정보 업데이트
+	const updateBasicInfo = useCallback((updates: Partial<TestInsert>) => {
 		setBasicInfo((prev) => ({ ...prev, ...updates }));
 	}, []);
 
@@ -81,7 +114,7 @@ export const useTestCreation = () => {
 		setQuestions((prev) => prev.filter((_, i) => i !== index));
 	}, []);
 
-	const updateQuestion = useCallback((index: number, updates: Partial<QuestionCreationData>) => {
+	const updateQuestion = useCallback((index: number, updates: Partial<QuestionData>) => {
 		setQuestions((prev) => prev.map((q, i) => (i === index ? { ...q, ...updates } : q)));
 	}, []);
 
@@ -114,16 +147,7 @@ export const useTestCreation = () => {
 	}, []);
 
 	const updateChoice = useCallback(
-		(
-			questionIndex: number,
-			choiceIndex: number,
-			updates: Partial<{
-				choice_text: string;
-				choice_order: number;
-				score: number | null;
-				is_correct: boolean | null;
-			}>
-		) => {
+		(questionIndex: number, choiceIndex: number, updates: Partial<QuestionData['choices'][0]>) => {
 			setQuestions((prev) =>
 				prev.map((q, i) =>
 					i === questionIndex
@@ -146,7 +170,7 @@ export const useTestCreation = () => {
 				result_name: '',
 				result_order: prev.length,
 				description: null,
-				match_conditions: { type: 'score' as const, min: 0, max: 30 },
+				match_conditions: { type: 'score', min: 0, max: 30 },
 				background_image_url: null,
 				theme_color: '#3B82F6',
 				features: {},
@@ -158,7 +182,7 @@ export const useTestCreation = () => {
 		setResults((prev) => prev.filter((_, i) => i !== index));
 	}, []);
 
-	const updateResult = useCallback((index: number, updates: Partial<ResultCreationData>) => {
+	const updateResult = useCallback((index: number, updates: Partial<ResultData>) => {
 		setResults((prev) => prev.map((r, i) => (i === index ? { ...r, ...updates } : r)));
 	}, []);
 
@@ -167,31 +191,58 @@ export const useTestCreation = () => {
 		async (testId?: string) => {
 			try {
 				setIsLoading(true);
-				const completeData: CompleteTestData = {
-					test: {
-						...basicInfo,
-						id: testId,
-						type: type || 'psychology',
-						status: 'published' as const,
-						published_at: new Date().toISOString(),
-					},
-					questions,
-					results,
-				};
 
-				const result = await testService.saveCompleteTest(completeData);
+				// short_code가 비어있으면 새로 생성
+				let finalShortCode = basicInfo.short_code;
+				if (!finalShortCode || finalShortCode.trim() === '') {
+					finalShortCode = generateShortCode();
+					updateBasicInfo({ short_code: finalShortCode });
+				}
+
+				const testData: TestInsert = {
+					...basicInfo,
+					short_code: finalShortCode,
+					id: testId,
+					type: type || 'psychology',
+					status: 'published',
+					published_at: new Date().toISOString(),
+				} as TestInsert;
+
+				const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({
+					question_text: q.question_text,
+					question_order: index,
+					image_url: q.image_url,
+					choices: q.choices.map((c, choiceIndex) => ({
+						choice_text: c.choice_text,
+						choice_order: choiceIndex,
+						score: c.score,
+						is_correct: c.is_correct,
+					})),
+				}));
+
+				const resultsData: TestResultInsert[] = results.map((r, index) => ({
+					result_name: r.result_name,
+					description: r.description,
+					result_order: index,
+					background_image_url: r.background_image_url,
+					theme_color: r.theme_color,
+					match_conditions: r.match_conditions,
+					features: r.features,
+				}));
+
+				const result = await testService.saveCompleteTest(testData, questionsData, resultsData);
 				return result;
 			} catch (error) {
-				console.error('❌ Test save failed:', error);
+				console.error('테스트 저장 실패:', error);
 				throw error;
 			} finally {
 				setIsLoading(false);
 			}
 		},
-		[basicInfo, type, questions, results]
+		[basicInfo, type, questions, results, generateShortCode, updateBasicInfo]
 	);
 
-	// 상태 초기화
+	// 폼 초기화
 	const resetForm = useCallback(() => {
 		setStep(1);
 		setType(null);
@@ -203,7 +254,7 @@ export const useTestCreation = () => {
 			response_count: 0,
 			view_count: 0,
 			category_ids: [],
-			short_code: '',
+			short_code: generateShortCode(),
 			intro_text: '',
 			status: 'draft',
 			estimated_time: 5,
@@ -228,13 +279,13 @@ export const useTestCreation = () => {
 				result_name: '',
 				result_order: 0,
 				description: null,
-				match_conditions: { type: 'score' as const, min: 0, max: 30 },
+				match_conditions: { type: 'score', min: 0, max: 30 },
 				background_image_url: null,
 				theme_color: '#3B82F6',
 				features: {},
 			},
 		]);
-	}, []);
+	}, [generateShortCode]);
 
 	return {
 		// 상태
@@ -274,5 +325,8 @@ export const useTestCreation = () => {
 		// 저장 및 초기화
 		saveTest,
 		resetForm,
+
+		// 유틸리티
+		generateShortCode,
 	};
 };

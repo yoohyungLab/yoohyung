@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@repo/ui';
-import { cn } from '../../shared/lib/utils';
+import { cn } from '@/shared/lib/utils';
 import { X } from 'lucide-react';
 
 export interface BulkAction {

@@ -1,159 +1,156 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { testService } from '@/shared/api';
-import type { TestWithDetails, TestInsert, TestUpdate } from '@repo/supabase';
+import type { Test, TestWithDetails } from '@repo/supabase';
 
-/**
- * 기존 테스트들의 CRUD 관리 훅
- * @returns 테스트 목록, 로딩상태, CRUD 메서드들
- */
+interface TestFilters {
+	search: string;
+	status: 'all' | string;
+}
+
+interface TestStats {
+	total: number;
+	published: number;
+	draft: number;
+	scheduled: number;
+	responses: number;
+}
+
 export const useTests = () => {
-	// 기본 상태
-	const [tests, setTests] = useState<TestWithDetails[]>([]);
+	const [tests, setTests] = useState<Test[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+	const [filters, setFilters] = useState<TestFilters>({
+		search: '',
+		status: 'all',
+	});
 
-	// 자동으로 모든 테스트 로드
-	useEffect(() => {
-		const loadInitialData = async () => {
-			try {
-				setLoading(true);
-				setError(null);
-				const data = await testService.getAllTests();
-				setTests(data);
-			} catch (err) {
-				const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
-				setError(errorMessage);
-			} finally {
-				setLoading(false);
-			}
+	// 필터링된 테스트
+	const filteredTests = useMemo(() => {
+		return tests.filter((test) => {
+			const matchesSearch = filters.search === '' || test.title.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesStatus = filters.status === 'all' || test.status === filters.status;
+			return matchesSearch && matchesStatus;
+		});
+	}, [tests, filters]);
+
+	// UI용 데이터 변환
+	const uiTests = useMemo(() => {
+		return filteredTests.map(
+			(test): TestWithDetails => ({
+				...test,
+				category_name: '기타',
+				emoji: '📝',
+				status: test.status || 'draft',
+				type: test.type || 'psychology',
+				thumbnailImage: test.thumbnail_url || '',
+				startMessage: '',
+				scheduledAt: test.scheduled_at || '',
+				responseCount: test.response_count || 0,
+				completionRate: 0,
+				estimatedTime: test.estimated_time || 5,
+				share_count: 0,
+				completion_count: 0,
+				createdBy: '',
+				createdAt: test.created_at,
+				updatedAt: test.updated_at,
+				isPublished: test.status === 'published',
+				question_count: 0,
+				result_count: 0,
+				response_count: test.response_count || 0,
+				questions: [],
+				results: [],
+			})
+		);
+	}, [filteredTests]);
+
+	// 통계 계산
+	const stats = useMemo((): TestStats => {
+		if (tests.length === 0) {
+			return {
+				total: 0,
+				published: 0,
+				draft: 0,
+				scheduled: 0,
+				responses: 0,
+			};
+		}
+
+		return {
+			total: tests.length,
+			published: tests.filter((test) => test.status === 'published').length,
+			draft: tests.filter((test) => test.status === 'draft').length,
+			scheduled: tests.filter((test) => test.status === 'scheduled').length,
+			responses: tests.reduce((sum, test) => sum + (test.response_count || 0), 0),
 		};
+	}, [tests]);
 
-		loadInitialData();
-	}, []);
-
-	// 기본 CRUD 메서드들
-	const fetchTests = useCallback(async () => {
+	// 데이터 로딩
+	const loadTests = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
-			const data = await testService.getAllTests();
+			const data = await testService.getTests();
 			setTests(data);
-			return data;
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
+			setError(err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.');
 		} finally {
 			setLoading(false);
 		}
 	}, []);
 
-	const fetchTest = useCallback(async (id: string) => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await testService.getTestById(id);
-			return data;
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+	// 상태 변경
+	const togglePublishStatus = useCallback(
+		async (id: string, isPublished?: boolean) => {
+			try {
+				const test = tests.find((t) => t.id === id);
+				if (!test) return;
 
-	const createTest = useCallback(async (testData: TestInsert) => {
-		try {
-			setLoading(true);
-			setError(null);
-			const newTest = await testService.createTest(testData);
-			setTests((prev) => [...prev, newTest]);
-			return newTest;
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '테스트 생성에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+				const newStatus =
+					isPublished !== undefined
+						? isPublished
+							? 'published'
+							: 'draft'
+						: test.status === 'published'
+						? 'draft'
+						: 'published';
 
-	const updateTest = useCallback(async (id: string, testData: TestUpdate) => {
-		try {
-			setLoading(true);
-			setError(null);
-			const updatedTest = await testService.updateTest(id, testData);
-			setTests((prev) => prev.map((test) => (test.id === id ? updatedTest : test)));
-			return updatedTest;
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '테스트 수정에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+				await testService.updateTestStatus(id, newStatus);
+				setTests((prev) => prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t)));
+			} catch (err) {
+				setError(err instanceof Error ? err.message : '상태 변경에 실패했습니다.');
+			}
+		},
+		[tests]
+	);
 
+	// 삭제
 	const deleteTest = useCallback(async (id: string) => {
 		try {
-			setLoading(true);
-			setError(null);
 			await testService.deleteTest(id);
 			setTests((prev) => prev.filter((test) => test.id !== id));
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '테스트 삭제에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
+			setError(err instanceof Error ? err.message : '테스트 삭제에 실패했습니다.');
 		}
 	}, []);
 
-	const togglePublishStatus = useCallback(async (id: string, isPublished?: boolean) => {
-		try {
-			await testService.togglePublishStatus(id, isPublished);
-			setTests((prev) =>
-				prev.map((test) => (test.id === id ? { ...test, updated_at: new Date().toISOString() } : test))
-			);
-		} catch (err) {
-			console.error('게시 상태 변경 실패:', err);
-		}
+	// 필터 업데이트
+	const updateFilters = useCallback((newFilters: Partial<TestFilters>) => {
+		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	const incrementViewCount = useCallback(async (id: string) => {
-		try {
-			await testService.incrementViewCount(id);
-			setTests((prev) =>
-				prev.map((test) => (test.id === id ? { ...test, view_count: (test.view_count || 0) + 1 } : test))
-			);
-		} catch (err) {
-			console.error('조회수 증가 실패:', err);
-		}
-	}, []);
-
-	const incrementShareCount = useCallback(async (id: string) => {
-		try {
-			await testService.incrementShareCount(id);
-			setTests((prev) =>
-				prev.map((test) => (test.id === id ? { ...test, share_count: (test.share_count || 0) + 1 } : test))
-			);
-		} catch (err) {
-			console.error('공유수 증가 실패:', err);
-		}
-	}, []);
+	// 초기 로딩
+	useEffect(() => {
+		loadTests();
+	}, [loadTests]);
 
 	return {
-		tests,
+		tests: uiTests,
 		loading,
 		error,
-		fetchTests,
-		fetchTest,
-		createTest,
-		updateTest,
-		deleteTest,
+		filters,
+		stats,
 		togglePublishStatus,
-		incrementViewCount,
-		incrementShareCount,
+		deleteTest,
+		updateFilters,
 	};
 };

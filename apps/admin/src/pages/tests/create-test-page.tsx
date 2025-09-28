@@ -40,6 +40,7 @@ export function CreateTestPage() {
 		addResult,
 		removeResult,
 		updateResult,
+		generateShortCode,
 	} = useTestCreation();
 
 	const currentStepInfo = steps.find((s) => s.id === step);
@@ -55,6 +56,7 @@ export function CreateTestPage() {
 						selectedType={type || ''}
 						onUpdateTestData={updateBasicInfo}
 						onUpdateTitle={(title: string) => updateBasicInfo({ title })}
+						onRegenerateShortCode={() => updateBasicInfo({ short_code: generateShortCode() })}
 					/>
 				);
 			case 3:

@@ -1,121 +1,157 @@
-import { useState, useCallback } from 'react';
-import { feedbackService } from '../shared/api/services/feedback.service';
-import type { Feedback, FeedbackFilters } from '../shared/api/services/feedback.service';
+import { useState, useCallback, useEffect, useMemo } from 'react';
+import { feedbackService } from '@/shared/api';
+import type { Feedback, FeedbackFilters } from '@repo/supabase';
+
+interface FeedbackStats {
+	total: number;
+	pending: number;
+	in_progress: number;
+	completed: number;
+	replied: number;
+	rejected: number;
+	today: number;
+	this_week: number;
+	this_month: number;
+}
 
 export const useFeedbacks = () => {
 	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [total, setTotal] = useState(0);
+	const [filters, setFilters] = useState<FeedbackFilters>({
+		search: '',
+		status: 'all',
+		category: 'all',
+	});
 
-	const fetchFeedbacks = useCallback(async (filters?: FeedbackFilters) => {
+	// 통계 계산 (원본 데이터 기준)
+	const stats = useMemo((): FeedbackStats => {
+		if (feedbacks.length === 0) {
+			return {
+				total: 0,
+				pending: 0,
+				in_progress: 0,
+				completed: 0,
+				replied: 0,
+				rejected: 0,
+				today: 0,
+				this_week: 0,
+				this_month: 0,
+			};
+		}
+
+		const now = new Date();
+		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+		const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+		const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+		return {
+			total: feedbacks.length,
+			pending: feedbacks.filter((f) => f.status === 'pending').length,
+			in_progress: feedbacks.filter((f) => f.status === 'in_progress').length,
+			completed: feedbacks.filter((f) => f.status === 'completed').length,
+			replied: feedbacks.filter((f) => f.status === 'replied').length,
+			rejected: feedbacks.filter((f) => f.status === 'rejected').length,
+			today: feedbacks.filter((f) => new Date(f.created_at) >= today).length,
+			this_week: feedbacks.filter((f) => new Date(f.created_at) >= thisWeek).length,
+			this_month: feedbacks.filter((f) => new Date(f.created_at) >= thisMonth).length,
+		};
+	}, [feedbacks]);
+
+	// 필터링된 피드백
+	const filteredFeedbacks = useMemo(() => {
+		return feedbacks.filter((feedback) => {
+			const matchesSearch =
+				!filters.search ||
+				feedback.title?.toLowerCase().includes(filters.search.toLowerCase()) ||
+				feedback.content?.toLowerCase().includes(filters.search.toLowerCase()) ||
+				feedback.author_name?.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesStatus = filters.status === 'all' || feedback.status === filters.status;
+			const matchesCategory = filters.category === 'all' || feedback.category === filters.category;
+			return matchesSearch && matchesStatus && matchesCategory;
+		});
+	}, [feedbacks, filters]);
+
+	// 데이터 로딩
+	const loadFeedbacks = useCallback(async () => {
 		try {
 			setLoading(true);
 			setError(null);
-			const response = await feedbackService.getFeedbacks(filters);
-			setFeedbacks(response.feedbacks);
-			setTotal(response.total);
-			return response;
+			const data = await feedbackService.getFeedbacks();
+			setFeedbacks(data);
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백을 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
+			setError(err instanceof Error ? err.message : '피드백을 불러오는데 실패했습니다.');
 		} finally {
 			setLoading(false);
 		}
 	}, []);
 
-	const updateFeedbackStatus = useCallback(async (id: string, status: Feedback['status']) => {
+	// 피드백 상태 변경
+	const updateFeedbackStatus = useCallback(async (id: string, status: string) => {
 		try {
-			setLoading(true);
-			setError(null);
 			const updatedFeedback = await feedbackService.updateFeedbackStatus(id, status);
-			setFeedbacks((prev) => prev.map((feedback) => (feedback.id === id ? updatedFeedback : feedback)));
-			return updatedFeedback;
+			setFeedbacks((prev) => prev.map((f) => (f.id === id ? updatedFeedback : f)));
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 상태 수정에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
+			setError(err instanceof Error ? err.message : '피드백 상태 변경에 실패했습니다.');
 		}
 	}, []);
 
-	const replyToFeedback = useCallback(async (id: string, reply: string) => {
+	// 대량 상태 변경
+	const bulkUpdateStatus = useCallback(
+		async (feedbackIds: string[], status: string) => {
+			try {
+				await feedbackService.bulkUpdateStatus(feedbackIds, status);
+				// 상태 업데이트 후 전체 데이터 다시 로드
+				await loadFeedbacks();
+			} catch (err) {
+				setError(err instanceof Error ? err.message : '피드백 일괄 상태 변경에 실패했습니다.');
+			}
+		},
+		[loadFeedbacks]
+	);
+
+	// 관리자 답변 추가
+	const addAdminReply = useCallback(async (id: string, reply: string) => {
 		try {
-			setLoading(true);
-			setError(null);
 			const updatedFeedback = await feedbackService.addAdminReply(id, reply);
-			setFeedbacks((prev) => prev.map((feedback) => (feedback.id === id ? updatedFeedback : feedback)));
-			return updatedFeedback;
+			setFeedbacks((prev) => prev.map((f) => (f.id === id ? updatedFeedback : f)));
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 답변에 실패했습니다.';
-			setError(errorMessage);
+			setError(err instanceof Error ? err.message : '답변 추가에 실패했습니다.');
 			throw err;
-		} finally {
-			setLoading(false);
 		}
 	}, []);
 
-	const bulkUpdateStatus = useCallback(async (ids: string[], status: Feedback['status']) => {
-		try {
-			setLoading(true);
-			setError(null);
-			await feedbackService.bulkUpdateStatus(ids, status);
-			setFeedbacks((prev) => prev.map((feedback) => (ids.includes(feedback.id) ? { ...feedback, status } : feedback)));
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 일괄 수정에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
+	// 피드백 삭제
 	const deleteFeedback = useCallback(async (id: string) => {
 		try {
-			setLoading(true);
-			setError(null);
 			await feedbackService.deleteFeedback(id);
-			setFeedbacks((prev) => prev.filter((feedback) => feedback.id !== id));
-			setTotal((prev) => prev - 1);
+			setFeedbacks((prev) => prev.filter((f) => f.id !== id));
 		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 삭제에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
+			setError(err instanceof Error ? err.message : '피드백 삭제에 실패했습니다.');
 		}
 	}, []);
 
-	const getFeedbackStats = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const stats = await feedbackService.getFeedbackStats();
-			return stats;
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 통계를 불러오는데 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setLoading(false);
-		}
+	// 필터 업데이트
+	const updateFilters = useCallback((newFilters: Partial<FeedbackFilters>) => {
+		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	const clearError = useCallback(() => setError(null), []);
+	// 초기 로딩
+	useEffect(() => {
+		loadFeedbacks();
+	}, [loadFeedbacks]);
 
 	return {
-		feedbacks,
+		feedbacks: filteredFeedbacks,
 		loading,
 		error,
-		total,
-		fetchFeedbacks,
+		filters,
+		stats,
+		loadFeedbacks,
 		updateFeedbackStatus,
-		replyToFeedback,
 		bulkUpdateStatus,
+		addAdminReply,
 		deleteFeedback,
-		getFeedbackStats,
-		clearError,
+		updateFilters,
 	};
 };

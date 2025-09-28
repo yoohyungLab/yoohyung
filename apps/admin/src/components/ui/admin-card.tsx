@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader } from '@repo/ui';
-import { cn } from '../../shared/lib/utils';
+import { cn } from '@/shared/lib/utils';
 
 interface AdminCardProps {
 	children: React.ReactNode;

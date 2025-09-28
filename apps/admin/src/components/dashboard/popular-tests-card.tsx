@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, IconButton } from '@repo/ui';
 import { Link } from 'react-router-dom';
 import { BarChart3, FileText } from 'lucide-react';
-import { formatNumber } from '../../shared/lib/utils';
+import { formatNumber } from '@/shared/lib/utils';
 
 interface Test {
 	id: string;

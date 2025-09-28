@@ -2,11 +2,10 @@ import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { UserDetailModal } from '@/components/user';
 import { useUsers } from '@/hooks';
 import { useColumnRenderers } from '@/shared/hooks';
-import { FILTER_PROVIDER_OPTIONS, FILTER_STATUS_OPTIONS, PAGINATION } from '@/shared/lib/constants';
-import { usePagination } from '@repo/shared';
-import type { User, UserFilters } from '@repo/supabase';
-import { DataTable, DefaultPagination, type Column } from '@repo/ui';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FILTER_PROVIDER_OPTIONS, FILTER_STATUS_OPTIONS } from '@/shared/lib/constants';
+import type { User } from '@repo/supabase';
+import { DataTable, type Column } from '@repo/ui';
+import { useCallback, useMemo, useState } from 'react';
 
 export function UserListPage() {
 	const renderers = useColumnRenderers();
@@ -16,42 +15,17 @@ export function UserListPage() {
 		users,
 		loading,
 		error,
-		totalUsers,
+		filters,
 		stats,
-		fetchUsers,
 		updateUserStatus,
 		bulkUpdateStatus,
 		deleteUser,
-		getUserDetails,
+		getUserById,
+		updateFilters,
 	} = useUsers();
 
 	const [modalUser, setModalUser] = useState<User | null>(null);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
-	const [filters, setFilters] = useState<UserFilters>({
-		search: '',
-		status: 'all',
-		provider: 'all',
-	});
-	const pagination = usePagination({
-		totalItems: totalUsers,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
-	});
-
-	// 필터 변경 시 데이터 로딩
-	const loadData = useCallback(async () => {
-		const apiFilters = {
-			search: filters.search || undefined,
-			status: filters.status !== 'all' ? (filters.status as 'active' | 'inactive' | 'deleted') : undefined,
-			provider: filters.provider !== 'all' ? (filters.provider as 'email' | 'kakao' | 'google') : undefined,
-		};
-
-		await fetchUsers(apiFilters, pagination.currentPage, pagination.pageSize);
-	}, [filters.search, filters.status, filters.provider, pagination.currentPage, pagination.pageSize, fetchUsers]);
-
-	// 필터나 페이지 변경 시 데이터 로딩
-	useEffect(() => {
-		loadData();
-	}, [loadData]);
 
 	// 개별 사용자 상태 변경
 	const handleStatusChange = useCallback(
@@ -63,19 +37,37 @@ export function UserListPage() {
 	);
 
 	// 대량 상태 변경
-	const handleBulkStatusChange = async (status: 'active' | 'inactive' | 'deleted') => {
-		if (selectedUsers.length === 0 || !status) return;
-		await bulkUpdateStatus(selectedUsers, status);
-		setSelectedUsers([]);
-	};
+	const handleBulkStatusChange = useCallback(
+		async (status: 'active' | 'inactive' | 'deleted') => {
+			if (selectedUsers.length === 0 || !status) return;
+			await bulkUpdateStatus(selectedUsers, status);
+			setSelectedUsers([]);
+		},
+		[selectedUsers, bulkUpdateStatus]
+	);
 
-	// 사용자 탈퇴 처리
+	// 사용자 삭제 처리
 	const handleDeleteUser = useCallback(
 		async (userId: string) => {
 			if (!confirm('정말로 이 사용자를 탈퇴 처리하시겠습니까?')) return;
 			await deleteUser(userId);
 		},
 		[deleteUser]
+	);
+
+	// 사용자 상세 모달 열기
+	const handleUserClick = useCallback(
+		async (user: User) => {
+			try {
+				const userDetails = await getUserById(user.id);
+				setModalUser(userDetails);
+			} catch (error) {
+				console.error('사용자 상세 정보 조회 실패:', error);
+				// 실패 시 기본 사용자 정보로 모달 표시
+				setModalUser(user);
+			}
+		},
+		[getUserById]
 	);
 
 	// Table columns definition (memoized for performance)
@@ -129,7 +121,7 @@ export function UserListPage() {
 
 	return (
 		<div className="space-y-6 p-5">
-			{/* 간단한 통계 */}
+			{/* 통계 카드 */}
 			<StatsCards
 				stats={[
 					{ id: 'active', label: '활성 사용자', value: stats.active },
@@ -139,7 +131,7 @@ export function UserListPage() {
 				columns={3}
 			/>
 
-			{/* Search & Filters */}
+			{/* 검색 및 필터 */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -155,16 +147,10 @@ export function UserListPage() {
 					status: filters.status || 'all',
 					provider: filters.provider || 'all',
 				}}
-				onFilterChange={(newFilters) => {
-					setFilters({
-						search: newFilters.search || '',
-						status: (newFilters.status as 'all' | 'active' | 'inactive' | 'deleted') || 'all',
-						provider: (newFilters.provider as 'all' | 'email' | 'google' | 'kakao') || 'all',
-					});
-				}}
+				onFilterChange={updateFilters}
 			/>
 
-			{/* Bulk Actions */}
+			{/* 대량 작업 */}
 			<BulkActions
 				selectedCount={selectedUsers.length}
 				actions={[
@@ -188,8 +174,8 @@ export function UserListPage() {
 				onClear={() => setSelectedUsers([])}
 			/>
 
-			{/* User List */}
-			<DataState loading={loading} error={error} data={users} onRetry={loadData}>
+			{/* 사용자 목록 */}
+			<DataState loading={loading} error={error} data={users}>
 				<DataTable
 					data={users}
 					columns={columns}
@@ -197,29 +183,11 @@ export function UserListPage() {
 					selectedItems={selectedUsers}
 					onSelectionChange={setSelectedUsers}
 					getRowId={(user: User) => user.id}
-					onRowClick={async (user: User) => {
-						try {
-							// 사용자 상세 정보를 가져와서 모달에 전달
-							const userWithActivity = await getUserDetails(user.id);
-							setModalUser(userWithActivity);
-						} catch (error) {
-							console.error('사용자 상세 정보 조회 실패:', error);
-							// 실패 시 기본 사용자 정보로 모달 표시
-							setModalUser(user);
-						}
-					}}
+					onRowClick={handleUserClick}
 				/>
 			</DataState>
 
-			{/* Pagination */}
-			<DefaultPagination
-				currentPage={pagination.currentPage}
-				totalPages={pagination.totalPages}
-				onPageChange={pagination.setPage}
-				className="mt-6"
-			/>
-
-			{/* User Detail Modal */}
+			{/* 사용자 상세 모달 */}
 			{modalUser && <UserDetailModal user={modalUser} onClose={() => setModalUser(null)} />}
 		</div>
 	);

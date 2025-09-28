@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { categoryService } from '../../shared/api/services/category.service';
 import { type Category } from '@repo/supabase';
 import { Button, DefaultInput, DefaultTextarea } from '@repo/ui';
 import { Plus, X, Pencil } from 'lucide-react';
@@ -7,7 +6,13 @@ import { Plus, X, Pencil } from 'lucide-react';
 interface CategoryCreateModalProps {
 	isOpen: boolean;
 	onClose: () => void;
-	onSuccess: () => void;
+	onSuccess: (categoryData?: {
+		name: string;
+		slug: string;
+		description?: string;
+		sort_order?: number;
+		is_active?: boolean;
+	}) => void;
 	editCategory?: Category | null;
 }
 
@@ -64,42 +69,25 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		setError(null);
 
 		try {
-			if (editCategory) {
-				// 편집 모드
-				await categoryService.updateCategory(editCategory.id, {
-					name: formData.name.trim(),
-					description: formData.description.trim() || null,
-					sort_order: formData.sort_order,
-					is_active: formData.is_active,
-				});
-			} else {
-				// 생성 모드
-				const slug = formData.name
-					.trim()
-					.toLowerCase()
-					.replace(/[^a-z0-9]/g, '_');
+			const slug = formData.name
+				.trim()
+				.toLowerCase()
+				.replace(/[^a-z0-9]/g, '_');
 
-				await categoryService.createCategory({
-					name: formData.name.trim(),
-					description: formData.description.trim() || undefined,
-					sort_order: formData.sort_order,
-					slug,
-					is_active: formData.is_active,
-				});
-			}
+			const categoryData = {
+				name: formData.name.trim(),
+				description: formData.description.trim() || undefined,
+				sort_order: formData.sort_order,
+				slug,
+				is_active: formData.is_active,
+			};
 
 			resetForm();
-			onSuccess();
+			onSuccess(categoryData);
 			onClose();
 		} catch (error) {
-			console.error(editCategory ? '카테고리 수정 실패:' : '카테고리 생성 실패:', error);
-			setError(
-				error instanceof Error
-					? error.message
-					: editCategory
-					? '카테고리 수정에 실패했습니다.'
-					: '카테고리 생성에 실패했습니다.'
-			);
+			console.error('폼 처리 실패:', error);
+			setError('폼 처리에 실패했습니다.');
 		} finally {
 			setLoading(false);
 		}

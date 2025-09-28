@@ -1,170 +1,82 @@
-import React, { useCallback, useEffect, useState, useMemo } from 'react';
+import React, { useCallback, useState, useMemo } from 'react';
 import { usePagination } from '@repo/shared';
-import { feedbackService } from '@/shared/api';
-import type { Feedback, FeedbackFilters } from '@repo/supabase';
+import type { Feedback } from '@repo/supabase';
 import { DataTable, type Column, DefaultPagination, Badge } from '@repo/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
 import { useColumnRenderers } from '@/shared/hooks';
+import { useFeedbacks } from '@/hooks';
 import {
 	PAGINATION,
 	FILTER_FEEDBACK_STATUS_OPTIONS,
 	FILTER_FEEDBACK_CATEGORY_OPTIONS,
 	FEEDBACK_STATUS_OPTIONS,
 } from '@/shared/lib/constants';
-import { getStatusText, getCategoryText, getStatusBadgeVariant } from '@/shared/lib/utils';
+import { getStatusText, getCategoryText, getStatusBadgeVariant, getFeedbackStatusStyle } from '@/shared/lib/utils';
 
 export function FeedbackListPage() {
 	const renderers = useColumnRenderers();
 
-	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-	const [loading, setLoading] = useState(true);
-	const [error, setError] = useState<string | null>(null);
+	// 커스텀 훅 사용
+	const {
+		feedbacks,
+		loading,
+		error,
+		filters,
+		stats,
+		updateFeedbackStatus,
+		bulkUpdateStatus,
+		addAdminReply,
+		deleteFeedback,
+
+		updateFilters,
+	} = useFeedbacks();
+
 	const [modalFeedback, setModalFeedback] = useState<Feedback | null>(null);
 	const [showReplyModal, setShowReplyModal] = useState<string | null>(null);
 	const [selectedFeedbacks, setSelectedFeedbacks] = useState<string[]>([]);
-	const [totalFeedbacks, setTotalFeedbacks] = useState(0);
-	const [filters, setFilters] = useState({
-		search: '',
-		status: 'all',
-		category: 'all',
-	});
+
 	const pagination = usePagination({
-		totalItems: totalFeedbacks,
+		totalItems: feedbacks.length,
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 간단한 통계
-	const [stats, setStats] = useState({
-		total: 0,
-		pending: 0,
-		in_progress: 0,
-		completed: 0,
-		replied: 0,
-		rejected: 0,
-	});
-
-	// 간단하고 안전한 데이터 로딩
-	const loadData = useCallback(
-		async (includeStats = false) => {
-			setLoading(true);
-			setError(null);
-
-			try {
-				const apiFilters = {
-					search: filters.search || undefined,
-					status: filters.status !== 'all' ? filters.status : undefined,
-					category: filters.category !== 'all' ? filters.category : undefined,
-				};
-
-				// 피드백 데이터만 먼저 로딩 (필수)
-				const feedbackResult = await feedbackService.getFeedbacks(
-					apiFilters as FeedbackFilters,
-					pagination.currentPage,
-					pagination.pageSize
-				);
-
-				setFeedbacks(feedbackResult.feedbacks);
-				setTotalFeedbacks(feedbackResult.total);
-
-				// 통계는 선택적으로 로딩 (실패해도 무시)
-				if (includeStats) {
-					try {
-						const statsResult = await feedbackService.getFeedbackStats();
-						setStats({
-							total: feedbackResult.total,
-							pending: statsResult.pending,
-							in_progress: statsResult.in_progress,
-							completed: statsResult.completed,
-							replied: statsResult.replied,
-							rejected: statsResult.rejected,
-						});
-					} catch (statsError) {
-						console.warn('통계 로딩 실패 (무시됨):', statsError);
-						// 통계 로딩 실패 시에도 전체 수는 설정
-						setStats((prev) => ({
-							...prev,
-							total: feedbackResult.total,
-						}));
-					}
-				}
-			} catch (error) {
-				console.error('데이터 로딩 실패:', error);
-				setError(error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.');
-			} finally {
-				setLoading(false);
-			}
-		},
-		[filters.search, filters.status, filters.category, pagination.currentPage, pagination.pageSize]
-	);
-
-	// 필터 변경 시 데이터 로딩 (초기 로딩 포함)
-	useEffect(() => {
-		loadData(true); // 통계도 함께 로딩
-	}, [filters.search, filters.status, filters.category, loadData]);
-
-	// 개별 피드백 상태 변경 - 서버 요청 후 즉시 UI 업데이트
+	// 개별 피드백 상태 변경
 	const handleStatusChange = useCallback(
 		async (feedbackId: string, newStatus: Feedback['status']) => {
-			try {
-				await feedbackService.updateFeedbackStatus(feedbackId, newStatus);
-				// 상태 변경 후 즉시 UI 업데이트
-				setFeedbacks((prev) => prev.map((f) => (f.id === feedbackId ? { ...f, status: newStatus } : f)));
-				// 통계도 즉시 업데이트
-				const oldStatus = feedbacks.find((f) => f.id === feedbackId)?.status || 'pending';
-				setStats((prev) => ({
-					...prev,
-					[newStatus]: prev[newStatus as keyof typeof prev] + 1,
-					[oldStatus]: prev[oldStatus as keyof typeof prev] - 1,
-				}));
-			} catch (error) {
-				console.error('상태 변경 실패:', error);
-			}
+			await updateFeedbackStatus(feedbackId, newStatus);
 		},
-		[feedbacks]
+		[updateFeedbackStatus]
 	);
 
-	// 대량 상태 변경 - 선택된 여러 피드백 상태를 한번에 변경
-	const handleBulkStatusChange = async (status: Feedback['status']) => {
-		if (selectedFeedbacks.length === 0) return;
-
-		try {
-			await feedbackService.bulkUpdateStatus(selectedFeedbacks, status);
+	// 대량 상태 변경
+	const handleBulkStatusChange = useCallback(
+		async (status: Feedback['status']) => {
+			if (selectedFeedbacks.length === 0) return;
+			await bulkUpdateStatus(selectedFeedbacks, status);
 			setSelectedFeedbacks([]);
-			loadData(true); // 통계도 함께 새로고침
-		} catch (error) {
-			console.error('대량 상태 변경 실패:', error);
-		}
-	};
+		},
+		[selectedFeedbacks, bulkUpdateStatus]
+	);
 
-	// 피드백 삭제 처리 - 확인 후 삭제하고 목록 새로고침
+	// 피드백 삭제 처리
 	const handleDeleteFeedback = useCallback(
 		async (feedbackId: string) => {
 			if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
-
-			try {
-				await feedbackService.deleteFeedback(feedbackId);
-				loadData(true); // 통계도 함께 새로고침
-			} catch (error) {
-				console.error('삭제 처리 실패:', error);
-			}
+			await deleteFeedback(feedbackId);
 		},
-		[loadData]
+		[deleteFeedback]
 	);
 
 	// 답변 추가 핸들러
-	const handleAddReply = async (reply: string) => {
-		if (!showReplyModal || !reply.trim()) return;
-
-		try {
-			await feedbackService.addAdminReply(showReplyModal, reply);
+	const handleAddReply = useCallback(
+		async (reply: string) => {
+			if (!showReplyModal || !reply.trim()) return;
+			await addAdminReply(showReplyModal, reply);
 			setShowReplyModal(null);
-			loadData(true); // 통계도 함께 새로고침
-		} catch (error) {
-			console.error('답변 추가 실패:', error);
-			setError(error instanceof Error ? error.message : '답변 추가에 실패했습니다.');
-		}
-	};
+		},
+		[showReplyModal, addAdminReply]
+	);
 
 	// Table columns definition (memoized for performance)
 	const columns: Column<Feedback>[] = useMemo(
@@ -198,8 +110,11 @@ export function FeedbackListPage() {
 				id: 'status',
 				header: '상태',
 				cell: ({ row }) => (
-					<Badge variant={getStatusBadgeVariant(row.original.status)} className="h-6">
-						{getStatusText(row.original.status)}
+					<Badge
+						variant={getStatusBadgeVariant(row.original.status)}
+						className={`h-6 border ${getFeedbackStatusStyle(row.original.status)}`}
+					>
+						<span className="flex items-center gap-1">{getStatusText(row.original.status)}</span>
 					</Badge>
 				),
 			},
@@ -264,14 +179,12 @@ export function FeedbackListPage() {
 						options: [...FILTER_FEEDBACK_CATEGORY_OPTIONS],
 					},
 				}}
-				values={filters}
-				onFilterChange={(newFilters) => {
-					setFilters({
-						search: newFilters.search || '',
-						status: newFilters.status || 'all',
-						category: newFilters.category || 'all',
-					});
+				values={{
+					search: filters.search || '',
+					status: filters.status || 'all',
+					category: filters.category || 'all',
 				}}
+				onFilterChange={updateFilters}
 			/>
 
 			{/* Bulk Actions */}
@@ -299,7 +212,7 @@ export function FeedbackListPage() {
 			/>
 
 			{/* Feedback List */}
-			<DataState loading={loading} error={error} data={feedbacks} onRetry={() => loadData(true)}>
+			<DataState loading={loading} error={error} data={feedbacks}>
 				<DataTable
 					data={feedbacks}
 					columns={columns}

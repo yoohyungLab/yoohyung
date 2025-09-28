@@ -1,6 +1,6 @@
 import { Card, CardContent, Button } from '@repo/ui';
 import { Link } from 'react-router-dom';
-import { getAlertIcon, getAlertColor } from '../../shared/lib/utils';
+import { getAlertIcon, getAlertColor } from '@/shared/lib/utils';
 
 interface Alert {
 	id: string;

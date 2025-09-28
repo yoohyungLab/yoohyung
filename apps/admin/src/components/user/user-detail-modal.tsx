@@ -2,11 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, IconBadge, IconButton } from '@repo/ui';
 import { userService } from '@/shared/api';
 import type { UserWithActivity, UserActivityItem, Feedback } from '@repo/supabase';
-import { getUserStatusConfig, getProviderText, getStatusIcon, formatDate, getDaysSinceJoin } from '../../shared/lib';
+import { getUserStatusConfig, getProviderText, getStatusIcon, formatDate, getDaysSinceJoin } from '@/shared/lib';
 import { formatDuration } from '@repo/shared';
 import { X, User, Mail, Calendar, Activity, MessageSquare, Clock, Target, TrendingUp, Hash, Users } from 'lucide-react';
-import { EmptyState, LoadingState } from '../ui';
-import { AdminCard, AdminCardHeader, AdminCardContent } from '../ui/admin-card';
+import { EmptyState, LoadingState } from '@/components/ui';
+import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 interface UserDetailModalProps {
 	user: UserWithActivity;
 	onClose: () => void;

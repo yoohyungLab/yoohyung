@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { categoryService, type Category } from '../../shared/api/services/category.service';
+import { categoryService } from '@/shared/api/services/category.service';
+import type { Category } from '@repo/supabase';
 import { Button } from '@repo/ui';
 import { ArrowUpDown, X, GripVertical } from 'lucide-react';
 
