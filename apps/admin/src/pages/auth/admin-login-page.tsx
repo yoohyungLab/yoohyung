@@ -77,6 +77,7 @@ export function AdminLoginPage() {
 									onChange={(e) => handleInputChange('email', e.target.value)}
 									className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
 									placeholder="이메일을 입력하세요"
+									autoComplete="email"
 									required
 								/>
 							</div>
@@ -93,6 +94,7 @@ export function AdminLoginPage() {
 									onChange={(e) => handleInputChange('password', e.target.value)}
 									className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
 									placeholder="비밀번호를 입력하세요"
+									autoComplete="current-password"
 									required
 								/>
 								<button

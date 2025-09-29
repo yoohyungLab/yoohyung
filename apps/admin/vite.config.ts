@@ -6,6 +6,7 @@ export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 
 	return {
+		base: '/',
 		plugins: [react()],
 		css: {
 			postcss: './postcss.config.js',
@@ -19,6 +20,10 @@ export default defineConfig(({ mode }) => {
 		define: {
 			'process.env': JSON.stringify(env),
 			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
+		},
+		build: {
+			outDir: 'dist',
+			assetsDir: 'assets',
 		},
 	};
 });
