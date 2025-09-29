@@ -1,5 +1,6 @@
 // dashboardService.ts
 import { supabase } from '@repo/shared';
+import type { DashboardOverviewStats, TestDetailedStats, PopularTest } from '@repo/supabase';
 
 // 캐시를 위한 Map
 const cache = new Map<string, { data: unknown; timestamp: number }>();
@@ -18,28 +19,7 @@ const setCachedData = (key: string, data: unknown) => {
 	cache.set(key, { data, timestamp: Date.now() });
 };
 
-export interface DashboardStats {
-	totalTests: number;
-	publishedTests: number;
-	todayResponses: number;
-	weeklyResponses: number;
-	todayVisitors: number;
-	weeklyCompletionRate: number;
-	responseGrowth: number;
-	visitorGrowth: number;
-}
-
-export interface TopTest {
-	id: string;
-	title: string;
-	type: 'psychology' | 'quiz';
-	emoji: string;
-	todayResponses: number;
-	conversionRate: number;
-	trend: 'up' | 'down' | 'stable';
-	responseGrowth: number;
-}
-
+// TODO: Supabase에서 정의되지 않은 타입들 - 추후 RPC 함수로 대체 예정
 export interface DashboardAlert {
 	id: string;
 	type: 'error' | 'warning' | 'success';
@@ -50,52 +30,41 @@ export interface DashboardAlert {
 	createdAt: string;
 }
 
-export interface TestDetailStats {
-	totalResponses: number;
-	completedResponses: number;
-	completionRate: number;
-	averageTime?: number;
-	deviceBreakdown: {
-		mobile: number;
-		desktop: number;
-		tablet: number;
-	};
-}
-
 class DashboardService {
 	/**
 	 * 대시보드 핵심 통계 조회
 	 */
-	async getDashboardStats(): Promise<DashboardStats> {
+	async getDashboardStats(): Promise<DashboardOverviewStats> {
 		const cacheKey = 'dashboard_stats';
 		const cachedData = getCachedData(cacheKey);
 		if (cachedData) {
-			return cachedData as DashboardStats;
+			return cachedData as DashboardOverviewStats;
 		}
 
 		try {
-			const { data, error } = await supabase.rpc('get_dashboard_stats');
+			const { data, error } = await supabase.rpc('get_dashboard_overview_stats');
 
 			if (error) {
 				console.error('대시보드 통계 조회 실패:', error);
 				throw new Error('대시보드 통계를 불러올 수 없습니다.');
 			}
 
-			const result = data as DashboardStats;
+			const result = data as DashboardOverviewStats;
 			setCachedData(cacheKey, result);
 			return result;
 		} catch (error) {
 			console.error('Error in getDashboardStats:', error);
 			// 에러 발생 시 기본값 반환
 			return {
-				totalTests: 0,
-				publishedTests: 0,
-				todayResponses: 0,
-				weeklyResponses: 0,
-				todayVisitors: 0,
-				weeklyCompletionRate: 0,
-				responseGrowth: 0,
-				visitorGrowth: 0,
+				total: 0,
+				published: 0,
+				draft: 0,
+				scheduled: 0,
+				totalResponses: 0,
+				totalCompletions: 0,
+				completionRate: 0,
+				avgCompletionTime: 0,
+				anomalies: 0,
 			};
 		}
 	}
@@ -103,15 +72,15 @@ class DashboardService {
 	/**
 	 * 오늘의 인기 테스트 TOP N 조회
 	 */
-	async getTopTestsToday(limit: number = 3): Promise<TopTest[]> {
+	async getTopTestsToday(limit: number = 3): Promise<PopularTest[]> {
 		const cacheKey = `top_tests_${limit}`;
 		const cachedData = getCachedData(cacheKey);
 		if (cachedData) {
-			return cachedData as TopTest[];
+			return cachedData as PopularTest[];
 		}
 
 		try {
-			const { data, error } = await supabase.rpc('get_top_tests_today', {
+			const { data, error } = await supabase.rpc('get_popular_tests', {
 				limit_count: limit,
 			});
 
@@ -159,7 +128,7 @@ class DashboardService {
 	/**
 	 * 특정 테스트의 상세 통계
 	 */
-	async getTestDetailStats(testId: string): Promise<TestDetailStats> {
+	async getTestDetailStats(testId: string): Promise<TestDetailedStats> {
 		const { data, error } = await supabase.rpc('get_test_detailed_stats', {
 			test_uuid: testId,
 		});
@@ -169,15 +138,7 @@ class DashboardService {
 			throw new Error('테스트 통계를 불러올 수 없습니다.');
 		}
 
-		// 추가 통계 계산 (평균 시간, 디바이스 분석)
-		const deviceStats = await this.getDeviceBreakdown(testId);
-		const avgTime = await this.getAverageCompletionTime(testId);
-
-		return {
-			...data,
-			averageTime: avgTime,
-			deviceBreakdown: deviceStats,
-		};
+		return data as TestDetailedStats;
 	}
 
 	/**

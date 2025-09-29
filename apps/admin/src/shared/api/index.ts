@@ -9,9 +9,6 @@ export { dashboardService } from './services/dashboard.service';
 export { analyticsService } from './services/analytics.service';
 export { marketingService } from './services/marketing.service';
 
-// Types
-export * from './types';
-
 // Re-export service types for convenience
 export type * from './services/test.service';
 export type * from './services/feedback.service';

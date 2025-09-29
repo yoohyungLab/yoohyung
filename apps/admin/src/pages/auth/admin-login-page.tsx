@@ -50,7 +50,7 @@ export function AdminLoginPage() {
 	useEffect(() => {
 		setFormData({
 			email: 'admin@pickid.com',
-			password: 'string',
+			password: 'string12#',
 		});
 	}, []);
 

@@ -1,28 +1,32 @@
 import { supabase } from '@repo/shared';
-import type { Test, TestInsert, TestQuestionInsert, TestResultInsert, TestWithNestedDetails } from '@repo/supabase';
+import type {
+	Test,
+	TestInsert,
+	TestQuestionInsert,
+	TestResultInsert,
+	TestWithNestedDetails,
+	TestQuestion,
+	TestChoice,
+	TestResult,
+} from '@repo/supabase';
 
-// 테스트 생성용 타입들
-export interface QuestionCreationData {
-	question_text: string;
-	question_order: number;
-	image_url?: string | null;
+// 테스트 생성용 타입들 (Supabase 타입을 기반으로 함)
+export interface QuestionCreationData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
 	choices: ChoiceCreationData[];
 }
 
-export interface ChoiceCreationData {
-	choice_text: string;
-	choice_order: number;
-	score_value: number;
+export interface ChoiceCreationData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at'> {
+	score_value: number; // score 필드의 별칭
 }
 
-export interface ResultCreationData {
-	result_type: string;
-	result_title: string;
-	result_description: string;
-	result_image_url?: string | null;
-	score_min: number;
-	score_max: number;
-	order_index: number;
+export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
+	result_type: string; // 추가 필드
+	result_title: string; // result_name의 별칭
+	result_description: string; // description의 별칭
+	result_image_url?: string | null; // background_image_url의 별칭
+	score_min: number; // match_conditions에서 추출
+	score_max: number; // match_conditions에서 추출
+	order_index: number; // result_order의 별칭
 }
 
 export const testService = {

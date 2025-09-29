@@ -3,6 +3,7 @@ import type { Database } from './database';
 // 기본 타입들 정의
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
 
+// Admin에서만 사용하는 추가 타입들 (기본 타입들은 index.ts에서 export)
 export type Feedback = Tables<'feedbacks'>['Row'];
 export type User = Tables<'users'>['Row'];
 export type Test = Tables<'tests'>['Row'];

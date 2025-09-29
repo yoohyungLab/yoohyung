@@ -1,15 +1,6 @@
 import React from 'react';
 import { cn } from '@/shared/lib/utils';
-
-type FunnelDataItem = {
-	questionId: string;
-	question: string;
-	reached: number;
-	completed: number;
-	dropoff: number;
-	avgTime: number;
-	order: number;
-};
+import type { FunnelDataItem } from '@repo/supabase';
 
 interface FunnelDetailProps {
 	funnelData: FunnelDataItem[];

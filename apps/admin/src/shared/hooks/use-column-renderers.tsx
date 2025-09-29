@@ -1,9 +1,8 @@
-import React from 'react';
-import { Badge, IconButton, DefaultSelect } from '@repo/ui';
-import { Eye, Trash2, MessageSquare, Calendar, FileText, Pencil } from 'lucide-react';
-import { getUserStatusConfig, getProviderText, getUserStatusStyle, getUserStatusIcon } from '@/shared/lib/utils';
+import { FEEDBACK_STATUS_OPTIONS, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
+import { getProviderText, getUserStatusConfig } from '@/shared/lib/utils';
 import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
-import { TEST_STATUS_OPTIONS, FEEDBACK_STATUS_OPTIONS } from '@/shared/lib/constants';
+import { Badge, DefaultSelect, IconButton } from '@repo/ui';
+import { Calendar, Eye, FileText, MessageSquare, Pencil, Trash2 } from 'lucide-react';
 
 interface RenderOptions {
 	showAvatar?: boolean;

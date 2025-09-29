@@ -1,6 +1,5 @@
 import { supabase } from '@repo/shared';
-import type { Feedback } from '@repo/supabase';
-import type { FeedbackStats, AdminFeedbackResponse } from '@/shared/types';
+import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@repo/supabase';
 
 // Re-export types for convenience
 export type { AdminFeedbackResponse, FeedbackStats };

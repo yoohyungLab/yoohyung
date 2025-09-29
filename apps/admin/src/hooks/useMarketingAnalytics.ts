@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { marketingService, MarketingFilters, FunnelData, LandingPerformance } from '../shared/api';
+import { marketingService } from '../shared/api';
+import type { MarketingFilters, MarketingFunnel, LandingPerformance } from '@repo/supabase';
 
 export interface UseMarketingAnalyticsReturn {
 	// 데이터
-	funnelData: FunnelData | null;
+	funnelData: MarketingFunnel | null;
 	landingPerformance: LandingPerformance[];
 
 	// 필터 옵션

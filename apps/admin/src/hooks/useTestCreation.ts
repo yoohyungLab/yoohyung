@@ -1,28 +1,21 @@
 import { useState, useCallback } from 'react';
 import { testService } from '@/shared/api';
-import type { TestInsert, TestQuestionInsert, TestResultInsert } from '@repo/supabase';
+import type {
+	TestInsert,
+	TestQuestionInsert,
+	TestResultInsert,
+	TestQuestion,
+	TestChoice,
+	TestResult,
+} from '@repo/supabase';
 
-// 간단한 타입 정의
-interface QuestionData {
-	question_text: string;
-	question_order: number;
-	image_url: string | null;
-	choices: {
-		choice_text: string;
-		choice_order: number;
-		score: number;
-		is_correct: boolean;
-	}[];
+// 간단한 타입 정의 (Supabase 타입을 기반으로 함)
+interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
+	choices: Omit<TestChoice, 'id' | 'question_id' | 'created_at'>[];
 }
 
-interface ResultData {
-	result_name: string;
-	result_order: number;
-	description: string | null;
+interface ResultData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
 	match_conditions: { type: 'score'; min: number; max: number };
-	background_image_url: string | null;
-	theme_color: string;
-	features: Record<string, unknown>;
 }
 
 export const useTestCreation = () => {

@@ -1,19 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { testService } from '@/shared/api';
-import type { Test, TestWithDetails } from '@repo/supabase';
-
-interface TestFilters {
-	search: string;
-	status: 'all' | string;
-}
-
-interface TestStats {
-	total: number;
-	published: number;
-	draft: number;
-	scheduled: number;
-	responses: number;
-}
+import type { Test, TestWithDetails, TestFilters, TestStats } from '@repo/supabase';
 
 export const useTests = () => {
 	const [tests, setTests] = useState<Test[]>([]);

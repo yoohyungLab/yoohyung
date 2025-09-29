@@ -1,11 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { categoryService } from '@/shared/api';
-import type { Category } from '@repo/supabase';
-
-interface CategoryFilters {
-	search?: string;
-	status?: 'all' | 'active' | 'inactive';
-}
+import type { Category, CategoryFilters } from '@repo/supabase';
 
 interface CategoryStats {
 	total: number;

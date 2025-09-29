@@ -11,7 +11,7 @@ type Tables<T extends keyof Database['public']['Tables']> = Database['public']['
 // Export Tables type
 export type { Tables };
 
-// 편의 타입 정의
+// ===== 기본 테이블 타입들 (Supabase에서 자동 생성) =====
 export type Category = Tables<'categories'>['Row'];
 export type CategoryInsert = Tables<'categories'>['Insert'];
 export type CategoryUpdate = Tables<'categories'>['Update'];
@@ -52,13 +52,19 @@ export type Favorite = Tables<'favorites'>['Row'];
 export type FavoriteInsert = Tables<'favorites'>['Insert'];
 export type FavoriteUpdate = Tables<'favorites'>['Update'];
 
-// Enum 타입들 (실제 데이터에서 사용되는 값들)
+export type Upload = Tables<'uploads'>['Row'];
+export type UploadInsert = Tables<'uploads'>['Insert'];
+export type UploadUpdate = Tables<'uploads'>['Update'];
+
+// ===== Enum 타입들 (실제 데이터에서 사용되는 값들) =====
 export type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
 export type TestStatus = 'draft' | 'published' | 'scheduled' | 'archived';
 export type FeedbackStatus = 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
 export type UserStatus = 'active' | 'inactive' | 'deleted';
 
-// 확장 타입들 (Admin에서 사용)
+// ===== 확장 타입들 (Admin에서 사용) =====
+
+// Test 확장 타입들
 export interface TestWithDetails extends Test {
 	category?: Category;
 	questions?: TestQuestion[];
@@ -132,7 +138,13 @@ export interface UserActivityItem extends UserTestResponse {
 	result_type?: string;
 }
 
-// 필터링 인터페이스들
+// Feedback 확장 타입들
+export interface FeedbackWithStats extends Feedback {
+	reply_count?: number;
+	avg_rating?: number;
+}
+
+// ===== 필터링 인터페이스들 =====
 export interface UserFilters {
 	search?: string;
 	status?: 'all' | UserStatus;
@@ -159,7 +171,38 @@ export interface CategoryFilters {
 	status?: 'all' | 'active' | 'inactive';
 }
 
-// Analytics 관련 타입들
+// ===== 통계 타입들 =====
+export interface FeedbackStats {
+	total: number;
+	pending: number;
+	in_progress: number;
+	completed: number;
+	replied: number;
+	rejected: number;
+}
+
+export interface UserStats {
+	total: number;
+	active: number;
+	inactive: number;
+	deleted: number;
+	today: number;
+	this_week: number;
+	this_month: number;
+	email_signups: number;
+	google_signups: number;
+	kakao_signups: number;
+}
+
+export interface TestStats {
+	total: number;
+	published: number;
+	draft: number;
+	scheduled: number;
+	archived: number;
+}
+
+// ===== Analytics 관련 타입들 =====
 export interface AnalyticsFilters {
 	search?: string;
 	status?: 'all' | TestStatus;
@@ -174,25 +217,31 @@ export interface AnalyticsFilters {
 	days_back?: number;
 }
 
-export interface AnalyticsStats {
-	total: number;
-	published: number;
-	draft: number;
-	scheduled: number;
-	totalResponses: number;
-	totalCompletions: number;
-	completionRate: number;
-	avgCompletionTime: number;
-	anomalies: number;
-}
+// AnalyticsStats는 DashboardOverviewStats와 동일하므로 별도 정의 불필요
+export type AnalyticsStats = DashboardOverviewStats;
 
-// RPC 함수 반환 타입들 (Supabase에서 자동 생성된 타입 사용)
+// ===== RPC 함수 반환 타입들 (Supabase에서 자동 생성된 타입 사용) =====
 export type TestDetailedStats = Database['public']['Functions']['get_test_detailed_stats']['Returns'];
 export type DashboardOverviewStats = Database['public']['Functions']['get_dashboard_overview_stats']['Returns'];
 export type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];
 export type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
 export type UserResponseStats = Database['public']['Functions']['get_user_responses_stats']['Returns'];
 export type ExportData = Database['public']['Functions']['export_user_responses']['Returns'][0];
+
+// Marketing RPC 함수 반환 타입들
+export type MarketingFunnel = Database['public']['Functions']['get_marketing_funnel']['Returns'];
+export type ChannelPerformance = Database['public']['Functions']['get_channel_performance']['Returns'];
+export type LandingPerformance = Database['public']['Functions']['get_landing_performance']['Returns'];
+export type CohortAnalysis = Database['public']['Functions']['get_cohort_analysis']['Returns'];
+export type MarketingInsights = Database['public']['Functions']['get_marketing_insights']['Returns'];
+export type ExportMarketingData = Database['public']['Functions']['export_marketing_data']['Returns'];
+
+// Popular Tests RPC 함수 반환 타입
+export type PopularTest = Database['public']['Functions']['get_popular_tests']['Returns'][0];
+
+// Tests List RPC 함수 반환 타입들
+export type TestListItem = Database['public']['Functions']['get_tests_list']['Returns'][0];
+export type TestWithCategoriesItem = Database['public']['Functions']['get_tests_list_with_categories']['Returns'][0];
 
 // 차트 데이터는 클라이언트에서 변환하므로 별도 타입 정의
 export interface ResponseChartData {
@@ -206,14 +255,14 @@ export interface ResponseChartData {
 	}>;
 }
 
-// Export 타입들
+// ===== Export 타입들 =====
 export interface ExportFilters {
 	test_id?: string;
 	date_from?: string;
 	date_to?: string;
 }
 
-// 폼 데이터 인터페이스들
+// ===== 폼 데이터 인터페이스들 =====
 export interface FeedbackFormData
 	extends Omit<FeedbackInsert, 'id' | 'created_at' | 'updated_at' | 'status' | 'views'> {}
 
@@ -229,3 +278,29 @@ export interface TestQuestionFormData extends Omit<TestQuestionInsert, 'id' | 't
 export interface TestChoiceFormData extends Omit<TestChoiceInsert, 'id' | 'question_id' | 'created_at'> {}
 
 export interface TestResultFormData extends Omit<TestResultInsert, 'id' | 'test_id' | 'created_at' | 'updated_at'> {}
+
+// ===== Admin API 응답 타입들 =====
+export interface AdminFeedbackResponse {
+	feedbacks: Feedback[];
+	total: number;
+	totalPages: number;
+	currentPage: number;
+}
+
+export interface AdminUserResponse {
+	users: User[];
+	total: number;
+	totalPages: number;
+	currentPage: number;
+}
+
+// ===== UI 컴포넌트용 타입들 =====
+export interface FunnelDataItem {
+	questionId: string;
+	question: string;
+	reached: number;
+	completed: number;
+	dropoff: number;
+	avgTime: number;
+	order: number;
+}

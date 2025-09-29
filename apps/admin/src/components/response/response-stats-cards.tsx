@@ -1,16 +1,10 @@
 import React from 'react';
 import { User, Clock, Calendar, Monitor } from 'lucide-react';
 import { StatsCards } from '@/components/ui';
-
-interface ResponseStats {
-	total_responses: number;
-	completion_rate: number;
-	avg_completion_time: number;
-	mobile_ratio: number;
-}
+import type { UserResponseStats } from '@repo/supabase';
 
 interface ResponseStatsCardsProps {
-	stats: ResponseStats;
+	stats: UserResponseStats;
 }
 
 export function ResponseStatsCards({ stats }: ResponseStatsCardsProps) {

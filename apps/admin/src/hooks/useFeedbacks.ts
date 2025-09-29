@@ -1,18 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { feedbackService } from '@/shared/api';
-import type { Feedback, FeedbackFilters } from '@repo/supabase';
-
-interface FeedbackStats {
-	total: number;
-	pending: number;
-	in_progress: number;
-	completed: number;
-	replied: number;
-	rejected: number;
-	today: number;
-	this_week: number;
-	this_month: number;
-}
+import type { Feedback, FeedbackFilters, FeedbackStats } from '@repo/supabase';
 
 export const useFeedbacks = () => {
 	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);

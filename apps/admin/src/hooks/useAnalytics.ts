@@ -1,30 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { analyticsService } from '@/shared/api';
-import type { Test, DashboardOverviewStats } from '@repo/supabase';
+import type { Test, DashboardOverviewStats, AnalyticsFilters, AnalyticsStats } from '@repo/supabase';
 
 // 분석용 테스트 타입 (평균 소요시간 포함)
 type TestWithAnalytics = Test & {
 	avg_completion_time?: number;
 };
-
-interface AnalyticsFilters {
-	search?: string;
-	status?: 'all' | 'published' | 'draft' | 'scheduled';
-	category?: 'all' | 'personality' | 'career' | 'relationship';
-	timeRange?: 'today' | '7d' | '30d' | 'custom';
-}
-
-interface AnalyticsStats {
-	total: number;
-	published: number;
-	draft: number;
-	scheduled: number;
-	totalResponses: number;
-	totalCompletions: number;
-	completionRate: number;
-	avgCompletionTime: number;
-	anomalies: number;
-}
 
 export const useAnalytics = () => {
 	const [tests, setTests] = useState<TestWithAnalytics[]>([]);

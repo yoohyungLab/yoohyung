@@ -1,4 +1,4 @@
-import type { Test } from '@repo/supabase';
+import type { Test, TestStatus, TestType } from '@repo/supabase';
 
 // 프론트엔드에서 사용하는 BasicInfo 타입
 export interface BasicInfo
@@ -19,8 +19,8 @@ export interface BasicInfo
 	category_ids: string[]; // 프론트엔드에서 사용하는 복수형
 	short_code: string; // 프론트엔드에서 사용하는 필드
 	estimated_time?: number;
-	status?: 'draft' | 'published';
-	type?: string;
+	status?: TestStatus;
+	type?: TestType;
 	max_score?: number;
 	scheduled_at?: string | null;
 }

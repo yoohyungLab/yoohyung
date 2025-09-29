@@ -2,18 +2,10 @@ import { Card, CardContent, CardHeader, CardTitle, IconButton } from '@repo/ui';
 import { Link } from 'react-router-dom';
 import { BarChart3, FileText } from 'lucide-react';
 import { formatNumber } from '@/shared/lib/utils';
-
-interface Test {
-	id: string;
-	title: string;
-	emoji: string;
-	todayResponses: number;
-	conversionRate: number;
-	trend: string;
-}
+import type { PopularTest } from '@repo/supabase';
 
 interface PopularTestsCardProps {
-	topTests: Test[];
+	topTests: PopularTest[];
 	renderTrendIcon: (trend: string) => React.ReactNode;
 }
 
@@ -36,19 +28,19 @@ export function PopularTestsCard({ topTests, renderTrendIcon }: PopularTestsCard
 								<div className="flex items-center gap-4">
 									<span className="text-lg font-bold text-gray-600">#{index + 1}</span>
 									<div className="flex items-center gap-2">
-										<span className="text-lg">{test.emoji}</span>
+										<span className="text-lg">📊</span>
 										<div>
 											<p className="font-medium text-gray-900">{test.title}</p>
-											<p className="text-sm text-gray-500">오늘 {formatNumber(test.todayResponses)}명 응답</p>
+											<p className="text-sm text-gray-500">오늘 {formatNumber(test.response_count)}명 응답</p>
 										</div>
 									</div>
 								</div>
 								<div className="flex items-center gap-3">
 									<div className="text-right">
-										<p className="text-lg font-bold text-gray-900">{test.conversionRate}%</p>
-										<p className="text-xs text-gray-500">전환율</p>
+										<p className="text-lg font-bold text-gray-900">{test.view_count}</p>
+										<p className="text-xs text-gray-500">조회수</p>
 									</div>
-									{renderTrendIcon(test.trend)}
+									{renderTrendIcon('stable')}
 								</div>
 							</div>
 						))

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { UserResponsesService } from '@/shared/api/services/user-responses.service';
-import type { UserResponse, ResponseFilters, ResponseStats } from '@/shared/api/services/user-responses.service';
+import type { UserTestResponse, UserResponseStats } from '@repo/supabase';
 
 interface UserResponseFilters {
 	search?: string;
@@ -12,7 +12,7 @@ interface UserResponseFilters {
 }
 
 export const useUserResponses = () => {
-	const [responses, setResponses] = useState<UserResponse[]>([]);
+	const [responses, setResponses] = useState<UserTestResponse[]>([]);
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<UserResponseFilters>({
@@ -25,17 +25,18 @@ export const useUserResponses = () => {
 	});
 
 	// 통계 계산 (원본 데이터 기준)
-	const stats = useMemo((): ResponseStats => {
+	const stats = useMemo((): UserResponseStats => {
 		if (responses.length === 0) {
 			return {
 				total_responses: 0,
-				completed_responses: 0,
+				unique_users: 0,
 				completion_rate: 0,
 				avg_completion_time: 0,
-				mobile_count: 0,
-				desktop_count: 0,
-				mobile_ratio: 0,
-				stats_generated_at: new Date().toISOString(),
+				device_breakdown: {
+					mobile: 0,
+					desktop: 0,
+					tablet: 0,
+				},
 			};
 		}
 
@@ -45,13 +46,14 @@ export const useUserResponses = () => {
 
 		return {
 			total_responses: responses.length,
-			completed_responses: completed.length,
+			unique_users: new Set(responses.map((r) => r.user_id)).size,
 			completion_rate: responses.length > 0 ? (completed.length / responses.length) * 100 : 0,
 			avg_completion_time: completed.length > 0 ? totalTime / completed.length : 0,
-			mobile_count: mobile.length,
-			desktop_count: responses.length - mobile.length,
-			mobile_ratio: responses.length > 0 ? (mobile.length / responses.length) * 100 : 0,
-			stats_generated_at: new Date().toISOString(),
+			device_breakdown: {
+				mobile: mobile.length,
+				desktop: responses.length - mobile.length,
+				tablet: 0, // TODO: tablet 구분 로직 추가 필요
+			},
 		};
 	}, [responses]);
 

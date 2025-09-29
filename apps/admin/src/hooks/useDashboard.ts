@@ -1,11 +1,11 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { dashboardService } from '@/shared/api';
-import type { DashboardStats, TopTest, DashboardAlert, TestDetailStats } from '@/shared/api';
+import type { DashboardOverviewStats, TestDetailedStats, PopularTest } from '@repo/supabase';
 
 interface DashboardState {
-	stats: DashboardStats | null;
-	alerts: DashboardAlert[];
-	topTests: TopTest[];
+	stats: DashboardOverviewStats | null;
+	alerts: any[]; // TODO: DashboardAlert 타입 정의 필요
+	topTests: PopularTest[];
 	loading: boolean;
 	error: string | null;
 	lastUpdated: Date;
@@ -33,22 +33,23 @@ export const useDashboard = () => {
 	const computedStats = useMemo(() => {
 		if (!state.stats) {
 			return {
-				totalTests: 0,
-				publishedTests: 0,
-				todayResponses: 0,
-				weeklyResponses: 0,
-				todayVisitors: 0,
-				weeklyCompletionRate: 0,
-				responseGrowth: 0,
-				visitorGrowth: 0,
+				total: 0,
+				published: 0,
+				draft: 0,
+				scheduled: 0,
+				totalResponses: 0,
+				totalCompletions: 0,
+				completionRate: 0,
+				avgCompletionTime: 0,
+				anomalies: 0,
 			};
 		}
 
 		return {
 			...state.stats,
 			// 추가 계산된 통계들
-			responseGrowthRate: state.stats.responseGrowth > 0 ? '+' : state.stats.responseGrowth < 0 ? '-' : '=',
-			visitorGrowthRate: state.stats.visitorGrowth > 0 ? '+' : state.stats.visitorGrowth < 0 ? '-' : '=',
+			responseGrowthRate: state.stats.totalResponses > 0 ? '+' : state.stats.totalResponses < 0 ? '-' : '=',
+			visitorGrowthRate: state.stats.totalCompletions > 0 ? '+' : state.stats.totalCompletions < 0 ? '-' : '=',
 		};
 	}, [state.stats]);
 
@@ -112,12 +113,12 @@ export const useDashboard = () => {
 
 	// 인기 테스트 정렬
 	const getTopTestsByGrowth = useCallback(() => {
-		return [...state.topTests].sort((a, b) => b.responseGrowth - a.responseGrowth);
+		return [...state.topTests].sort((a, b) => b.response_count - a.response_count);
 	}, [state.topTests]);
 
 	// 인기 테스트 정렬 (응답수 기준)
 	const getTopTestsByResponses = useCallback(() => {
-		return [...state.topTests].sort((a, b) => b.todayResponses - a.todayResponses);
+		return [...state.topTests].sort((a, b) => b.response_count - a.response_count);
 	}, [state.topTests]);
 
 	// 초기 로딩
