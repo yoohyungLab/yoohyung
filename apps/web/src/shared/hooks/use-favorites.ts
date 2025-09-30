@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@repo/shared';
-import { useAuth } from '@/shared/lib/auth';
+import { useAuth } from '@/features/auth';
 
 interface FavoriteContentId {
 	content_id: string;

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { EGEN_TETO_QUESTIONS } from '@/shared/constants';
 import { trackTestStarted, trackTestCompleted } from '@/shared/lib/analytics';
 
@@ -144,7 +145,7 @@ export function EgenTetoTest() {
 							className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
 						>
 							<span className="text-2xl">🏠</span>
-							<span className="font-medium">TypologyLab</span>
+							<Image src="/icons/logo.svg" alt="픽키드" width={24} height={24} />
 						</button>
 						<div className="text-sm text-gray-500">
 							{currentQuestion + 1} / {EGEN_TETO_QUESTIONS.length}

@@ -81,7 +81,10 @@ export const userService = {
 		kakao_signups: number;
 	}> {
 		const { data, error } = await supabase.from('users').select('status, provider, created_at');
-		if (error) throw error;
+		if (error) {
+			console.error('getUserStats error:', error);
+			throw error;
+		}
 
 		const now = new Date();
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());

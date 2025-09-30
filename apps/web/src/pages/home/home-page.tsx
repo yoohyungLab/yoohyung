@@ -9,7 +9,7 @@ import {
 	DynamicTestsSection,
 	CategoryFilter,
 } from '@/features/home';
-import { testApi } from '../../api/test.api';
+import { testService } from '@/shared/api';
 import { MAIN_TESTS, POPULAR_TESTS } from '@/shared/constants';
 
 interface DynamicTest {
@@ -62,7 +62,7 @@ export default function HomePage() {
 			setLoading(true);
 
 			// 동적 테스트 로드
-			const tests = await testApi.getPublishedTests();
+			const tests = await testService.getPublishedTests();
 			setDynamicTests(tests);
 
 			// 섹션별 테스트 로드 (임시로 빈 배열 사용)
@@ -78,7 +78,6 @@ export default function HomePage() {
 			setLoading(false);
 		}
 	};
-
 	// 섹션 테스트를 카드 형식으로 변환
 	const convertSectionTestsToCards = (sectionTests: SectionTest[]) => {
 		return sectionTests.map((test) => ({
@@ -112,14 +111,14 @@ export default function HomePage() {
 			: MAIN_TESTS.slice(0, 6).map((test) => ({
 					...test,
 					tag: test.category ? String(test.category) : '테스트',
-				}));
+			  }));
 	const finalRecommendedTests =
 		recommendedTests.length > 0
 			? recommendedTests
 			: MAIN_TESTS.slice(1, 7).map((test) => ({
 					...test,
 					tag: test.category ? String(test.category) : '테스트',
-				}));
+			  }));
 	// const finalBalanceGameTests =
 	//     balanceGameTests.length > 0
 	//         ? balanceGameTests
@@ -133,7 +132,7 @@ export default function HomePage() {
 			: POPULAR_TESTS.map((test) => ({
 					...test,
 					tag: test.tag || '테스트',
-				}));
+			  }));
 
 	if (loading) {
 		return (
@@ -145,7 +144,7 @@ export default function HomePage() {
 			</main>
 		);
 	}
-
+	console.log(finalTrendingTests);
 	return (
 		<main className="space-y-5 px-4 pt-10 pb-24 max-w-4xl mx-auto">
 			{/* 메인 배너 영역 */}

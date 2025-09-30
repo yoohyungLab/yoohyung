@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import Image from 'next/image';
 import { ResultDetails, ResultComparisonSection, ResultCtaSection, ShareModal } from '@/entities/test-result';
 import { EGEN_TETO_RESULTS } from '@/shared/constants';
 import { TestResult } from '@/shared/types';
@@ -122,7 +123,7 @@ function ResultPageContent() {
 							className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
 						>
 							<span className="text-2xl">🏠</span>
-							<span className="font-medium">TypologyLab</span>
+							<Image src="/icons/logo.svg" alt="픽키드" width={24} height={24} />
 						</button>
 						<div className="flex items-center gap-3">
 							<button onClick={handleRestart} className="text-sm text-gray-600 hover:text-gray-900 transition-colors">

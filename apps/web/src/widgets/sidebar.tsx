@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Button, Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from '@repo/ui';
-import { useAuth } from '@/shared/lib/auth';
+import { useAuth } from '@/features/auth';
 import { supabase } from '@repo/shared';
 import {
 	Menu,
@@ -170,8 +170,8 @@ function Sidebar() {
 		<div className="sticky top-0 z-50 bg-white border-b border-gray-200 p-4">
 			<div className="flex items-center justify-between">
 				<Link href="/" className="flex items-center space-x-2">
-					<Image src="/icons/logo.svg" alt="로고" width={32} height={32} />
-					<span className="text-xl font-bold text-gray-900">유형연구소</span>
+					<Image src="/icons/logo.svg" alt="로고" width={60} height={60} />
+					{/* <span className="text-xl font-bold text-gray-900">유형연구소</span> */}
 				</Link>
 
 				<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>

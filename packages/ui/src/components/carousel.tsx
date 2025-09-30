@@ -1,9 +1,13 @@
+'use client';
+
 import * as React from 'react';
-import useEmblaCarousel from 'embla-carousel-react';
+import useEmblaCarousel, { type UseEmblaCarouselType } from 'embla-carousel-react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+
 import { cn } from '../lib/utils';
 import { Button } from './button';
 
-type CarouselApi = ReturnType<typeof useEmblaCarousel>[1];
+type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
 type CarouselOptions = UseCarouselParameters[0];
 type CarouselPlugin = UseCarouselParameters[1];
@@ -155,7 +159,7 @@ const CarouselItem = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLD
 				ref={ref}
 				role="group"
 				aria-roledescription="slide"
-				className={cn('min-w-0 shrink-0 grow-0 basis-full', orientation === 'horizontal' ? 'pl-4' : 'pt-4', className)}
+				className={cn('min-w-0 shrink-0 grow-0', orientation === 'horizontal' ? 'pl-4' : 'pt-4', className)}
 				{...props}
 			/>
 		);
@@ -172,31 +176,22 @@ const CarouselPrevious = React.forwardRef<HTMLButtonElement, React.ComponentProp
 				ref={ref}
 				variant={variant}
 				size={size}
+				type="button"
 				className={cn(
-					'absolute  h-8 w-8 rounded-full',
+					'absolute h-10 w-10 rounded-full z-10 shadow-md',
+					'disabled:opacity-50 disabled:cursor-not-allowed',
+					'bg-white hover:bg-gray-100 border-2 border-gray-200',
 					orientation === 'horizontal'
-						? '-left-12 top-1/2 -translate-y-1/2'
-						: '-top-12 left-1/2 -translate-x-1/2 rotate-90',
+						? 'left-2 top-1/2 -translate-y-1/2'
+						: 'top-2 left-1/2 -translate-x-1/2 rotate-90',
 					className
 				)}
 				disabled={!canScrollPrev}
 				onClick={scrollPrev}
+				aria-label="Previous slide"
 				{...props}
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				>
-					<path d="m15 18-6-6 6-6" />
-				</svg>
-				<span className="sr-only">Previous slide</span>
+				<ArrowLeft className="h-5 w-5 text-gray-700" />
 			</Button>
 		);
 	}
@@ -212,35 +207,26 @@ const CarouselNext = React.forwardRef<HTMLButtonElement, React.ComponentProps<ty
 				ref={ref}
 				variant={variant}
 				size={size}
+				type="button"
 				className={cn(
-					'absolute h-8 w-8 rounded-full',
+					'absolute h-10 w-10 rounded-full z-10 shadow-md',
+					'disabled:opacity-50 disabled:cursor-not-allowed',
+					'bg-white hover:bg-gray-100 border-2 border-gray-200',
 					orientation === 'horizontal'
-						? '-right-12 top-1/2 -translate-y-1/2'
-						: '-bottom-12 left-1/2 -translate-x-1/2 rotate-90',
+						? 'right-2 top-1/2 -translate-y-1/2'
+						: 'bottom-2 left-1/2 -translate-x-1/2 rotate-90',
 					className
 				)}
 				disabled={!canScrollNext}
 				onClick={scrollNext}
+				aria-label="Next slide"
 				{...props}
 			>
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-				>
-					<path d="m9 18 6-6-6-6" />
-				</svg>
-				<span className="sr-only">Next slide</span>
+				<ArrowRight className="h-5 w-5 text-gray-700" />
 			</Button>
 		);
 	}
 );
 CarouselNext.displayName = 'CarouselNext';
 
-export { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, type CarouselApi };
+export { type CarouselApi, Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious };

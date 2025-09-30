@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
 			allow: '/',
 			disallow: ['/api/', '/admin/', '/_next/', '/private/'],
 		},
-		sitemap: 'https://typologylab.com/sitemap.xml',
+		sitemap: 'https://pickid.com/sitemap.xml',
 	};
 }

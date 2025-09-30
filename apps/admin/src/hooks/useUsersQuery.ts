@@ -4,9 +4,9 @@ import { queryKeys } from '@/shared/lib/query-client';
 import type { User, UserFilters } from '@repo/supabase';
 
 // 사용자 목록 조회 쿼리
-export const useUsers = (filters: UserFilters = {}) => {
+export const useUsersQuery = (filters: UserFilters = {}) => {
 	return useQuery({
-		queryKey: queryKeys.users.list(filters),
+		queryKey: queryKeys.users.list(filters as Record<string, unknown>),
 		queryFn: () => userService.getUsers(),
 		select: (data) => {
 			// 클라이언트 사이드 필터링
@@ -151,8 +151,8 @@ export const useDeleteUser = () => {
 };
 
 // 기존 useUsers와 호환되는 훅 (점진적 마이그레이션용)
-export const useUsersLegacy = (filters: UserFilters = {}) => {
-	const usersQuery = useUsers(filters);
+export const useUsers = (filters: UserFilters = {}) => {
+	const usersQuery = useUsersQuery(filters);
 	const statsQuery = useUserStats();
 	const createUserMutation = useCreateUser();
 	const updateUserMutation = useUpdateUser();
@@ -178,7 +178,7 @@ export const useUsersLegacy = (filters: UserFilters = {}) => {
 		// 데이터
 		users: usersQuery.data || [],
 		loading: usersQuery.isLoading || statsQuery.isLoading,
-		error: usersQuery.error || statsQuery.error,
+		error: usersQuery.error?.message || statsQuery.error?.message || null,
 		filters,
 		stats,
 
@@ -193,9 +193,8 @@ export const useUsersLegacy = (filters: UserFilters = {}) => {
 		bulkUpdateStatus: bulkUpdateStatusMutation.mutateAsync,
 		deleteUser: deleteUserMutation.mutateAsync,
 		getUserById: async (id: string) => {
-			// 개별 사용자 조회는 별도 쿼리 사용
-			const userQuery = useUser(id);
-			return userQuery.data;
+			// 개별 사용자 조회는 서비스 직접 호출
+			return await userService.getUserById(id);
 		},
 		updateFilters: () => {
 			// 필터는 쿼리 키에 포함되어 자동으로 처리됨

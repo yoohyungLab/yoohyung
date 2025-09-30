@@ -1,5 +1,5 @@
 @import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
-@import '@side-project/ui/styles';
+@import '@repo/ui/styles';
 
 @tailwind base;
 @tailwind components;
@@ -52,22 +52,9 @@
 	}
 
 	html {
-		font-family:
-			var(--font-gowun-dodum),
-			'Pretendard',
-			-apple-system,
-			BlinkMacSystemFont,
-			system-ui,
-			Roboto,
-			'Helvetica Neue',
-			'Segoe UI',
-			'Apple SD Gothic Neo',
-			'Noto Sans KR',
-			'Malgun Gothic',
-			'Apple Color Emoji',
-			'Segoe UI Emoji',
-			'Segoe UI Symbol',
-			sans-serif;
+		font-family: var(--font-gowun-dodum), 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto,
+			'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji',
+			'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif;
 	}
 }
 

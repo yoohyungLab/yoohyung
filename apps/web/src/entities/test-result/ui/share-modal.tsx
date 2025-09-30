@@ -136,7 +136,7 @@ export function ShareModal({ isOpen, onClose, resultType, totalScore, title, des
 		// URL
 		ctx.fillStyle = '#9ca3af';
 		ctx.font = '20px Arial';
-		ctx.fillText('TypologyLab.com', canvas.width / 2, 450);
+		ctx.fillText('픽키드', canvas.width / 2, 450);
 
 		// 다운로드
 		const link = document.createElement('a');

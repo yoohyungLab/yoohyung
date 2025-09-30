@@ -21,5 +21,9 @@
 		"dotenv": "^17.2.2",
 		"supabase": "^2.40.7",
 		"turbo": "^2.0.0"
+	},
+	"dependencies": {
+		"embla-carousel-react": "^8.6.0",
+		"lucide-react": "^0.522.0"
 	}
 }

@@ -2,7 +2,7 @@ import { MetadataRoute } from 'next';
 import { MAIN_TESTS } from '@/shared/constants';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-	const baseUrl = 'https://typologylab.com';
+	const baseUrl = 'https://pickid.com';
 
 	// 정적 페이지들
 	const staticPages = [

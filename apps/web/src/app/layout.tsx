@@ -12,34 +12,34 @@ const gowunDodum = Gowun_Dodum({
 });
 
 export const metadata: Metadata = {
-	title: 'TypologyLab - 심리테스트 플랫폼',
+	title: '픽키드 - 심리테스트 플랫폼',
 	description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요. 에겐·테토 테스트부터 다양한 성격 분석까지.',
 	keywords: ['심리테스트', '성격분석', '에겐테토', 'MBTI', '자기계발'],
-	authors: [{ name: 'TypologyLab' }],
-	creator: 'TypologyLab',
-	publisher: 'TypologyLab',
+	authors: [{ name: '픽키드' }],
+	creator: '픽키드',
+	publisher: '픽키드',
 	formatDetection: {
 		email: false,
 		address: false,
 		telephone: false,
 	},
-	metadataBase: new URL('https://typologylab.com'),
+	metadataBase: new URL('https://pickid.com'),
 	alternates: {
 		canonical: '/',
 	},
 	openGraph: {
 		type: 'website',
 		locale: 'ko_KR',
-		url: 'https://typologylab.com',
-		title: 'TypologyLab - 심리테스트 플랫폼',
+		url: 'https://pickid.com',
+		title: '픽키드 - 심리테스트 플랫폼',
 		description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요.',
-		siteName: 'TypologyLab',
+		siteName: '픽키드',
 	},
 	twitter: {
 		card: 'summary_large_image',
-		title: 'TypologyLab - 심리테스트 플랫폼',
+		title: '픽키드 - 심리테스트 플랫폼',
 		description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요.',
-		creator: '@typologylab',
+		creator: '@pickid',
 	},
 	robots: {
 		index: true,

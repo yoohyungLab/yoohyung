@@ -2,8 +2,8 @@
 import { redirect } from 'next/navigation';
 import { supabase } from '@repo/shared';
 
-export default async function TestPage({ params }: { params: { shortCode: string } }) {
-	const { shortCode } = params;
+export default async function TestPage({ params }: { params: Promise<{ shortCode: string }> }) {
+	const { shortCode } = await params;
 
 	// shortCode로 테스트 찾기
 	const { data: test } = await supabase.from('tests').select('*').eq('short_code', shortCode).single();
@@ -17,7 +17,7 @@ export default async function TestPage({ params }: { params: { shortCode: string
 	const currentUrl = `/t/${shortCode}`;
 
 	if (currentUrl !== canonicalUrl) {
-		redirect(canonicalUrl, 301);
+		redirect(canonicalUrl);
 	}
 
 	// 테스트 페이지 렌더링

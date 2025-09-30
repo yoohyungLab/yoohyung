@@ -11,8 +11,8 @@ export interface TestResultData {
 	created_at?: string;
 }
 
-// 공통 API 함수들
-export const testApi = {
+// Test Service - API 호출만 담당
+export const testService = {
 	// 공개된 모든 테스트 조회
 	async getPublishedTests() {
 		const { data, error } = await supabase
@@ -121,38 +121,20 @@ export const testApi = {
 		if (error && error.code !== 'PGRST116') throw error; // PGRST116는 데이터가 없을 때
 		return data;
 	},
-};
 
-// 결과 저장 함수
-export const saveTestResult = async (data: TestResultInsert): Promise<TestResult> => {
-	try {
+	// 결과 저장
+	async saveTestResult(data: TestResultInsert): Promise<TestResult> {
 		const { data: result, error } = await supabase.from('test_results').insert([data]).select().single();
 
-		if (error) {
-			console.error('Error saving test result:', error);
-			throw error;
-		}
-
+		if (error) throw error;
 		return result;
-	} catch (error) {
-		console.error('Failed to save test result:', error);
-		throw error;
-	}
-};
+	},
 
-// 결과 조회 함수
-export const getTestResults = async (): Promise<TestResult[]> => {
-	try {
+	// 결과 조회
+	async getTestResults(): Promise<TestResult[]> {
 		const { data, error } = await supabase.from('test_results').select('*').order('created_at', { ascending: false });
 
-		if (error) {
-			console.error('Error fetching test results:', error);
-			throw error;
-		}
-
+		if (error) throw error;
 		return data || [];
-	} catch (error) {
-		console.error('Failed to fetch test results:', error);
-		throw error;
-	}
+	},
 };

@@ -8,7 +8,7 @@ export { useFeedbacks } from './useFeedbacks';
 export { useTestCreation } from './useTestCreation';
 export { useTests } from './useTests';
 export { useUserResponses } from './useUserResponses';
-export { useUsers } from './useUsers';
+// useUsers는 useUsersQuery.ts에서 export됨
 
 // React Query 기반 훅들 (최적화된 버전)
 // TODO: 왜 있어야 하는건지?
@@ -29,7 +29,8 @@ export {
 } from './useAnalyticsQuery';
 
 export {
-	useUsers as useUsersQuery,
+	useUsers,
+	useUsersQuery,
 	useUser,
 	useUserStats,
 	useCreateUser,
@@ -37,5 +38,4 @@ export {
 	useUpdateUserStatus,
 	useBulkUpdateUserStatus,
 	useDeleteUser,
-	useUsersLegacy,
 } from './useUsersQuery';
