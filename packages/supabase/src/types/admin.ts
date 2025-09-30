@@ -1,13 +1,18 @@
 import type { Database } from './database';
+import type {
+	Feedback,
+	User,
+	Test,
+	Category,
+	TestType,
+	TestStatus,
+	FeedbackStatus,
+	UserStatus,
+	CategoryStatus,
+} from './index';
 
 // 기본 타입들 정의
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
-
-// Admin에서만 사용하는 추가 타입들 (기본 타입들은 index.ts에서 export)
-export type Feedback = Tables<'feedbacks'>['Row'];
-export type User = Tables<'users'>['Row'];
-export type Test = Tables<'tests'>['Row'];
-export type Category = Tables<'categories'>['Row'];
 
 // 통계 타입들
 export interface FeedbackStats {
@@ -40,10 +45,16 @@ export interface TestStats {
 	archived: number;
 }
 
+export interface CategoryStats {
+	total: number;
+	active: number;
+	inactive: number;
+}
+
 // 필터 타입들
 export interface FeedbackFilters {
 	search?: string;
-	status?: 'all' | 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
+	status?: 'all' | FeedbackStatus;
 	category?: string;
 	page?: number;
 	pageSize?: number;
@@ -51,20 +62,20 @@ export interface FeedbackFilters {
 
 export interface UserFilters {
 	search?: string;
-	status?: 'all' | 'active' | 'inactive' | 'deleted';
+	status?: 'all' | UserStatus;
 	provider?: 'all' | 'email' | 'google' | 'kakao';
 }
 
 export interface TestFilters {
 	search?: string;
-	status?: 'all' | 'draft' | 'published' | 'scheduled' | 'archived';
-	type?: 'all' | 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
+	status?: 'all' | TestStatus;
+	type?: 'all' | TestType;
 	category?: 'all' | string;
 }
 
 export interface CategoryFilters {
 	search?: string;
-	status?: 'all' | 'active' | 'inactive';
+	status?: 'all' | CategoryStatus;
 }
 
 // Admin API 응답 타입들

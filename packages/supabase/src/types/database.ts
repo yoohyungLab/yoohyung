@@ -48,7 +48,7 @@ export type Database = {
 					description: string | null;
 					icon_url: string | null;
 					id: string;
-					is_active: boolean | null;
+					status: Database['public']['Enums']['category_status'];
 					name: string;
 					slug: string;
 					sort_order: number | null;
@@ -61,7 +61,7 @@ export type Database = {
 					description?: string | null;
 					icon_url?: string | null;
 					id?: string;
-					is_active?: boolean | null;
+					status?: Database['public']['Enums']['category_status'];
 					name: string;
 					slug: string;
 					sort_order?: number | null;
@@ -74,7 +74,7 @@ export type Database = {
 					description?: string | null;
 					icon_url?: string | null;
 					id?: string;
-					is_active?: boolean | null;
+					status?: Database['public']['Enums']['category_status'];
 					name?: string;
 					slug?: string;
 					sort_order?: number | null;
@@ -846,7 +846,11 @@ export type Database = {
 			};
 		};
 		Enums: {
-			[_ in never]: never;
+			test_type: 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
+			test_status: 'draft' | 'published' | 'scheduled' | 'archived';
+			feedback_status: 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
+			user_status: 'active' | 'inactive' | 'deleted';
+			category_status: 'active' | 'inactive';
 		};
 		CompositeTypes: {
 			[_ in never]: never;

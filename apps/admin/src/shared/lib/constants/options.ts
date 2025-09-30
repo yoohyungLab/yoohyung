@@ -66,33 +66,43 @@ export const FILTER_CATEGORY_STATUS_OPTIONS = [
 
 // ===== 테스트 관련 =====
 export const TEST_STATUS_OPTIONS = [
-	{ value: 'published', label: '공개' },
-	{ value: 'draft', label: '비공개' },
+	{ value: 'draft', label: '초안' },
+	{ value: 'published', label: '게시됨' },
+	{ value: 'scheduled', label: '예약됨' },
+	{ value: 'archived', label: '보관됨' },
 ] as const;
 
 export const TEST_TYPE_OPTIONS = [
-	{ value: 'personality', label: '성격 테스트' },
-	{ value: 'preference', label: '선호도 테스트' },
-	{ value: 'knowledge', label: '지식 테스트' },
-	{ value: 'skill', label: '기술 테스트' },
+	{ value: 'psychology', label: '심리형' },
+	{ value: 'balance', label: '밸런스형' },
+	{ value: 'character', label: '캐릭터 매칭형' },
+	{ value: 'quiz', label: '퀴즈형' },
+	{ value: 'meme', label: '밈형' },
+	{ value: 'lifestyle', label: '라이프스타일형' },
 ] as const;
 
 // 테스트 라벨과 색상
 export const TEST_STATUS_LABELS = {
-	published: '공개',
-	draft: '비공개',
+	draft: '초안',
+	published: '게시됨',
+	scheduled: '예약됨',
+	archived: '보관됨',
 } as const;
 
 export const TEST_TYPE_LABELS = {
-	personality: '성격 테스트',
-	preference: '선호도 테스트',
-	knowledge: '지식 테스트',
-	skill: '기술 테스트',
+	psychology: '심리형',
+	balance: '밸런스형',
+	character: '캐릭터 매칭형',
+	quiz: '퀴즈형',
+	meme: '밈형',
+	lifestyle: '라이프스타일형',
 } as const;
 
 export const TEST_STATUS_COLORS = {
-	published: 'bg-emerald-500 text-white',
 	draft: 'bg-amber-500 text-white',
+	published: 'bg-emerald-500 text-white',
+	scheduled: 'bg-blue-500 text-white',
+	archived: 'bg-gray-500 text-white',
 } as const;
 
 // 테스트 필터용 (전체 옵션 포함)
@@ -169,10 +179,5 @@ export const SEARCH_PLACEHOLDERS = {
 } as const;
 
 // ===== 타입 정의 =====
-export type UserStatus = (typeof USER_STATUS_OPTIONS)[number]['value'];
 export type UserProvider = (typeof USER_PROVIDER_OPTIONS)[number]['value'];
-export type CategoryStatus = (typeof CATEGORY_STATUS_OPTIONS)[number]['value'];
-export type TestStatus = (typeof TEST_STATUS_OPTIONS)[number]['value'];
-export type TestType = (typeof TEST_TYPE_OPTIONS)[number]['value'];
-export type FeedbackStatus = (typeof FEEDBACK_STATUS_OPTIONS)[number]['value'];
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORY_OPTIONS)[number]['value'];

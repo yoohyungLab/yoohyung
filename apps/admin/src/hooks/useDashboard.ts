@@ -1,10 +1,10 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
 import { dashboardService } from '@/shared/api';
-import type { DashboardOverviewStats, TestDetailedStats, PopularTest } from '@repo/supabase';
+import type { PopularTest } from '@/shared/api/services/dashboard.service';
+import type { DashboardOverviewStats } from '@repo/supabase';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface DashboardState {
 	stats: DashboardOverviewStats | null;
-	alerts: any[]; // TODO: DashboardAlert 타입 정의 필요
 	topTests: PopularTest[];
 	loading: boolean;
 	error: string | null;
@@ -20,7 +20,6 @@ interface RealtimeStats {
 export const useDashboard = () => {
 	const [state, setState] = useState<DashboardState>({
 		stats: null,
-		alerts: [],
 		topTests: [],
 		loading: false,
 		error: null,
@@ -33,23 +32,29 @@ export const useDashboard = () => {
 	const computedStats = useMemo(() => {
 		if (!state.stats) {
 			return {
-				total: 0,
-				published: 0,
-				draft: 0,
-				scheduled: 0,
-				totalResponses: 0,
-				totalCompletions: 0,
-				completionRate: 0,
-				avgCompletionTime: 0,
-				anomalies: 0,
+				totalTests: 0,
+				publishedTests: 0,
+				draftTests: 0,
+				scheduledTests: 0,
+				todayResponses: 0,
+				todayVisitors: 0,
+				weeklyCompletionRate: 0,
+				responseGrowth: 'up' as const,
+				visitorGrowth: 'up' as const,
 			};
 		}
 
 		return {
-			...state.stats,
-			// 추가 계산된 통계들
-			responseGrowthRate: state.stats.totalResponses > 0 ? '+' : state.stats.totalResponses < 0 ? '-' : '=',
-			visitorGrowthRate: state.stats.totalCompletions > 0 ? '+' : state.stats.totalCompletions < 0 ? '-' : '=',
+			// 대시보드 페이지에서 사용하는 필드명으로 매핑
+			totalTests: state.stats.total,
+			publishedTests: state.stats.published,
+			draftTests: state.stats.draft,
+			scheduledTests: state.stats.scheduled,
+			todayResponses: state.stats.totalResponses,
+			todayVisitors: state.stats.totalCompletions,
+			weeklyCompletionRate: state.stats.completionRate,
+			responseGrowth: state.stats.totalResponses > 0 ? ('up' as const) : ('down' as const),
+			visitorGrowth: state.stats.totalCompletions > 0 ? ('up' as const) : ('down' as const),
 		};
 	}, [state.stats]);
 
@@ -58,17 +63,16 @@ export const useDashboard = () => {
 		setState((prev) => ({ ...prev, loading: true, error: null }));
 
 		try {
-			const [stats, alerts, topTests] = await Promise.all([
+			const [stats, topTests] = await Promise.all([
 				dashboardService.getDashboardStats(),
-				dashboardService.getDashboardAlerts(),
 				dashboardService.getTopTestsToday(3),
 			]);
 
 			setState((prev) => ({
 				...prev,
 				stats,
-				alerts,
 				topTests,
+				alerts: [], // 빈 배열로 설정
 				loading: false,
 				lastUpdated: new Date(),
 			}));
@@ -103,14 +107,6 @@ export const useDashboard = () => {
 		}
 	}, []);
 
-	// 알림 필터링
-	const getAlertsByType = useCallback(
-		(type: 'error' | 'warning' | 'success') => {
-			return state.alerts.filter((alert) => alert.type === type);
-		},
-		[state.alerts]
-	);
-
 	// 인기 테스트 정렬
 	const getTopTestsByGrowth = useCallback(() => {
 		return [...state.topTests].sort((a, b) => b.response_count - a.response_count);
@@ -139,7 +135,6 @@ export const useDashboard = () => {
 	return {
 		// 상태
 		stats: computedStats,
-		alerts: state.alerts,
 		topTests: state.topTests,
 		realtimeStats,
 		loading: state.loading,
@@ -152,7 +147,6 @@ export const useDashboard = () => {
 		loadTestDetailStats,
 
 		// 유틸리티 함수들
-		getAlertsByType,
 		getTopTestsByGrowth,
 		getTopTestsByResponses,
 	};

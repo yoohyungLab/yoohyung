@@ -6,7 +6,7 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { KPICard, AlertCard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
 
 export function SimplifiedDashboard() {
-	const { stats, alerts, topTests, realtimeStats, loading, error, lastUpdated } = useDashboard();
+	const { stats, topTests, realtimeStats, loading, error, lastUpdated } = useDashboard();
 
 	// 트렌드 아이콘 렌더링 함수
 	const renderTrendIcon = (trend: string) => {
@@ -84,27 +84,6 @@ export function SimplifiedDashboard() {
 					subtitle="이번 주 평균"
 				/>
 			</div>
-
-			{/* 알림 영역 (간소화) */}
-			{alerts.length > 0 ? (
-				<div className="space-y-3">
-					{alerts.map((alert) => (
-						<AlertCard key={alert.id} alert={alert} />
-					))}
-				</div>
-			) : (
-				<Card className="border-l-4 border-l-green-500 bg-green-50">
-					<CardContent className="p-4">
-						<div className="flex items-center gap-3">
-							<span className="text-lg">✅</span>
-							<div>
-								<p className="font-medium text-gray-900">모든 시스템 정상</p>
-								<p className="text-sm text-gray-600">현재 특별한 알림이 없습니다.</p>
-							</div>
-						</div>
-					</CardContent>
-				</Card>
-			)}
 
 			{/* 실시간 통계 (새로 추가) */}
 			{realtimeStats && (

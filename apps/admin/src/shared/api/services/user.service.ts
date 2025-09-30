@@ -101,4 +101,69 @@ export const userService = {
 			kakao_signups: data?.filter((u: User) => u.provider === 'kakao').length || 0,
 		};
 	},
+
+	// 사용자 활동 조회
+	async getUserActivity(userId: string) {
+		const { data, error } = await supabase
+			.from('user_test_responses')
+			.select(
+				`
+				id,
+				test_id,
+				started_at,
+				completed_at,
+				duration_sec,
+				result_type,
+				status,
+				tests!inner(
+					id,
+					title,
+					emoji
+				)
+			`
+			)
+			.eq('user_id', userId)
+			.order('started_at', { ascending: false });
+
+		if (error) throw error;
+
+		return (data || []).map(
+			(item: {
+				id: string;
+				test_id: string;
+				started_at: string;
+				completed_at: string | null;
+				duration_sec: number | null;
+				result_type: string | null;
+				status: string | null;
+				tests: {
+					id: string;
+					title: string;
+					emoji: string | null;
+				} | null;
+			}) => ({
+				id: item.id,
+				test_id: item.test_id,
+				test_title: item.tests?.title || 'Unknown Test',
+				test_emoji: item.tests?.emoji || '📝',
+				started_at: item.started_at,
+				completed_at: item.completed_at,
+				duration_sec: item.duration_sec,
+				result_type: item.result_type,
+				status: item.status || 'pending',
+			})
+		);
+	},
+
+	// 사용자 피드백 조회
+	async getUserFeedbacks(userId: string) {
+		const { data, error } = await supabase
+			.from('feedbacks')
+			.select('*')
+			.eq('user_id', userId)
+			.order('created_at', { ascending: false });
+
+		if (error) throw error;
+		return data || [];
+	},
 };

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { formatNumber, formatGrowth, getGrowthColor } from '@/shared/lib/utils';
+import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon, getKPIColorClasses } from '@/shared/lib/utils';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 
 type ColorVariant = 'blue' | 'green' | 'purple' | 'orange';
@@ -10,7 +10,7 @@ interface KPICardProps {
 	icon: ReactNode;
 	color: ColorVariant;
 	subtitle?: string;
-	growth?: number;
+	growth?: number | string;
 	growthLabel?: string;
 	showGrowth?: boolean;
 }
@@ -25,39 +25,7 @@ export function KPICard({
 	growthLabel = '전주 대비',
 	showGrowth = false,
 }: KPICardProps) {
-	const getGrowthIcon = (growth: number) => {
-		if (growth > 0) return '↗️';
-		if (growth < 0) return '↘️';
-		return '→';
-	};
-
-	const getColorClasses = (color: ColorVariant) => {
-		const colorMap = {
-			blue: {
-				border: 'border-l-blue-500',
-				value: 'text-blue-600',
-				icon: 'text-blue-500',
-			},
-			green: {
-				border: 'border-l-green-500',
-				value: 'text-green-600',
-				icon: 'text-green-500',
-			},
-			purple: {
-				border: 'border-l-purple-500',
-				value: 'text-purple-600',
-				icon: 'text-purple-500',
-			},
-			orange: {
-				border: 'border-l-orange-500',
-				value: 'text-orange-600',
-				icon: 'text-orange-500',
-			},
-		};
-		return colorMap[color];
-	};
-
-	const colorClasses = getColorClasses(color);
+	const colorClasses = getKPIColorClasses(color);
 
 	return (
 		<AdminCard className={`border-l-4 ${colorClasses.border}`} padding="lg">

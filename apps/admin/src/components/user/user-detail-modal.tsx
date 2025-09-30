@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, IconBadge, IconButton } from '@repo/ui';
 import { userService } from '@/shared/api';
 import type { UserWithActivity, UserActivityItem, Feedback } from '@repo/supabase';
-import { getUserStatusConfig, getProviderText, getStatusIcon, formatDate, getDaysSinceJoin } from '@/shared/lib';
+import { getStatusConfig, formatDate, getDaysSinceJoin, getLabelText } from '@/shared/lib';
 import { formatDuration } from '@repo/shared';
 import { X, User, Mail, Calendar, Activity, MessageSquare, Clock, Target, TrendingUp, Hash, Users } from 'lucide-react';
 import { EmptyState, LoadingState } from '@/components/ui';
@@ -42,7 +42,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 	}, [loadActivities]);
 
 	const getStatusBadge = (status: string) => {
-		const statusConfig = getUserStatusConfig(status);
+		const statusConfig = getStatusConfig('profile', status);
 		return <Badge className={statusConfig.color}>{statusConfig.text}</Badge>;
 	};
 
@@ -92,14 +92,14 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 
 								<div className="flex items-center gap-3 mb-3">
 									<IconBadge
-										icon={getStatusIcon(user.status || 'active')}
-										text={getUserStatusConfig(user.status || 'active').text}
+										icon={getStatusConfig('profile', user.status || 'active').icon || '👤'}
+										text={getStatusConfig('profile', user.status || 'active').text}
 										variant="outline"
 										className="bg-white/80"
 									/>
 									<IconBadge
 										icon={<Mail className="w-3 h-3" />}
-										text={getProviderText(user.provider || 'email')}
+										text={getLabelText('provider', user.provider || 'email')}
 										variant="outline"
 										className="bg-white/80"
 									/>

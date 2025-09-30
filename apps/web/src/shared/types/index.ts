@@ -12,16 +12,8 @@ export type Gender = 'male' | 'female';
 // [공통 타입들]
 // =========================
 
-// 테스트 관련 타입
-export interface Test {
-	id: string;
-	title: string;
-	description: string;
-	image: string;
-	color: string;
-	category: number;
-	tags: string[];
-}
+// Supabase에서 가져온 타입들 re-export
+export type { Test, User, Feedback } from '@repo/supabase';
 
 // 결과 관련 타입
 export interface TestResultData {
@@ -30,19 +22,6 @@ export interface TestResultData {
 	characteristics: string[];
 	emoji: string;
 }
-
-// 사용자 관련 타입
-export interface User {
-	id: string;
-	name: string;
-	email: string;
-	username: string;
-	createdAt: string;
-	updatedAt: string;
-}
-
-// 피드백 관련 타입은 packages/supabase/types에서 가져옴
-export type { Feedback } from '@repo/supabase/types';
 
 // API 응답 타입
 export interface ApiResponse<T = unknown> {

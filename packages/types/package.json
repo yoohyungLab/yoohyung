@@ -11,6 +11,9 @@
 	"scripts": {
 		"build": "tsc -p tsconfig.json"
 	},
+	"dependencies": {
+		"@repo/supabase": "workspace:*"
+	},
 	"devDependencies": {
 		"typescript": "^5.7.2"
 	}

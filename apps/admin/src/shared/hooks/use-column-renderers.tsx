@@ -1,5 +1,5 @@
 import { FEEDBACK_STATUS_OPTIONS, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
-import { getProviderText, getUserStatusConfig } from '@/shared/lib/utils';
+import { getLabelText, getStatusConfig } from '@/shared/lib/utils';
 import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
 import { Badge, DefaultSelect, IconButton } from '@repo/ui';
 import { Calendar, Eye, FileText, MessageSquare, Pencil, Trash2 } from 'lucide-react';
@@ -39,12 +39,12 @@ export function useColumnRenderers() {
 
 	// 가입경로 렌더링
 	const renderProvider = (provider: string) => {
-		return <span className="text-sm text-gray-900">{getProviderText(provider)}</span>;
+		return <span className="text-sm text-gray-900">{getLabelText('provider', provider)}</span>;
 	};
 
 	// 상태 렌더링 (Badge)
 	const renderStatus = (status: string) => {
-		const statusConfig = getUserStatusConfig(status);
+		const statusConfig = getStatusConfig('profile', status);
 		return <Badge className={`${statusConfig.color}`}>{statusConfig.text}</Badge>;
 	};
 
