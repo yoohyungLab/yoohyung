@@ -25,7 +25,7 @@ export function DefaultInput({ className, label, required, error, helperText, id
 				{...props}
 			/>
 			{error && <p className="text-sm text-red-500">{error}</p>}
-			{helperText && !error && <p className="text-sm text-gray-500">{helperText}</p>}
+			{helperText && !error && <p className="text-xs text-gray-500">{helperText}</p>}
 		</div>
 	);
 }

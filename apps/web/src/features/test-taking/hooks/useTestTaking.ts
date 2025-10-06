@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 import { testService } from '@/shared/api';
-import type { TestResultData } from '@/shared/api';
+import type { TestResponseData } from '@/shared/api';
 import type { TestResultInsert } from '@repo/supabase';
 
 export function useTestTaking() {
@@ -8,12 +8,12 @@ export function useTestTaking() {
 	const [error, setError] = useState<string | null>(null);
 
 	// 테스트 결과 저장
-	const saveTestResult = useCallback(async (data: TestResultData) => {
+	const saveTestResult = useCallback(async (data: TestResponseData) => {
 		try {
 			setIsLoading(true);
 			setError(null);
 
-			// TestResultData를 TestResultInsert로 변환
+			// TestResponseData를 TestResultInsert로 변환
 			const testResultInsert: TestResultInsert = {
 				result_name: data.result,
 				result_order: 1, // 기본값

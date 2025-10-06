@@ -1,5 +1,6 @@
+import type { EgenTetoResult, Gender } from '@/shared/types';
+
 // ✅ 새 타입
-export type Gender = 'male' | 'female';
 export type Dominant = 'egen' | 'teto' | 'mix';
 
 // ✅ 에겐/테토 우세 판단
@@ -116,7 +117,7 @@ export function getCompatibility(score: number): string[] {
 }
 
 // 점수 범위별 결과 타입 반환
-export function getResultType(score: number): 'egen-male' | 'egen-female' | 'teto-male' | 'teto-female' | 'mixed' {
+export function getResultType(score: number): EgenTetoResult {
 	// 이 함수는 실제 테스트 로직에 따라 수정해야 합니다
 	if (score >= 70) return 'egen-male';
 	if (score >= 50) return 'egen-female';

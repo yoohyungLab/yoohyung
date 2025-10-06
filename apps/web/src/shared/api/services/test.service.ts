@@ -1,11 +1,12 @@
 import { supabase } from '@repo/shared';
 import type { TestResult, TestResultInsert, UserTestResponse } from '@repo/supabase';
+import type { EgenTetoResult, Gender } from '@/shared/types';
 
-// 테스트 결과 데이터 타입 (UI에서 사용)
-export interface TestResultData {
+// 테스트 응답 데이터 타입 (API에서 사용)
+export interface TestResponseData {
 	id?: string;
-	gender: 'male' | 'female';
-	result: 'egen-male' | 'egen-female' | 'teto-male' | 'teto-female' | 'mixed';
+	gender: Gender;
+	result: EgenTetoResult;
 	score: number;
 	answers: number[];
 	created_at?: string;
@@ -13,21 +14,26 @@ export interface TestResultData {
 
 // Test Service - API 호출만 담당
 export const testService = {
-	// 공개된 모든 테스트 조회
+	// 공개된 모든 테스트 조회 (카테고리 정보 포함)
 	async getPublishedTests() {
 		const { data, error } = await supabase
 			.from('tests')
 			.select(
 				`
-                *,
-                questions:questions(
-                    *,
-                    question_options:question_options(*)
-                ),
-                test_results:test_results(*)
-            `
+				id,
+				title,
+				description,
+				slug,
+				thumbnail_url,
+				view_count,
+				response_count,
+				category_ids,
+				estimated_time,
+				created_at,
+				published_at
+			`
 			)
-			.eq('is_published', true)
+			.eq('status', 'published')
 			.order('created_at', { ascending: false });
 
 		if (error) throw error;
@@ -38,18 +44,9 @@ export const testService = {
 	async getTestBySlug(slug: string) {
 		const { data, error } = await supabase
 			.from('tests')
-			.select(
-				`
-                *,
-                questions:questions(
-                    *,
-                    question_options:question_options(*)
-                ),
-                test_results:test_results(*)
-            `
-			)
+			.select('*')
 			.eq('slug', slug)
-			.eq('is_published', true)
+			.eq('status', 'published')
 			.single();
 
 		if (error) throw error;

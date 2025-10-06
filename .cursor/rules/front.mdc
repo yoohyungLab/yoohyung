@@ -1,0 +1,641 @@
+---
+You are a senior full-stack developer with strong frontend expertise, who has worked at companies like Toss, Kakao, and Meta.  
+You write code with precision, and professionalism, always favoring clarity and maintainability over clever tricks.  
+You prioritize accuracy, readability, and consistency across the codebase.
+
+You are a wise engineer who knows how to write simple yet efficient code.  
+Every implementation should be purposeful, scalable, and aligned with modern best practices for React, Next.js, and TypeScript.
+
+Before starting a new feature, writing SQL, or adding a new module:  
+→ Always review the README, existing codebase, and team conventions to ensure consistency with established patterns.
+
+Follow these additional principles:
+
+- Favor readability and team understanding over short syntax.
+- Keep functions small, composable, and reusable.
+- Ensure proper error handling and edge-case consideration.
+- Use clear naming that reflects intent and logic.
+- Always check for data integrity when interacting with APIs or databases.
+- Maintain performance awareness (bundle size, SSR efficiency, etc.).
+
+You code like a dependable senior engineer who builds trust through clean, thoughtful, and predictable implementations.
+
+---
+
+## Project Context
+
+This is a psychological test platform called "Pickid" with the following structure:
+
+### Architecture
+
+- **Monorepo**: Turborepo + pnpm workspaces
+- **Web App**: Next.js 15.5.2 + React 18.3.1 + TypeScript (FSD + MVVM pattern)
+- **Admin App**: Vite + React 18.3.1 + TypeScript (Layered Architecture)
+- **Database**: Supabase (PostgreSQL) with RLS
+- **UI**: shadcn/ui + Radix UI + Tailwind CSS
+- **State**: TanStack Query + Zustand
+- **Forms**: React Hook Form + Zod
+
+### Key Features
+
+- User test taking and result viewing
+- Admin test management and analytics
+- Category management
+- User feedback system
+- Real-time data updates
+
+### Code Style
+
+- TypeScript strict mode
+- Tab indentation (2 spaces)
+- PascalCase for components, camelCase for functions
+- FSD pattern for web app, Layered Architecture for admin
+- Comprehensive error handling
+- Performance optimization focus
+
+### Database Schema
+
+- Tests, categories, user responses, feedbacks
+- RLS policies for security
+- Real-time subscriptions
+- Analytics functions
+
+Always follow the established patterns and maintain consistency with the existing codebase.
+
+---
+
+## Detailed Project Information
+
+### 1. Project Overview
+
+**픽키드(Pickid)** - 심리 테스트 플랫폼
+
+- 사용자가 다양한 심리/성격 테스트를 수행할 수 있는 웹 플랫폼
+- 관리자가 테스트를 생성하고 관리할 수 있는 관리자 대시보드
+- 테스트 결과 분석 및 사용자 피드백 관리 기능
+
+### 2. Technology Stack
+
+#### Frontend
+
+- **Web App**: Next.js 15.5.2 + React 18.3.1 + TypeScript
+- **Admin App**: Vite + React 18.3.1 + TypeScript
+- **UI Library**: shadcn/ui + Radix UI + Tailwind CSS
+- **State Management**: Zustand + TanStack Query
+- **Form Handling**: React Hook Form + Zod
+- **Icons**: Lucide React
+
+#### Backend & Database
+
+- **Database**: Supabase (PostgreSQL)
+- **Authentication**: Supabase Auth
+- **API**: Supabase REST API + RLS (Row Level Security)
+- **Real-time**: Supabase Realtime
+
+#### Development Tools
+
+- **Monorepo**: Turborepo + pnpm workspaces
+- **Linting**: ESLint + TypeScript ESLint
+- **Styling**: Tailwind CSS + PostCSS
+- **Build Tools**: Vite (Admin), Next.js (Web)
+
+### 3. Project Structure
+
+#### Monorepo Structure
+
+```
+side-project/
+├── apps/
+│   ├── web/          # 사용자 웹 앱 (Next.js)
+│   └── admin/        # 관리자 대시보드 (Vite)
+├── packages/
+│   ├── ui/           # 공통 UI 컴포넌트
+│   ├── shared/       # 공통 유틸리티
+│   ├── supabase/     # 데이터베이스 클라이언트
+│   ├── types/        # 공통 타입 정의
+│   └── config/       # 공통 설정
+└── supabase/         # 데이터베이스 마이그레이션
+```
+
+#### Web App: FSD + MVVM
+
+```
+apps/web/src/
+├── app/                    # Next.js 앱 라우팅
+│   ├── auth/              # 인증 페이지
+│   ├── tests/             # 테스트 관련 페이지
+│   ├── mypage/            # 마이페이지
+│   └── feedback/          # 피드백 페이지
+├── features/              # 핵심 기능 (FSD)
+│   ├── auth/              # 인증 기능
+│   │   ├── ui/            # View (React 컴포넌트)
+│   │   ├── hooks/         # ViewModel (Custom Hooks)
+│   │   └── api/           # Service (API 호출)
+│   ├── test-taking/       # 테스트 진행 기능
+│   ├── test-results/      # 테스트 결과 기능
+│   └── feedback/          # 피드백 기능
+├── widgets/               # UI 위젯 단위
+│   ├── header/            # 헤더 위젯
+│   ├── footer/            # 푸터 위젯
+│   └── sidebar/           # 사이드바 위젯
+├── shared/                # 공통 모듈
+│   ├── api/               # API 서비스
+│   ├── hooks/             # 공통 훅
+│   ├── lib/               # 유틸리티
+│   └── types/             # 공통 타입
+└── entities/              # 비즈니스 엔티티
+    ├── result/            # 결과 엔티티
+    ├── test/              # 테스트 엔티티
+    └── user/              # 사용자 엔티티
+```
+
+#### Admin App: Layered Architecture
+
+```
+apps/admin/src/
+├── pages/                 # Presentation Layer
+│   ├── auth/              # 인증 페이지
+│   ├── tests/             # 테스트 관리 페이지
+│   ├── categories/        # 카테고리 관리 페이지
+│   └── users/             # 사용자 관리 페이지
+├── components/            # Presentation Layer
+│   ├── category/          # 카테고리 컴포넌트
+│   ├── test/              # 테스트 컴포넌트
+│   └── ui/                # 기본 UI 컴포넌트
+├── hooks/                 # Business Logic Layer
+│   ├── useTests.ts        # 테스트 관리 로직
+│   ├── useCategories.ts   # 카테고리 관리 로직
+│   └── useUsers.ts        # 사용자 관리 로직
+├── shared/
+│   ├── api/               # Data Access Layer
+│   │   └── services/      # API 서비스
+│   ├── lib/               # Infrastructure Layer
+│   └── types/             # 공통 타입
+└── widgets/               # 복잡한 UI 조합
+    ├── header/            # 헤더 위젯
+    └── sidebar/           # 사이드바 위젯
+```
+
+### 4. Layer Responsibilities
+
+#### Presentation Layer (표현 계층)
+
+- **위치**: `pages/`, `components/`, `widgets/`
+- **역할**: UI 렌더링 및 사용자 상호작용
+- **제약사항**: 비즈니스 로직 포함 금지, 순수한 프레젠테이션만 담당
+
+#### Business Logic Layer (비즈니스 로직 계층)
+
+- **위치**: `hooks/`, `features/*/hooks/`
+- **역할**: 상태 관리, 비즈니스 규칙, 오케스트레이션
+- **기능**: React Query를 통한 서버 상태 관리, 폼 처리 및 유효성 검사
+
+#### Data Access Layer (데이터 접근 계층)
+
+- **위치**: `shared/api/services/`, `features/*/api/`
+- **역할**: API 호출 및 데이터 변환
+- **기능**: Supabase 클라이언트 호출, 데이터 매핑 및 변환, 에러 처리
+
+#### Infrastructure Layer (인프라 계층)
+
+- **위치**: `shared/lib/`, `shared/config/`
+- **역할**: 유틸리티 함수 및 외부 라이브러리
+- **기능**: 헬퍼 함수, 상수 정의, 설정 관리
+
+### 5. Dependency Rules
+
+```
+Presentation → Business Logic → Data Access → Infrastructure
+```
+
+### 6. Key Features
+
+#### User Features
+
+1. **테스트 탐색**: 카테고리별 테스트 목록 조회
+2. **테스트 수행**: 다양한 유형의 심리 테스트 진행
+3. **결과 확인**: 테스트 결과 및 해석 제공
+4. **마이페이지**: 테스트 이력 및 즐겨찾기 관리
+5. **피드백**: 건의사항 및 피드백 제출
+
+#### Admin Features
+
+1. **테스트 관리**: 테스트 생성, 수정, 삭제, 발행
+2. **카테고리 관리**: 테스트 카테고리 관리
+3. **사용자 관리**: 사용자 정보 조회 및 관리
+4. **분석 대시보드**: 테스트 성과 분석
+5. **피드백 관리**: 사용자 피드백 처리
+
+### 7. Database Schema
+
+#### 주요 테이블
+
+- `tests`: 테스트 정보
+- `categories`: 테스트 카테고리
+- `user_test_responses`: 사용자 테스트 응답
+- `test_results`: 테스트 결과 정의
+- `users`: 사용자 정보
+- `feedbacks`: 피드백/건의사항
+- `admin_users`: 관리자 계정
+
+#### 테스트 유형
+
+- `psychology`: 심리 테스트
+- `balance`: 밸런스 게임
+- `character`: 성격 테스트
+- `quiz`: 퀴즈
+- `meme`: 밈 테스트
+- `lifestyle`: 라이프스타일 테스트
+
+### 8. Development Conventions
+
+#### TypeScript
+
+- **Strict Mode**: 항상 활성화
+- **타입 정의**: 명시적 타입 선언
+- **인터페이스**: 객체 구조 정의 시 사용
+- **타입 가드**: 런타임 타입 검사
+
+```typescript
+// ✅ 좋은 예
+interface User {
+	id: string;
+	name: string;
+	email: string;
+}
+
+const getUser = async (id: string): Promise<User | null> => {
+	// 구현
+};
+```
+
+#### 네이밍 컨벤션
+
+- **컴포넌트**: PascalCase (`UserProfile`, `TestCard`)
+- **함수/변수**: camelCase (`getUserData`, `isLoading`)
+- **상수**: UPPER_SNAKE_CASE (`API_BASE_URL`, `MAX_RETRY_COUNT`)
+- **파일명**: kebab-case (`user-profile.tsx`, `test-card.tsx`)
+
+#### 컴포넌트 구조
+
+```typescript
+// 1. Imports
+import React from 'react';
+import { Button } from '@/components/ui/button';
+
+// 2. Types/Interfaces
+interface ComponentProps {
+	title: string;
+	onAction: () => void;
+}
+
+// 3. Component
+export function Component({ title, onAction }: ComponentProps) {
+	// 4. Hooks
+	const [isLoading, setIsLoading] = useState(false);
+
+	// 5. Event Handlers
+	const handleClick = () => {
+		setIsLoading(true);
+		onAction();
+	};
+
+	// 6. Render
+	return (
+		<div>
+			<h1>{title}</h1>
+			<Button onClick={handleClick} disabled={isLoading}>
+				Action
+			</Button>
+		</div>
+	);
+}
+```
+
+### 9. State Management
+
+#### 서버 상태 (TanStack Query)
+
+```typescript
+// ✅ 좋은 예
+export function useTests() {
+	return useQuery({
+		queryKey: ['tests'],
+		queryFn: testService.getTests,
+		staleTime: 5 * 60 * 1000, // 5분
+	});
+}
+```
+
+#### 클라이언트 상태 (Zustand)
+
+```typescript
+// ✅ 좋은 예
+interface AppState {
+	user: User | null;
+	setUser: (user: User | null) => void;
+}
+
+export const useAppStore = create<AppState>((set) => ({
+	user: null,
+	setUser: (user) => set({ user }),
+}));
+```
+
+### 10. API Design
+
+#### 서비스 레이어
+
+```typescript
+// ✅ 좋은 예
+export const testService = {
+	async getTests(): Promise<Test[]> {
+		const { data, error } = await supabase.from('tests').select('*').eq('is_published', true);
+
+		if (error) {
+			throw new Error(`Failed to fetch tests: ${error.message}`);
+		}
+
+		return data || [];
+	},
+
+	async createTest(testData: CreateTestData): Promise<Test> {
+		const { data, error } = await supabase.from('tests').insert(testData).select().single();
+
+		if (error) {
+			throw new Error(`Failed to create test: ${error.message}`);
+		}
+
+		return data;
+	},
+};
+```
+
+### 11. Form Handling
+
+#### React Hook Form + Zod
+
+```typescript
+// ✅ 좋은 예
+const schema = z.object({
+	title: z.string().min(1, '제목을 입력해주세요'),
+	description: z.string().min(10, '설명을 10자 이상 입력해주세요'),
+});
+
+type FormData = z.infer<typeof schema>;
+
+export function TestForm() {
+	const form = useForm<FormData>({
+		resolver: zodResolver(schema),
+		defaultValues: {
+			title: '',
+			description: '',
+		},
+	});
+
+	const onSubmit = (data: FormData) => {
+		// 폼 제출 로직
+	};
+
+	return (
+		<form onSubmit={form.handleSubmit(onSubmit)}>
+			<FormField
+				control={form.control}
+				name="title"
+				render={({ field }) => (
+					<FormItem>
+						<FormLabel>제목</FormLabel>
+						<FormControl>
+							<Input {...field} />
+						</FormControl>
+						<FormMessage />
+					</FormItem>
+				)}
+			/>
+		</form>
+	);
+}
+```
+
+### 12. Styling
+
+#### Tailwind CSS
+
+```typescript
+// ✅ 좋은 예
+<div className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm">
+	<h2 className="text-lg font-semibold text-gray-900">제목</h2>
+	<Button variant="outline" size="sm">
+		액션
+	</Button>
+</div>
+```
+
+### 13. Performance Optimization
+
+#### 코드 스플리팅
+
+```typescript
+// ✅ 좋은 예
+const TestDetail = lazy(() => import('./TestDetail'));
+
+function App() {
+	return (
+		<Suspense fallback={<LoadingSpinner />}>
+			<TestDetail />
+		</Suspense>
+	);
+}
+```
+
+#### 메모이제이션
+
+```typescript
+// ✅ 좋은 예
+const TestCard = memo(({ test, onSelect }: TestCardProps) => {
+	return <div onClick={() => onSelect(test.id)}>{test.title}</div>;
+});
+```
+
+### 14. API Reference
+
+#### 테스트 API
+
+```typescript
+// 발행된 테스트 목록
+const { data, error } = await supabase
+	.from('tests')
+	.select(
+		`
+    id,
+    title,
+    description,
+    test_type,
+    category_ids,
+    created_at
+  `
+	)
+	.eq('is_published', true)
+	.order('created_at', { ascending: false });
+
+// 카테고리별 테스트 목록
+const { data, error } = await supabase
+	.from('tests')
+	.select('*')
+	.eq('is_published', true)
+	.contains('category_ids', [categoryId]);
+```
+
+#### 카테고리 API
+
+```typescript
+// 활성 카테고리 목록
+const { data, error } = await supabase
+	.from('categories')
+	.select('*')
+	.eq('status', 'active')
+	.order('sort_order', { ascending: true });
+```
+
+#### 사용자 응답 API
+
+```typescript
+// 테스트 응답 저장
+const { data, error } = await supabase.from('user_test_responses').insert({
+	test_id: testId,
+	session_id: sessionId,
+	responses: [
+		{ question_id: 1, option_id: 1, score: 1 },
+		{ question_id: 2, option_id: 3, score: 2 },
+	],
+	result_id: resultId,
+	completed_at: new Date().toISOString(),
+});
+```
+
+### 15. Type Definitions
+
+```typescript
+// 테스트 타입
+export interface Test {
+	id: string;
+	title: string;
+	description: string;
+	test_type: 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
+	category_ids: string[];
+	questions: Question[];
+	results: TestResult[];
+	is_published: boolean;
+	created_at: string;
+	updated_at: string;
+}
+
+// 질문 타입
+export interface Question {
+	id: number;
+	text: string;
+	options: QuestionOption[];
+}
+
+// 질문 선택지 타입
+export interface QuestionOption {
+	id: number;
+	text: string;
+	score: number;
+}
+
+// 테스트 결과 타입
+export interface TestResult {
+	id: string;
+	title: string;
+	description: string;
+	image_url?: string;
+	score_range: {
+		min: number;
+		max: number;
+	};
+}
+
+// 사용자 응답 타입
+export interface UserTestResponse {
+	id: string;
+	user_id: string;
+	test_id: string;
+	session_id: string;
+	responses: Response[];
+	result_id: string;
+	completed_at: string;
+	created_at: string;
+}
+
+// 응답 타입
+export interface Response {
+	question_id: number;
+	option_id: number;
+	score: number;
+}
+```
+
+### 16. Security Considerations
+
+#### RLS 정책 확인
+
+- 모든 테이블에 RLS 활성화
+- 사용자별 데이터 접근 제한
+- 관리자 권한 확인
+
+#### 입력 검증
+
+- 클라이언트 사이드: Zod 스키마
+- 서버 사이드: PostgreSQL 제약조건
+- SQL 인젝션 방지: Supabase 자동 처리
+
+#### 인증 토큰 관리
+
+- JWT 토큰 자동 갱신
+- 세션 만료 처리
+- 로그아웃 시 토큰 무효화
+
+### 17. Testing
+
+#### 단위 테스트
+
+```typescript
+// ✅ 좋은 예
+import { render, screen } from '@testing-library/react';
+import { TestCard } from './TestCard';
+
+describe('TestCard', () => {
+	it('renders test title', () => {
+		const test = { id: '1', title: 'Test Title' };
+		render(<TestCard test={test} onSelect={jest.fn()} />);
+
+		expect(screen.getByText('Test Title')).toBeInTheDocument();
+	});
+});
+```
+
+### 18. Git Conventions
+
+#### 커밋 메시지
+
+```
+feat: 새로운 기능 추가
+fix: 버그 수정
+docs: 문서 수정
+style: 코드 스타일 변경
+refactor: 코드 리팩토링
+test: 테스트 추가/수정
+chore: 빌드 과정 또는 보조 도구 변경
+```
+
+#### 브랜치 전략
+
+- `main`: 프로덕션 브랜치
+- `develop`: 개발 브랜치
+- `feature/기능명`: 기능 개발 브랜치
+- `hotfix/버그명`: 긴급 수정 브랜치
+
+---
+
+## Always follow the established patterns and maintain consistency with the existing codebase.

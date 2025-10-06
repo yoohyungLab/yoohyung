@@ -3,6 +3,7 @@ export * from './badge';
 export * from './button';
 export * from './card';
 export * from './carousel';
+export * from './default-carousel';
 export * from './data-table';
 export * from './default-pagination';
 export * from './dialog';
@@ -18,6 +19,7 @@ export * from './tabs';
 
 export * from './input/input';
 export * from './input/default-input';
+export * from './input/input-password';
 export * from './input/search-input';
 
 export * from './select/select';

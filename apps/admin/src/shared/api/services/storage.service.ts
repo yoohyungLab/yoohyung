@@ -6,7 +6,7 @@ export interface UploadResult {
 }
 
 export const storageService = {
-	async uploadImage(file: File, folder: string = 'test-images'): Promise<UploadResult> {
+	async uploadImage(file: File, folder: string = 'test-thumbnails'): Promise<UploadResult> {
 		try {
 			// 파일명 생성 (타임스탬프 + 랜덤 문자열)
 			const timestamp = Date.now();

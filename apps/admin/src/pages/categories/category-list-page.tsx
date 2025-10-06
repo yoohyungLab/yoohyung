@@ -81,9 +81,8 @@ export default function CategoryListPage() {
 	const handleCreateSuccess = async (categoryData?: {
 		name: string;
 		slug: string;
-		description?: string;
 		sort_order?: number;
-		is_active?: boolean;
+		status?: 'active' | 'inactive';
 	}) => {
 		if (editingCategory && categoryData) {
 			// 수정
@@ -116,13 +115,6 @@ export default function CategoryListPage() {
 				),
 			},
 			{
-				id: 'description',
-				header: '설명',
-				cell: ({ row }) => (
-					<div className="max-w-xs text-xs text-gray-600 line-clamp-2">{row.original.description || '-'}</div>
-				),
-			},
-			{
 				id: 'sort_order',
 				header: '순서',
 				cell: ({ row }) => (
@@ -135,7 +127,7 @@ export default function CategoryListPage() {
 				id: 'status',
 				header: '상태',
 				cell: ({ row }) => {
-					const isActive = row.original.is_active ?? false;
+					const isActive = row.original.status === 'active';
 					return (
 						<Badge
 							variant="outline"
@@ -165,7 +157,7 @@ export default function CategoryListPage() {
 						{
 							type: 'status',
 							onClick: (id, data) => {
-								const isActive = data?.is_active as boolean;
+								const isActive = data?.status === 'active';
 								handleStatusChange(id, !isActive);
 							},
 							statusOptions: [...CATEGORY_STATUS_OPTIONS],

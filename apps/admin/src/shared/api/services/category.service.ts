@@ -4,7 +4,10 @@ import type { Category } from '@repo/supabase';
 export const categoryService = {
 	// 카테고리 목록 조회
 	async getCategories(): Promise<Category[]> {
-		const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
+		const { data, error } = await supabase
+			.from('categories')
+			.select('id, name, slug, sort_order, status, created_at, updated_at')
+			.order('created_at', { ascending: false });
 		if (error) throw error;
 		return data || [];
 	},
@@ -13,24 +16,51 @@ export const categoryService = {
 	async getActiveCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
 			.from('categories')
-			.select('*')
-			.eq('is_active', true)
+			.select('id, name, slug, sort_order, status, created_at, updated_at')
+			.eq('status', 'active')
 			.order('created_at', { ascending: false });
 		if (error) throw error;
 		return data || [];
 	},
 
+	// slug 중복 체크
+	async checkSlugExists(slug: string, excludeId?: string): Promise<boolean> {
+		let query = supabase.from('categories').select('id').eq('slug', slug);
+		if (excludeId) {
+			query = query.neq('id', excludeId);
+		}
+		const { data, error } = await query;
+		if (error) throw error;
+		return (data?.length || 0) > 0;
+	},
+
+	// 고유한 slug 생성
+	async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
+		let slug = baseSlug;
+		let counter = 1;
+
+		while (await this.checkSlugExists(slug, excludeId)) {
+			slug = `${baseSlug}-${counter}`;
+			counter++;
+		}
+
+		return slug;
+	},
+
 	// 카테고리 생성
 	async createCategory(category: {
 		name: string;
-		description?: string;
 		sort_order?: number;
 		slug: string;
-		is_active?: boolean;
+		status?: 'active' | 'inactive';
 	}): Promise<Category> {
+		// slug 중복 체크 및 고유한 slug 생성
+		const uniqueSlug = await this.generateUniqueSlug(category.slug);
+
 		const categoryData = {
 			...category,
-			is_active: category.is_active ?? true,
+			slug: uniqueSlug,
+			status: category.status ?? 'active',
 		};
 		const { data, error } = await supabase.from('categories').insert(categoryData).select().single();
 		if (error) throw error;
@@ -39,6 +69,12 @@ export const categoryService = {
 
 	// 카테고리 수정
 	async updateCategory(id: string, updates: Partial<Category>): Promise<Category> {
+		// slug가 변경되는 경우 중복 체크
+		if (updates.slug) {
+			const uniqueSlug = await this.generateUniqueSlug(updates.slug, id);
+			updates.slug = uniqueSlug;
+		}
+
 		const { data, error } = await supabase
 			.from('categories')
 			.update({ ...updates, updated_at: new Date().toISOString() })
@@ -50,15 +86,17 @@ export const categoryService = {
 	},
 
 	// 상태 변경
-	async updateCategoryStatus(id: string, is_active: boolean): Promise<Category> {
-		return this.updateCategory(id, { is_active });
+	async updateCategoryStatus(id: string, isActive: boolean): Promise<Category> {
+		const status = isActive ? 'active' : 'inactive';
+		return this.updateCategory(id, { status });
 	},
 
 	// 대량 상태 변경
-	async bulkUpdateStatus(categoryIds: string[], is_active: boolean): Promise<number> {
+	async bulkUpdateStatus(categoryIds: string[], isActive: boolean): Promise<number> {
+		const status = isActive ? 'active' : 'inactive';
 		const { data, error } = await supabase
 			.from('categories')
-			.update({ is_active, updated_at: new Date().toISOString() })
+			.update({ status, updated_at: new Date().toISOString() })
 			.in('id', categoryIds)
 			.select();
 		if (error) throw error;

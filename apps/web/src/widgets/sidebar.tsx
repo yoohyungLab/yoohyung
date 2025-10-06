@@ -1,52 +1,102 @@
 'use client';
 
-import { useState } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { Button, Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger, DrawerClose } from '@repo/ui';
-import { useAuth } from '@/features/auth';
-import { supabase } from '@repo/shared';
+import { useAuth } from '@/shared/hooks/useAuth';
+import { useCategories } from '@/shared/hooks/useCategories';
+import { Button, Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@repo/ui';
 import {
-	Menu,
-	X,
-	User,
+	Gamepad2,
+	HeartHandshake,
 	LogOut,
-	LogIn,
-	UserPlus,
-	Clock,
-	Pencil,
+	Menu,
 	MessageSquare,
-	Brain,
-	Briefcase,
-	Palette,
-	Heart,
-	Flame,
-	Trash2,
-	AlertTriangle,
+	TestTube,
+	TrendingUp,
+	User,
+	UserCheck,
+	X,
 } from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
 
 function Sidebar() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-	const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-	const [isDeleting, setIsDeleting] = useState(false);
-	const { user, signIn, signOut } = useAuth();
-
 	const router = useRouter();
+	const { user, signOut, signInWithKakao } = useAuth();
+	const { categories } = useCategories();
 
+	// 카테고리 이름 기반으로 특정 메뉴 매핑
+	const getCategoryByKeyword = (keyword: string) => {
+		return categories.find((category) => category.label.toLowerCase().includes(keyword.toLowerCase()));
+	};
+
+	// 요청된 순서대로 메뉴 생성
 	const mainMenus = [
-		{ icon: Brain, label: '심리 테스트', href: '/tests/psychology' },
-		{ icon: Briefcase, label: '직업 성향 테스트', href: '/tests/career' },
-		{ icon: Palette, label: '성격 유형 테스트', href: '/tests/personality' },
-		{ icon: Heart, label: '연애 관련 테스트', href: '/tests/love' },
-		{ icon: Flame, label: '요즘 인기 테스트', href: '/tests/trending' },
-	];
+		// 1. 심리테스트 - 카테고리 이름에 "심리"가 포함된 것
+		(() => {
+			const category = getCategoryByKeyword('심리');
+			return category
+				? {
+						icon: TestTube,
+						label: '심리 테스트',
+						href: `/tests?category=${category.id}`,
+				  }
+				: null;
+		})(),
 
-	const userMenus = [
-		{ icon: Heart, label: '찜한 테스트', href: '/favorites' },
-		{ icon: Clock, label: '테스트 히스토리', href: '/test-history' },
-		{ icon: Pencil, label: '내가 만든 테스트', href: '/my-tests' },
-	];
+		// 2. 밸런스게임 - 카테고리 이름에 "밸런스"가 포함된 것
+		(() => {
+			const category = getCategoryByKeyword('밸런스');
+			return category
+				? {
+						icon: Gamepad2,
+						label: '밸런스 게임',
+						href: `/tests?category=${category.id}`,
+				  }
+				: null;
+		})(),
+
+		// 3. 성격/유형 - 카테고리 이름에 "성격" 또는 "유형"이 포함된 것
+		(() => {
+			const category = getCategoryByKeyword('성격') || getCategoryByKeyword('유형');
+			return category
+				? {
+						icon: UserCheck,
+						label: '성격 유형 테스트',
+						href: `/tests?category=${category.id}`,
+				  }
+				: null;
+		})(),
+
+		// 4. 연애 - 카테고리 이름에 "연애"가 포함된 것
+		(() => {
+			const category = getCategoryByKeyword('연애');
+			return category
+				? {
+						icon: HeartHandshake,
+						label: '연애 유형 테스트',
+						href: `/tests?category=${category.id}`,
+				  }
+				: null;
+		})(),
+
+		// 5. 인기 테스트 - 가장 많은 테스트가 있는 카테고리
+		(() => {
+			if (categories.length === 0) return null;
+			const popularCategory = categories.reduce((prev, current) => (prev.count > current.count ? prev : current));
+			return popularCategory
+				? {
+						icon: TrendingUp,
+						label: '요즘 인기 테스트',
+						href: `/tests?category=${popularCategory.id}`,
+				  }
+				: null;
+		})(),
+	].filter((menu): menu is NonNullable<typeof menu> => menu !== null); // 타입 가드로 null 제거
+
+	// 실제 카테고리 메뉴만 사용
+	const finalMainMenus = mainMenus;
 
 	const etcMenus = [{ icon: MessageSquare, label: '건의사항 작성하기', href: '/feedback' }];
 
@@ -55,102 +105,40 @@ function Sidebar() {
 		router.push(href);
 	};
 
-	const handleKakaoLogin = async () => {
-		try {
-			await signIn('kakao');
-		} catch (error) {
-			console.error('Kakao login failed:', error);
-		}
-	};
-
-	const handleLogout = async () => {
+	const handleSignOut = async () => {
 		try {
 			await signOut();
+			router.push('/');
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}
 	};
 
-	const handleDeleteAccount = async () => {
-		if (!user) return;
-
-		try {
-			setIsDeleting(true);
-
-			// 1. 사용자 메타데이터에 삭제 시간 설정
-			const deletedAt = new Date().toISOString();
-			await supabase.auth.updateUser({
-				data: {
-					deleted_at: deletedAt,
-					name: `삭제된사용자_${Date.now()}`, // 이름 익명화
-				},
-			});
-
-			// 2. 프로필에 삭제 시간 표시 (소프트 삭제)
-			const { error: profileError } = await supabase
-				.from('profiles')
-				.update({
-					deleted_at: deletedAt,
-					name: `삭제된사용자_${Date.now()}`, // 이름 익명화
-					email: null, // 이메일 제거
-				})
-				.eq('id', user.id);
-
-			if (profileError) {
-				console.error('프로필 삭제 실패:', profileError);
-				// 프로필 업데이트 실패해도 메타데이터는 업데이트되었으므로 계속 진행
+	const handleSignIn = async (provider: string) => {
+		if (provider === 'kakao') {
+			try {
+				// Supabase Auth를 통한 카카오 로그인
+				await signInWithKakao();
+			} catch (error) {
+				console.error('Kakao login failed:', error);
+				// 에러 발생 시 로그인 페이지로 폴백
+				router.push('/auth/login');
 			}
-
-			// 3. 관련 데이터도 소프트 삭제 또는 사용자 연결 해제
-			// 테스트 결과는 통계를 위해 남겨두되, user_id만 null로 변경
-			await supabase.from('test_results').update({ user_id: null }).eq('user_id', user.id);
-
-			// 찜 목록은 완전 삭제
-			await supabase.from('favorites').delete().eq('user_id', user.id);
-
-			// 사용자 응답이 있다면 user_id null로 변경
-			await supabase.from('user_responses').update({ user_id: null }).eq('user_id', user.id);
-
-			// 4. 로그아웃 처리
-			await signOut();
-
-			// 5. 메인 페이지로 이동
-			router.push('/');
-
-			alert('회원탈퇴가 완료되었습니다.');
-		} catch (error) {
-			console.error('회원탈퇴 실패:', error);
-			alert('회원탈퇴 중 오류가 발생했습니다. 다시 시도해주세요.');
-		} finally {
-			setIsDeleting(false);
-			setShowDeleteConfirm(false);
-			setIsDrawerOpen(false);
+		} else {
+			router.push('/auth/login');
 		}
+		setIsDrawerOpen(false);
 	};
 
-	// 회원탈퇴 확인 모달 열기 (사이드바 자동 닫기)
-	const handleShowDeleteConfirm = () => {
-		setIsDrawerOpen(false); // 사이드바 먼저 닫기
-		setTimeout(() => {
-			setShowDeleteConfirm(true); // 약간의 딜레이 후 모달 열기
-		}, 150); // 사이드바 닫힘 애니메이션 후 모달 표시
-	};
-
-	// 회원탈퇴 모달 닫기
-	const handleCloseDeleteConfirm = () => {
-		setShowDeleteConfirm(false);
-	};
-
-	const renderMenuGroup = (
-		title: string,
-		menus: Array<{
-			icon: React.ComponentType<{ className?: string }>;
-			label: string;
-			href: string;
-		}>
-	) => (
+	const MenuSection = ({
+		title,
+		menus,
+	}: {
+		title: string;
+		menus: Array<{ icon: React.ComponentType<{ className?: string }>; label: string; href: string }>;
+	}) => (
 		<div className="my-6">
-			<h3 className="text-sm font-semibold text-gray-500 mb-3 border-b border-gray-200 pb-2" />
+			<h3 className="text-sm font-semibold text-gray-500 mb-3 border-b border-gray-200 pb-2">{title}</h3>
 			<div className="space-y-2">
 				{menus.map((menu, index) => (
 					<button
@@ -171,7 +159,6 @@ function Sidebar() {
 			<div className="flex items-center justify-between">
 				<Link href="/" className="flex items-center space-x-2">
 					<Image src="/icons/logo.svg" alt="로고" width={60} height={60} />
-					{/* <span className="text-xl font-bold text-gray-900">유형연구소</span> */}
 				</Link>
 
 				<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
@@ -194,33 +181,46 @@ function Sidebar() {
 						<div className="px-6 py-6">
 							{user ? (
 								<div className="space-y-4">
-									<div className="flex items-center space-x-3 p-3 bg-gray-50 rounded-lg">
-										<div className="w-10 h-10 bg-pink-500 rounded-full flex items-center justify-center">
-											<User className="w-5 h-5 text-white" />
-										</div>
-										<div>
-											<div className="font-medium text-gray-900">{user.name}</div>
-											<div className="text-sm text-gray-500">{user.email}</div>
+									{/* 사용자 정보 섹션 */}
+									<div className="bg-gray-50 rounded-lg p-4 mb-4">
+										<div className="flex items-center space-x-3">
+											<div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+												{user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
+													<Image
+														src={user.user_metadata?.avatar_url || user.user_metadata?.picture || ''}
+														alt="프로필"
+														width={40}
+														height={40}
+														className="rounded-full"
+													/>
+												) : (
+													<User className="w-5 h-5 text-pink-600" />
+												)}
+											</div>
+											<div>
+												<p className="font-medium text-gray-900">
+													{user.user_metadata?.name || user.email?.split('@')[0] || '사용자'}
+												</p>
+												<p className="text-sm text-gray-500">{user.email}</p>
+											</div>
 										</div>
 									</div>
-									<div className="space-y-2">
-										<Button variant="outline" className="w-full" onClick={handleLogout}>
-											<LogOut className="w-4 h-4 mr-2" /> 로그아웃
-										</Button>
-										<Button
-											variant="outline"
-											className="w-full text-red-600 border-red-200 hover:bg-red-50"
-											onClick={handleShowDeleteConfirm}
-										>
-											<Trash2 className="w-4 h-4 mr-2" /> 회원탈퇴
-										</Button>
-									</div>
+
+									{/* 로그아웃 버튼 */}
+									<Button
+										variant="outline"
+										className="w-full text-red-600 border-red-200 hover:bg-red-50"
+										onClick={handleSignOut}
+									>
+										<LogOut className="w-4 h-4 mr-2" />
+										로그아웃
+									</Button>
 								</div>
 							) : (
 								<div className="space-y-3">
 									<Button
 										className="w-full bg-[#FEE500] hover:bg-[#FEE500] text-black font-medium"
-										onClick={handleKakaoLogin}
+										onClick={() => handleSignIn('kakao')}
 									>
 										<div className="flex items-center space-x-2">
 											<Image src="/icons/kakao.svg" alt="카카오" width={16} height={16} />
@@ -231,93 +231,21 @@ function Sidebar() {
 										<span className="text-sm text-gray-500">간편하게 3초만에 시작하세요</span>
 									</div>
 									<Button variant="outline" className="w-full" onClick={() => handleMenuClick('/auth/login')}>
-										<LogIn className="w-4 h-4 mr-2" /> 로그인
+										로그인
 									</Button>
-									<Button variant="ghost" className="w-full" onClick={() => handleMenuClick('/auth/register')}>
-										<UserPlus className="w-4 h-4 mr-2" /> 회원가입
+									<Button variant="outline" className="w-full" onClick={() => handleMenuClick('/auth/register')}>
+										회원가입
 									</Button>
 								</div>
 							)}
 
-							{renderMenuGroup('주요 메뉴', mainMenus)}
-							{user && renderMenuGroup('사용자 기능', userMenus)}
-							{renderMenuGroup('기타 기능', etcMenus)}
+							{/* 메뉴 섹션들 */}
+							<MenuSection title="주요 메뉴" menus={finalMainMenus} />
+							<MenuSection title="기타 기능" menus={etcMenus} />
 						</div>
 					</DrawerContent>
 				</Drawer>
 			</div>
-
-			{/* 회원탈퇴 확인 다이얼로그 */}
-			{showDeleteConfirm && (
-				<div
-					className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-[9999] p-4 backdrop-blur-sm"
-					onClick={handleCloseDeleteConfirm}
-				>
-					<div
-						className="bg-white rounded-xl p-6 max-w-sm w-full shadow-2xl transform transition-all duration-200 scale-100"
-						onClick={(e) => e.stopPropagation()} // 모달 내부 클릭 시 닫히지 않도록
-					>
-						<div className="flex items-center space-x-3 mb-4">
-							<div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-								<AlertTriangle className="w-6 h-6 text-red-600" />
-							</div>
-							<div>
-								<h3 className="font-bold text-lg text-gray-900">회원탈퇴</h3>
-								<p className="text-sm text-gray-600">정말로 탈퇴하시겠습니까?</p>
-							</div>
-						</div>
-
-						<div className="mb-6">
-							<p className="text-sm text-gray-600 mb-3 font-medium">탈퇴하면 다음 데이터가 영구 삭제됩니다:</p>
-							<div className="bg-red-50 rounded-lg p-3 border border-red-100">
-								<ul className="text-sm text-red-700 space-y-1">
-									<li className="flex items-center">
-										<span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-										계정 정보 및 프로필
-									</li>
-									<li className="flex items-center">
-										<span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-										모든 테스트 결과
-									</li>
-									<li className="flex items-center">
-										<span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-										찜한 테스트 목록
-									</li>
-									<li className="flex items-center">
-										<span className="w-1.5 h-1.5 bg-red-500 rounded-full mr-2"></span>
-										테스트 히스토리
-									</li>
-								</ul>
-							</div>
-						</div>
-
-						<div className="flex space-x-3">
-							<Button
-								variant="outline"
-								className="flex-1 font-medium"
-								onClick={handleCloseDeleteConfirm}
-								disabled={isDeleting}
-							>
-								취소
-							</Button>
-							<Button
-								className="flex-1 bg-red-600 hover:bg-red-700 text-white font-medium"
-								onClick={handleDeleteAccount}
-								disabled={isDeleting}
-							>
-								{isDeleting ? (
-									<div className="flex items-center space-x-2">
-										<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-										<span>처리중...</span>
-									</div>
-								) : (
-									'탈퇴하기'
-								)}
-							</Button>
-						</div>
-					</div>
-				</div>
-			)}
 		</div>
 	);
 }

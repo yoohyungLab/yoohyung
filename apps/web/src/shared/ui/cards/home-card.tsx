@@ -7,7 +7,7 @@ interface HomeCardProps {
 	id: string;
 	title: string;
 	image: string;
-	tag: string;
+	tags: string[];
 	isFavorite: boolean;
 	onToggleFavorite: (id: string) => void;
 	href?: string;
@@ -18,7 +18,7 @@ export function HomeCard({
 	id,
 	title,
 	image,
-	tag,
+	tags,
 	isFavorite,
 	onToggleFavorite,
 	href = `/tests/${id}`,
@@ -39,8 +39,12 @@ export function HomeCard({
 						className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-					<div className="absolute top-2 left-2">
-						<span className="text-xs bg-white/90 text-gray-700 px-2 py-1 rounded-full font-medium">{tag}</span>
+					<div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[calc(100%-60px)]">
+						{tags.map((tagName, index) => (
+							<span key={index} className="text-xs bg-white/90 text-gray-700 px-2 py-1 rounded-full font-medium">
+								{tagName}
+							</span>
+						))}
 					</div>
 				</div>
 				<div className="p-3">

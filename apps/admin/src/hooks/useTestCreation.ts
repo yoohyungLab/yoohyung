@@ -199,6 +199,8 @@ export const useTestCreation = () => {
 					type: type || 'psychology',
 					status: 'published',
 					published_at: new Date().toISOString(),
+					// category_ids를 올바른 형식으로 변환
+					category_ids: basicInfo.category_ids || [],
 				} as TestInsert;
 
 				const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({

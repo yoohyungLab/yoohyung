@@ -16,6 +16,16 @@ export type Category = Tables<'categories'>['Row'];
 export type CategoryInsert = Tables<'categories'>['Insert'];
 export type CategoryUpdate = Tables<'categories'>['Update'];
 
+// 뷰에서 사용할 가공된 카테고리 타입
+export interface ProcessedCategory {
+	id: string;
+	label: string;
+	icon: string;
+	color: string;
+	count: number;
+	slug: string;
+}
+
 export type Test = Tables<'tests'>['Row'];
 export type TestInsert = Tables<'tests'>['Insert'];
 export type TestUpdate = Tables<'tests'>['Update'];

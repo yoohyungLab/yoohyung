@@ -1,5 +1,5 @@
+import { isActivePath, navigation } from '@/shared/config/navigation';
 import { Link, useLocation } from 'react-router-dom';
-import { navigation, isActivePath, type NavEntry } from '@/shared/config/navigation';
 
 interface AdminSidebarProps {
 	sidebarCollapsed: boolean;

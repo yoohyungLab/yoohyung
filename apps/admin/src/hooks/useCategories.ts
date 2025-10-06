@@ -29,22 +29,19 @@ export const useCategories = () => {
 
 		return {
 			total: categories.length,
-			active: categories.filter((category) => category.is_active).length,
-			inactive: categories.filter((category) => !category.is_active).length,
+			active: categories.filter((category) => category.status === 'active').length,
+			inactive: categories.filter((category) => category.status === 'inactive').length,
 		};
 	}, [categories]);
 
 	// 필터링된 카테고리
 	const filteredCategories = useMemo(() => {
 		return categories.filter((category) => {
-			const matchesSearch =
-				!filters.search ||
-				category.name.toLowerCase().includes(filters.search.toLowerCase()) ||
-				category.description?.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesSearch = !filters.search || category.name.toLowerCase().includes(filters.search.toLowerCase());
 			const matchesStatus =
 				filters.status === 'all' ||
-				(filters.status === 'active' && category.is_active) ||
-				(filters.status === 'inactive' && !category.is_active);
+				(filters.status === 'active' && category.status === 'active') ||
+				(filters.status === 'inactive' && category.status === 'inactive');
 			return matchesSearch && matchesStatus;
 		});
 	}, [categories, filters]);
@@ -65,19 +62,28 @@ export const useCategories = () => {
 
 	// 카테고리 생성
 	const createCategory = useCallback(
-		async (categoryData: {
-			name: string;
-			slug: string;
-			description?: string;
-			sort_order?: number;
-			is_active?: boolean;
-		}) => {
+		async (categoryData: { name: string; slug: string; sort_order?: number; status?: 'active' | 'inactive' }) => {
 			try {
 				const newCategory = await categoryService.createCategory(categoryData);
 				setCategories((prev) => [newCategory, ...prev]); // 맨 앞에 추가
 				return newCategory;
 			} catch (err) {
-				setError(err instanceof Error ? err.message : '카테고리 생성에 실패했습니다.');
+				let errorMessage = '카테고리 생성에 실패했습니다.';
+
+				if (err instanceof Error) {
+					// Supabase 에러 메시지 처리
+					if (err.message.includes('duplicate key value violates unique constraint')) {
+						if (err.message.includes('categories_slug_key')) {
+							errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+						} else if (err.message.includes('categories_name_key')) {
+							errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+						}
+					} else {
+						errorMessage = err.message;
+					}
+				}
+
+				setError(errorMessage);
 				throw err;
 			}
 		},
@@ -91,7 +97,22 @@ export const useCategories = () => {
 			setCategories((prev) => prev.map((cat) => (cat.id === id ? updatedCategory : cat)));
 			return updatedCategory;
 		} catch (err) {
-			setError(err instanceof Error ? err.message : '카테고리 수정에 실패했습니다.');
+			let errorMessage = '카테고리 수정에 실패했습니다.';
+
+			if (err instanceof Error) {
+				// Supabase 에러 메시지 처리
+				if (err.message.includes('duplicate key value violates unique constraint')) {
+					if (err.message.includes('categories_slug_key')) {
+						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+					} else if (err.message.includes('categories_name_key')) {
+						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+					}
+				} else {
+					errorMessage = err.message;
+				}
+			}
+
+			setError(errorMessage);
 			throw err;
 		}
 	}, []);

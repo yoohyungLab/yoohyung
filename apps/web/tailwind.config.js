@@ -1,5 +1,5 @@
 /** @type {import('tailwindcss').Config} */
-export default {
+const config = {
 	darkMode: ['class'],
 	content: [
 		'./src/pages/**/*.{js,ts,jsx,tsx,mdx}',
@@ -21,7 +21,7 @@ export default {
 			},
 		},
 		extend: {
-			// shadcn/ui 색상 시스템
+			// shadcn/ui 색상 시스템 (실제 사용되는 것만)
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',
@@ -56,21 +56,11 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))',
 				},
-				// 기존 커스텀 색상들 유지
-				pink: {
-					50: '#fff5f7',
-					100: '#ffe0e8',
-					200: '#ffb6c1',
-					500: '#ff6b9a',
-				},
-			},
-			// 기존 설정들 유지
-			boxShadow: {
-				soft: '0 4px 12px rgba(0, 0, 0, 0.05)',
 			},
 			fontFamily: {
 				sans: [
-					'Pretendard',
+					'MemomentKkukkkuk',
+					'var(--font-gowun-dodum)',
 					'-apple-system',
 					'BlinkMacSystemFont',
 					'system-ui',
@@ -100,26 +90,9 @@ export default {
 				tablet: '768px',
 				desktop: '1024px',
 			},
-			borderRadius: {
-				lg: 'var(--radius)',
-				md: 'calc(var(--radius) - 2px)',
-				sm: 'calc(var(--radius) - 4px)',
-			},
-			keyframes: {
-				'accordion-down': {
-					from: { height: '0' },
-					to: { height: 'var(--radix-accordion-content-height)' },
-				},
-				'accordion-up': {
-					from: { height: 'var(--radix-accordion-content-height)' },
-					to: { height: '0' },
-				},
-			},
-			animation: {
-				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out',
-			},
 		},
 	},
 	plugins: [require('tailwindcss-animate')],
 };
+
+export default config;

@@ -94,7 +94,7 @@ export function EditTestPage() {
 					description: test.description || '',
 					slug: test.slug || '',
 					status: (test.status as 'draft' | 'published' | 'archived') || 'draft',
-					category_ids: (test.category_ids || []).map((id) => String(id)),
+					category_ids: test.category_ids || [],
 					thumbnail_url: test.thumbnail_url,
 					estimated_time: test.estimated_time || 5,
 					max_score: test.max_score || 100,
@@ -312,20 +312,12 @@ export function EditTestPage() {
 						{step === 5 ? (
 							<Button
 								onClick={handleUpdate}
-								disabled={isLoading}
+								loading={isLoading}
+								loadingText="업데이트 중..."
 								className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
 							>
-								{isLoading ? (
-									<>
-										<RefreshCw className="w-4 h-4 animate-spin" />
-										업데이트 중...
-									</>
-								) : (
-									<>
-										<Check className="w-4 h-4" />
-										테스트 업데이트
-									</>
-								)}
+								<Check className="w-4 h-4" />
+								테스트 업데이트
 							</Button>
 						) : (
 							<Button

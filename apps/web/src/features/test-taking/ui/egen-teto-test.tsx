@@ -36,7 +36,7 @@ export function EgenTetoTest() {
 	const handleNext = () => {
 		if (selectedAnswer === null) return;
 
-		const selectedOption = currentQ.options[selectedAnswer];
+		const selectedOption = currentQ.choices[selectedAnswer];
 		const newAnswer: Answer = {
 			questionId: currentQ.id,
 			score: selectedOption.score,
@@ -166,13 +166,13 @@ export function EgenTetoTest() {
 				<div className="bg-white rounded-2xl shadow-xl p-6 md:p-8">
 					{/* 질문 */}
 					<div className="text-center mb-8">
-						<h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">{currentQ.text}</h1>
+						<h1 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4">{currentQ.question_text}</h1>
 						<p className="text-gray-500 text-sm">가장 가깝다고 생각하는 답을 선택해주세요</p>
 					</div>
 
 					{/* 선택지 */}
 					<div className="space-y-3 mb-8">
-						{currentQ.options.map((option, index) => (
+						{currentQ.choices.map((option, index) => (
 							<button
 								key={index}
 								onClick={() => handleAnswerSelect(index)}

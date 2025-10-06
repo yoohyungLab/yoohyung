@@ -1,7 +1,7 @@
 'use client';
 
 import { Heart } from 'lucide-react';
-import React from 'react';
+import Image from 'next/image';
 import { cn } from '@repo/shared';
 
 interface CarouselCardProps {
@@ -9,8 +9,7 @@ interface CarouselCardProps {
 	title: string;
 	description: string;
 	image: string;
-	category?: string;
-	tag?: string;
+	tags: string[];
 	isFavorite?: boolean;
 	onToggleFavorite?: (id: string) => void;
 	showFavoriteButton?: boolean;
@@ -23,59 +22,64 @@ export function CarouselCard({
 	title,
 	description,
 	image,
-	category,
-	tag,
+	tags,
 	isFavorite = false,
 	onToggleFavorite,
 	showFavoriteButton = true,
 	href = `/tests/${id}`,
 	className,
 }: CarouselCardProps) {
-	const handleFavoriteClick = (e: React.MouseEvent) => {
-		e.preventDefault();
-		onToggleFavorite?.(id);
-	};
+	const content = (
+		<div className={cn('group relative overflow-hidden', className)}>
+			<div className="relative rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
+				<div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
+					<Image
+						src={image}
+						alt={title}
+						fill
+						className="object-cover group-hover:scale-105 transition-transform duration-500"
+					/>
+					<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-	const CardContent = (
-		<div
-			className={cn(
-				'relative bg-white rounded-2xl overflow-hidden shadow-sm transition-all border border-gray-100 block',
-				className
-			)}
-		>
-			<img src={image} alt={title} className="w-full h-36 object-cover" />
-
-			{tag && (
-				<div className="absolute top-2 left-2 bg-pink-100 text-pink-700 text-xs px-2 py-1 rounded-full font-medium">
-					#{tag}
-				</div>
-			)}
-
-			{showFavoriteButton && onToggleFavorite && (
-				<button onClick={handleFavoriteClick} className="absolute top-2 right-2 bg-white/80 rounded-full p-1 shadow">
-					{isFavorite ? (
-						<Heart className="w-4 h-4 text-pink-500 fill-pink-500" />
-					) : (
-						<Heart className="w-4 h-4 text-gray-400" />
+					{tags[0] && (
+						<div className="absolute top-2.5 left-2.5">
+							<span className="inline-block text-[10px] font-bold bg-white text-gray-900 px-2 py-1 rounded-full">
+								{tags[0]}
+							</span>
+						</div>
 					)}
-				</button>
-			)}
 
-			<div className="p-4 space-y-1">
-				{!tag && category && <div className="text-xs text-pink-500 font-medium mb-1">#{category}</div>}
-				<h3 className="text-base font-semibold text-gray-900 line-clamp-1">{title}</h3>
-				<p className="text-sm text-gray-500 truncate">{description}</p>
+					{showFavoriteButton && onToggleFavorite && (
+						<button
+							onClick={(e) => {
+								e.preventDefault();
+								onToggleFavorite(id);
+							}}
+							className={cn(
+								'absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all',
+								isFavorite ? 'bg-white shadow-md hover:scale-110' : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+							)}
+						>
+							<Heart
+								className={cn('w-4 h-4 transition-all', isFavorite ? 'fill-red-500 text-red-500' : 'text-white')}
+							/>
+						</button>
+					)}
+
+					<div className="absolute bottom-0 left-0 right-0 p-3">
+						<h3 className="font-extrabold text-white text-sm leading-tight line-clamp-2 mb-0.5">{title}</h3>
+						<p className="text-[11px] text-white/70 line-clamp-1 font-medium">{description}</p>
+					</div>
+				</div>
 			</div>
 		</div>
 	);
 
-	if (href) {
-		return (
-			<a href={href} className="block">
-				{CardContent}
-			</a>
-		);
-	}
-
-	return CardContent;
+	return href ? (
+		<a href={href} className="block">
+			{content}
+		</a>
+	) : (
+		content
+	);
 }

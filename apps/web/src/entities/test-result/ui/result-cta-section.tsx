@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MAIN_TESTS } from '@/shared/constants';
+import { useTests } from '@/shared/hooks/useTests';
 import { trackCtaClicked, trackNextTestImpression } from '@/shared/lib/analytics';
 
 interface ResultCtaSectionProps {
@@ -13,6 +13,7 @@ interface ResultCtaSectionProps {
 }
 
 export function ResultCtaSection({
+	resultType,
 	totalScore,
 	isLoggedIn,
 	onShare,
@@ -21,10 +22,11 @@ export function ResultCtaSection({
 	onSubscribe,
 }: ResultCtaSectionProps) {
 	const [showMoreTests, setShowMoreTests] = useState(false);
+	const { testsAsCards } = useTests();
 
 	// 추천 테스트 생성 (태그 기반)
 	const getRecommendedTests = () => {
-		const allTests = MAIN_TESTS.filter((test) => test.id !== 'egen-teto');
+		const allTests = testsAsCards.filter((test) => test.id !== 'egen-teto');
 
 		// 점수에 따른 추천 로직
 		if (totalScore >= 70) {

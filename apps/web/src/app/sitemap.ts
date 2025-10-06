@@ -1,5 +1,4 @@
 import { MetadataRoute } from 'next';
-import { MAIN_TESTS } from '@/shared/constants';
 
 export default function sitemap(): MetadataRoute.Sitemap {
 	const baseUrl = 'https://pickid.com';
@@ -36,25 +35,15 @@ export default function sitemap(): MetadataRoute.Sitemap {
 			changeFrequency: 'monthly' as const,
 			priority: 0.5,
 		},
+		{
+			url: `${baseUrl}/balance-game`,
+			lastModified: new Date(),
+			changeFrequency: 'weekly' as const,
+			priority: 0.7,
+		},
 	];
 
-	// 테스트 페이지들
-	const testPages = MAIN_TESTS.map((test) => ({
-		url: `${baseUrl}/tests/${test.id}`,
-		lastModified: new Date(),
-		changeFrequency: 'weekly' as const,
-		priority: 0.7,
-	}));
-
-	// 결과 페이지들 (동적 생성)
-	const resultPages = MAIN_TESTS.flatMap((test) => [
-		{
-			url: `${baseUrl}/tests/${test.id}/result`,
-			lastModified: new Date(),
-			changeFrequency: 'daily' as const,
-			priority: 0.6,
-		},
-	]);
-
-	return [...staticPages, ...testPages, ...resultPages];
+	// TODO: 실제 테스트 데이터를 가져와서 동적으로 생성하도록 수정 필요
+	// 현재는 정적 페이지만 반환
+	return staticPages;
 }

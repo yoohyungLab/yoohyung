@@ -136,8 +136,8 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 						<Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
 							취소
 						</Button>
-						<Button onClick={handleSave} disabled={loading}>
-							{loading ? '저장 중...' : '순서 저장'}
+						<Button onClick={handleSave} loading={loading} loadingText="저장 중...">
+							순서 저장
 						</Button>
 					</div>
 				</div>

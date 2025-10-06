@@ -1,172 +1,73 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { MainBanner } from '@/widgets';
 import {
 	TrendingSection,
 	RecommendedSection,
 	TopTestsSection,
 	DynamicTestsSection,
 	CategoryFilter,
+	BannerCarousel,
 } from '@/features/home';
-import { testService } from '@/shared/api';
-import { MAIN_TESTS, POPULAR_TESTS } from '@/shared/constants';
+import { useTests } from '@/shared/hooks/useTests';
+import { Loading } from '@/shared/components/loading';
+import type { Banner } from '@/shared/types/home';
+import BalanceGameSection from './balance';
 
-interface DynamicTest {
-	id: string;
-	slug: string;
-	title: string;
-	description?: string;
-	emoji?: string;
-	thumbnail_image?: string;
-	category_id?: number;
-	category_name?: string;
-	category_display_name?: string;
-}
-
-interface SectionTest {
-	test_id: string;
-	test_slug: string;
-	test_title: string;
-	test_description?: string;
-	test_emoji?: string;
-	test_thumbnail?: string;
-	test_category_id?: number;
-	category_name?: string;
-	category_display_name?: string;
-	order_index: number;
-	is_featured: boolean;
-}
+// 배너 데이터 - 상수로 분리
+const BANNERS: Banner[] = [
+	{ id: 'banner-1', image: '/images/banner-2.png' },
+	{ id: 'banner-2', image: '/images/banner-2.png' },
+	{ id: 'banner-3', image: '/images/banner-2.png' },
+];
 
 export default function HomePage() {
-	const [dynamicTests, setDynamicTests] = useState<DynamicTest[]>([]);
-	const [sectionTests, setSectionTests] = useState<{
-		trending: SectionTest[];
-		recommended: SectionTest[];
-		balanceGames: SectionTest[];
-		topByType: SectionTest[];
-	}>({
-		trending: [],
-		recommended: [],
-		balanceGames: [],
-		topByType: [],
-	});
-	const [loading, setLoading] = useState(true);
+	const { testsAsCards, loading, enhancedSectionData } = useTests();
 
-	useEffect(() => {
-		loadAllData();
-	}, []);
+	return (
+		<>
+			<header className="w-full">
+				<BannerCarousel banners={BANNERS} autoPlay autoPlayInterval={5000} />
+			</header>
 
-	const loadAllData = async () => {
-		try {
-			setLoading(true);
+			<main className="min-h-screen bg-gray-50">
+				<div className="max-w-7xl mx-auto px-4">
+					<nav className="py-6" aria-label="테스트 카테고리">
+						<CategoryFilter />
+					</nav>
 
-			// 동적 테스트 로드
-			const tests = await testService.getPublishedTests();
-			setDynamicTests(tests);
+					<section className="py-8" aria-labelledby="popular-tests-heading">
+						<h2 id="popular-tests-heading" className="text-xl font-bold text-gray-900 mb-5">
+							인기 테스트
+						</h2>
+						<TrendingSection tests={enhancedSectionData.trending} />
+					</section>
 
-			// 섹션별 테스트 로드 (임시로 빈 배열 사용)
-			setSectionTests({
-				trending: [],
-				recommended: [],
-				balanceGames: [],
-				topByType: [],
-			});
-		} catch (error) {
-			console.error('데이터 로드 실패:', error);
-		} finally {
-			setLoading(false);
-		}
-	};
-	// 섹션 테스트를 카드 형식으로 변환
-	const convertSectionTestsToCards = (sectionTests: SectionTest[]) => {
-		return sectionTests.map((test) => ({
-			id: test.test_slug,
-			title: test.test_title,
-			description: test.test_description || '',
-			image: test.test_thumbnail || '/images/egen-teto/thumbnail.png',
-			tag: test.category_display_name || '테스트',
-		}));
-	};
+					<BalanceGameSection />
 
-	// 동적 테스트를 기존 테스트 형식으로 변환
-	const dynamicTestsAsCards = dynamicTests.map((test) => ({
-		id: test.slug,
-		title: test.title,
-		description: test.description || '',
-		image: test.thumbnail_image || '/images/egen-teto/thumbnail.png',
-		tag: '동적 테스트',
-	}));
+					{testsAsCards.length > 0 && (
+						<section className="py-8" aria-labelledby="new-tests-heading">
+							<h2 id="new-tests-heading" className="text-xl font-bold text-gray-900 mb-5">
+								새로 추가된 테스트
+							</h2>
+							{loading ? <Loading className="py-16" /> : <DynamicTestsSection tests={enhancedSectionData.dynamic} />}
+						</section>
+					)}
 
-	// 섹션별 테스트 데이터
-	const trendingTests = convertSectionTestsToCards(sectionTests.trending);
-	const recommendedTests = convertSectionTestsToCards(sectionTests.recommended);
-	// const balanceGameTests = convertSectionTestsToCards(sectionTests.balanceGames);
-	const topByTypeTests = convertSectionTestsToCards(sectionTests.topByType);
+					<section className="py-8" aria-labelledby="recommended-tests-heading">
+						<h2 id="recommended-tests-heading" className="text-xl font-bold text-gray-900 mb-5">
+							추천 테스트
+						</h2>
+						<RecommendedSection tests={enhancedSectionData.recommended} />
+					</section>
 
-	// 섹션이 비어있으면 기존 데이터 사용
-	const finalTrendingTests =
-		trendingTests.length > 0
-			? trendingTests
-			: MAIN_TESTS.slice(0, 6).map((test) => ({
-					...test,
-					tag: test.category ? String(test.category) : '테스트',
-			  }));
-	const finalRecommendedTests =
-		recommendedTests.length > 0
-			? recommendedTests
-			: MAIN_TESTS.slice(1, 7).map((test) => ({
-					...test,
-					tag: test.category ? String(test.category) : '테스트',
-			  }));
-	// const finalBalanceGameTests =
-	//     balanceGameTests.length > 0
-	//         ? balanceGameTests
-	//         : BALANCE_GAMES.map((test) => ({
-	//               ...test,
-	//               tag: test.category ? String(test.category) : '밸런스 게임',
-	//           }));
-	const finalTopByTypeTests =
-		topByTypeTests.length > 0
-			? topByTypeTests
-			: POPULAR_TESTS.map((test) => ({
-					...test,
-					tag: test.tag || '테스트',
-			  }));
-
-	if (loading) {
-		return (
-			<main className="space-y-5 px-4 pt-10 pb-24 max-w-4xl mx-auto">
-				<div className="text-center py-20">
-					<div className="animate-spin rounded-full h-12 w-12 border-b-2 border-pink-500 mx-auto"></div>
-					<p className="mt-4 text-gray-600">테스트를 불러오는 중...</p>
+					<section className="py-8 pb-12" aria-labelledby="hall-of-fame-heading">
+						<h2 id="hall-of-fame-heading" className="text-xl font-bold text-gray-900 mb-5">
+							명예의 전당
+						</h2>
+						<TopTestsSection tests={enhancedSectionData.topByType} />
+					</section>
 				</div>
 			</main>
-		);
-	}
-	console.log(finalTrendingTests);
-	return (
-		<main className="space-y-5 px-4 pt-10 pb-24 max-w-4xl mx-auto">
-			{/* 메인 배너 영역 */}
-			<MainBanner />
-
-			{/* 요즘 뜨는 테스트 */}
-			<TrendingSection tests={finalTrendingTests} />
-
-			{/* 테스트 추천 */}
-			<RecommendedSection tests={finalRecommendedTests} />
-
-			{/* 동적 테스트 섹션 */}
-			{dynamicTestsAsCards.length > 0 && <DynamicTestsSection tests={dynamicTestsAsCards} />}
-
-			{/* 일상 속 밸런스 게임 */}
-			{/* <BalanceGameSection tests={finalBalanceGameTests} /> */}
-
-			{/* 유형별 TOP 테스트 */}
-			<TopTestsSection tests={finalTopByTypeTests} />
-
-			{/* 카테고리별 탐색 */}
-			<CategoryFilter />
-		</main>
+		</>
 	);
 }

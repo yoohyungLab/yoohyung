@@ -65,7 +65,7 @@ export default {
 			},
 			fontFamily: {
 				sans: [
-					'Pretendard',
+					'S-CoreDream',
 					'-apple-system',
 					'BlinkMacSystemFont',
 					'system-ui',

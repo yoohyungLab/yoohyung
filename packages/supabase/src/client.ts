@@ -1,14 +1,17 @@
 import { createClient } from '@supabase/supabase-js';
+import { createServerClient } from '@supabase/ssr';
+import { NextRequest, NextResponse } from 'next/server';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+// Supabase 설정
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 
-// 환경 변수가 없으면 에러를 던지도록 수정
-if (!supabaseUrl || !supabaseAnonKey) {
-	console.error(
-		'Supabase environment variables not found. Please set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY'
-	);
-	throw new Error('Supabase configuration is missing. Please check your environment variables.');
+// 환경 변수 검증
+if (!supabaseUrl) {
+	throw new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
+}
+if (!supabaseAnonKey) {
+	throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY 환경 변수가 설정되지 않았습니다.');
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -17,5 +20,21 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 		persistSession: true,
 	},
 });
+
+export const createMiddlewareClient = (req: NextRequest, res: NextResponse) => {
+	return createServerClient(supabaseUrl, supabaseAnonKey, {
+		cookies: {
+			get(name: string) {
+				return req.cookies.get(name)?.value;
+			},
+			set(name: string, value: string, options: any) {
+				res.cookies.set({ name, value, ...options });
+			},
+			remove(name: string, options: any) {
+				res.cookies.set({ name, value: '', ...options });
+			},
+		},
+	});
+};
 
 export type SupabaseClient = typeof supabase;

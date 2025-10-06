@@ -118,9 +118,9 @@ export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지'
 				)}
 			</div>
 			<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
-			<Button variant="outline" className="w-full mt-3" onClick={handleUploadClick} disabled={uploading}>
+			<Button variant="outline" className="w-full mt-3" onClick={handleUploadClick} loading={uploading} loadingText="업로드 중...">
 				<Upload className="w-4 h-4 mr-2" />
-				{uploading ? '업로드 중...' : '직접 업로드'}
+				직접 업로드
 			</Button>
 		</div>
 	);

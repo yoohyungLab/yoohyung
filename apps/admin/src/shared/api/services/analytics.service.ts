@@ -200,7 +200,7 @@ export const analyticsService = {
 			const { data: categories, error: categoryError } = await supabase
 				.from('categories')
 				.select('id, name')
-				.eq('is_active', true)
+				.eq('status', 'active')
 				.order('sort_order', { ascending: true });
 
 			if (categoryError) {

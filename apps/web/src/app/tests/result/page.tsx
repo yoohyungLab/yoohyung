@@ -5,16 +5,18 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { ResultDetails, ResultComparisonSection, ResultCtaSection, ShareModal } from '@/entities/test-result';
 import { EGEN_TETO_RESULTS } from '@/shared/constants';
-import { TestResult } from '@/shared/types';
+import type { EgenTetoResult } from '@/shared/types';
 import { trackResultViewed, trackResultShared, trackCtaClicked } from '@/shared/lib/analytics';
+import { Loading } from '@/shared/components/loading';
 
 function ResultPageContent() {
 	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [isShareModalOpen, setIsShareModalOpen] = useState(false);
 	const [isLoggedIn, setIsLoggedIn] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 
-	const resultType = searchParams.get('type') as TestResult | null;
+	const resultType = searchParams?.get('type') as EgenTetoResult | null;
 	// const isShared = searchParams.get('shared') === 'true'
 
 	// 세션 스토리지에서 결과 데이터 가져오기
@@ -44,6 +46,11 @@ function ResultPageContent() {
 		// 임시로 로컬 스토리지에서 로그인 상태 확인
 		const authToken = localStorage.getItem('authToken');
 		setIsLoggedIn(!!authToken);
+
+		// 로딩 완료
+		setTimeout(() => {
+			setIsLoading(false);
+		}, 1000); // 1초 후 로딩 완료 (실제로는 데이터 로드 완료 시점에 설정)
 	}, []);
 
 	// 유효하지 않은 결과인 경우 리다이렉트
@@ -61,14 +68,11 @@ function ResultPageContent() {
 	}, [resultType, isLoggedIn]);
 
 	if (!isValid) {
-		return (
-			<div className="flex items-center justify-center h-screen">
-				<div className="text-center">
-					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-					<p className="text-gray-600">결과를 불러오는 중...</p>
-				</div>
-			</div>
-		);
+		return <Loading message="결과를 불러오는 중..." fullScreen />;
+	}
+
+	if (isLoading) {
+		return <Loading message="테스트 결과를 분석하는 중..." fullScreen />;
 	}
 
 	const data = EGEN_TETO_RESULTS[resultType];
@@ -101,7 +105,7 @@ function ResultPageContent() {
 
 	const handleSubscribe = () => {
 		// 알림 구독 로직
-		console.log('알림 구독 요청');
+		console.log('Notification subscription request');
 		trackCtaClicked('subscribe', 'egen-teto');
 	};
 

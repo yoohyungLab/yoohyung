@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@repo/shared';
-import { useAuth } from '@/features/auth';
+import { useAuth } from '@/shared/hooks/useAuth';
 
 interface FavoriteContentId {
 	content_id: string;
@@ -11,7 +11,16 @@ interface FavoriteContentId {
 export function useFavorites() {
 	const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 	const [loading, setLoading] = useState(true);
-	const { user } = useAuth();
+
+	// useAuth를 안전하게 사용 (SSR 대응)
+	let user = null;
+	try {
+		const auth = useAuth();
+		user = auth.user;
+	} catch {
+		// SessionProvider 밖에서 사용되는 경우 (SSR 등)
+		user = null;
+	}
 
 	useEffect(() => {
 		if (!user) return;

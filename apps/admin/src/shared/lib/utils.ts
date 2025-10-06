@@ -94,7 +94,7 @@ export const getStatusConfig = (
 
 	// 카테고리 상태
 	if (type === 'category') {
-		const isActive = Boolean(status);
+		const isActive = status === 'active';
 		return {
 			text: isActive ? '활성' : '비활성',
 			color: isActive
@@ -302,12 +302,12 @@ export const getTestStatusStyle = (status: string) => {
 
 // 카테고리 상태 스타일 (기존 함수와 호환성 유지)
 export const getCategoryStatusStyle = (isActive: boolean) => {
-	return getStatusConfig('category', isActive).color;
+	return getStatusConfig('category', isActive ? 'active' : 'inactive').color;
 };
 
 // 카테고리 상태 텍스트 (기존 함수와 호환성 유지)
 export const getCategoryStatusText = (isActive: boolean) => {
-	return getStatusConfig('category', isActive).text;
+	return getStatusConfig('category', isActive ? 'active' : 'inactive').text;
 };
 
 // 우선순위 색상 (기존 함수와 호환성 유지)

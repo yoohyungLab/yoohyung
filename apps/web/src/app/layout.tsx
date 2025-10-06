@@ -1,7 +1,12 @@
-import { Footer } from '@/widgets';
-import Sidebar from '@/widgets/sidebar';
+// src/app/layout.tsx
 import type { Metadata } from 'next';
 import { Gowun_Dodum } from 'next/font/google';
+import { ReactNode } from 'react';
+
+import { SessionProvider } from '@/shared/providers/session.provider';
+import { QueryProvider } from '@/shared/providers/query.provider';
+import App from '@/App';
+
 import './globals.css';
 
 const gowunDodum = Gowun_Dodum({
@@ -12,9 +17,9 @@ const gowunDodum = Gowun_Dodum({
 });
 
 export const metadata: Metadata = {
-	title: '픽키드 - 심리테스트 플랫폼',
-	description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요. 에겐·테토 테스트부터 다양한 성격 분석까지.',
-	keywords: ['심리테스트', '성격분석', '에겐테토', 'MBTI', '자기계발'],
+	title: '픽키드 - 나를 알아가는 심리테스트',
+	description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요. Z세대를 위한 트렌디한 테스트 플랫폼.',
+	keywords: ['심리테스트', '성격분석', '밸런스게임', 'MBTI', '자기계발', '픽키드', 'Z세대'],
 	authors: [{ name: '픽키드' }],
 	creator: '픽키드',
 	publisher: '픽키드',
@@ -31,15 +36,24 @@ export const metadata: Metadata = {
 		type: 'website',
 		locale: 'ko_KR',
 		url: 'https://pickid.com',
-		title: '픽키드 - 심리테스트 플랫폼',
-		description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요.',
+		title: '픽키드 - 나를 알아가는 심리테스트',
+		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',
 		siteName: '픽키드',
+		images: [
+			{
+				url: '/og-image.png',
+				width: 1200,
+				height: 630,
+				alt: '픽키드 - 심리테스트 플랫폼',
+			},
+		],
 	},
 	twitter: {
 		card: 'summary_large_image',
-		title: '픽키드 - 심리테스트 플랫폼',
-		description: '나만의 성향을 알아보는 재미있는 심리테스트를 만나보세요.',
+		title: '픽키드 - 나를 알아가는 심리테스트',
+		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',
 		creator: '@pickid',
+		images: ['/og-image.png'],
 	},
 	robots: {
 		index: true,
@@ -57,43 +71,20 @@ export const metadata: Metadata = {
 	},
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="ko">
-			<body className={gowunDodum.className}>
-				<div className="min-h-screen flex flex-col bg-gray-50">
-					<div className="w-full max-w-mobile mx-auto bg-white shadow-2xl">
-						<Sidebar />
-						<main className="flex-1 p-4 min-h-screen">{children}</main>
-						<Footer />
-					</div>
-
-					{/* 애드센스 광고 영역 - 데스크톱에서만 표시 */}
-					{/* <div className="hidden lg:block fixed top-0 left-0 w-48 h-full bg-gray-100 border-r border-gray-200">
-              <div className="p-4">
-                  <div className="text-sm text-gray-500 mb-2">광고 영역</div>
-                  <div className="w-full h-96 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-gray-400">좌측 광고</span>
-                  </div>
-              </div>
-          </div> */}
-
-					{/* <div className="hidden lg:block fixed top-0 right-0 w-48 h-full bg-gray-100 border-l border-gray-200">
-              <div className="p-4">
-                  <div className="text-sm text-gray-500 mb-2">광고 영역</div>
-                  <div className="w-full h-96 bg-gray-200 rounded flex items-center justify-center">
-                      <span className="text-gray-400">우측 광고</span>
-                  </div>
-              </div>
-          </div> */}
-
-					{/* 하단 광고 영역 */}
-					{/* <div className="hidden md:block fixed bottom-0 left-0 right-0 h-20 bg-gray-100 border-t border-gray-200">
-              <div className="max-w-mobile mx-auto h-full flex items-center justify-center">
-                  <span className="text-gray-400">하단 광고</span>
-              </div>
-          </div> */}
-				</div>
+		<html lang="ko" suppressHydrationWarning className={gowunDodum.variable}>
+			<head>
+				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+				<link rel="icon" href="/favicon.ico" sizes="any" />
+			</head>
+			<body className="flex min-h-screen">
+				{/* ✅ QueryProvider → AuthProvider 순서 중요 (Auth가 Query 사용 가능) */}
+				<QueryProvider>
+					<SessionProvider>
+						<App>{children}</App>
+					</SessionProvider>
+				</QueryProvider>
 			</body>
 		</html>
 	);

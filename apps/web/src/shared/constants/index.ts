@@ -25,11 +25,15 @@ export type CategoryId = keyof typeof TEST_CATEGORIES;
 // 에겐·테토 테스트 상수
 // ============================================================================
 
-// 질문 인터페이스
-interface Question {
-	id: number;
-	text: string;
-	options: {
+// Supabase에서 가져온 타입 사용
+
+// 에겐·테토용 질문 타입 (Supabase 타입을 확장)
+interface EgenTetoQuestion {
+	id: number; // 에겐·테토는 숫자 ID 사용
+	question_text: string; // Supabase 타입과 일치
+	question_order: number; // Supabase 타입과 일치
+	image_url: string | null; // Supabase 타입과 일치
+	choices: {
 		text: string;
 		score: number;
 		type: string;
@@ -37,11 +41,13 @@ interface Question {
 }
 
 // 에겐·테토 질문
-export const EGEN_TETO_QUESTIONS: Question[] = [
+export const EGEN_TETO_QUESTIONS: EgenTetoQuestion[] = [
 	{
 		id: 1,
-		text: '카톡으로 친구가 "오늘 진짜 최악이야 ㅠㅠ"라고 보냈을 때?',
-		options: [
+		question_text: '카톡으로 친구가 "오늘 진짜 최악이야 ㅠㅠ"라고 보냈을 때?',
+		question_order: 1,
+		image_url: null,
+		choices: [
 			{
 				text: '어머 무슨 일이야? 😰 진짜 힘들었겠다... 괜찮아?',
 				score: 2,
@@ -58,8 +64,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 2,
-		text: '단톡방에서 모임 장소 정할 때 나는?',
-		options: [
+		question_text: '단톡방에서 모임 장소 정할 때 나는?',
+		question_order: 2,
+		image_url: null,
+		choices: [
 			{
 				text: '다들 어디가 좋을까요~? 의견 들어보고 싶어요!',
 				score: 2,
@@ -72,8 +80,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 3,
-		text: '넷플릭스 뭐 볼지 고를 때?',
-		options: [
+		question_text: '넷플릭스 뭐 볼지 고를 때?',
+		question_order: 3,
+		image_url: null,
+		choices: [
 			{
 				text: '같이 보고 싶은 거 있어? 취향 맞춰볼까?',
 				score: 2,
@@ -94,8 +104,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 4,
-		text: '새로 만난 사람과 어색할 때?',
-		options: [
+		question_text: '새로 만난 사람과 어색할 때?',
+		question_order: 4,
+		image_url: null,
+		choices: [
 			{ text: '혹시 불편하지 않을까? 계속 눈치 봄', score: 2, type: '에겐 강' },
 			{
 				text: '상대반응 살피며 조심스럽게 대화 시도',
@@ -112,8 +124,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 5,
-		text: '친구가 내 충고를 안 들을 때?',
-		options: [
+		question_text: '친구가 내 충고를 안 들을 때?',
+		question_order: 5,
+		image_url: null,
+		choices: [
 			{ text: '내가 잘못 말한 건 아닐까? 자책함', score: 2, type: '에겐 강' },
 			{ text: '음... 내 말이 도움이 안 됐나봐', score: 1, type: '에겐 약' },
 			{ text: '뭐 본인이 결정할 일이지', score: -1, type: '테토 약' },
@@ -122,8 +136,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 6,
-		text: '데이트 코스 정할 때?',
-		options: [
+		question_text: '데이트 코스 정할 때?',
+		question_order: 6,
+		image_url: null,
+		choices: [
 			{
 				text: '너 가고 싶은 데 있어? 네가 좋아할 만한 곳 찾아볼게!',
 				score: 2,
@@ -148,8 +164,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 7,
-		text: '팀 프로젝트에서 의견이 안 맞을 때?',
-		options: [
+		question_text: '팀 프로젝트에서 의견이 안 맞을 때?',
+		question_order: 7,
+		image_url: null,
+		choices: [
 			{
 				text: '우리 다시 한번 차근차근 얘기해볼까요?',
 				score: 2,
@@ -162,8 +180,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 8,
-		text: 'SNS에 올릴 사진 고를 때?',
-		options: [
+		question_text: 'SNS에 올릴 사진 고를 때?',
+		question_order: 8,
+		image_url: null,
+		choices: [
 			{ text: '친구들과 찍은 사진, 일상 공유 위주', score: 2, type: '에겐 강' },
 			{ text: '예쁘게 나온 셀카, 음식 사진', score: 1, type: '에겐 약' },
 			{ text: '여행, 운동 인증샷처럼 활동 중심', score: -1, type: '테토 약' },
@@ -172,8 +192,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 9,
-		text: '스트레스 받을 때 해소 방법?',
-		options: [
+		question_text: '스트레스 받을 때 해소 방법?',
+		question_order: 9,
+		image_url: null,
+		choices: [
 			{ text: '친구들과 수다 떨며 공감받기', score: 2, type: '에겐 강' },
 			{
 				text: '혼자 조용히 드라마 보거나 음악 듣기',
@@ -190,8 +212,10 @@ export const EGEN_TETO_QUESTIONS: Question[] = [
 	},
 	{
 		id: 10,
-		text: '새로운 도전 앞에서?',
-		options: [
+		question_text: '새로운 도전 앞에서?',
+		question_order: 10,
+		image_url: null,
+		choices: [
 			{
 				text: '주변 사람들이 어떻게 생각할까? 타인 반응 우선',
 				score: 2,
@@ -292,118 +316,6 @@ export const EGEN_TETO_RESULT_BG_IMAGES: Record<string, string> = {
 	mixed: '/images/egen-teto/bg-mixed.jpg',
 };
 
-// ============================================================================
-// 테스트 목록 상수
-// ============================================================================
-
-// 메인 테스트 목록
-export const MAIN_TESTS = [
-	{
-		id: 'egen-teto',
-		title: '에겐·테토 테스트',
-		description: '호르몬 성향으로 나를 분석해보세요',
-		image: '/images/egen-teto/thumbnail.png',
-		color: 'pink',
-		category: 1,
-		tags: ['감성', '호르몬'],
-	},
-	{
-		id: 'mbti',
-		title: 'MBTI 테스트',
-		description: '16가지 유형으로 나의 성격을 파악해보세요',
-		image: '/images/egen-teto/thumbnail.png',
-		color: 'blue',
-		category: 1,
-		tags: ['성격', '진단'],
-	},
-	{
-		id: 'love-style',
-		title: '연애스타일 테스트',
-		description: '당신의 연애 방식은 어떤 유형일까요?',
-		image: '/images/egen-teto/thumbnail.png',
-		color: 'rose',
-		category: 2,
-		tags: ['연애', '감정'],
-	},
-	{
-		id: 'enneagram',
-		title: '에니어그램 테스트',
-		description: '9가지 성격 유형으로 나를 알아보세요',
-		image: '/images/egen-teto/thumbnail.png',
-		color: 'purple',
-		category: 1,
-		tags: ['성격', '자기계발'],
-	},
-	{
-		id: 'iq-quiz',
-		title: 'IQ 퀴즈',
-		description: '지적 능력을 측정해보세요',
-		image: '/images/egen-teto/thumbnail.png',
-		color: 'green',
-		category: 3,
-		tags: ['지능', '퀴즈'],
-	},
-];
-
-// 밸런스 게임 목록
-export const BALANCE_GAMES = [
-	{
-		id: 'balance-earlybird-vs-nightowl',
-		title: '아침형 인간 vs 저녁형 인간',
-		description: '당신의 생활 루틴은 어떤 타입인가요?',
-		image: '/images/egen-teto/thumbnail.png',
-		category: 4,
-		tags: ['밸런스 게임'],
-	},
-	{
-		id: 'balance-alone-vs-party',
-		title: '혼자 있는게 좋아 vs 친구랑 어울리는게 좋아',
-		description: '에너지 충전 방식은 다르니까!',
-		image: '/images/egen-teto/thumbnail.png',
-		category: 1,
-		tags: ['밸런스 게임'],
-	},
-	{
-		id: 'balance-fast-vs-deepthink',
-		title: '빨리 결정하는 편 vs 오래 고민하는 편',
-		description: '당신의 선택 스타일은?',
-		image: '/images/egen-teto/thumbnail.png',
-		category: 1,
-		tags: ['밸런스 게임'],
-	},
-];
-
-// 인기 테스트 목록
-export const POPULAR_TESTS = [
-	{
-		id: 'mbti',
-		title: 'MBTI 테스트',
-		image: '/images/egen-teto/thumbnail.png',
-		tag: '성격',
-		category: 1,
-	},
-	{
-		id: 'love-style',
-		title: '연애 스타일 테스트',
-		image: '/images/egen-teto/thumbnail.png',
-		tag: '연애',
-		category: 2,
-	},
-	{
-		id: 'self-esteem',
-		title: '자존감 자가진단 테스트',
-		image: '/images/egen-teto/thumbnail.png',
-		tag: '자존감',
-		category: 1,
-	},
-	{
-		id: 'funny-animal',
-		title: '나는 어떤 동물일까 테스트',
-		image: '/images/egen-teto/thumbnail.png',
-		tag: '웃긴',
-		category: 5,
-	},
-];
 
 // ============================================================================
 // 피드백 관련 상수
@@ -476,63 +388,4 @@ export const FEEDBACK_STATUS = {
 		color: 'bg-red-100 text-red-700',
 		value: 'rejected',
 	},
-} as const;
-
-// ============================================================================
-// 제한 및 설정 상수
-// ============================================================================
-
-// 피드백 작성 제한
-export const FEEDBACK_LIMITS = {
-	GUEST: {
-		DAILY: 3,
-		HOURLY: 1,
-	},
-	USER: {
-		DAILY: 10,
-		INTERVAL_MINUTES: 10,
-	},
-	IP: {
-		HOURLY: 5,
-	},
-} as const;
-
-// 콘텐츠 제한
-export const CONTENT_LIMITS = {
-	TITLE_MAX: 50,
-	CONTENT_MAX: 1000,
-	MAX_EXTERNAL_LINKS: 3,
-	FILE_SIZE_MAX: 5 * 1024 * 1024, // 5MB
-	ALLOWED_FILE_TYPES: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
-} as const;
-
-// ============================================================================
-// UI 관련 상수
-// ============================================================================
-
-// 색상 테마
-export const COLORS = {
-	primary: 'pink',
-	secondary: 'blue',
-	accent: 'rose',
-	neutral: 'gray',
-	success: 'green',
-	warning: 'yellow',
-	error: 'red',
-} as const;
-
-// 애니메이션 지속 시간
-export const ANIMATION_DURATION = {
-	fast: 150,
-	normal: 300,
-	slow: 500,
-} as const;
-
-// 반응형 브레이크포인트
-export const BREAKPOINTS = {
-	sm: 640,
-	md: 768,
-	lg: 1024,
-	xl: 1280,
-	'2xl': 1536,
 } as const;

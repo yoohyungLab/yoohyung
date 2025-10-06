@@ -128,20 +128,12 @@ export function CreateTestPage() {
 							{step === 5 ? (
 								<Button
 									onClick={handleSave}
-									disabled={isLoading}
+									loading={isLoading}
+									loadingText="저장 중..."
 									className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
 								>
-									{isLoading ? (
-										<>
-											<RefreshCw className="w-4 h-4 animate-spin" />
-											저장 중...
-										</>
-									) : (
-										<>
-											<Check className="w-4 h-4" />
-											테스트 생성
-										</>
-									)}
+									<Check className="w-4 h-4" />
+									테스트 생성
 								</Button>
 							) : (
 								<Button

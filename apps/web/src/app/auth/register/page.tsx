@@ -1,12 +1,26 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/shared/hooks/useAuth';
+import { AuthLayout, AuthForm, type AuthFormData } from '@/shared/components/auth';
+
 export default function RegisterPage() {
+	const router = useRouter();
+	const { signUp } = useAuth();
+
+	const handleRegister = async (data: AuthFormData) => {
+		try {
+			await signUp(data.email, data.password, data.name);
+			router.push('/');
+		} catch (error) {
+			// 에러는 컴포넌트에서 처리 (toast, alert 등)
+			console.error('Register error:', error);
+		}
+	};
+
 	return (
-		<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-			<div className="text-center">
-				<h1 className="text-2xl font-bold text-gray-900 mb-4">회원가입 페이지</h1>
-				<p className="text-gray-600">회원가입 기능이 준비 중입니다.</p>
-			</div>
-		</div>
+		<AuthLayout title="회원가입" subtitle="픽키드와 함께 시작하세요" showLogo={true}>
+			<AuthForm mode="register" onSubmit={handleRegister} />
+		</AuthLayout>
 	);
 }

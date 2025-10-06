@@ -9,9 +9,8 @@ interface CategoryCreateModalProps {
 	onSuccess: (categoryData?: {
 		name: string;
 		slug: string;
-		description?: string;
 		sort_order?: number;
-		is_active?: boolean;
+		status?: 'active' | 'inactive';
 	}) => void;
 	editCategory?: Category | null;
 }
@@ -21,9 +20,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 	const [error, setError] = useState<string | null>(null);
 	const [formData, setFormData] = useState({
 		name: '',
-		description: '',
 		sort_order: 0,
-		is_active: true,
+		status: 'active' as 'active' | 'inactive',
 	});
 
 	const handleChange = (field: string, value: string | number | boolean) => {
@@ -32,7 +30,7 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 	};
 
 	const resetForm = () => {
-		setFormData({ name: '', description: '', sort_order: 0, is_active: true });
+		setFormData({ name: '', sort_order: 0, status: 'active' });
 		setError(null);
 	};
 
@@ -41,9 +39,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		if (editCategory) {
 			setFormData({
 				name: editCategory.name,
-				description: editCategory.description || '',
 				sort_order: editCategory.sort_order || 0,
-				is_active: editCategory.is_active ?? true,
+				status: editCategory.status,
 			});
 		} else {
 			resetForm();
@@ -69,17 +66,39 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		setError(null);
 
 		try {
-			const slug = formData.name
+			// 더 나은 slug 생성 로직
+			const baseSlug = formData.name
 				.trim()
 				.toLowerCase()
-				.replace(/[^a-z0-9]/g, '_');
+				.replace(/[^a-z0-9가-힣]/g, '') // 한글도 포함
+				.replace(/[가-힣]/g, (match) => {
+					// 한글을 영문으로 변환 (간단한 매핑)
+					const map: { [key: string]: string } = {
+						유: 'type',
+						형: 'type',
+						성: 'personality',
+						향: 'tendency',
+						분: 'analysis',
+						석: 'analysis',
+						테: 'test',
+						스: 'test',
+						심: 'psychology',
+						리: 'psychology',
+					};
+					return map[match] || match;
+				})
+				.replace(/[^a-z0-9]/g, '-') // 나머지 특수문자를 하이픈으로
+				.replace(/-+/g, '-') // 연속된 하이픈을 하나로
+				.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+
+			// 빈 slug인 경우 기본값 사용
+			const slug = baseSlug || 'category';
 
 			const categoryData = {
 				name: formData.name.trim(),
-				description: formData.description.trim() || undefined,
 				sort_order: formData.sort_order,
 				slug,
-				is_active: formData.is_active,
+				status: formData.status,
 			};
 
 			resetForm();
@@ -134,17 +153,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						className="w-full"
 					/>
 
-					{/* 설명 */}
-					<DefaultTextarea
-						label="설명"
-						placeholder="카테고리에 대한 간단한 설명을 작성해주세요..."
-						value={formData.description}
-						onChange={(e) => handleChange('description', e.target.value)}
-						disabled={loading}
-						rows={4}
-						className="w-full text-sm "
-					/>
-
 					{/* 순서 */}
 					<DefaultInput
 						label="정렬 순서"
@@ -162,8 +170,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 					<div className="flex items-center space-x-2">
 						<input
 							type="checkbox"
-							checked={formData.is_active}
-							onChange={(e) => handleChange('is_active', e.target.checked)}
+							checked={formData.status === 'active'}
+							onChange={(e) => handleChange('status', e.target.checked ? 'active' : 'inactive')}
 							disabled={loading}
 							className="h-4 w-4 text-blue-600 focus:ring-blue-500  rounded"
 						/>
@@ -175,8 +183,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						<Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
 							취소
 						</Button>
-						<Button type="submit" disabled={loading}>
-							{loading ? '생성 중...' : '카테고리 생성'}
+						<Button type="submit" loading={loading} loadingText="생성 중...">
+							카테고리 생성
 						</Button>
 					</div>
 				</form>
