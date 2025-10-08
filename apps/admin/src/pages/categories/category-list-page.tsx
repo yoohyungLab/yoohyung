@@ -1,13 +1,13 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { usePagination } from '@repo/shared';
-import { DataTable, type Column, DefaultPagination, Badge, Button } from '@repo/ui';
+import { usePagination } from '@pickid/shared';
+import { DataTable, type Column, DefaultPagination, Badge, Button } from '@pickid/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { CategoryCreateModal, CategorySortModal } from '@/components/category';
 import { useColumnRenderers } from '@/shared/hooks';
 import { useCategories } from '@/hooks/useCategories';
 import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/shared/lib/constants';
 import { getCategoryStatusText, getCategoryStatusStyle } from '@/shared/lib/utils';
-import type { Category } from '@repo/supabase';
+import type { Category } from '@pickid/supabase';
 
 export default function CategoryListPage() {
 	const renderers = useColumnRenderers();

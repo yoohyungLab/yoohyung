@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
 

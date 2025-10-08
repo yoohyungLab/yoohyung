@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { categoryService } from '@/shared/api';
-import type { Category, CategoryFilters } from '@repo/supabase';
+import type { Category, CategoryFilters } from '@pickid/supabase';
 
 interface CategoryStats {
 	total: number;

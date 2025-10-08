@@ -1,4 +1,4 @@
-import { supabase } from '@repo/shared';
+import { supabase } from '@pickid/shared';
 import type {
 	Test,
 	Database,
@@ -9,7 +9,7 @@ import type {
 	ResponseChartData,
 	UserResponseStats,
 	ExportData,
-} from '@repo/supabase';
+} from '@pickid/supabase';
 
 // Supabase에서 타입 가져오기
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];

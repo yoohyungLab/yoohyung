@@ -1,7 +1,8 @@
 'use client';
 
 import { Heart } from 'lucide-react';
-import { cn } from '@repo/shared';
+import Link from 'next/link';
+import { cn } from '@pickid/shared';
 
 interface HomeCardProps {
 	id: string;
@@ -33,6 +34,7 @@ export function HomeCard({
 		>
 			<div className="block">
 				<div className="aspect-square relative overflow-hidden">
+					{/* eslint-disable-next-line @next/next/no-img-element */}
 					<img
 						src={image}
 						alt={title}
@@ -73,9 +75,9 @@ export function HomeCard({
 
 	if (href) {
 		return (
-			<a href={href} className="block">
+			<Link href={href} className="block">
 				{CardContent}
-			</a>
+			</Link>
 		);
 	}
 

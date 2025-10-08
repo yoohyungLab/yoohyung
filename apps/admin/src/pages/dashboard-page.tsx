@@ -1,4 +1,4 @@
-import { Card, CardContent, IconButton } from '@repo/ui';
+import { Card, CardContent, IconButton } from '@pickid/ui';
 import { LoadingState, ErrorState } from '@/components/ui';
 import { Activity, BarChart3, FileText, Plus, Target, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';

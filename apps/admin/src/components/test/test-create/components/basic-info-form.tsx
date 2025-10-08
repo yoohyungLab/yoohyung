@@ -1,5 +1,5 @@
 import React from 'react';
-import { DefaultInput, DefaultTextarea, DefaultSelect, Button } from '@repo/ui';
+import { DefaultInput, DefaultTextarea, DefaultSelect, Button } from '@pickid/ui';
 import { RefreshCw } from 'lucide-react';
 import { BasicInfoFormProps } from '../types';
 

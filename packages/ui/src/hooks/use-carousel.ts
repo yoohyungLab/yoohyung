@@ -12,7 +12,14 @@ interface UseCarouselOptions {
 	orientation?: 'horizontal' | 'vertical';
 }
 
-export function useCarousel(options: UseCarouselOptions = {}) {
+export function useCarousel(options: UseCarouselOptions = {}): {
+	carouselRef: (node: HTMLElement | null) => void;
+	api: CarouselApi | undefined;
+	scrollPrev: () => void;
+	scrollNext: () => void;
+	canScrollPrev: boolean;
+	canScrollNext: boolean;
+} {
 	const { opts, plugins, orientation = 'horizontal' } = options;
 
 	const [carouselRef, api] = useEmblaCarousel(

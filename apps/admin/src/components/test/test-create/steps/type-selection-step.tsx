@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle, Badge } from '@repo/ui';
+import { Card, CardContent, CardHeader, CardTitle, Badge } from '@pickid/ui';
 import { testTypes } from '@/constants/testData';
 
 interface TypeSelectionStepProps {

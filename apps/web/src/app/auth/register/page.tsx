@@ -1,26 +1,21 @@
-'use client';
+import { Metadata } from 'next';
+import { AuthLayout, AuthForm } from '@/features/auth/ui';
 
-import { useRouter } from 'next/navigation';
-import { useAuth } from '@/shared/hooks/useAuth';
-import { AuthLayout, AuthForm, type AuthFormData } from '@/shared/components/auth';
+export const metadata: Metadata = {
+	title: '회원가입 | 픽키드',
+	description: '픽키드와 함께 시작하세요. 다양한 심리 테스트를 통해 자신을 알아가보세요.',
+	keywords: ['회원가입', '픽키드', '심리테스트', '자기계발'],
+	openGraph: {
+		title: '회원가입 | 픽키드',
+		description: '픽키드와 함께 시작하세요. 다양한 심리 테스트를 통해 자신을 알아가보세요.',
+		type: 'website',
+	},
+};
 
 export default function RegisterPage() {
-	const router = useRouter();
-	const { signUp } = useAuth();
-
-	const handleRegister = async (data: AuthFormData) => {
-		try {
-			await signUp(data.email, data.password, data.name);
-			router.push('/');
-		} catch (error) {
-			// 에러는 컴포넌트에서 처리 (toast, alert 등)
-			console.error('Register error:', error);
-		}
-	};
-
 	return (
 		<AuthLayout title="회원가입" subtitle="픽키드와 함께 시작하세요" showLogo={true}>
-			<AuthForm mode="register" onSubmit={handleRegister} />
+			<AuthForm mode="register" />
 		</AuthLayout>
 	);
 }

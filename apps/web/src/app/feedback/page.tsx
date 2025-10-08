@@ -1,24 +1,12 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { FeedbackList } from '@/features/feedback/ui/feedback-list';
 import { useFeedbackList } from '@/features/feedback/hooks/useFeedback';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 
-function FeedbackPageContent() {
-	const searchParams = useSearchParams();
-	const showSuccess = searchParams?.get('success') === 'true';
-	const { feedbacks, isLoading, error, hasMore, loadMore } = useFeedbackList();
-
-	useEffect(() => {
-		if (showSuccess) {
-			const url = new URL(window.location.href);
-			url.searchParams.delete('success');
-			window.history.replaceState({}, '', url.toString());
-		}
-	}, [showSuccess]);
+export default function FeedbackPage() {
+	const { feedbacks, isLoading, error } = useFeedbackList();
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -29,7 +17,7 @@ function FeedbackPageContent() {
 							<h1 className="text-2xl font-bold text-gray-900 mb-1">피드백</h1>
 							<p className="text-sm text-gray-600">의견을 들려주세요</p>
 						</div>
-						<Link href="/feedback/new">
+						<Link href="/feedback/create">
 							<Button className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 text-sm font-semibold rounded-lg">
 								피드백 작성
 							</Button>
@@ -37,14 +25,6 @@ function FeedbackPageContent() {
 					</div>
 				</div>
 			</div>
-
-			{showSuccess && (
-				<div className="bg-blue-50 border-b border-blue-200">
-					<div className="max-w-5xl mx-auto px-4 py-3">
-						<p className="text-sm text-blue-900 font-medium">피드백이 제출되었습니다</p>
-					</div>
-				</div>
-			)}
 
 			<div className="max-w-5xl mx-auto px-4 py-6">
 				{error ? (
@@ -58,18 +38,14 @@ function FeedbackPageContent() {
 							다시 시도
 						</Button>
 					</div>
-				) : isLoading && feedbacks.length === 0 ? (
+				) : isLoading ? (
 					<div className="flex items-center justify-center py-16">
 						<div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
 					</div>
 				) : (
-					<FeedbackList feedbacks={feedbacks} onLoadMore={loadMore} hasMore={hasMore} isLoading={isLoading} />
+					<FeedbackList feedbacks={feedbacks} />
 				)}
 			</div>
 		</div>
 	);
-}
-
-export default function FeedbackPage() {
-	return <FeedbackPageContent />;
 }

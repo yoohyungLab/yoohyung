@@ -1,5 +1,5 @@
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from '@repo/ui';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from '@pickid/ui';
 import { ResponseUtils } from '@/shared/api/services/user-responses.service';
 import type { UserResponse } from '@/shared/api/services/user-responses.service';
 

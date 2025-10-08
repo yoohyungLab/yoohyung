@@ -16,6 +16,14 @@ const buttonVariants = cva(
 				secondary: 'bg-secondary text-secondary-foreground shadow-sm hover:bg-secondary/80',
 				ghost: 'hover:bg-accent hover:text-accent-foreground',
 				link: 'text-primary underline-offset-4 hover:underline',
+				gradient:
+					'bg-gradient-to-r from-pink-500 to-blue-500 text-white shadow-lg hover:from-pink-600 hover:to-blue-600',
+				gradientSky:
+					'bg-gradient-to-r from-sky-500 to-rose-400 text-white shadow-lg hover:from-sky-600 hover:to-rose-500',
+				success: 'bg-green-500 text-white shadow hover:bg-green-600',
+				warning: 'bg-yellow-500 text-white shadow hover:bg-yellow-600',
+				error: 'bg-red-500 text-white shadow hover:bg-red-600',
+				kakao: 'w-full bg-[#FEE500] text-[#191919] font-medium h-12 rounded-xl shadow-md',
 			},
 			size: {
 				default: 'h-9 px-4 py-2',
@@ -40,14 +48,30 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-	({ className, variant, size, asChild = false, loading = false, loadingText = '로딩 중...', children, disabled, ...props }, ref) => {
+	(
+		{
+			className,
+			variant,
+			size,
+			asChild = false,
+			loading = false,
+			loadingText = '로딩 중...',
+			children,
+			disabled,
+			...props
+		},
+		ref
+	) => {
 		const Comp = asChild ? Slot : 'button';
 		const isDisabled = disabled || loading;
-		
+
+		// kakao variant일 때는 size를 무시하고 variant만 사용
+		const effectiveSize = variant === 'kakao' ? undefined : size;
+
 		return (
-			<Comp 
-				className={cn(buttonVariants({ variant, size, className }))} 
-				ref={ref} 
+			<Comp
+				className={cn(buttonVariants({ variant, size: effectiveSize, className }))}
+				ref={ref}
 				disabled={isDisabled}
 				{...props}
 			>

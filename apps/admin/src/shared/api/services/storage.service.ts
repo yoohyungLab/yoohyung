@@ -1,4 +1,4 @@
-import { supabase } from '@repo/shared';
+import { supabase } from '@pickid/shared';
 
 export interface UploadResult {
 	url: string;

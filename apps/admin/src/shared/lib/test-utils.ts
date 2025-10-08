@@ -1,4 +1,4 @@
-import type { Test, TestType, TestStatus } from '@repo/supabase';
+import type { Test, TestType, TestStatus } from '@pickid/supabase';
 
 // 테스트 타입별 표시명 설정
 export const TEST_TYPE_CONFIG = {

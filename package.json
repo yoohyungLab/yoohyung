@@ -1,11 +1,7 @@
 {
-	"name": "side-project-monorepo",
+	"name": "pickid-monorepo",
 	"private": true,
 	"packageManager": "pnpm@9.12.0",
-	"workspaces": [
-		"apps/*",
-		"packages/*"
-	],
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",
@@ -13,9 +9,13 @@
 		"test": "turbo test",
 		"types": "cd packages/supabase && pnpm generate-types",
 		"types-local": "cd packages/supabase && pnpm generate-types-local",
-		"type-check": "turbo type-check"
+		"type-check": "turbo type-check",
+		"changeset": "changeset",
+		"version-packages": "changeset version",
+		"release": "turbo build && changeset publish"
 	},
 	"devDependencies": {
+		"@changesets/cli": "^2.27.1",
 		"@types/react": "^18.2.0",
 		"@types/react-dom": "^18.2.0",
 		"dotenv": "^17.2.2",

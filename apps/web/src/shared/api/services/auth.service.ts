@@ -1,20 +1,5 @@
-import { createBrowserClient } from '@supabase/ssr';
 import type { Session } from '@supabase/supabase-js';
-
-// 환경 변수 확인 및 기본값 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-// 환경 변수 검증
-if (!supabaseUrl) {
-	throw new Error('NEXT_PUBLIC_SUPABASE_URL 환경 변수가 설정되지 않았습니다.');
-}
-if (!supabaseAnonKey) {
-	throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY 환경 변수가 설정되지 않았습니다.');
-}
-
-// Supabase 클라이언트 생성
-const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey);
+import { supabase } from '@pickid/shared';
 
 // Auth Service - 순수한 API 호출만 담당
 export const authService = {

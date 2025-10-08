@@ -13,6 +13,7 @@ export * from './icon-badge';
 export * from './icon-button';
 export * from './label';
 export * from './pagination';
+export * from './progress-bar';
 export * from './switch';
 export * from './table';
 export * from './tabs';

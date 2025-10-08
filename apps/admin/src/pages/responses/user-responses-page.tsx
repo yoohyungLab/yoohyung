@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
-import { usePagination } from '@repo/shared';
-import { DefaultPagination } from '@repo/ui';
+import { usePagination } from '@pickid/shared';
+import { DefaultPagination } from '@pickid/ui';
 import { AlertCircle } from 'lucide-react';
 import { useUserResponses } from '@/hooks';
 import { DataState, BulkActions } from '@/components/ui';

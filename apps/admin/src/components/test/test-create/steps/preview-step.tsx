@@ -1,5 +1,5 @@
 import React from 'react';
-import { Badge } from '@repo/ui';
+import { Badge } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
 import { testTypes } from '@/constants/testData';

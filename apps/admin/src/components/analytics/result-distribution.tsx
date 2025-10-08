@@ -2,7 +2,7 @@ import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { PieChart } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { Database } from '@repo/supabase';
+import type { Database } from '@pickid/supabase';
 
 type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
 

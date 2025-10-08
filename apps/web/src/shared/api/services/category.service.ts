@@ -1,32 +1,11 @@
-import { createBrowserClient } from '@supabase/ssr';
-import type { Category } from '@repo/supabase';
-
-// 환경 변수 확인 및 기본값 설정
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'http://127.0.0.1:54321';
-const supabaseAnonKey =
-	process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-	'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
-
-// Supabase 클라이언트 생성 (싱글톤 패턴)
-let supabase: ReturnType<typeof createBrowserClient> | null = null;
-
-const getSupabaseClient = () => {
-	if (!supabase) {
-		supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
-			auth: {
-				storageKey: 'pickid-web-auth',
-				persistSession: true,
-			},
-		});
-	}
-	return supabase;
-};
+import type { Category } from '@pickid/supabase';
+import { supabase } from '@pickid/shared';
 
 // Category Service - 순수한 API 호출만 담당
 export const categoryService = {
 	// 활성 카테고리 목록 조회 (웹에서 사용할 카테고리)
 	async getActiveCategories(): Promise<Category[]> {
-		const { data, error } = await getSupabaseClient()
+		const { data, error } = await supabase
 			.from('categories')
 			.select('id, name, slug, sort_order, status, created_at, updated_at')
 			.eq('status', 'active')
@@ -43,7 +22,7 @@ export const categoryService = {
 
 	// 모든 카테고리 조회 (관리자용)
 	async getAllCategories(): Promise<Category[]> {
-		const { data, error } = await getSupabaseClient()
+		const { data, error } = await supabase
 			.from('categories')
 			.select('id, name, slug, sort_order, status, created_at, updated_at')
 			.order('created_at', { ascending: false });
@@ -60,7 +39,7 @@ export const categoryService = {
 	async getCategoryWithTestCounts(): Promise<Array<Category & { test_count: number }>> {
 		try {
 			// 1. 카테고리 목록 조회
-			const { data: categories, error: categoryError } = await getSupabaseClient()
+			const { data: categories, error: categoryError } = await supabase
 				.from('categories')
 				.select('id, name, slug, sort_order, status, created_at, updated_at')
 				.eq('status', 'active')
@@ -76,7 +55,7 @@ export const categoryService = {
 			}
 
 			// 2. 모든 테스트 조회 (한 번만)
-			const { data: tests, error: testsError } = await getSupabaseClient()
+			const { data: tests, error: testsError } = await supabase
 				.from('tests')
 				.select('id, category_ids')
 				.eq('status', 'published');
@@ -116,7 +95,7 @@ export const categoryService = {
 
 	// 특정 카테고리 조회
 	async getCategoryById(id: string): Promise<Category | null> {
-		const { data, error } = await getSupabaseClient()
+		const { data, error } = await supabase
 			.from('categories')
 			.select('id, name, slug, sort_order, status, created_at, updated_at')
 			.eq('id', id)
@@ -132,7 +111,7 @@ export const categoryService = {
 
 	// 슬러그로 카테고리 조회
 	async getCategoryBySlug(slug: string): Promise<Category | null> {
-		const { data, error } = await getSupabaseClient()
+		const { data, error } = await supabase
 			.from('categories')
 			.select('id, name, slug, sort_order, status, created_at, updated_at')
 			.eq('slug', slug)

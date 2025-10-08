@@ -15,7 +15,7 @@ export type {
 	UserStatus,
 	CategoryStatus,
 	CategoryStats,
-} from '@repo/supabase';
+} from '@pickid/supabase';
 
 // 대시보드 관련 타입들
 export interface DashboardStats {

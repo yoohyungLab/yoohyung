@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader } from '@repo/ui';
+import { Card, CardContent, CardHeader } from '@pickid/ui';
 import { cn } from '@/shared/lib/utils';
 
 interface AdminCardProps {

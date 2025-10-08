@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 
 interface FeedbackReplyModalProps {
 	isOpen: boolean;

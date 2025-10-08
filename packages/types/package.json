@@ -1,5 +1,5 @@
 {
-	"name": "@repo/types",
+	"name": "@pickid/types",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -9,10 +9,12 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsc -p tsconfig.json"
+		"build": "tsc -p tsconfig.json",
+		"dev": "tsc --watch",
+		"clean": "rm -rf dist"
 	},
 	"dependencies": {
-		"@repo/supabase": "workspace:*"
+		"@pickid/supabase": "workspace:*"
 	},
 	"devDependencies": {
 		"typescript": "^5.7.2"

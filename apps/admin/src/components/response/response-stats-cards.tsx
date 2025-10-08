@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, Clock, Calendar, Monitor } from 'lucide-react';
 import { StatsCards } from '@/components/ui';
-import type { UserResponseStats } from '@repo/supabase';
+import type { UserResponseStats } from '@pickid/supabase';
 
 interface ResponseStatsCardsProps {
 	stats: UserResponseStats;

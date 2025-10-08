@@ -1,6 +1,6 @@
 // apps/admin/src/shared/api/services/user-responses.service.ts
-import { supabase } from '@repo/supabase';
-import type { Database } from '@repo/supabase';
+import { supabase } from '@pickid/supabase';
+import type { Database } from '@pickid/supabase';
 
 // 타입 정의
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];

@@ -1,3 +1,7 @@
 packages:
   - 'apps/*'
   - 'packages/*'
+  - '!**/node_modules'
+  - '!**/dist'
+  - '!**/build'
+  - '!**/.next'

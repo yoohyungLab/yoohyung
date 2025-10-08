@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { usePagination } from '@repo/shared';
-import type { Feedback } from '@repo/supabase';
-import { DataTable, type Column, DefaultPagination, Badge } from '@repo/ui';
+import { usePagination } from '@pickid/shared';
+import type { Feedback } from '@pickid/supabase';
+import { DataTable, type Column, DefaultPagination, Badge } from '@pickid/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
 import { useColumnRenderers } from '@/shared/hooks';

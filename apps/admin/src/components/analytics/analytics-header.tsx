@@ -1,8 +1,8 @@
 import React from 'react';
-import { Button, Select } from '@repo/ui';
+import { Button, Select } from '@pickid/ui';
 import { ArrowLeft, Download } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { Test } from '@repo/supabase';
+import type { Test } from '@pickid/supabase';
 
 interface AnalyticsHeaderProps {
 	test: Test;

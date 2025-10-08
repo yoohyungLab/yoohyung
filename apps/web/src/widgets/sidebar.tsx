@@ -1,8 +1,17 @@
 'use client';
 
-import { useAuth } from '@/shared/hooks/useAuth';
-import { useCategories } from '@/shared/hooks/useCategories';
-import { Button, Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@repo/ui';
+import { useAuthVM } from '@/features/auth/hooks';
+import { useCategories } from '@/features/home/hooks';
+import {
+	Button,
+	Drawer,
+	DrawerClose,
+	DrawerContent,
+	DrawerHeader,
+	DrawerTitle,
+	DrawerTrigger,
+	IconButton,
+} from '@pickid/ui';
 import {
 	Gamepad2,
 	HeartHandshake,
@@ -23,7 +32,7 @@ import React, { useState } from 'react';
 function Sidebar() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const router = useRouter();
-	const { user, signOut, signInWithKakao } = useAuth();
+	const { user, signOut, signInWithKakao } = useAuthVM();
 	const { categories } = useCategories();
 
 	// 카테고리 이름 기반으로 특정 메뉴 매핑
@@ -155,10 +164,10 @@ function Sidebar() {
 	);
 
 	return (
-		<div className="sticky top-0 z-50 bg-white border-b border-gray-200 p-4">
+		<div className="sticky top-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
 			<div className="flex items-center justify-between">
 				<Link href="/" className="flex items-center space-x-2">
-					<Image src="/icons/logo.svg" alt="로고" width={60} height={60} />
+					<Image src="/icons/logo.svg" alt="로고" width={50} height={50} />
 				</Link>
 
 				<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
@@ -218,15 +227,13 @@ function Sidebar() {
 								</div>
 							) : (
 								<div className="space-y-3">
-									<Button
-										className="w-full bg-[#FEE500] hover:bg-[#FEE500] text-black font-medium"
+									<IconButton
+										variant="kakao"
+										className="w-full rounded-lg font-normal hover:scale-100"
 										onClick={() => handleSignIn('kakao')}
-									>
-										<div className="flex items-center space-x-2">
-											<Image src="/icons/kakao.svg" alt="카카오" width={16} height={16} />
-											<span>카카오로 시작하기</span>
-										</div>
-									</Button>
+										icon={<Image src="/icons/kakao.svg" alt="카카오" width={16} height={16} />}
+										label="카카오로 시작하기"
+									/>
 									<div className="text-center">
 										<span className="text-sm text-gray-500">간편하게 3초만에 시작하세요</span>
 									</div>

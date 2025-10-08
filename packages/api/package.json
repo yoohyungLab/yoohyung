@@ -1,5 +1,5 @@
 {
-	"name": "@repo/api",
+	"name": "@pickid/api",
 	"version": "0.0.0",
 	"private": true,
 	"type": "module",
@@ -9,7 +9,9 @@
 		"dist"
 	],
 	"scripts": {
-		"build": "tsc -p tsconfig.json"
+		"build": "tsc -p tsconfig.json",
+		"dev": "tsc --watch",
+		"clean": "rm -rf dist"
 	},
 	"dependencies": {},
 	"devDependencies": {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent } from '@repo/ui';
+import { Card, CardContent } from '@pickid/ui';
 import { Check } from 'lucide-react';
 
 export interface Step {

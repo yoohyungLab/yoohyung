@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { categoryService } from '@/shared/api/services/category.service';
-import type { Category } from '@repo/supabase';
-import { Button } from '@repo/ui';
+import type { Category } from '@pickid/supabase';
+import { Button } from '@pickid/ui';
 import { ArrowUpDown, X, GripVertical } from 'lucide-react';
 
 interface CategorySortModalProps {

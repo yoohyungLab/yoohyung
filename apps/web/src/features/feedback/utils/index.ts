@@ -1,19 +1,36 @@
 import { FEEDBACK_CATEGORIES, FEEDBACK_STATUS } from '@/shared/constants';
 
+const CATEGORY_EMOJIS: Record<string, string> = {
+	bug: '🐛',
+	feature: '💡',
+	ui: '🎨',
+	content: '📝',
+	other: '💭',
+};
+
+const STATUS_COLORS: Record<string, string> = {
+	pending: 'yellow',
+	in_progress: 'blue',
+	completed: 'green',
+	replied: 'green',
+	rejected: 'red',
+};
+
 export const getCategoryInfo = (categoryName: string) => {
-	return (
-		FEEDBACK_CATEGORIES.find((cat) => cat.name === categoryName) || {
-			name: categoryName,
-			label: categoryName,
-			emoji: '💭',
-			description: '',
-		}
-	);
+	const categoryKey = categoryName as keyof typeof FEEDBACK_CATEGORIES;
+	return {
+		name: categoryName,
+		label: FEEDBACK_CATEGORIES[categoryKey] || categoryName,
+		emoji: CATEGORY_EMOJIS[categoryName] || '💭',
+	};
 };
 
 export const getStatusInfo = (status: string) => {
-	const statusInfo = FEEDBACK_STATUS[status as keyof typeof FEEDBACK_STATUS];
-	return statusInfo || { label: status, color: 'gray' };
+	const statusKey = status as keyof typeof FEEDBACK_STATUS;
+	return {
+		label: FEEDBACK_STATUS[statusKey] || status,
+		color: STATUS_COLORS[status] || 'gray',
+	};
 };
 
 export const formatDate = (dateString: string) => {
@@ -36,15 +53,13 @@ export const formatDateTime = (dateString: string) => {
 	});
 };
 
+const STATUS_CLASSES: Record<string, string> = {
+	green: 'bg-green-100 text-green-800',
+	blue: 'bg-blue-100 text-blue-800',
+	yellow: 'bg-yellow-100 text-yellow-800',
+	red: 'bg-red-100 text-red-800',
+};
+
 export const getStatusClassName = (color: string) => {
-	switch (color) {
-		case 'green':
-			return 'bg-green-100 text-green-800';
-		case 'blue':
-			return 'bg-blue-100 text-blue-800';
-		case 'yellow':
-			return 'bg-yellow-100 text-yellow-800';
-		default:
-			return 'bg-gray-100 text-gray-800';
-	}
+	return STATUS_CLASSES[color] || 'bg-gray-100 text-gray-800';
 };

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { analyticsService } from '@/shared/api';
-import type { Test, DashboardOverviewStats, AnalyticsFilters, AnalyticsStats } from '@repo/supabase';
+import type { Test, DashboardOverviewStats, AnalyticsFilters, AnalyticsStats } from '@pickid/supabase';
 
 // 분석용 테스트 타입 (평균 소요시간 포함)
 type TestWithAnalytics = Test & {

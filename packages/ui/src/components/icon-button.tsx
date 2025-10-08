@@ -14,7 +14,17 @@ interface IconButtonProps extends Omit<ButtonProps, 'children'> {
 
 export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 	(
-		{ icon, label, className, 'aria-label': ariaLabel, switch: isSwitch, switchChecked, onSwitchChange, ...props },
+		{
+			icon,
+			label,
+			className,
+			'aria-label': ariaLabel,
+			switch: isSwitch,
+			switchChecked,
+			onSwitchChange,
+			variant,
+			...props
+		},
 		ref
 	) => {
 		if (isSwitch) {
@@ -30,9 +40,24 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 		}
 
 		return (
-			<Button ref={ref} className={cn('p-2', className)} aria-label={ariaLabel || label} {...props}>
-				{icon}
-				{label && <span className="ml-2">{label}</span>}
+			<Button
+				ref={ref}
+				variant={variant}
+				className={cn(variant === 'kakao' ? '' : 'p-2', className)}
+				aria-label={ariaLabel || label}
+				{...props}
+			>
+				{variant === 'kakao' ? (
+					<div className="flex items-center justify-center space-x-2">
+						{icon}
+						{label && <span>{label}</span>}
+					</div>
+				) : (
+					<>
+						{icon}
+						{label && <span className="ml-2">{label}</span>}
+					</>
+				)}
 			</Button>
 		);
 	}

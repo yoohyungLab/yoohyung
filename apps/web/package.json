@@ -10,9 +10,10 @@
 		"type-check": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@repo/shared": "workspace:*",
-		"@repo/supabase": "workspace:*",
-		"@repo/ui": "workspace:*",
+		"@hookform/resolvers": "^3.3.4",
+		"@pickid/shared": "workspace:*",
+		"@pickid/supabase": "workspace:*",
+		"@pickid/ui": "workspace:*",
 		"@supabase/auth-helpers-nextjs": "^0.10.0",
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.58.0",
@@ -22,6 +23,8 @@
 		"next": "15.5.2",
 		"react": "^18.3.1",
 		"react-dom": "^18.3.1",
+		"react-hook-form": "^7.51.0",
+		"zod": "^3.23.8",
 		"zustand": "^5.0.5"
 	},
 	"devDependencies": {

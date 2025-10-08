@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Button, IconButton } from '@repo/ui';
+import { Button, IconButton } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import { EmptyState } from '@/components/ui';
-import { formatDateLong } from '@repo/shared';
+import { formatDateLong } from '@pickid/shared';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import {
 	X,
@@ -24,7 +24,7 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import type { Test, TestWithNestedDetails, Category } from '@repo/supabase';
+import type { Test, TestWithNestedDetails, Category } from '@pickid/supabase';
 import { getTestTypeInfo, getTestStatusInfo } from '@/shared/lib/test-utils';
 import { testService } from '@/shared/api';
 import { categoryService } from '@/shared/api/services/category.service';

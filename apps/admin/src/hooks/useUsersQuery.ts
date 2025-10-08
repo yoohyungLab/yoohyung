@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/shared/api';
 import { queryKeys } from '@/shared/lib/query-client';
-import type { User, UserFilters } from '@repo/supabase';
+import type { User, UserFilters } from '@pickid/supabase';
 
 // 사용자 목록 조회 쿼리
 export const useUsersQuery = (filters: UserFilters = {}) => {

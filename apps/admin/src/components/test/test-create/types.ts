@@ -1,4 +1,4 @@
-import type { Test, TestStatus, TestType } from '@repo/supabase';
+import type { Test, TestStatus, TestType } from '@pickid/supabase';
 
 // 프론트엔드에서 사용하는 BasicInfo 타입
 export interface BasicInfo
@@ -23,6 +23,9 @@ export interface BasicInfo
 	type?: TestType;
 	max_score?: number;
 	scheduled_at?: string | null;
+	// 성별 필드 관련
+	pre_questions?: GenderField[];
+	features?: TestFeatures;
 }
 
 export interface BasicInfoFormProps {
@@ -50,4 +53,27 @@ export interface ImageUploadProps {
 	label?: string; // 라벨을 선택적으로 받을 수 있도록 추가
 }
 
-// TODO: 타입 정의
+// 성별 필드 관련 타입 정의
+export interface GenderField {
+	key: string;
+	label: string;
+	type: 'single_select';
+	required: boolean;
+	choices: Array<{ value: string; label: string }>;
+	affects_scoring: boolean;
+}
+
+export interface ResultVariantRules {
+	variant_key: string;
+	map: Record<string, Record<string, string>>;
+}
+
+export interface TestFeatures {
+	scoring?: {
+		mode: 'score_range';
+		max_score: number;
+		base_types: string[];
+	};
+	result_variant_rules?: ResultVariantRules;
+	gender_field?: GenderField;
+}

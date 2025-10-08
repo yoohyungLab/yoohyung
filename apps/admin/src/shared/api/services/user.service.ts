@@ -1,5 +1,5 @@
-import { supabase } from '@repo/shared';
-import type { User } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { User } from '@pickid/supabase';
 
 export const userService = {
 	// 사용자 목록 조회

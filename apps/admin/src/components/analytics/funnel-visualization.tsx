@@ -2,7 +2,7 @@ import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { BarChart3 } from 'lucide-react';
 import { cn } from '@/shared/lib/utils';
-import type { FunnelDataItem } from '@repo/supabase';
+import type { FunnelDataItem } from '@pickid/supabase';
 
 interface FunnelVisualizationProps {
 	funnelData: FunnelDataItem[];

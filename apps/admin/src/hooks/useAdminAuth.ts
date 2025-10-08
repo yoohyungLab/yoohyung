@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { adminAuthService } from '@/shared/api';
-import type { AdminUser } from '@repo/supabase';
+import type { AdminUser } from '@pickid/supabase';
 
 export function useAdminAuth() {
 	const [adminUser, setAdminUser] = useState<AdminUser | null>(null);

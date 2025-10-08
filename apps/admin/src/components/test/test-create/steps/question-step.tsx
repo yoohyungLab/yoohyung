@@ -1,5 +1,5 @@
 import React from 'react';
-import { DefaultInput, DefaultTextarea, Label, Switch, IconButton } from '@repo/ui';
+import { DefaultInput, DefaultTextarea, Label, Switch, IconButton } from '@pickid/ui';
 import { Plus, Trash2 } from 'lucide-react';
 import { ImageUpload } from '../components';
 import { ChoiceCreationData, QuestionCreationData } from '@/api';

@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 import { Image, Upload, X } from 'lucide-react';
 import { storageService } from '@/shared/api/services/storage.service';
 import { ImageUploadProps } from '../types';

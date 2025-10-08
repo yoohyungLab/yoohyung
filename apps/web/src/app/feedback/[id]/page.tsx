@@ -1,37 +1,16 @@
 'use client';
 
-import { useEffect, useCallback, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useFeedback } from '@/features/feedback/hooks/useFeedback';
-import { Button } from '@repo/ui';
+import { useFeedbackDetail } from '@/features/feedback/hooks/useFeedback';
+import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 import { getCategoryInfo, getStatusInfo, formatDateTime, getStatusClassName } from '@/features/feedback/utils';
-import type { Feedback } from '@repo/supabase';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();
 	const router = useRouter();
-	const { getFeedback, isLoading, error } = useFeedback();
-	const [feedback, setFeedback] = useState<Feedback | null>(null);
-
-	const loadFeedback = useCallback(
-		async (id: string) => {
-			try {
-				const data = await getFeedback(id);
-				setFeedback(data);
-			} catch (err) {
-				console.error('피드백 로드 실패:', err);
-			}
-		},
-		[getFeedback]
-	);
-
-	useEffect(() => {
-		if (params?.id) {
-			loadFeedback(params.id as string);
-		}
-	}, [params?.id, loadFeedback]);
+	const { feedback, isLoading, error } = useFeedbackDetail(params?.id as string);
 
 	if (isLoading) {
 		return (

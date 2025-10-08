@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 import { ErrorState } from '@/components/ui';
 import { LoadingState } from '@/components/ui';
 import { ArrowLeft, ArrowRight, Check, RefreshCw, ExternalLink } from 'lucide-react';
@@ -18,7 +18,7 @@ import {
 } from '@/components/test/test-create';
 import { steps } from '@/constants/testData';
 import { useTestCreation } from '@/hooks/useTestCreation';
-import type { Test } from '@repo/supabase';
+import type { Test } from '@pickid/supabase';
 import type { QuestionCreationData, ResultCreationData } from '@/shared/api/services/test.service';
 
 export function EditTestPage() {

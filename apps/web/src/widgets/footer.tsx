@@ -3,10 +3,10 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useTests } from '@/shared/hooks/useTests';
+import { useTestListVM } from '@/features/test/hooks';
 
 export const Footer = () => {
-	const { popularTests } = useTests();
+	const { popularTests } = useTestListVM();
 
 	return (
 		<footer className="relative bg-gradient-to-b from-white via-purple-50/20 to-purple-100/30 border-t border-purple-100/50 backdrop-blur-sm">
@@ -92,9 +92,9 @@ export const Footer = () => {
 							<p className="font-medium text-gray-600">© 2025 픽키드(PickID). All rights reserved.</p>
 							<p className="flex items-center gap-1.5">
 								<span className="text-gray-400">Contact:</span>
-								<a href="mailto:alstjr9438@gmail.com" className="text-purple-600 font-medium">
+								<Link href="mailto:alstjr9438@gmail.com" className="text-purple-600 font-medium">
 									alstjr9438@gmail.com
-								</a>
+								</Link>
 							</p>
 						</div>
 					</div>

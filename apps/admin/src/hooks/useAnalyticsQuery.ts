@@ -1,6 +1,6 @@
 import { analyticsService } from '@/shared/api';
 import { queryKeys } from '@/shared/lib/query-client';
-import type { AnalyticsFilters } from '@repo/supabase';
+import type { AnalyticsFilters } from '@pickid/supabase';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 // 모든 테스트 목록 조회 쿼리

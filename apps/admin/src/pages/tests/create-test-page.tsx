@@ -1,4 +1,4 @@
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { ArrowLeft, ArrowRight, Check, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -41,6 +41,11 @@ export function CreateTestPage() {
 		removeResult,
 		updateResult,
 		generateShortCode,
+		// 성별 필드 관련
+		addGenderField,
+		removeGenderField,
+		updateGenderField,
+		updateResultVariantRules,
 	} = useTestCreation();
 
 	const currentStepInfo = steps.find((s) => s.id === step);
@@ -57,6 +62,10 @@ export function CreateTestPage() {
 						onUpdateTestData={updateBasicInfo}
 						onUpdateTitle={(title: string) => updateBasicInfo({ title })}
 						onRegenerateShortCode={() => updateBasicInfo({ short_code: generateShortCode() })}
+						onAddGenderField={addGenderField}
+						onRemoveGenderField={removeGenderField}
+						onUpdateGenderField={updateGenderField}
+						onUpdateResultVariantRules={updateResultVariantRules}
 					/>
 				);
 			case 3:

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Button } from '@repo/ui';
+import { Button } from '@pickid/ui';
 import { Download } from 'lucide-react';
 import { FilterBar } from '@/components/ui';
 

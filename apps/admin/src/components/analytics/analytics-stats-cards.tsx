@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminCard } from '@/components/ui/admin-card';
 import { Users, CheckCircle, Target, Clock } from 'lucide-react';
-import type { Database } from '@repo/supabase';
+import type { Database } from '@pickid/supabase';
 
 type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];
 

@@ -5,9 +5,9 @@ import { useColumnRenderers } from '@/shared/hooks';
 import { PAGINATION, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
 import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
 import { getTestStatusStyle } from '@/shared/lib/utils';
-import { usePagination } from '@repo/shared';
-import type { Test, TestStatus } from '@repo/supabase';
-import { Badge, DataTable, DefaultPagination, type Column } from '@repo/ui';
+import { usePagination } from '@pickid/shared';
+import type { Test, TestStatus } from '@pickid/supabase';
+import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 

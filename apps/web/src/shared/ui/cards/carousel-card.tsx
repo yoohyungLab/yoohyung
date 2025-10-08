@@ -2,7 +2,8 @@
 
 import { Heart } from 'lucide-react';
 import Image from 'next/image';
-import { cn } from '@repo/shared';
+import Link from 'next/link';
+import { cn } from '@pickid/shared';
 
 interface CarouselCardProps {
 	id: string;
@@ -41,11 +42,21 @@ export function CarouselCard({
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
-					{tags[0] && (
-						<div className="absolute top-2.5 left-2.5">
-							<span className="inline-block text-[10px] font-bold bg-white text-gray-900 px-2 py-1 rounded-full">
-								{tags[0]}
-							</span>
+					{tags.length > 0 && (
+						<div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 max-w-[calc(100%-3rem)]">
+							{tags.slice(0, 2).map((tag, index) => (
+								<span
+									key={index}
+									className="inline-block text-[10px] font-bold bg-white text-gray-900 px-2 py-1 rounded-full"
+								>
+									{tag}
+								</span>
+							))}
+							{tags.length > 2 && (
+								<span className="inline-block text-[10px] font-bold bg-white/80 text-gray-600 px-2 py-1 rounded-full">
+									+{tags.length - 2}
+								</span>
+							)}
 						</div>
 					)}
 
@@ -76,9 +87,9 @@ export function CarouselCard({
 	);
 
 	return href ? (
-		<a href={href} className="block">
+		<Link href={href} className="block">
 			{content}
-		</a>
+		</Link>
 	) : (
 		content
 	);

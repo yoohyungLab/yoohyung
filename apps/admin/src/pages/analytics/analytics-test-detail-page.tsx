@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { analyticsService } from '@/shared/api';
-import { ErrorState } from '@repo/ui';
+import { ErrorState } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import {
 	AnalyticsHeader,
@@ -11,7 +11,7 @@ import {
 	FunnelTab,
 	TrendsTab,
 } from '@/components/analytics';
-import type { Test, Database } from '@repo/supabase';
+import type { Test, Database } from '@pickid/supabase';
 
 // Supabase 함수 반환 타입들
 type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];

@@ -86,13 +86,13 @@ const config = {
 				'2xl': '1536px',
 			},
 			maxWidth: {
-				mobile: '480px',
+				mobile: '510px',
 				tablet: '768px',
 				desktop: '1024px',
 			},
 		},
 	},
-	plugins: [require('tailwindcss-animate')],
+	plugins: [],
 };
 
 export default config;

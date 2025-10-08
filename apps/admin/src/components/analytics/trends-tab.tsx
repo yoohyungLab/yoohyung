@@ -4,7 +4,7 @@ import { LineChart } from 'lucide-react';
 import { TrendChart } from './trend-chart';
 import { CompletionRateChart } from './completion-rate-chart';
 import { TrendSummary } from './trend-summary';
-import type { Database } from '@repo/supabase';
+import type { Database } from '@pickid/supabase';
 
 type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
 

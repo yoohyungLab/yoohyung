@@ -1,5 +1,5 @@
-import { supabase } from '@repo/shared';
-import type { TestResult, TestResultInsert, UserTestResponse } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { TestResult, TestResultInsert, UserTestResponse } from '@pickid/supabase';
 import type { EgenTetoResult, Gender } from '@/shared/types';
 
 // 테스트 응답 데이터 타입 (API에서 사용)
@@ -40,13 +40,65 @@ export const testService = {
 		return data || [];
 	},
 
-	// 특정 테스트 조회
+	// 특정 테스트 조회 (ID로)
+	async getTestById(id: string) {
+		const { data, error } = await supabase.from('tests').select('*').eq('id', id).eq('status', 'published').single();
+
+		if (error) throw error;
+		return data;
+	},
+
+	// 특정 테스트 조회 (슬러그로)
 	async getTestBySlug(slug: string) {
 		const { data, error } = await supabase
 			.from('tests')
 			.select('*')
 			.eq('slug', slug)
 			.eq('status', 'published')
+			.single();
+
+		if (error) throw error;
+		return data;
+	},
+
+	// 테스트 상세 정보 조회 (질문과 선택지 포함)
+	async getTestWithDetails(id: string) {
+		const { data, error } = await supabase
+			.from('tests')
+			.select(
+				`
+				*,
+				test_questions:test_questions(
+					id,
+					question_text,
+					question_order,
+					image_url,
+					created_at,
+					updated_at,
+					test_choices:test_choices(
+						id,
+						choice_text,
+						choice_order,
+						score,
+						is_correct,
+						created_at
+					)
+				),
+				test_results:test_results(
+					id,
+					result_name,
+					result_order,
+					description,
+					match_conditions,
+					background_image_url,
+					theme_color,
+					features,
+					created_at,
+					updated_at
+				)
+			`
+			)
+			.eq('id', id)
 			.single();
 
 		if (error) throw error;

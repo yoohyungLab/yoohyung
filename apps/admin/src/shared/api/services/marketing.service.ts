@@ -1,5 +1,5 @@
-import { supabase } from '@repo/shared';
-import type { Database } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { Database } from '@pickid/supabase';
 
 // 마케팅 분석 관련 타입 정의
 export interface MarketingFilters {

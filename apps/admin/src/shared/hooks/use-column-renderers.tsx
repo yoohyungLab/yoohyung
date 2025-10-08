@@ -1,7 +1,7 @@
 import { FEEDBACK_STATUS_OPTIONS, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
 import { getLabelText, getStatusConfig } from '@/shared/lib/utils';
-import { formatDate, formatDateLong, formatDuration, formatTime } from '@repo/shared';
-import { Badge, DefaultSelect, IconButton } from '@repo/ui';
+import { formatDate, formatDateLong, formatDuration, formatTime } from '@pickid/shared';
+import { Badge, DefaultSelect, IconButton } from '@pickid/ui';
 import { Calendar, Eye, FileText, MessageSquare, Pencil, Trash2 } from 'lucide-react';
 
 interface RenderOptions {

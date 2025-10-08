@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Badge, IconBadge, IconButton } from '@repo/ui';
+import { Badge, IconBadge, IconButton } from '@pickid/ui';
 import { userService } from '@/shared/api';
-import type { UserWithActivity, UserActivityItem, Feedback } from '@repo/supabase';
+import type { UserWithActivity, UserActivityItem, Feedback } from '@pickid/supabase';
 import { getStatusConfig, formatDate, getDaysSinceJoin, getLabelText } from '@/shared/lib';
-import { formatDuration } from '@repo/shared';
+import { formatDuration } from '@pickid/shared';
 import { X, User, Mail, Calendar, Activity, MessageSquare, Clock, Target, TrendingUp, Hash, Users } from 'lucide-react';
 import { EmptyState, LoadingState } from '@/components/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';

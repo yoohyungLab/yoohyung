@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, cn, DefaultSelect, SearchInput, type SelectOption } from '@repo/ui';
+import { Button, cn, DefaultSelect, SearchInput, type SelectOption } from '@pickid/ui';
 import { X } from 'lucide-react';
 
 interface FilterConfig {

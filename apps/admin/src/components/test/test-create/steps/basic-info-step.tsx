@@ -1,5 +1,5 @@
 import React from 'react';
-import { DefaultInput, DefaultSelect, DefaultTextarea, IconButton, Switch, Button } from '@repo/ui';
+import { DefaultInput, DefaultSelect, DefaultTextarea, IconButton, Switch, Button } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import { X, RefreshCw } from 'lucide-react';
 import { useCategories } from '@/hooks';
@@ -13,10 +13,25 @@ interface BasicInfoStepProps {
 	onUpdateTestData: (data: Partial<BasicInfo>) => void;
 	onUpdateTitle: (title: string) => void;
 	onRegenerateShortCode?: () => void;
+	// 성별 필드 관련 props
+	onAddGenderField?: () => void;
+	onRemoveGenderField?: () => void;
+	onUpdateGenderField?: (updates: any) => void;
+	onUpdateResultVariantRules?: (rules: any) => void;
 }
 
 export const BasicInfoStep = (props: BasicInfoStepProps) => {
-	const { testData, selectedType, onUpdateTestData, onUpdateTitle, onRegenerateShortCode } = props;
+	const {
+		testData,
+		selectedType,
+		onUpdateTestData,
+		onUpdateTitle,
+		onRegenerateShortCode,
+		onAddGenderField,
+		onRemoveGenderField,
+		onUpdateGenderField,
+		onUpdateResultVariantRules,
+	} = props;
 
 	const { categories, loading, error, fetchCategories } = useCategories();
 
@@ -164,6 +179,99 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 					</div>
 				</div>
 			</div>
+
+			{/* 성별 필드 설정 */}
+			<AdminCard variant="modal" padding="sm">
+				<AdminCardHeader
+					variant="modal"
+					title={
+						<div className="text-lg flex items-center gap-2">
+							<span className="w-6 h-6 bg-purple-100 text-purple-800 rounded-full flex items-center justify-center text-sm font-bold">
+								👤
+							</span>
+							성별 필드 설정
+						</div>
+					}
+				/>
+				<AdminCardContent className="space-y-4">
+					<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+						<div>
+							<div className="text-base font-medium">성별 선택 필드 추가</div>
+							<p className="text-sm text-gray-600">
+								테스트 시작 전에 성별을 선택하도록 합니다.
+								{testData.pre_questions?.some((field) => field.key === 'gender') ? ' (현재 활성화됨)' : ' (선택사항)'}
+							</p>
+						</div>
+						<Switch
+							checked={testData.pre_questions?.some((field) => field.key === 'gender') || false}
+							onCheckedChange={(checked) => {
+								if (checked) {
+									onAddGenderField?.();
+								} else {
+									onRemoveGenderField?.();
+								}
+							}}
+						/>
+					</div>
+
+					{testData.pre_questions?.some((field) => field.key === 'gender') && (
+						<div className="space-y-4 p-4 bg-gray-50 rounded-lg">
+							<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+								<DefaultInput
+									label="질문 텍스트"
+									value={testData.pre_questions?.find((field) => field.key === 'gender')?.label || ''}
+									onChange={(e) => onUpdateGenderField?.({ label: e.target.value })}
+									placeholder="성별을 선택해주세요"
+								/>
+
+								<div>
+									<label className="block text-sm font-medium text-gray-700 mb-2">선택지</label>
+									<div className="space-y-2">
+										{testData.pre_questions
+											?.find((field) => field.key === 'gender')
+											?.choices.map((choice, index) => (
+												<div key={index} className="flex gap-2">
+													<DefaultInput
+														value={choice.value}
+														onChange={(e) => {
+															const newChoices = [
+																...(testData.pre_questions?.find((field) => field.key === 'gender')?.choices || []),
+															];
+															newChoices[index] = { ...choice, value: e.target.value };
+															onUpdateGenderField?.({ choices: newChoices });
+														}}
+														placeholder="값 (예: male)"
+														className="flex-1"
+													/>
+													<DefaultInput
+														value={choice.label}
+														onChange={(e) => {
+															const newChoices = [
+																...(testData.pre_questions?.find((field) => field.key === 'gender')?.choices || []),
+															];
+															newChoices[index] = { ...choice, label: e.target.value };
+															onUpdateGenderField?.({ choices: newChoices });
+														}}
+														placeholder="라벨 (예: 남자)"
+														className="flex-1"
+													/>
+												</div>
+											))}
+									</div>
+								</div>
+							</div>
+
+							<div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+								<div className="text-sm font-medium text-blue-800 mb-2">💡 결과 변형 규칙 설정</div>
+								<p className="text-sm text-blue-700">
+									성별에 따라 결과 제목이 다르게 표시되도록 설정할 수 있습니다. 예: "에겐남", "에겐녀", "테토남",
+									"테토녀" 등
+								</p>
+							</div>
+						</div>
+					)}
+				</AdminCardContent>
+			</AdminCard>
 
 			{/* 발행 설정 */}
 			<AdminCard variant="modal" padding="sm">

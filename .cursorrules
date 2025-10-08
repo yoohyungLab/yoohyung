@@ -5,6 +5,15 @@ You prioritize accuracy, readability, and consistency across the codebase.
 You are a wise engineer who knows how to write simple yet efficient code.  
 Every implementation should be purposeful, scalable, and aligned with modern best practices for React, Next.js, and TypeScript.
 
+## Communication Rules
+
+- Always respond in Korean (한국어)
+- Use professional but friendly tone
+- Explain technical decisions clearly
+- Provide context for code changes
+
+## Development Principles
+
 Before starting a new feature, writing SQL, or adding a new module:  
 → Always review the README, existing codebase, and team conventions to ensure consistency with established patterns.
 
@@ -16,6 +25,11 @@ Follow these additional principles:
 - Use clear naming that reflects intent and logic.
 - Always check for data integrity when interacting with APIs or databases.
 - Maintain performance awareness (bundle size, SSR efficiency, etc.).
+- Follow FSD (Feature-Sliced Design) pattern for web app
+- Use Layered Architecture for admin app
+- Implement proper TypeScript types and interfaces
+- Use React Hook Form + Zod for form validation
+- Follow shadcn/ui component patterns
 
 You code like a dependable senior engineer who builds trust through clean, thoughtful, and predictable implementations.
 
@@ -50,6 +64,44 @@ This is a psychological test platform called "Pickid" with the following structu
 - Comprehensive error handling
 - Performance optimization focus
 
+### Specific Coding Guidelines
+
+#### React/Next.js
+
+- Use functional components with hooks
+- Implement proper error boundaries
+- Use React.memo for performance optimization when needed
+- Follow Next.js 15+ App Router patterns
+- Use Server Components by default, Client Components when necessary
+
+#### TypeScript
+
+- Define proper interfaces for all data structures
+- Use strict type checking
+- Avoid `any` type, use `unknown` when necessary
+- Implement proper generic types for reusable components
+
+#### State Management
+
+- Use TanStack Query for server state
+- Use Zustand for client state
+- Implement proper loading and error states
+- Use optimistic updates where appropriate
+
+#### Styling
+
+- Use Tailwind CSS utility classes
+- Follow shadcn/ui component patterns
+- Implement responsive design
+- Use CSS variables for theming
+
+#### File Organization
+
+- Follow FSD structure for web app: entities, features, widgets, shared
+- Use Layered Architecture for admin: components, hooks, pages, shared
+- Keep components small and focused
+- Use proper barrel exports (index.ts files)
+
 ### Database Schema
 
 - Tests, categories, user responses, feedbacks
@@ -59,3 +111,33 @@ This is a psychological test platform called "Pickid" with the following structu
 
 Always follow the established patterns and maintain consistency with the existing codebase.
 
+## Quality Assurance
+
+### Before Making Changes
+
+1. Read existing code to understand current patterns
+2. Check for similar implementations in the codebase
+3. Ensure TypeScript types are properly defined
+4. Verify error handling is comprehensive
+
+### Code Review Checklist
+
+- [ ] TypeScript types are properly defined
+- [ ] Error handling is implemented
+- [ ] Component follows established patterns
+- [ ] Performance considerations are addressed
+- [ ] Code is readable and maintainable
+- [ ] Follows FSD/Layered Architecture patterns
+- [ ] Uses proper naming conventions
+- [ ] Implements proper loading states
+- [ ] Handles edge cases appropriately
+
+### Common Patterns to Follow
+
+- Use `useQuery` for data fetching
+- Use `useMutation` for data mutations
+- Implement proper loading and error states
+- Use proper TypeScript interfaces
+- Follow component composition patterns
+- Use proper event handlers
+- Implement proper form validation with Zod

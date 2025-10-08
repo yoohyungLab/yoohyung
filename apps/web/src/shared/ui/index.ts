@@ -1,1 +1,1 @@
-// UI 컴포넌트들은 이제 @repo/ui에서 import
+// UI 컴포넌트들은 이제 @pickid/ui에서 import

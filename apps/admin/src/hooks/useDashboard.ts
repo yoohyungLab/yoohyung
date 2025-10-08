@@ -1,6 +1,6 @@
 import { dashboardService } from '@/shared/api';
 import type { PopularTest } from '@/shared/api/services/dashboard.service';
-import type { DashboardOverviewStats } from '@repo/supabase';
+import type { DashboardOverviewStats } from '@pickid/supabase';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 interface DashboardState {

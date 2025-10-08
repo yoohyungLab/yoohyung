@@ -1,4 +1,4 @@
-import { supabase } from '@repo/shared';
+import { supabase } from '@pickid/shared';
 import type {
 	Test,
 	TestInsert,
@@ -8,7 +8,7 @@ import type {
 	TestQuestion,
 	TestChoice,
 	TestResult,
-} from '@repo/supabase';
+} from '@pickid/supabase';
 
 // 테스트 생성용 타입들 (Supabase 타입을 기반으로 함)
 export interface QuestionCreationData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {

@@ -1,14 +1,22 @@
-/**
- * 홈페이지 관련 타입 정의
- */
 
-// 기본 테스트 카드 타입
+// ============================================================================
+// 홈페이지 관련 타입 정의
+// ============================================================================
+
+// 기본 테스트 카드 타입 (홈페이지용 간소화된 버전)
 export interface TestCard {
 	id: string;
 	title: string;
 	description: string;
 	image: string;
 	tags: string[];
+	type: string | null;
+	status: string | null;
+	slug: string;
+	category_ids: string[] | null;
+	thumbnail_url: string | null;
+	view_count: number | null;
+	response_count: number | null;
 }
 
 // 배너 타입
@@ -28,22 +36,8 @@ export interface BalanceOption {
 	percentage: number;
 }
 
-// 홈페이지 섹션별 테스트 데이터 타입
-export interface HomeSectionData {
-	trending: TestCard[];
-	recommended: TestCard[];
-	dynamic: TestCard[];
-	topByType: TestCard[];
-}
-
 // 테스트 카드 컴포넌트 props 타입
 export interface TestCardProps extends TestCard {
 	isFavorite?: boolean;
 	onToggleFavorite?: (id: string) => void;
-}
-
-// 섹션 컴포넌트 공통 props 타입
-export interface SectionProps {
-	tests: TestCard[];
-	className?: string;
 }

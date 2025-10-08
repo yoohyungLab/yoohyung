@@ -1,4 +1,4 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@repo/ui';
+import { Card, CardContent, CardHeader, CardTitle } from '@pickid/ui';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Plus, Users, FileText } from 'lucide-react';
 

@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { UserResponsesService } from '@/shared/api/services/user-responses.service';
-import type { UserTestResponse, UserResponseStats } from '@repo/supabase';
+import type { UserTestResponse, UserResponseStats } from '@pickid/supabase';
 
 interface UserResponseFilters {
 	search?: string;

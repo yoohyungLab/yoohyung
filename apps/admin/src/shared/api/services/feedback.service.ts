@@ -1,5 +1,5 @@
-import { supabase } from '@repo/shared';
-import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@pickid/supabase';
 
 // Re-export types for convenience
 export type { AdminFeedbackResponse, FeedbackStats };

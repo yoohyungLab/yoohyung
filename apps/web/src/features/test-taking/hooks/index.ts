@@ -1,3 +1,2 @@
-export { useTestTaking } from './useTestTaking';
-
-
+export * from './useTestTakingVM';
+export * from './useTestResultVM';

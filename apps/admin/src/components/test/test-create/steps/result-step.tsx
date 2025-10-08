@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, DefaultInput, DefaultTextarea, Label, Badge } from '@repo/ui';
+import { Button, DefaultInput, DefaultTextarea, Label, Badge } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
 import { testTypes } from '@/constants/testData';
 import { ImageUpload } from '../components/image-upload';

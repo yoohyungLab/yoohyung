@@ -7,7 +7,8 @@ import type {
 	TestQuestion,
 	TestChoice,
 	TestResult,
-} from '@repo/supabase';
+} from '@pickid/supabase';
+import type { GenderField, ResultVariantRules } from '@/components/test/test-create/types';
 
 // 간단한 타입 정의 (Supabase 타입을 기반으로 함)
 interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
@@ -50,6 +51,15 @@ export const useTestCreation = () => {
 		max_score: 100,
 		type: 'psychology',
 		published_at: null,
+		// 성별 필드 관련 초기값
+		pre_questions: [],
+		features: {
+			scoring: {
+				mode: 'score_range',
+				max_score: 100,
+				base_types: [],
+			},
+		},
 	});
 
 	// 질문들
@@ -85,6 +95,53 @@ export const useTestCreation = () => {
 	// 기본 정보 업데이트
 	const updateBasicInfo = useCallback((updates: Partial<TestInsert>) => {
 		setBasicInfo((prev) => ({ ...prev, ...updates }));
+	}, []);
+
+	// 성별 필드 관리
+	const addGenderField = useCallback(() => {
+		const genderField = {
+			key: 'gender',
+			label: '성별을 선택해주세요',
+			type: 'single_select' as const,
+			required: true,
+			choices: [
+				{ value: 'male', label: '남자' },
+				{ value: 'female', label: '여자' },
+			],
+			affects_scoring: false,
+		};
+
+		setBasicInfo((prev) => ({
+			...prev,
+			pre_questions: [...(prev.pre_questions || []), genderField],
+		}));
+	}, []);
+
+	const removeGenderField = useCallback(() => {
+		setBasicInfo((prev) => ({
+			...prev,
+			pre_questions: prev.pre_questions?.filter((field) => field.key !== 'gender') || [],
+		}));
+	}, []);
+
+	const updateGenderField = useCallback((updates: Partial<GenderField>) => {
+		setBasicInfo((prev) => ({
+			...prev,
+			pre_questions: prev.pre_questions?.map((field) =>
+				field.key === 'gender' ? { ...field, ...updates } : field
+			) || [],
+		}));
+	}, []);
+
+	// 결과 변형 규칙 관리
+	const updateResultVariantRules = useCallback((rules: ResultVariantRules) => {
+		setBasicInfo((prev) => ({
+			...prev,
+			features: {
+				...prev.features,
+				result_variant_rules: rules,
+			},
+		}));
 	}, []);
 
 	// 질문 관리
@@ -299,6 +356,12 @@ export const useTestCreation = () => {
 
 		// 기본 정보 관리
 		updateBasicInfo,
+
+		// 성별 필드 관리
+		addGenderField,
+		removeGenderField,
+		updateGenderField,
+		updateResultVariantRules,
 
 		// 질문 관리
 		setQuestions,

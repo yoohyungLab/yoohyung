@@ -3,8 +3,8 @@ import { UserDetailModal } from '@/components/user';
 import { useUsers } from '@/hooks';
 import { useColumnRenderers } from '@/shared/hooks';
 import { FILTER_PROVIDER_OPTIONS, FILTER_STATUS_OPTIONS } from '@/shared/lib/constants';
-import type { User } from '@repo/supabase';
-import { DataTable, type Column } from '@repo/ui';
+import type { User } from '@pickid/supabase';
+import { DataTable, type Column } from '@pickid/ui';
 import { useCallback, useMemo, useState } from 'react';
 
 export function UserListPage() {

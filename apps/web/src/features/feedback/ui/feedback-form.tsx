@@ -2,15 +2,9 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { DefaultInput, DefaultTextarea, Button } from '@repo/ui';
+import { DefaultInput, DefaultTextarea, Button } from '@pickid/ui';
 import { useFeedback } from '../hooks';
 import { FeedbackCategorySelector } from './feedback-category-selector';
-
-interface FeedbackFormData {
-	title: string;
-	content: string;
-	category: string;
-}
 
 interface FeedbackFormProps {
 	onSuccess?: () => void;
@@ -21,16 +15,16 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 	const router = useRouter();
 	const { submitFeedback, isLoading, error } = useFeedback();
 
-	const [formData, setFormData] = useState<FeedbackFormData>({
+	const [formData, setFormData] = useState({
 		title: '',
 		content: '',
 		category: '',
 	});
 
-	const [errors, setErrors] = useState<Partial<FeedbackFormData>>({});
+	const [errors, setErrors] = useState<Record<string, string>>({});
 
 	const validateForm = (): boolean => {
-		const newErrors: Partial<FeedbackFormData> = {};
+		const newErrors: Record<string, string> = {};
 
 		if (!formData.title.trim()) {
 			newErrors.title = '제목을 입력해주세요.';
@@ -52,16 +46,15 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 		return Object.keys(newErrors).length === 0;
 	};
 
-	const handleInputChange = (field: keyof FeedbackFormData, value: string) => {
+	const handleInputChange = (field: string, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: undefined }));
+			setErrors((prev) => ({ ...prev, [field]: '' }));
 		}
 	};
 
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
-
 		if (!validateForm()) return;
 
 		try {
@@ -74,7 +67,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 			if (onSuccess) {
 				onSuccess();
 			} else {
-				router.push('/feedback?success=true');
+				router.push('/feedback');
 			}
 		} catch (err) {
 			console.error('피드백 제출 실패:', err);

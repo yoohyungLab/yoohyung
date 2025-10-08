@@ -1,6 +1,6 @@
 // dashboardService.ts
-import { supabase } from '@repo/shared';
-import type { DashboardOverviewStats, TestDetailedStats } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { DashboardOverviewStats, TestDetailedStats } from '@pickid/supabase';
 
 // PopularTest 타입 정의
 export interface PopularTest {

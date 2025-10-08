@@ -1,5 +1,5 @@
-import { supabase } from '@repo/shared';
-import type { AdminUser } from '@repo/supabase';
+import { supabase } from '@pickid/shared';
+import type { AdminUser } from '@pickid/supabase';
 
 export const adminAuthService = {
 	// 관리자 로그인 (admin_users 테이블 사용)

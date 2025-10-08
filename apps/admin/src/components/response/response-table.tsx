@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { DataTable, type Column, Badge } from '@repo/ui';
+import { DataTable, type Column, Badge } from '@pickid/ui';
 import { Monitor } from 'lucide-react';
 import { ResponseUtils } from '@/shared/api/services/user-responses.service';
 import { useColumnRenderers } from '@/shared/hooks';

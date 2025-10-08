@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { marketingService } from '../shared/api';
-import type { MarketingFilters, MarketingFunnel, LandingPerformance } from '@repo/supabase';
+import type { MarketingFilters, MarketingFunnel, LandingPerformance } from '@pickid/supabase';
 
 export interface UseMarketingAnalyticsReturn {
 	// 데이터

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Link from 'next/link';
 import type { BalanceOption } from '@/shared/types/home';
 
 const BALANCE_OPTIONS: BalanceOption[] = [
@@ -90,6 +91,7 @@ export default function BalanceGameSection() {
 							</div>
 						</div>
 
+						{/* TODO: 굳이 공유를 해야할지? */}
 						{/* 공유 & 다시하기 */}
 						<div className="grid grid-cols-2 gap-2">
 							<button className="px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors">
@@ -105,9 +107,9 @@ export default function BalanceGameSection() {
 					</div>
 				)}
 
-				<a href="/balance-game" className="block text-center text-xs text-gray-600 hover:text-gray-900 mt-4">
+				<Link href="/balance-game" className="block text-center text-xs text-gray-600 hover:text-gray-900 mt-4">
 					더 많은 밸런스 게임 →
-				</a>
+				</Link>
 			</div>
 		</section>
 	);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { type Category } from '@repo/supabase';
-import { Button, DefaultInput, DefaultTextarea } from '@repo/ui';
+import { type Category } from '@pickid/supabase';
+import { Button, DefaultInput, DefaultTextarea } from '@pickid/ui';
 import { Plus, X, Pencil } from 'lucide-react';
 
 interface CategoryCreateModalProps {

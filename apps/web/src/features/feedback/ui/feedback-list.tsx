@@ -1,18 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { Feedback } from '@repo/supabase';
-import { Button } from '@repo/ui';
+import { Feedback } from '@pickid/supabase';
 import { getCategoryInfo, getStatusInfo, formatDate, getStatusClassName } from '../utils';
 
 interface FeedbackListProps {
 	feedbacks: Feedback[];
-	onLoadMore?: () => void;
-	hasMore?: boolean;
-	isLoading?: boolean;
 }
 
-export function FeedbackList({ feedbacks, onLoadMore, hasMore, isLoading }: FeedbackListProps) {
+export function FeedbackList({ feedbacks }: FeedbackListProps) {
 	if (feedbacks.length === 0) {
 		return (
 			<div className="text-center py-20">
@@ -40,7 +36,7 @@ export function FeedbackList({ feedbacks, onLoadMore, hasMore, isLoading }: Feed
 					>
 						<div className="flex gap-3">
 							<div className="flex-shrink-0 pt-0.5">
-								<div className={`w-1.5 h-1.5 rounded-full ${hasAdminReply ? 'bg-blue-500' : 'bg-gray-400'}`}></div>
+								<div className={`w-1.5 h-1.5 rounded-full ${hasAdminReply ? 'bg-blue-500' : 'bg-gray-400'}`} />
 							</div>
 
 							<div className="flex-1 min-w-0">
@@ -75,14 +71,6 @@ export function FeedbackList({ feedbacks, onLoadMore, hasMore, isLoading }: Feed
 					</Link>
 				);
 			})}
-
-			{hasMore && onLoadMore && (
-				<div className="pt-4 text-center">
-					<Button onClick={onLoadMore} loading={isLoading} variant="outline" className="px-6 text-sm">
-						더보기
-					</Button>
-				</div>
-			)}
 		</div>
 	);
 }

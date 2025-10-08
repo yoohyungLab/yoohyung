@@ -21,12 +21,6 @@ const ERROR_MAPPINGS = {
 	weak_password: '비밀번호가 너무 약합니다. 더 강한 비밀번호를 사용해주세요.',
 	'weak password': '비밀번호가 너무 약합니다. 더 강한 비밀번호를 사용해주세요.',
 
-	// OAuth 관련
-	oauth_provider_error: '소셜 로그인 중 오류가 발생했습니다.',
-	'oauth provider error': '소셜 로그인 중 오류가 발생했습니다.',
-	kakao_auth_failed: '카카오 로그인에 실패했습니다. 다시 시도해주세요.',
-	'kakao auth failed': '카카오 로그인에 실패했습니다. 다시 시도해주세요.',
-
 	// 네트워크 관련
 	network_error: '네트워크 연결을 확인해주세요.',
 	network: '네트워크 연결을 확인해주세요.',
@@ -103,4 +97,3 @@ function mapErrorMessage(message: string, code?: string): string {
 
 // 기존 함수들과의 호환성을 위한 별칭
 export const mapAuthError = mapError;
-export const mapGeneralError = mapError;

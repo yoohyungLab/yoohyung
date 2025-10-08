@@ -34,7 +34,6 @@ export const metadata: Metadata = {
 	},
 	openGraph: {
 		type: 'website',
-		locale: 'ko_KR',
 		url: 'https://pickid.com',
 		title: '픽키드 - 나를 알아가는 심리테스트',
 		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',

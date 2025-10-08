@@ -1,46 +1,44 @@
 'use client';
 
-import { useCategories } from '@/shared/hooks/useCategories';
 import { useState } from 'react';
+import type { Category } from '@pickid/supabase';
 
-const categoryStyles: Record<string, { gradient: string }> = {
-	all: { gradient: 'from-gray-600 to-gray-700' },
-	personality: { gradient: 'from-violet-500 to-purple-600' },
-	typetype: { gradient: 'from-indigo-500 to-blue-600' },
-	category: { gradient: 'from-pink-500 to-rose-600' },
-	'category-1': { gradient: 'from-amber-500 to-orange-600' },
-	'category-2': { gradient: 'from-emerald-500 to-teal-600' },
-	'category-3': { gradient: 'from-cyan-500 to-blue-500' },
-	test: { gradient: 'from-fuchsia-500 to-pink-600' },
-	tendency: { gradient: 'from-red-500 to-rose-600' },
-	'test-1': { gradient: 'from-lime-500 to-green-600' },
-	'category-4': { gradient: 'from-sky-500 to-blue-600' },
-	psychologypsychology: { gradient: 'from-purple-500 to-violet-600' },
-	'category-5': { gradient: 'from-slate-500 to-gray-600' },
-	'category-6': { gradient: 'from-orange-500 to-red-600' },
+const CATEGORY_GRADIENTS: Record<string, string> = {
+	all: 'from-gray-600 to-gray-700',
+	personality: 'from-violet-500 to-purple-600',
+	typetype: 'from-indigo-500 to-blue-600',
+	category: 'from-pink-500 to-rose-600',
+	'category-1': 'from-amber-500 to-orange-600',
+	'category-2': 'from-emerald-500 to-teal-600',
+	'category-3': 'from-cyan-500 to-blue-500',
+	test: 'from-fuchsia-500 to-pink-600',
+	tendency: 'from-red-500 to-rose-600',
+	'test-1': 'from-lime-500 to-green-600',
+	'category-4': 'from-sky-500 to-blue-600',
+	psychologypsychology: 'from-purple-500 to-violet-600',
+	'category-5': 'from-slate-500 to-gray-600',
+	'category-6': 'from-orange-500 to-red-600',
 };
 
-export function CategoryFilter() {
-	const { categories } = useCategories();
+export function CategoryFilter({ categories }: { categories: Category[] }) {
 	const [showAll, setShowAll] = useState(false);
-
 	const displayedCategories = showAll ? categories : categories.slice(0, 7);
 
 	return (
 		<div className="space-y-3">
 			<div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-2">
 				{displayedCategories.map((category) => {
-					const style = categoryStyles[category.slug] || categoryStyles.all;
+					const gradient = CATEGORY_GRADIENTS[category.slug] || CATEGORY_GRADIENTS.all;
 
 					return (
 						<button
 							key={category.id}
 							className="group relative px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-700 border border-gray-200 hover:border-transparent transition-all overflow-hidden"
 						>
-							<span className="relative z-10 group-hover:text-white transition-colors">{category.label}</span>
+							<span className="relative z-10 group-hover:text-white transition-colors">{category.name}</span>
 							<div
-								className={`absolute inset-0 bg-gradient-to-r ${style.gradient} opacity-0 group-hover:opacity-100 transition-opacity`}
-							></div>
+								className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity`}
+							/>
 						</button>
 					);
 				})}
