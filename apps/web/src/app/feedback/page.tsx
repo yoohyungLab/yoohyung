@@ -9,8 +9,8 @@ export default function FeedbackPage() {
 	const { feedbacks, isLoading, error } = useFeedbackList();
 
 	return (
-		<div className="min-h-screen bg-gray-50">
-			<div className="bg-white border-b border-gray-200">
+		<main className="min-h-screen bg-gray-50">
+			<header className="bg-white border-b border-gray-200">
 				<div className="max-w-5xl mx-auto px-4 py-6">
 					<div className="flex items-center justify-between">
 						<div>
@@ -24,28 +24,30 @@ export default function FeedbackPage() {
 						</Link>
 					</div>
 				</div>
-			</div>
+			</header>
 
-			<div className="max-w-5xl mx-auto px-4 py-6">
+			<section className="max-w-5xl mx-auto px-4 py-6">
 				{error ? (
-					<div className="text-center py-16">
+					<div className="text-center py-16" role="alert">
 						<div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-							<span className="text-xl">⚠️</span>
+							<span className="text-xl" aria-hidden="true">
+								⚠️
+							</span>
 						</div>
-						<h3 className="text-base font-semibold text-gray-900 mb-1">오류가 발생했습니다</h3>
+						<h2 className="text-base font-semibold text-gray-900 mb-1">오류가 발생했습니다</h2>
 						<p className="text-sm text-gray-500 mb-4">{error}</p>
 						<Button onClick={() => window.location.reload()} variant="outline" className="text-sm">
 							다시 시도
 						</Button>
 					</div>
 				) : isLoading ? (
-					<div className="flex items-center justify-center py-16">
+					<div className="flex items-center justify-center py-16" aria-label="로딩 중">
 						<div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
 					</div>
 				) : (
 					<FeedbackList feedbacks={feedbacks} />
 				)}
-			</div>
-		</div>
+			</section>
+		</main>
 	);
 }

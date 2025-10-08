@@ -29,30 +29,35 @@ export default function BalanceGameSection() {
 
 	return (
 		<section className="py-8">
-			<h2 className="text-xl font-bold text-gray-900 mb-5">오늘의 밸런스</h2>
+			<header className="mb-5">
+				<h2 className="text-xl font-bold text-gray-900">오늘의 밸런스</h2>
+			</header>
 			<div className="bg-white rounded-lg border border-gray-200 p-5">
 				<p className="text-sm font-bold text-gray-900 mb-4">평생 라면만 먹기 vs 평생 피자만 먹기</p>
 
 				{!showResult ? (
 					<>
-						<div className="grid grid-cols-2 gap-3">
+						<section className="grid grid-cols-2 gap-3">
 							{BALANCE_OPTIONS.map(({ id, emoji, label }) => (
 								<button
 									key={id}
 									onClick={() => handleVote(id)}
 									className="rounded-lg p-4 bg-gray-100 hover:bg-gray-200 transition-all"
+									type="button"
 								>
-									<div className="text-2xl mb-2">{emoji}</div>
+									<div className="text-2xl mb-2" aria-hidden="true">
+										{emoji}
+									</div>
 									<div className="text-sm font-bold text-gray-900">{label}</div>
 								</button>
 							))}
-						</div>
+						</section>
 						<p className="text-xs text-gray-500 text-center mt-4">선택하고 결과를 확인하세요</p>
 					</>
 				) : (
 					<div className="space-y-4">
 						{/* 투표 결과 */}
-						<div className="space-y-2">
+						<section className="space-y-2">
 							{BALANCE_OPTIONS.map(({ id, emoji, label, percentage }) => {
 								const isSelected = selectedBalance === id;
 								return (
@@ -76,10 +81,10 @@ export default function BalanceGameSection() {
 									</div>
 								);
 							})}
-						</div>
+						</section>
 
 						{/* 통계 정보 */}
-						<div className="bg-gray-50 rounded-lg p-3 text-center">
+						<section className="bg-gray-50 rounded-lg p-3 text-center">
 							<div className="text-xs text-gray-600">
 								<span className="font-semibold">{TOTAL_VOTES.toLocaleString()}명</span>이 참여했어요
 							</div>
@@ -89,21 +94,21 @@ export default function BalanceGameSection() {
 										(TOTAL_VOTES * selectedOption.percentage) / 100
 									).toLocaleString()}명이 같은 선택을 했어요`}
 							</div>
-						</div>
+						</section>
 
-						{/* TODO: 굳이 공유를 해야할지? */}
 						{/* 공유 & 다시하기 */}
-						<div className="grid grid-cols-2 gap-2">
+						<nav className="grid grid-cols-2 gap-2">
 							<button className="px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors">
 								결과 공유하기
 							</button>
 							<button
 								onClick={handleReset}
 								className="px-4 py-2 bg-gray-100 text-gray-900 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+								type="button"
 							>
 								다시 참여하기
 							</button>
-						</div>
+						</nav>
 					</div>
 				)}
 

@@ -1,5 +1,5 @@
+import { supabase } from '@pickid/supabase';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from '@pickid/shared';
 
 // Auth Service - 순수한 API 호출만 담당
 export const authService = {

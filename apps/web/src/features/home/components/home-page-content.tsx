@@ -22,7 +22,7 @@ interface HomePageClientProps {
 export function HomePageClient({ tests, categories, popularTests, recommendedTests, topByType }: HomePageClientProps) {
 	return (
 		<>
-			<header className="w-full">
+			<header>
 				<BannerCarousel banners={BANNERS} />
 			</header>
 
@@ -31,7 +31,7 @@ export function HomePageClient({ tests, categories, popularTests, recommendedTes
 					<CategoryFilter categories={categories} />
 				</nav>
 
-				<div className="max-w-7xl mx-auto px-4">
+				<section className="max-w-7xl mx-auto px-4 space-y-8">
 					<TestSection tests={popularTests} title="인기 테스트" variant="carousel" size="small" />
 
 					<BalanceGameSection />
@@ -41,7 +41,7 @@ export function HomePageClient({ tests, categories, popularTests, recommendedTes
 					<TestSection tests={recommendedTests} title="추천 테스트" variant="carousel" size="medium" />
 
 					<TestSection tests={topByType} title="명예의 전당" variant="grid" size="small" className="pb-12" />
-				</div>
+				</section>
 			</main>
 		</>
 	);

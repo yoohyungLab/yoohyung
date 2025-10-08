@@ -14,8 +14,6 @@
 		"@pickid/shared": "workspace:*",
 		"@pickid/supabase": "workspace:*",
 		"@pickid/ui": "workspace:*",
-		"@supabase/auth-helpers-nextjs": "^0.10.0",
-		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.58.0",
 		"@tanstack/react-query": "^5.90.2",
 		"@tanstack/react-query-devtools": "^5.90.2",

@@ -2,15 +2,9 @@ import { Metadata } from 'next';
 import HomePage from '@/pages/home/home-page';
 import { homeService } from '@/shared/api/services/home.service';
 
-export async function generateMetadata(): Promise<Metadata> {
-	let testCount = 0;
-	try {
-		const { tests } = await homeService.getHomePageData();
-		testCount = tests.length;
-	} catch {
-		// 환경 변수가 없을 때 기본값 사용
-		testCount = 0;
-	}
+export function generateMetadata(): Metadata {
+	// 빌드 시에는 정적 메타데이터만 사용
+	const testCount = 0;
 
 	return {
 		title: '픽키드 - 나를 알아가는 심리테스트',
