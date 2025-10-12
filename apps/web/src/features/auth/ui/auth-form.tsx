@@ -28,6 +28,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 
 	// React Hook Form 설정
 	const form = useForm<AuthFormData>({
+		// @ts-expect-error - 조건부 스키마 타입 이슈
 		resolver: zodResolver(isLogin ? loginSchema : registerSchema),
 		defaultValues: isLogin ? { email: '', password: '' } : { name: '', email: '', password: '', confirmPassword: '' },
 		mode: 'onChange', // 실시간 유효성 검사
