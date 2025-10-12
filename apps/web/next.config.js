@@ -33,7 +33,7 @@ const nextConfig = {
 		return config;
 	},
 	async rewrites() {
-		return [{ source: '/favicon.ico', destination: '/favicon.ico' }];
+		return [];
 	},
 };
 

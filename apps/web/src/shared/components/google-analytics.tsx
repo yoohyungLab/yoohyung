@@ -9,10 +9,7 @@ export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
 	return (
 		<>
 			{/* Google Analytics gtag.js */}
-			<Script
-				strategy="afterInteractive"
-				src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-			/>
+			<Script strategy="afterInteractive" src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`} />
 			<Script
 				id="google-analytics"
 				strategy="afterInteractive"
@@ -30,4 +27,3 @@ export function GoogleAnalytics({ gaId }: GoogleAnalyticsProps) {
 		</>
 	);
 }
-
