@@ -1,20 +1,13 @@
 // src/app/layout.tsx
 import type { Metadata } from 'next';
-import { Gowun_Dodum } from 'next/font/google';
 import { ReactNode } from 'react';
 
 import { SessionProvider } from '@/shared/providers/session.provider';
 import { QueryProvider } from '@/shared/providers/query.provider';
+import { GoogleAnalytics } from '@/shared/components/google-analytics';
 import App from '@/App';
 
 import './globals.css';
-
-const gowunDodum = Gowun_Dodum({
-	subsets: ['latin'],
-	weight: '400',
-	display: 'swap',
-	variable: '--font-gowun-dodum',
-});
 
 export const metadata: Metadata = {
 	title: '픽키드 - 나를 알아가는 심리테스트',
@@ -28,13 +21,18 @@ export const metadata: Metadata = {
 		address: false,
 		telephone: false,
 	},
-	metadataBase: new URL('https://pickid.com'),
+	metadataBase: new URL('https://pickid.co.kr'),
 	alternates: {
 		canonical: '/',
 	},
+	icons: {
+		icon: '/favicon.ico',
+		shortcut: '/favicon.ico',
+		apple: '/favicon.ico',
+	},
 	openGraph: {
 		type: 'website',
-		url: 'https://pickid.com',
+		url: 'https://pickid.co.kr',
 		title: '픽키드 - 나를 알아가는 심리테스트',
 		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',
 		siteName: '픽키드',
@@ -71,13 +69,17 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
+	const gaId = process.env.NEXT_PUBLIC_GA_ID;
+
 	return (
-		<html lang="ko" suppressHydrationWarning className={gowunDodum.variable}>
+		<html lang="ko" suppressHydrationWarning>
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-				<link rel="icon" href="/favicon.ico" sizes="any" />
 			</head>
 			<body className="flex min-h-screen">
+				{/* Google Analytics */}
+				{gaId && <GoogleAnalytics gaId={gaId} />}
+
 				{/* ✅ QueryProvider → AuthProvider 순서 중요 (Auth가 Query 사용 가능) */}
 				<QueryProvider>
 					<SessionProvider>

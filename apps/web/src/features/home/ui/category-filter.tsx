@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import type { Category } from '@pickid/supabase';
 
 const CATEGORY_GRADIENTS: Record<string, string> = {
@@ -23,6 +24,7 @@ const CATEGORY_GRADIENTS: Record<string, string> = {
 export function CategoryFilter({ categories }: { categories: Category[] }) {
 	const [showAll, setShowAll] = useState(false);
 	const displayedCategories = showAll ? categories : categories.slice(0, 7);
+	const router = useRouter();
 
 	return (
 		<div className="space-y-3">
@@ -33,6 +35,7 @@ export function CategoryFilter({ categories }: { categories: Category[] }) {
 					return (
 						<button
 							key={category.id}
+							onClick={() => router.push(`/category/${category.slug}`)}
 							className="group relative px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-700 border border-gray-200 hover:border-transparent transition-all overflow-hidden"
 						>
 							<span className="relative z-10 group-hover:text-white transition-colors">{category.name}</span>

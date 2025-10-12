@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { Feedback } from '@pickid/supabase';
 
 // 피드백 제출용 훅

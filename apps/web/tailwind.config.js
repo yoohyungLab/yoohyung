@@ -59,36 +59,53 @@ const config = {
 			},
 			fontFamily: {
 				sans: [
-					'MemomentKkukkkuk',
-					'var(--font-gowun-dodum)',
+					'S-CoreDream',
 					'-apple-system',
 					'BlinkMacSystemFont',
 					'system-ui',
-					'Roboto',
-					'Helvetica Neue',
-					'Segoe UI',
 					'Apple SD Gothic Neo',
 					'Noto Sans KR',
 					'Malgun Gothic',
-					'Apple Color Emoji',
-					'Segoe UI Emoji',
-					'Segoe UI Symbol',
 					'sans-serif',
 				],
 			},
-			// 기존 screens 설정 유지하면서 shadcn/ui와 통합
+			// 모바일 우선 반응형 브레이크포인트
 			screens: {
-				xs: '475px',
-				sm: '640px',
-				md: '768px',
-				lg: '1024px',
-				xl: '1280px',
-				'2xl': '1536px',
+				xs: '375px', // iPhone SE
+				sm: '640px', // iPhone 12 Pro
+				md: '768px', // iPad
+				lg: '1024px', // iPad Pro
+				xl: '1280px', // Desktop
+				'2xl': '1536px', // Large Desktop
 			},
 			maxWidth: {
 				mobile: '510px',
 				tablet: '768px',
 				desktop: '1024px',
+			},
+			// 터치 친화적 크기
+			spacing: {
+				touch: '44px', // 최소 터치 타겟 크기
+			},
+			// 모바일 최적화 애니메이션
+			animation: {
+				'fade-in': 'fadeIn 0.3s ease-in-out',
+				'slide-up': 'slideUp 0.3s ease-out',
+				'bounce-gentle': 'bounceGentle 0.6s ease-in-out',
+			},
+			keyframes: {
+				fadeIn: {
+					'0%': { opacity: '0' },
+					'100%': { opacity: '1' },
+				},
+				slideUp: {
+					'0%': { transform: 'translateY(20px)', opacity: '0' },
+					'100%': { transform: 'translateY(0)', opacity: '1' },
+				},
+				bounceGentle: {
+					'0%, 100%': { transform: 'translateY(0)' },
+					'50%': { transform: 'translateY(-5px)' },
+				},
 			},
 		},
 	},

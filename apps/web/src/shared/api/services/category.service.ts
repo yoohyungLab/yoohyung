@@ -1,5 +1,5 @@
 import type { Category } from '@pickid/supabase';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 
 // Category Service - 순수한 API 호출만 담당
 export const categoryService = {
@@ -7,7 +7,7 @@ export const categoryService = {
 	async getActiveCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
 			.from('categories')
-			.select('id, name, slug, sort_order, status, created_at, updated_at')
+			.select('*')
 			.eq('status', 'active')
 			.order('sort_order', { ascending: true });
 
@@ -22,10 +22,7 @@ export const categoryService = {
 
 	// 모든 카테고리 조회 (관리자용)
 	async getAllCategories(): Promise<Category[]> {
-		const { data, error } = await supabase
-			.from('categories')
-			.select('id, name, slug, sort_order, status, created_at, updated_at')
-			.order('created_at', { ascending: false });
+		const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
 
 		if (error) {
 			console.error('Error fetching all categories:', error);
@@ -41,7 +38,7 @@ export const categoryService = {
 			// 1. 카테고리 목록 조회
 			const { data: categories, error: categoryError } = await supabase
 				.from('categories')
-				.select('id, name, slug, sort_order, status, created_at, updated_at')
+				.select('*')
 				.eq('status', 'active')
 				.order('sort_order', { ascending: true });
 
@@ -95,11 +92,7 @@ export const categoryService = {
 
 	// 특정 카테고리 조회
 	async getCategoryById(id: string): Promise<Category | null> {
-		const { data, error } = await supabase
-			.from('categories')
-			.select('id, name, slug, sort_order, status, created_at, updated_at')
-			.eq('id', id)
-			.single();
+		const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
 
 		if (error) {
 			console.error('Error fetching category:', error);
@@ -113,7 +106,7 @@ export const categoryService = {
 	async getCategoryBySlug(slug: string): Promise<Category | null> {
 		const { data, error } = await supabase
 			.from('categories')
-			.select('id, name, slug, sort_order, status, created_at, updated_at')
+			.select('*')
 			.eq('slug', slug)
 			.eq('status', 'active')
 			.single();

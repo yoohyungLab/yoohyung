@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import { useFavorites } from '@/shared/hooks/useFavorites';
 import type { Test, Category } from '@pickid/supabase';
 import type { TestCard, TestCardProps } from '@/shared/types/home';
@@ -103,8 +103,8 @@ export function useTestListVM() {
 			slug: test.slug,
 			category_ids: test.category_ids,
 			thumbnail_url: test.thumbnail_url,
-			view_count: test.view_count,
-			response_count: test.response_count,
+		starts: test.start_count,
+		completions: test.response_count,
 		}));
 	}, [rawTests, isLoading, error, getCategoryNames]);
 
@@ -114,12 +114,10 @@ export function useTestListVM() {
 
 		return [...testsAsCards]
 			.sort((a, b) => {
-				const testA = rawTests.find((t) => t.id === a.id);
-				const testB = rawTests.find((t) => t.id === b.id);
-				return (testB?.response_count || 0) - (testA?.response_count || 0);
+				return (b.completions || 0) - (a.completions || 0);
 			})
 			.slice(0, 6);
-	}, [testsAsCards, rawTests]);
+	}, [testsAsCards]);
 
 	// 추천 테스트 (조회 수 기준) - 메모이제이션
 	const recommendedTests = useMemo((): TestCard[] => {
@@ -127,12 +125,10 @@ export function useTestListVM() {
 
 		return [...testsAsCards]
 			.sort((a, b) => {
-				const testA = rawTests.find((t) => t.id === a.id);
-				const testB = rawTests.find((t) => t.id === b.id);
-				return (testB?.view_count || 0) - (testA?.view_count || 0);
+				return (b.starts || 0) - (a.starts || 0);
 			})
 			.slice(1, 7);
-	}, [testsAsCards, rawTests]);
+	}, [testsAsCards]);
 
 	// 테스트 카드에 즐겨찾기 정보를 추가하는 헬퍼 함수
 	const enhanceTestCard = useCallback(

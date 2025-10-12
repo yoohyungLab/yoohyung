@@ -63,40 +63,50 @@ const createDummyClient = () => {
 					error: new Error('Supabase not configured'),
 				}),
 		},
-		from: () => ({
-			select: () => ({
-				eq: () => ({
-					single: () =>
-						Promise.resolve({
-							data: null,
-							error: new Error('Supabase not configured'),
-						}),
-				}),
-			}),
-			insert: () => ({
-				select: () => ({
-					single: () =>
-						Promise.resolve({
-							data: null,
-							error: new Error('Supabase not configured'),
-						}),
-				}),
-			}),
-			update: () => ({
-				eq: () =>
+		from: () => {
+			const chainable = {
+				select: () => chainable,
+				eq: () => chainable,
+				neq: () => chainable,
+				gt: () => chainable,
+				gte: () => chainable,
+				lt: () => chainable,
+				lte: () => chainable,
+				like: () => chainable,
+				ilike: () => chainable,
+				is: () => chainable,
+				in: () => chainable,
+				contains: () => chainable,
+				containedBy: () => chainable,
+				rangeGt: () => chainable,
+				rangeGte: () => chainable,
+				rangeLt: () => chainable,
+				rangeLte: () => chainable,
+				rangeAdjacent: () => chainable,
+				overlaps: () => chainable,
+				order: () => chainable,
+				limit: () => chainable,
+				single: () =>
 					Promise.resolve({
 						data: null,
 						error: new Error('Supabase not configured'),
 					}),
-			}),
-			delete: () => ({
-				eq: () =>
-					Promise.resolve({
+				insert: () => chainable,
+				update: () => chainable,
+				delete: () => chainable,
+				then: (resolve: any) =>
+					resolve({
 						data: null,
 						error: new Error('Supabase not configured'),
 					}),
+			};
+			return chainable;
+		},
+		rpc: () =>
+			Promise.resolve({
+				data: null,
+				error: new Error('Supabase not configured'),
 			}),
-		}),
 	} as any;
 };
 

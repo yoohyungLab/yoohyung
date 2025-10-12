@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 
 /**
@@ -12,11 +12,15 @@ import type { TestWithNestedDetails } from '@pickid/supabase';
  */
 export function useTestDetailVM(id: string) {
 	const [test, setTest] = useState<TestWithNestedDetails | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
 	const loadTest = useCallback(async () => {
-		if (!id) return;
+		if (!id) {
+			setError('잘못된 접근입니다.');
+			setIsLoading(false);
+			return;
+		}
 
 		try {
 			setIsLoading(true);
@@ -57,27 +61,23 @@ export function useTestDetailVM(id: string) {
 
 			if (questionsError) throw questionsError;
 
-			// 결과 조회
-			const { data: resultsData, error: resultsError } = await supabase
-				.from('test_results')
-				.select('*')
-				.eq('test_id', id)
-				.order('result_order');
+			// 데이터 구조 변환 (결과는 제외)
+			type ChoiceLite = { choice_order: number } & Record<string, unknown>;
+			type QuestionLite = { test_choices?: ChoiceLite[] } & Record<string, unknown>;
+			const formattedQuestions = ((questionsData || []) as QuestionLite[]).map((q) => ({
+				...q,
+				choices: (q.test_choices ?? []).slice().sort((a: ChoiceLite, b: ChoiceLite) => a.choice_order - b.choice_order),
+			})) as unknown as TestWithNestedDetails['questions'];
 
-			if (resultsError) throw resultsError;
-
-			// 데이터 구조 변환
 			const formattedTest: TestWithNestedDetails = {
 				test: testData,
-				questions:
-					questionsData?.map((q: { test_choices?: Array<{ choice_order: number }> }) => ({
-						...q,
-						choices: q.test_choices?.sort((a, b) => a.choice_order - b.choice_order) || [],
-					})) || [],
-				results: resultsData || [],
+				questions: formattedQuestions,
+				results: [], // 결과는 결과 페이지에서만 로드
 			};
 
 			setTest(formattedTest);
+
+			// 시작 횟수는 "시작하기" 버튼 클릭 시에만 증가 (비용 절감)
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
 			setError(errorMessage);

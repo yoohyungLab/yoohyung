@@ -1,6 +1,7 @@
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import type { TestProgress } from '@/shared/types';
 import type { ColorTheme } from '../themes';
+import { Check } from 'lucide-react';
 
 interface TestQuestionScreenProps {
 	progress: TestProgress;
@@ -63,10 +64,16 @@ export function TestQuestionScreen({
 						<button
 							key={choice.id}
 							onClick={() => onAnswer(choice.id)}
-							className={`w-full bg-white border border-${theme.choice}-200 rounded-xl p-4 text-left hover:border-${theme.choice}-400 hover:bg-${theme.choice}-50 transition-all active:scale-98 shadow-sm hover:shadow-sm flex items-center gap-3 cursor-pointer`}
+							className={`w-full bg-white border border-${theme.choice}-200 rounded-xl p-4 text-left hover:border-${theme.choice}-400 hover:bg-${theme.choice}-50 hover:shadow-md transition-all duration-200 active:scale-98 shadow-sm flex items-center gap-3 cursor-pointer group`}
 							type="button"
 						>
-							<div className={`w-4 h-4 rounded-full border border-${theme.choice}-300 flex-shrink-0`} />
+							<div
+								className={`w-5 h-5 rounded-full border-2 border-${theme.choice}-300 flex-shrink-0 flex items-center justify-center group-hover:border-${theme.choice}-500 group-hover:bg-${theme.choice}-100 group-hover:scale-110 transition-all duration-200`}
+							>
+								<Check
+									className={`w-3 h-3 text-${theme.choice}-500 opacity-0 group-hover:opacity-100 transition-all duration-200`}
+								/>
+							</div>
 							<span className="text-sm font-medium text-gray-800">{choice.choice_text}</span>
 						</button>
 					))}

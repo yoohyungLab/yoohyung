@@ -7,7 +7,7 @@ export const config = {
 };
 
 // 로그인이 필요한 페이지들
-const PROTECTED_ROUTES = ['/feedback', '/mypage'];
+const PROTECTED_ROUTES = ['/feedback/create', '/mypage'];
 
 export default async function middleware(req: NextRequest) {
 	const pathname = req.nextUrl.pathname;
@@ -20,13 +20,8 @@ export default async function middleware(req: NextRequest) {
 		return NextResponse.next();
 	}
 
-	// 간단한 쿠키 기반 인증 확인
-	const sessionCookie = req.cookies.get('sb-pickid-auth-token');
-
-	// 세션 쿠키가 없으면 로그인 페이지로 리다이렉트
-	if (!sessionCookie) {
-		return NextResponse.redirect(new URL('/auth/login', req.url));
-	}
+	// Supabase 쿠키는 브라우저 도메인별로 자동 관리되며, 클라이언트에서 처리합니다.
+	// 미들웨어 단계에서는 NextResponse.next()로 통과시키고, 각 페이지/컴포넌트에서 가드를 적용합니다.
 
 	return NextResponse.next();
 }

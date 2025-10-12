@@ -82,8 +82,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 		questionsWithImages: testDetails?.questions?.filter((q) => q.image_url).length || 0,
 		resultsWithTheme: testDetails?.results?.filter((r) => r.theme_color).length || 0,
 		resultsWithImages: testDetails?.results?.filter((r) => r.background_image_url).length || 0,
-		completionRate:
-			test.response_count && test.view_count ? Math.round((test.response_count / test.view_count) * 100) : 0,
+		completionRate: 0,
 	};
 
 	// 카테고리 정보 가져오기
@@ -202,7 +201,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								<Eye className="w-4 h-4 text-blue-600" />
 								<span className="text-sm text-gray-600">조회수</span>
 							</div>
-							<div className="text-lg font-semibold text-gray-900">{(test.view_count || 0).toLocaleString()}</div>
+							<div className="text-lg font-semibold text-gray-900">-</div>
 						</div>
 						<div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/20">
 							<div className="flex items-center gap-2">
@@ -594,9 +593,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									<AdminCardContent>
 										<div className="grid grid-cols-2 gap-4">
 											<div className="text-center p-4 bg-blue-50 rounded-lg">
-												<div className="text-2xl font-bold text-blue-600">
-													{(test.view_count || 0).toLocaleString()}
-												</div>
+												<div className="text-2xl font-bold text-blue-600">-</div>
 												<div className="text-sm text-blue-700">총 조회수</div>
 											</div>
 											<div className="text-center p-4 bg-green-50 rounded-lg">
@@ -821,7 +818,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 							</div>
 							<div className="inline-flex items-center gap-1 px-2 py-1 rounded-full border border-gray-300 text-xs">
 								<Eye className="w-3 h-3" />
-								{(test.view_count || 0).toLocaleString()}회 조회
+								조회수 숨김
 							</div>
 						</div>
 

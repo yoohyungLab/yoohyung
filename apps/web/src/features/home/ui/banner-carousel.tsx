@@ -24,6 +24,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 				className="object-cover select-none"
 				priority={index === 0}
 				draggable={false}
+				sizes="100vw"
 			/>
 		</div>
 	));

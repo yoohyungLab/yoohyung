@@ -1,13 +1,30 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { supabase } from '@pickid/supabase';
 import { FeedbackForm } from '@/features/feedback/ui/feedback-form';
 import { Button } from '@pickid/ui';
 
 export default function FeedbackCreatePage() {
 	const [showSuccess, setShowSuccess] = useState(false);
 	const router = useRouter();
+
+	// 간단한 클라이언트 가드: 로그인 사용자만 접근
+	// 비로그인 시 로그인 페이지로 라우팅 (SSR 리다이렉트 대신 깔끔한 클라이언트 전환)
+	// 세션 컨텍스트가 있다면 사용하는 것이 이상적이나, 최소 변경으로 supabase 직접 사용
+	// 흰 화면 방지를 위해 즉시 로딩 오버레이 없이 링크 전환만 수행
+	// NOTE: 미들웨어에서 강제 리다이렉트를 제거했으므로 여기서만 보호
+
+	useEffect(() => {
+		const checkAuth = async () => {
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+			if (!session) router.replace('/auth/login?next=/feedback/create');
+		};
+		checkAuth();
+	}, [router]);
 
 	const handleSuccess = () => {
 		setShowSuccess(true);

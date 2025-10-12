@@ -1,4 +1,3 @@
-
 // ============================================================================
 // 홈페이지 관련 타입 정의
 // ============================================================================
@@ -15,8 +14,8 @@ export interface TestCard {
 	slug: string;
 	category_ids: string[] | null;
 	thumbnail_url: string | null;
-	view_count: number | null;
-	response_count: number | null;
+	starts: number | null; // 시작 횟수 ("시작하기" 버튼 클릭 기준)
+	completions: number | null; // 완료 횟수 (결과 완료 기준)
 }
 
 // 배너 타입

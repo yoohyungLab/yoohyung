@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { Heart } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -18,7 +19,7 @@ interface CarouselCardProps {
 	className?: string;
 }
 
-export function CarouselCard({
+export const CarouselCard = memo(function CarouselCard({
 	id,
 	title,
 	description,
@@ -39,6 +40,8 @@ export function CarouselCard({
 						alt={title}
 						fill
 						className="object-cover group-hover:scale-105 transition-transform duration-500"
+						sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+						priority={false}
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
 
@@ -79,7 +82,7 @@ export function CarouselCard({
 
 					<div className="absolute bottom-0 left-0 right-0 p-3">
 						<h3 className="font-extrabold text-white text-sm leading-tight line-clamp-2 mb-0.5">{title}</h3>
-						<p className="text-[11px] text-white/70 line-clamp-1 font-medium">{description}</p>
+						<p className="text-[11px] text-white/70 line-clamp-1 font-medium whitespace-pre-line">{description}</p>
 					</div>
 				</div>
 			</div>
@@ -87,10 +90,10 @@ export function CarouselCard({
 	);
 
 	return href ? (
-		<Link href={href} className="block">
+		<Link href={href} className="block" prefetch={false}>
 			{content}
 		</Link>
 	) : (
 		content
 	);
-}
+});

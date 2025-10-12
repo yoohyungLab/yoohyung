@@ -20,17 +20,42 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 	const [error, setError] = useState<string | null>(null);
 	const [formData, setFormData] = useState({
 		name: '',
+		slug: '',
 		sort_order: 0,
 		status: 'active' as 'active' | 'inactive',
 	});
+	const [autoSlug, setAutoSlug] = useState(true); // slug 자동 생성 여부
 
 	const handleChange = (field: string, value: string | number | boolean) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (error) setError(null);
+
+		// name이 변경되고 autoSlug가 true일 때 slug 자동 생성
+		if (field === 'name' && autoSlug && typeof value === 'string') {
+			const generatedSlug = value
+				.toLowerCase()
+				.replace(/[^a-z0-9가-힣\s-]/g, '') // 특수문자 제거
+				.replace(/\s+/g, '-') // 공백을 하이픈으로
+				.replace(/-+/g, '-') // 연속된 하이픈을 하나로
+				.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+			setFormData((prev) => ({ ...prev, slug: generatedSlug }));
+		}
+	};
+
+	// slug를 수동으로 수정하면 자동 생성 비활성화
+	const handleSlugChange = (value: string) => {
+		setAutoSlug(false);
+		const cleanSlug = value
+			.toLowerCase()
+			.replace(/[^a-z0-9-]/g, '') // 영문, 숫자, 하이픈만 허용
+			.replace(/-+/g, '-') // 연속된 하이픈을 하나로
+			.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+		setFormData((prev) => ({ ...prev, slug: cleanSlug }));
 	};
 
 	const resetForm = () => {
-		setFormData({ name: '', sort_order: 0, status: 'active' });
+		setFormData({ name: '', slug: '', sort_order: 0, status: 'active' });
+		setAutoSlug(true);
 		setError(null);
 	};
 
@@ -39,9 +64,11 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		if (editCategory) {
 			setFormData({
 				name: editCategory.name,
+				slug: editCategory.slug || '',
 				sort_order: editCategory.sort_order || 0,
 				status: editCategory.status,
 			});
+			setAutoSlug(false); // 편집 모드에서는 자동 생성 비활성화
 		} else {
 			resetForm();
 		}
@@ -62,42 +89,26 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 			return;
 		}
 
+		if (!formData.slug.trim()) {
+			setError('URL Slug를 입력해주세요.');
+			return;
+		}
+
+		// slug 유효성 검사: 영문 소문자, 숫자, 하이픈만 허용
+		const slugRegex = /^[a-z0-9-]+$/;
+		if (!slugRegex.test(formData.slug)) {
+			setError('Slug는 영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.');
+			return;
+		}
+
 		setLoading(true);
 		setError(null);
 
 		try {
-			// 더 나은 slug 생성 로직
-			const baseSlug = formData.name
-				.trim()
-				.toLowerCase()
-				.replace(/[^a-z0-9가-힣]/g, '') // 한글도 포함
-				.replace(/[가-힣]/g, (match) => {
-					// 한글을 영문으로 변환 (간단한 매핑)
-					const map: { [key: string]: string } = {
-						유: 'type',
-						형: 'type',
-						성: 'personality',
-						향: 'tendency',
-						분: 'analysis',
-						석: 'analysis',
-						테: 'test',
-						스: 'test',
-						심: 'psychology',
-						리: 'psychology',
-					};
-					return map[match] || match;
-				})
-				.replace(/[^a-z0-9]/g, '-') // 나머지 특수문자를 하이픈으로
-				.replace(/-+/g, '-') // 연속된 하이픈을 하나로
-				.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
-
-			// 빈 slug인 경우 기본값 사용
-			const slug = baseSlug || 'category';
-
 			const categoryData = {
 				name: formData.name.trim(),
+				slug: formData.slug.trim(),
 				sort_order: formData.sort_order,
-				slug,
 				status: formData.status,
 			};
 
@@ -146,12 +157,28 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 					<DefaultInput
 						label="카테고리명"
 						required
-						placeholder="예: test_idea"
+						placeholder="예: 심리 테스트"
 						value={formData.name}
 						onChange={(e) => handleChange('name', e.target.value)}
 						disabled={loading}
 						className="w-full"
 					/>
+
+					{/* Slug */}
+					<div>
+						<DefaultInput
+							label="URL Slug"
+							required
+							placeholder="예: psychology (영문 소문자, 숫자, 하이픈만)"
+							value={formData.slug}
+							onChange={(e) => handleSlugChange(e.target.value)}
+							disabled={loading}
+							className="w-full"
+						/>
+						<p className="text-xs text-gray-500 mt-1">
+							URL에 사용될 고유 식별자입니다. 예: psychology, personality-type
+						</p>
+					</div>
 
 					{/* 순서 */}
 					<DefaultInput

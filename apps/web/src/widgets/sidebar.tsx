@@ -33,76 +33,110 @@ function Sidebar() {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
 	const router = useRouter();
 	const { user, signOut, signInWithKakao } = useAuthVM();
-	const { categories } = useCategories();
+	const { categories, loadCategories } = useCategories();
 
-	// 카테고리 이름 기반으로 특정 메뉴 매핑
-	const getCategoryByKeyword = (keyword: string) => {
-		return categories.find((category) => category.label.toLowerCase().includes(keyword.toLowerCase()));
+	// Drawer가 열릴 때 카테고리 로드
+	const handleDrawerOpenChange = (open: boolean) => {
+		setIsDrawerOpen(open);
+		if (open) {
+			loadCategories();
+		}
 	};
 
 	// 요청된 순서대로 메뉴 생성
-	const mainMenus = [
-		// 1. 심리테스트 - 카테고리 이름에 "심리"가 포함된 것
-		(() => {
-			const category = getCategoryByKeyword('심리');
-			return category
-				? {
-						icon: TestTube,
-						label: '심리 테스트',
-						href: `/tests?category=${category.id}`,
-				  }
-				: null;
-		})(),
+	const mainMenus = React.useMemo(() => {
+		// 카테고리 이름 기반으로 특정 메뉴 매핑
+		const getCategoryByKeyword = (keyword: string) => {
+			return categories.find((category) => category.label.toLowerCase().includes(keyword.toLowerCase()));
+		};
+		// 카테고리가 로드되지 않았을 때 기본 메뉴 (하드코딩)
+		if (categories.length === 0) {
+			return [
+				{
+					icon: TestTube,
+					label: '심리 테스트',
+					href: '/category/psychology',
+				},
+				{
+					icon: Gamepad2,
+					label: '밸런스 게임',
+					href: '/category/balance',
+				},
+				{
+					icon: UserCheck,
+					label: '성격 유형 테스트',
+					href: '/category/personality',
+				},
+				{
+					icon: HeartHandshake,
+					label: '연애 유형 테스트',
+					href: '/category/love',
+				},
+				{
+					icon: TrendingUp,
+					label: '요즘 인기 테스트',
+					href: '/popular',
+				},
+			];
+		}
 
-		// 2. 밸런스게임 - 카테고리 이름에 "밸런스"가 포함된 것
-		(() => {
-			const category = getCategoryByKeyword('밸런스');
-			return category
-				? {
-						icon: Gamepad2,
-						label: '밸런스 게임',
-						href: `/tests?category=${category.id}`,
-				  }
-				: null;
-		})(),
+		return [
+			// 1. 심리테스트 - 카테고리 이름에 "심리"가 포함된 것
+			(() => {
+				const category = getCategoryByKeyword('심리');
+				return category
+					? {
+							icon: TestTube,
+							label: '심리 테스트',
+							href: `/tests?category=${category.id}`,
+					  }
+					: null;
+			})(),
 
-		// 3. 성격/유형 - 카테고리 이름에 "성격" 또는 "유형"이 포함된 것
-		(() => {
-			const category = getCategoryByKeyword('성격') || getCategoryByKeyword('유형');
-			return category
-				? {
-						icon: UserCheck,
-						label: '성격 유형 테스트',
-						href: `/tests?category=${category.id}`,
-				  }
-				: null;
-		})(),
+			// 2. 밸런스게임 - 카테고리 이름에 "밸런스"가 포함된 것
+			(() => {
+				const category = getCategoryByKeyword('밸런스');
+				return category
+					? {
+							icon: Gamepad2,
+							label: '밸런스 게임',
+							href: `/tests?category=${category.id}`,
+					  }
+					: null;
+			})(),
 
-		// 4. 연애 - 카테고리 이름에 "연애"가 포함된 것
-		(() => {
-			const category = getCategoryByKeyword('연애');
-			return category
-				? {
-						icon: HeartHandshake,
-						label: '연애 유형 테스트',
-						href: `/tests?category=${category.id}`,
-				  }
-				: null;
-		})(),
+			// 3. 성격/유형 - 카테고리 이름에 "성격" 또는 "유형"이 포함된 것
+			(() => {
+				const category = getCategoryByKeyword('성격') || getCategoryByKeyword('유형');
+				return category
+					? {
+							icon: UserCheck,
+							label: '성격 유형 테스트',
+							href: `/tests?category=${category.id}`,
+					  }
+					: null;
+			})(),
 
-		// 5. 인기 테스트 - 가장 많은 테스트가 있는 카테고리
-		(() => {
-			if (categories.length === 0) return null;
-			const popularCategory = categories.reduce((prev, current) => (prev.count > current.count ? prev : current));
-			return popularCategory
-				? {
-						icon: TrendingUp,
-						label: '요즘 인기 테스트',
-						href: `/tests?category=${popularCategory.id}`,
-				  }
-				: null;
-		})(),
-	].filter((menu): menu is NonNullable<typeof menu> => menu !== null); // 타입 가드로 null 제거
+			// 4. 연애 - 카테고리 이름에 "연애"가 포함된 것
+			(() => {
+				const category = getCategoryByKeyword('연애');
+				return category
+					? {
+							icon: HeartHandshake,
+							label: '연애 유형 테스트',
+							href: `/tests?category=${category.id}`,
+					  }
+					: null;
+			})(),
+
+			// 5. 인기 테스트 - 전체 테스트 중 인기 있는 것들
+			{
+				icon: TrendingUp,
+				label: '요즘 인기 테스트',
+				href: '/popular',
+			},
+		].filter((menu): menu is NonNullable<typeof menu> => menu !== null); // 타입 가드로 null 제거
+	}, [categories]);
 
 	// 실제 카테고리 메뉴만 사용
 	const finalMainMenus = mainMenus;
@@ -170,7 +204,7 @@ function Sidebar() {
 					<Image src="/icons/logo.svg" alt="로고" width={50} height={50} />
 				</Link>
 
-				<Drawer open={isDrawerOpen} onOpenChange={setIsDrawerOpen}>
+				<Drawer open={isDrawerOpen} onOpenChange={handleDrawerOpenChange}>
 					<DrawerTrigger asChild>
 						<Button variant="outline" size="sm" className="p-2">
 							<Menu className="w-4 h-4" />

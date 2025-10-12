@@ -21,9 +21,36 @@ export default defineConfig(({ mode }) => {
 			'process.env': JSON.stringify(env),
 			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'development'),
 		},
+		server: {
+			host: true, // 모든 네트워크 인터페이스에서 접근 가능
+			port: 5173,
+			hmr: {
+				port: 5173, // HMR WebSocket 포트 명시적 설정
+			},
+		},
 		build: {
 			outDir: 'dist',
 			assetsDir: 'assets',
+			rollupOptions: {
+				external: ['@supabase/supabase-js'],
+				output: {
+					manualChunks: (id) => {
+						if (id.includes('node_modules')) {
+							if (id.includes('react') || id.includes('react-dom')) {
+								return 'vendor';
+							}
+							if (id.includes('@tanstack')) {
+								return 'query';
+							}
+							if (id.includes('@supabase') || id.includes('@pickid/supabase')) {
+								return 'supabase';
+							}
+							return 'vendor';
+						}
+					},
+				},
+			},
+			chunkSizeWarningLimit: 1000,
 		},
 	};
 });

@@ -64,6 +64,7 @@ View → Business Logic → Data Access → Infrastructure
 
 1. **`supabase-functions.sql`** - 대시보드 통계용 데이터베이스 함수들
 2. **`supabase-rls-policies.sql`** - RLS 정책 및 관리자 권한 설정
+3. **`supabase/migrations/20250111000000_add_test_counters.sql`** - 테스트 조회/참여 카운터 함수
 
 ### 실행 순서
 
@@ -73,6 +74,9 @@ View → Business Logic → Data Access → Infrastructure
 
 -- 2. RLS 정책 및 권한 설정
 -- supabase-rls-policies.sql 실행
+
+-- 3. 테스트 카운터 함수 (조회/참여)
+-- supabase/migrations/20250111000000_add_test_counters.sql 실행
 ```
 
 ### 주요 함수들
@@ -82,6 +86,16 @@ View → Business Logic → Data Access → Infrastructure
 - `get_dashboard_alerts()` - 대시보드 알림 조회
 - `get_test_detailed_stats(test_uuid)` - 테스트별 상세 통계
 - `is_admin_user()` - 관리자 권한 확인
+- `increment_test_start(test_uuid)` - "시작하기" 버튼 클릭 시 시작 횟수 증가
+- `increment_test_response(test_uuid)` - 결과 보기 완료 시 완료 횟수 증가
+
+### 프론트 반영 지표
+
+- Web 표시
+  - 시작 횟수(starts): `tests.start_count` ("시작하기" 버튼 클릭 기준)
+  - 완료 횟수(completions): `tests.response_count` (결과 보기 완료 기준)
+- Admin 표시
+  - 목록 및 상세에 조회수/참여수 모두 노출
 
 ### 성능 최적화
 
@@ -110,15 +124,15 @@ View → Business Logic → Data Access → Infrastructure
 
 ### categories 테이블
 
-| 필드명     | 타입                     | 제약조건 | 설명                           |
-| ---------- | ------------------------ | -------- | ------------------------------ |
-| id         | uuid                     | NOT NULL | 고유 식별자                    |
-| name       | character varying        | NOT NULL | 카테고리 명                    |
-| slug       | character varying        | NOT NULL | URL 슬러그                     |
-| sort_order | integer                  | -        | 정렬 순서                      |
-| created_at | timestamp with time zone | NOT NULL | 생성일시                       |
-| updated_at | timestamp with time zone | NOT NULL | 수정일시                       |
-| status     | category_status          | NOT NULL | 카테고리 상태 (기본값: active) |
+| 필드명     | 타입                     | 제약조건         | 설명                                           |
+| ---------- | ------------------------ | ---------------- | ---------------------------------------------- |
+| id         | uuid                     | NOT NULL         | 고유 식별자                                    |
+| name       | character varying        | NOT NULL         | 카테고리 명                                    |
+| slug       | character varying        | NOT NULL, UNIQUE | URL 슬러그 (예: psychology, personality, love) |
+| sort_order | integer                  | -                | 정렬 순서                                      |
+| created_at | timestamp with time zone | NOT NULL         | 생성일시                                       |
+| updated_at | timestamp with time zone | NOT NULL         | 수정일시                                       |
+| status     | category_status          | NOT NULL         | 카테고리 상태 (기본값: active)                 |
 
 ### favorites 테이블
 
@@ -186,42 +200,44 @@ View → Business Logic → Data Access → Infrastructure
 
 ### test_results 테이블
 
-| 필드명               | 타입                        | 제약조건 | 설명                   |
-| -------------------- | --------------------------- | -------- | ---------------------- |
-| id                   | uuid                        | NOT NULL | 고유 식별자            |
-| test_id              | uuid                        | -        | 테스트 참조            |
-| result_name          | text                        | NOT NULL | 결과 이름              |
-| result_order         | integer                     | NOT NULL | 결과 순서              |
-| description          | text                        | -        | 결과 설명              |
-| match_conditions     | jsonb                       | -        | 매칭 조건 (기본값: {}) |
-| background_image_url | text                        | -        | 배경 이미지 URL        |
-| theme_color          | character varying(7)        | -        | 테마 색상 (HEX)        |
-| features             | jsonb                       | -        | 특징 (JSON)            |
-| created_at           | timestamp without time zone | -        | 생성일시               |
-| updated_at           | timestamp without time zone | -        | 수정일시               |
+| 필드명               | 타입                        | 제약조건 | 설명                         |
+| -------------------- | --------------------------- | -------- | ---------------------------- |
+| id                   | uuid                        | NOT NULL | 고유 식별자                  |
+| test_id              | uuid                        | -        | 테스트 참조                  |
+| result_name          | text                        | NOT NULL | 결과 이름                    |
+| result_order         | integer                     | NOT NULL | 결과 순서                    |
+| description          | text                        | -        | 결과 설명                    |
+| match_conditions     | jsonb                       | -        | 매칭 조건 (기본값: {})       |
+| background_image_url | text                        | -        | 배경 이미지 URL              |
+| theme_color          | character varying(7)        | -        | 테마 색상 (HEX)              |
+| features             | jsonb                       | -        | 특징 (JSON)                  |
+| target_gender        | character varying(10)       | -        | 타겟 성별 (male/female/NULL) |
+| created_at           | timestamp without time zone | -        | 생성일시                     |
+| updated_at           | timestamp without time zone | -        | 수정일시                     |
 
 ### tests 테이블
 
-| 필드명         | 타입                     | 제약조건 | 설명                          |
-| -------------- | ------------------------ | -------- | ----------------------------- |
-| id             | uuid                     | NOT NULL | 고유 식별자                   |
-| title          | character varying(255)   | NOT NULL | 테스트 제목                   |
-| description    | text                     | -        | 테스트 설명                   |
-| slug           | character varying(255)   | NOT NULL | URL 슬러그                    |
-| thumbnail_url  | text                     | -        | 썸네일 이미지 URL             |
-| response_count | integer                  | -        | 응답 수 (기본값: 0)           |
-| view_count     | integer                  | -        | 조회 수 (기본값: 0)           |
-| category_ids   | ARRAY                    | -        | 카테고리 ID 배열              |
-| short_code     | character varying(10)    | -        | 짧은 코드                     |
-| intro_text     | text                     | -        | 테스트 시작 문구              |
-| status         | character varying(20)    | -        | 발행 상태 (draft/published)   |
-| estimated_time | integer                  | -        | 예상 소요 시간 (분)           |
-| scheduled_at   | timestamp with time zone | -        | 예약 발행 시간                |
-| max_score      | integer                  | -        | 최대 점수 (심리 테스트용)     |
-| type           | character varying(20)    | -        | 테스트 타입 (psychology/quiz) |
-| published_at   | timestamp with time zone | -        | 발행일시                      |
-| created_at     | timestamp with time zone | NOT NULL | 생성일시                      |
-| updated_at     | timestamp with time zone | NOT NULL | 수정일시                      |
+| 필드명          | 타입                     | 제약조건 | 설명                                |
+| --------------- | ------------------------ | -------- | ----------------------------------- |
+| id              | uuid                     | NOT NULL | 고유 식별자                         |
+| title           | character varying        | NOT NULL | 테스트 제목                         |
+| description     | text                     | -        | 테스트 설명                         |
+| slug            | character varying        | NOT NULL | URL 슬러그                          |
+| thumbnail_url   | text                     | -        | 썸네일 이미지 URL                   |
+| response_count  | integer                  | -        | 완료 횟수 (기본값: 0)               |
+| start_count     | integer                  | -        | 시작 횟수 (기본값: 0)               |
+| category_ids    | ARRAY                    | -        | 카테고리 ID 배열                    |
+| short_code      | character varying        | -        | 짧은 코드                           |
+| intro_text      | text                     | -        | 테스트 시작 문구                    |
+| status          | character varying        | -        | 발행 상태 (기본값: draft)           |
+| estimated_time  | integer                  | -        | 예상 소요 시간 (분)                 |
+| scheduled_at    | timestamp with time zone | -        | 예약 발행 시간                      |
+| max_score       | integer                  | -        | 최대 점수 (심리 테스트용)           |
+| type            | character varying        | -        | 테스트 타입 (기본값: psychology)    |
+| published_at    | timestamp with time zone | -        | 발행일시                            |
+| requires_gender | boolean                  | NOT NULL | 성별 정보 수집 여부 (기본값: false) |
+| created_at      | timestamp with time zone | NOT NULL | 생성일시                            |
+| updated_at      | timestamp with time zone | NOT NULL | 수정일시                            |
 
 ### uploads 테이블
 
@@ -238,24 +254,24 @@ View → Business Logic → Data Access → Infrastructure
 
 ### user_test_responses 테이블
 
-| 필드명                  | 타입                     | 제약조건 | 설명                  |
-| ----------------------- | ------------------------ | -------- | --------------------- |
-| id                      | uuid                     | NOT NULL | 고유 식별자           |
-| test_id                 | uuid                     | -        | 테스트 참조           |
-| user_id                 | uuid                     | -        | 사용자 ID (익명 가능) |
-| session_id              | text                     | NOT NULL | 세션 추적 ID          |
-| result_id               | uuid                     | -        | 결과 참조             |
-| total_score             | integer                  | -        | 총 점수               |
-| started_at              | timestamp with time zone | -        | 시작 시간             |
-| completed_at            | timestamp with time zone | -        | 완료 시간             |
-| completion_time_seconds | integer                  | -        | 완료 소요 시간 (초)   |
-| ip_address              | inet                     | -        | IP 주소               |
-| user_agent              | text                     | -        | 사용자 에이전트       |
-| referrer                | text                     | -        | 리퍼러                |
-| device_type             | character varying(20)    | -        | 디바이스 타입         |
-| responses               | jsonb                    | NOT NULL | 실제 답변 데이터      |
-| created_date            | date                     | -        | 생성 날짜             |
-| gender                  | character varying(20)    | -        | 성별 (male/female)    |
-| created_at              | timestamp with time zone | -        | 생성일시              |
+| 필드명                  | 타입                     | 제약조건 | 설명                           |
+| ----------------------- | ------------------------ | -------- | ------------------------------ |
+| id                      | uuid                     | NOT NULL | 고유 식별자                    |
+| test_id                 | uuid                     | -        | 테스트 참조                    |
+| user_id                 | uuid                     | -        | 사용자 ID (익명 가능)          |
+| session_id              | text                     | NOT NULL | 세션 추적 ID                   |
+| result_id               | uuid                     | -        | 결과 참조                      |
+| total_score             | integer                  | -        | 총 점수                        |
+| started_at              | timestamp with time zone | -        | 시작 시간                      |
+| completed_at            | timestamp with time zone | -        | 완료 시간                      |
+| completion_time_seconds | integer                  | -        | 완료 소요 시간 (초)            |
+| ip_address              | inet                     | -        | IP 주소                        |
+| user_agent              | text                     | -        | 사용자 에이전트                |
+| referrer                | text                     | -        | 리퍼러                         |
+| device_type             | character varying(20)    | -        | 디바이스 타입                  |
+| responses               | jsonb                    | NOT NULL | 실제 답변 데이터               |
+| created_date            | date                     | -        | 생성 날짜                      |
+| gender                  | character varying(10)    | -        | 사용자 성별 (male/female/NULL) |
+| created_at              | timestamp with time zone | -        | 생성일시                       |
 
 ---

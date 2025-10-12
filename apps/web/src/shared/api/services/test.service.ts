@@ -1,189 +1,265 @@
-import { supabase } from '@pickid/shared';
-import type { TestResult, TestResultInsert, UserTestResponse } from '@pickid/supabase';
-import type { EgenTetoResult, Gender } from '@/shared/types';
+import { supabase } from '@pickid/supabase';
+import type { TestResult, UserTestResponse } from '@pickid/supabase';
 
-// 테스트 응답 데이터 타입 (API에서 사용)
+// ============================================================================
+// 타입 정의
+// ============================================================================
+
 export interface TestResponseData {
 	id?: string;
-	gender: Gender;
-	result: EgenTetoResult;
+	gender: string;
+	result: unknown;
 	score: number;
 	answers: number[];
 	created_at?: string;
 }
 
-// Test Service - API 호출만 담당
+interface UserResponseParams {
+	testId: string;
+	userId: string | null;
+	responses: Record<string, unknown>;
+	resultId?: string;
+	score?: number;
+	startedAt?: string;
+	completedAt?: string;
+}
+
+// ============================================================================
+// 쿼리 상수
+// ============================================================================
+
+const TEST_FIELDS = `
+	id,
+	title,
+	description,
+	slug,
+	thumbnail_url,
+	start_count,
+	response_count,
+	category_ids,
+	estimated_time,
+	requires_gender,
+	created_at,
+	published_at
+`;
+
+const TEST_DETAILS_QUERY = `
+	*,
+	test_questions:test_questions(
+		id,
+		question_text,
+		question_order,
+		image_url,
+		created_at,
+		updated_at,
+		test_choices:test_choices(
+			id,
+			choice_text,
+			choice_order,
+			score,
+			is_correct,
+			created_at
+		)
+	),
+	test_results:test_results(
+		id,
+		result_name,
+		result_order,
+		description,
+		match_conditions,
+		background_image_url,
+		theme_color,
+		features,
+		target_gender,
+		created_at,
+		updated_at
+	)
+`;
+
+const USER_RESPONSE_QUERY = `
+	*,
+	test_results:result_id(*)
+`;
+
+// ============================================================================
+// 유틸리티 함수
+// ============================================================================
+
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
+
+const isNotFoundError = (error: unknown) => {
+	return (error as { code?: string })?.code === 'PGRST116';
+};
+
+// ============================================================================
+// 테스트 서비스
+// ============================================================================
+
 export const testService = {
-	// 공개된 모든 테스트 조회 (카테고리 정보 포함)
+	/**
+	 * 공개된 모든 테스트 조회
+	 */
 	async getPublishedTests() {
-		const { data, error } = await supabase
-			.from('tests')
-			.select(
-				`
-				id,
-				title,
-				description,
-				slug,
-				thumbnail_url,
-				view_count,
-				response_count,
-				category_ids,
-				estimated_time,
-				created_at,
-				published_at
-			`
-			)
-			.eq('status', 'published')
-			.order('created_at', { ascending: false });
+		try {
+			const { data, error } = await supabase
+				.from('tests')
+				.select(TEST_FIELDS)
+				.eq('status', 'published')
+				.order('created_at', { ascending: false });
 
-		if (error) throw error;
-		return data || [];
+			if (error) throw error;
+			return data || [];
+		} catch (error) {
+			handleSupabaseError(error, 'getPublishedTests');
+		}
 	},
 
-	// 특정 테스트 조회 (ID로)
+	/**
+	 * ID로 특정 테스트 조회
+	 */
 	async getTestById(id: string) {
-		const { data, error } = await supabase.from('tests').select('*').eq('id', id).eq('status', 'published').single();
+		try {
+			const { data, error } = await supabase.from('tests').select('*').eq('id', id).eq('status', 'published').single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'getTestById');
+		}
 	},
 
-	// 특정 테스트 조회 (슬러그로)
+	/**
+	 * 슬러그로 특정 테스트 조회
+	 */
 	async getTestBySlug(slug: string) {
-		const { data, error } = await supabase
-			.from('tests')
-			.select('*')
-			.eq('slug', slug)
-			.eq('status', 'published')
-			.single();
+		try {
+			const { data, error } = await supabase
+				.from('tests')
+				.select('*')
+				.eq('slug', slug)
+				.eq('status', 'published')
+				.single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'getTestBySlug');
+		}
 	},
 
-	// 테스트 상세 정보 조회 (질문과 선택지 포함)
+	/**
+	 * 테스트 상세 정보 조회 (질문, 선택지, 결과 포함)
+	 */
 	async getTestWithDetails(id: string) {
-		const { data, error } = await supabase
-			.from('tests')
-			.select(
-				`
-				*,
-				test_questions:test_questions(
-					id,
-					question_text,
-					question_order,
-					image_url,
-					created_at,
-					updated_at,
-					test_choices:test_choices(
-						id,
-						choice_text,
-						choice_order,
-						score,
-						is_correct,
-						created_at
-					)
-				),
-				test_results:test_results(
-					id,
-					result_name,
-					result_order,
-					description,
-					match_conditions,
-					background_image_url,
-					theme_color,
-					features,
-					created_at,
-					updated_at
-				)
-			`
-			)
-			.eq('id', id)
-			.single();
+		try {
+			const { data, error } = await supabase.from('tests').select(TEST_DETAILS_QUERY).eq('id', id).single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'getTestWithDetails');
+		}
 	},
 
-	// 사용자 응답 저장
-	async saveUserResponse(
-		testId: string,
-		userId: string | null,
-		responses: Record<string, unknown>,
-		resultId?: string,
-		score?: number,
-		startedAt?: string,
-		completedAt?: string
-	): Promise<UserTestResponse> {
-		const { data, error } = await supabase
-			.from('user_test_responses')
-			.insert([
-				{
-					test_id: testId,
-					user_id: userId,
-					responses,
-					result_id: resultId,
-					score,
-					started_at: startedAt,
-					completed_at: completedAt,
-				},
-			])
-			.select()
-			.single();
+	/**
+	 * 사용자 응답 저장
+	 */
+	async saveUserResponse(params: UserResponseParams): Promise<UserTestResponse> {
+		try {
+			const { data, error } = await supabase
+				.from('user_test_responses')
+				.insert([
+					{
+						test_id: params.testId,
+						user_id: params.userId,
+						responses: params.responses,
+						result_id: params.resultId,
+						score: params.score,
+						started_at: params.startedAt,
+						completed_at: params.completedAt,
+					},
+				])
+				.select()
+				.single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'saveUserResponse');
+			throw error; // 에러를 다시 던져서 호출자가 처리할 수 있도록 함
+		}
 	},
 
-	// 사용자별 응답 조회
+	/**
+	 * 사용자별 응답 조회
+	 */
 	async getUserResponseByUser(userId: string, testId: string) {
-		const { data, error } = await supabase
-			.from('user_test_responses')
-			.select(
-				`
-                *,
-                test_results:result_id(*)
-            `
-			)
-			.eq('user_id', userId)
-			.eq('test_id', testId)
-			.single();
+		try {
+			const { data, error } = await supabase
+				.from('user_test_responses')
+				.select(USER_RESPONSE_QUERY)
+				.eq('user_id', userId)
+				.eq('test_id', testId)
+				.single();
 
-		if (error && error.code !== 'PGRST116') throw error; // PGRST116는 데이터가 없을 때
-		return data;
+			if (error && !isNotFoundError(error)) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'getUserResponseByUser');
+			return null;
+		}
 	},
 
-	// 세션별 응답 조회 (세션 ID를 user_id로 사용하는 경우)
+	/**
+	 * 세션별 응답 조회
+	 */
 	async getUserResponseBySession(sessionId: string, testId: string) {
-		const { data, error } = await supabase
-			.from('user_test_responses')
-			.select(
-				`
-                *,
-                test_results:result_id(*)
-            `
-			)
-			.eq('user_id', sessionId)
-			.eq('test_id', testId)
-			.single();
+		try {
+			const { data, error } = await supabase
+				.from('user_test_responses')
+				.select(USER_RESPONSE_QUERY)
+				.eq('user_id', sessionId)
+				.eq('test_id', testId)
+				.single();
 
-		if (error && error.code !== 'PGRST116') throw error; // PGRST116는 데이터가 없을 때
-		return data;
+			if (error && !isNotFoundError(error)) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'getUserResponseBySession');
+			return null;
+		}
 	},
 
-	// 결과 저장
-	async saveTestResult(data: TestResultInsert): Promise<TestResult> {
-		const { data: result, error } = await supabase.from('test_results').insert([data]).select().single();
+	/**
+	 * 테스트 결과 저장
+	 */
+	async saveTestResult(data: Partial<TestResult>): Promise<TestResult> {
+		try {
+			const { data: result, error } = await supabase.from('test_results').insert([data]).select().single();
 
-		if (error) throw error;
-		return result;
+			if (error) throw error;
+			return result;
+		} catch (error) {
+			handleSupabaseError(error, 'saveTestResult');
+			throw error;
+		}
 	},
 
-	// 결과 조회
+	/**
+	 * 모든 테스트 결과 조회
+	 */
 	async getTestResults(): Promise<TestResult[]> {
-		const { data, error } = await supabase.from('test_results').select('*').order('created_at', { ascending: false });
+		try {
+			const { data, error } = await supabase.from('test_results').select('*').order('created_at', { ascending: false });
 
-		if (error) throw error;
-		return data || [];
+			if (error) throw error;
+			return data || [];
+		} catch (error) {
+			handleSupabaseError(error, 'getTestResults');
+			throw error;
+		}
 	},
 };

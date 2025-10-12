@@ -7,13 +7,14 @@ export interface BasicInfo
 		| 'created_at'
 		| 'updated_at'
 		| 'response_count'
-		| 'view_count'
+		| 'start_count'
 		| 'completion_count'
 		| 'author_id'
 		| 'tags'
 		| 'share_count'
 		| 'banner_image_url'
 		| 'og_image_url'
+		| 'is_male'
 	> {
 	id?: string; // 수정 모드에서 사용
 	category_ids: string[]; // 프론트엔드에서 사용하는 복수형
@@ -24,7 +25,7 @@ export interface BasicInfo
 	max_score?: number;
 	scheduled_at?: string | null;
 	// 성별 필드 관련
-	pre_questions?: GenderField[];
+	requires_gender?: boolean;
 	features?: TestFeatures;
 }
 

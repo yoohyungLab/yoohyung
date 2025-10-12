@@ -65,7 +65,6 @@ export default {
 			},
 			fontFamily: {
 				sans: [
-					'S-CoreDream',
 					'-apple-system',
 					'BlinkMacSystemFont',
 					'system-ui',

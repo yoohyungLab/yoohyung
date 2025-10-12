@@ -99,7 +99,7 @@ export function TestListPage() {
 			},
 			{
 				id: 'responses',
-				header: '응답수',
+				header: '참여수',
 				cell: ({ row }) => renderers.renderNumber(row.original.response_count || 0),
 			},
 			{
@@ -140,7 +140,11 @@ export function TestListPage() {
 					{ id: 'published', label: '공개', value: stats?.published || 0 },
 					{ id: 'draft', label: '초안', value: stats?.draft || 0 },
 					{ id: 'scheduled', label: '예약', value: stats?.scheduled || 0 },
-					{ id: 'responses', label: '총 응답', value: stats?.responses || 0 },
+					{
+						id: 'responses',
+						label: '총 참여',
+						value: 'responses' in (stats || {}) ? (stats as unknown as { responses?: number }).responses || 0 : 0,
+					},
 				]}
 				columns={5}
 			/>

@@ -1,141 +1,120 @@
-import React, { useCallback, useState } from 'react';
-import { usePagination } from '@pickid/shared';
-import { DefaultPagination } from '@pickid/ui';
-import { AlertCircle } from 'lucide-react';
-import { useUserResponses } from '@/hooks';
-import { DataState, BulkActions } from '@/components/ui';
-import { ResponseDetailDialog, ResponseStatsCards, ResponseTable, ResponseFilters } from '@/components/response';
-import { PAGINATION } from '@/shared/lib/constants';
-import type { UserResponse } from '@/shared/api/services/user-responses.service';
+import React from 'react';
+import { TrendingUp, Clock, Smartphone } from 'lucide-react';
+import { ResponseStatsCards, ResponseFilters } from '@/components/response';
 
 export function UserResponsesPage() {
-	// 커스텀 훅 사용
-	const { responses, loading, error, filters, stats, deleteResponse, bulkDeleteResponses, exportToCSV, updateFilters } =
-		useUserResponses();
+	// 정적 통계 데이터 (실제로는 API에서 가져와야 함)
+	const stats = {
+		total_responses: 0,
+		completed_responses: 0,
+		completion_rate: 0,
+		avg_completion_time: 0,
+		mobile_ratio: 0,
+		mobile_count: 0,
+		desktop_count: 0,
+		unique_users: 0,
+	};
 
-	const [selectedResponse, setSelectedResponse] = useState<UserResponse | null>(null);
-	const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false);
-	const [selectedResponses, setSelectedResponses] = useState<string[]>([]);
-	const [successMessage, setSuccessMessage] = useState<string | null>(null);
+	const loading = false;
+	const filters = {
+		search: '',
+		testId: 'all',
+		category: 'all',
+		device: 'all',
+		dateFrom: '',
+		dateTo: '',
+	};
 
-	const pagination = usePagination({
-		totalItems: responses.length,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
-	});
-
-	// 응답 삭제
-	const handleDeleteResponse = useCallback(
-		async (responseId: string) => {
-			if (!confirm('정말로 이 응답을 삭제하시겠습니까?')) return;
-			await deleteResponse(responseId);
-			setSuccessMessage('응답이 성공적으로 삭제되었습니다.');
-			setTimeout(() => setSuccessMessage(null), 3000);
-		},
-		[deleteResponse]
-	);
-
-	// 대량 삭제
-	const handleBulkDelete = useCallback(async () => {
-		if (selectedResponses.length === 0) return;
-		if (!confirm(`선택한 ${selectedResponses.length}개의 응답을 삭제하시겠습니까?`)) return;
-		await bulkDeleteResponses(selectedResponses);
-		setSelectedResponses([]);
-		setSuccessMessage(`${selectedResponses.length}개의 응답이 성공적으로 삭제되었습니다.`);
-		setTimeout(() => setSuccessMessage(null), 3000);
-	}, [selectedResponses, bulkDeleteResponses]);
-
-	// 데이터 내보내기
-	const handleExport = useCallback(async () => {
-		const success = await exportToCSV();
-		if (success) {
-			setSuccessMessage('데이터가 성공적으로 내보내졌습니다.');
-			setTimeout(() => setSuccessMessage(null), 3000);
-		}
-	}, [exportToCSV]);
-
-	// 응답 상세 보기
-	const handleViewResponse = useCallback((response: UserResponse) => {
-		setSelectedResponse(response);
-		setIsDetailDialogOpen(true);
-	}, []);
-
-	// 응답 행 클릭
-	const handleRowClick = useCallback(
-		(response: UserResponse) => {
-			handleViewResponse(response);
-		},
-		[handleViewResponse]
-	);
+	const updateFilters = () => {};
+	const onExport = () => {};
 
 	return (
 		<div className="space-y-6 p-5">
-			{/* 메시지 */}
-			{error && (
-				<div className="p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
-					<AlertCircle className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
-					<div>
-						<h4 className="text-sm font-medium text-red-800 mb-1">오류 발생</h4>
-						<p className="text-sm text-red-700">{error}</p>
-					</div>
+			{/* 페이지 헤더 */}
+			<div className="flex items-center justify-between">
+				<div>
+					<h1 className="text-2xl font-bold text-gray-900">응답 분석</h1>
+					<p className="text-gray-600 mt-1">전체 응답 통계 및 분석 데이터</p>
 				</div>
-			)}
+			</div>
 
-			{successMessage && (
-				<div className="p-4 bg-green-50 border border-green-200 rounded-lg flex items-start gap-3">
-					<div className="w-5 h-5 text-green-500 mt-0.5 flex-shrink-0">✓</div>
-					<div>
-						<h4 className="text-sm font-medium text-green-800 mb-1">성공</h4>
-						<p className="text-sm text-green-700">{successMessage}</p>
-					</div>
-				</div>
-			)}
+			{/* 필터 */}
+			<ResponseFilters filters={filters} loading={loading} onFilterChange={updateFilters} onExport={onExport} />
 
-			{/* 통계 카드 */}
+			{/* 주요 통계 카드 */}
 			<ResponseStatsCards stats={stats} />
 
-			{/* 필터 및 액션 */}
-			<ResponseFilters filters={filters} loading={loading} onFilterChange={updateFilters} onExport={handleExport} />
+			{/* 추가 통계 정보 */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{/* 디바이스 분포 */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+							<Smartphone className="w-5 h-5 text-blue-600" />
+						</div>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900">디바이스 분포</h3>
+							<p className="text-sm text-gray-600">사용자 접속 기기</p>
+						</div>
+					</div>
+					<div className="space-y-3">
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">모바일</span>
+							<span className="text-sm font-medium text-gray-900">{stats.mobile_count}명</span>
+						</div>
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">데스크톱</span>
+							<span className="text-sm font-medium text-gray-900">{stats.desktop_count}명</span>
+						</div>
+					</div>
+				</div>
 
-			{/* 대량 액션 */}
-			<BulkActions
-				selectedCount={selectedResponses.length}
-				actions={[
-					{
-						id: 'delete',
-						label: '삭제',
-						variant: 'destructive',
-						onClick: handleBulkDelete,
-					},
-				]}
-				onClear={() => setSelectedResponses([])}
-			/>
+				{/* 완료율 상세 */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+							<TrendingUp className="w-5 h-5 text-green-600" />
+						</div>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900">완료 현황</h3>
+							<p className="text-sm text-gray-600">테스트 완료 통계</p>
+						</div>
+					</div>
+					<div className="space-y-3">
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">완료된 응답</span>
+							<span className="text-sm font-medium text-gray-900">{stats.completed_responses}개</span>
+						</div>
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">전체 응답</span>
+							<span className="text-sm font-medium text-gray-900">{stats.total_responses}개</span>
+						</div>
+					</div>
+				</div>
 
-			{/* 데이터 테이블 */}
-			<DataState loading={loading} error={error} data={responses}>
-				<ResponseTable
-					responses={responses}
-					selectedResponses={selectedResponses}
-					onSelectionChange={setSelectedResponses}
-					onRowClick={handleRowClick}
-					onDelete={handleDeleteResponse}
-					onView={handleViewResponse}
-				/>
-			</DataState>
-
-			{/* 페이지네이션 */}
-			<DefaultPagination
-				currentPage={pagination.currentPage}
-				totalPages={pagination.totalPages}
-				onPageChange={pagination.setPage}
-				className="mt-6"
-			/>
-
-			{/* 응답 상세 다이얼로그 */}
-			<ResponseDetailDialog
-				response={selectedResponse}
-				isOpen={isDetailDialogOpen}
-				onClose={() => setIsDetailDialogOpen(false)}
-			/>
+				{/* 평균 소요시간 상세 */}
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<div className="flex items-center gap-3 mb-4">
+						<div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+							<Clock className="w-5 h-5 text-purple-600" />
+						</div>
+						<div>
+							<h3 className="text-lg font-semibold text-gray-900">소요시간</h3>
+							<p className="text-sm text-gray-600">평균 완료 시간</p>
+						</div>
+					</div>
+					<div className="space-y-3">
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">평균 시간</span>
+							<span className="text-sm font-medium text-gray-900">{Math.round(stats.avg_completion_time)}초</span>
+						</div>
+						<div className="flex justify-between items-center">
+							<span className="text-sm text-gray-600">분 단위</span>
+							<span className="text-sm font-medium text-gray-900">{Math.round(stats.avg_completion_time / 60)}분</span>
+						</div>
+					</div>
+				</div>
+			</div>
 		</div>
 	);
 }

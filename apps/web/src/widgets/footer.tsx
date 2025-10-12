@@ -3,10 +3,30 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useTestListVM } from '@/features/test/hooks';
 
-export const Footer = () => {
+const PopularTestsSection = () => {
 	const { popularTests } = useTestListVM();
+	return (
+		<div className="md:col-span-4 md:col-start-7">
+			<h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">인기 테스트</h4>
+			<ul className="space-y-2">
+				{popularTests.slice(0, 4).map((test) => (
+					<li key={test.id}>
+						<Link href={`/tests/${test.id}`} className="text-sm text-gray-600 hover:text-gray-900 hover:underline">
+							{test.title} · {(test.completions || 0).toLocaleString()}명 완료
+						</Link>
+					</li>
+				))}
+			</ul>
+		</div>
+	);
+};
+
+export const Footer = () => {
+	const pathname = usePathname();
+	const showPopular = pathname === '/' || pathname?.startsWith('/category/');
 
 	return (
 		<footer className="relative bg-gradient-to-b from-white via-purple-50/20 to-purple-100/30 border-t border-purple-100/50 backdrop-blur-sm">
@@ -21,7 +41,7 @@ export const Footer = () => {
 				<div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
 					{/* 브랜드 영역 */}
 					<div className="md:col-span-4">
-						<Link href="/" className="inline-flex items-center gap-2 mb-3">
+						<Link href="/" className="inline-flex items-center gap-2 mb-3" prefetch={true}>
 							<Image src="/icons/logo.svg" alt="픽키드" width={28} height={28} />
 							<span className="text-xl font-bold text-gray-900">픽키드</span>
 						</Link>
@@ -68,21 +88,7 @@ export const Footer = () => {
 					</div>
 
 					{/* 인기 테스트 */}
-					<div className="md:col-span-4 md:col-start-7">
-						<h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">인기 테스트</h4>
-						<ul className="space-y-2">
-							{popularTests.slice(0, 4).map((test) => (
-								<li key={test.id}>
-									<Link
-										href={`/tests/${test.id}`}
-										className="text-sm text-gray-600 hover:text-gray-900 hover:underline"
-									>
-										{test.title}
-									</Link>
-								</li>
-							))}
-						</ul>
-					</div>
+					{showPopular ? <PopularTestsSection /> : null}
 				</div>
 
 				{/* 하단 정보 */}

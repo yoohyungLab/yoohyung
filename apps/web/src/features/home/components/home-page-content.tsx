@@ -1,6 +1,6 @@
 import { CategoryFilter, BannerCarousel } from '@/features/home';
 import { TestSection } from '@/features/home/ui/test-section';
-import BalanceGameSection from '@/pages/home/balance';
+import BalanceGameSection from './balance-game-section';
 import type { TestCard, Banner } from '@/shared/types/home';
 import type { Category } from '@pickid/supabase';
 
@@ -27,20 +27,36 @@ export function HomePageClient({ tests, categories, popularTests, recommendedTes
 			</header>
 
 			<main className="min-h-screen bg-gray-50">
+				<h1 className="sr-only">픽키드</h1>
 				<nav className="max-w-7xl mx-auto px-4 py-6" aria-label="테스트 카테고리">
 					<CategoryFilter categories={categories} />
 				</nav>
 
 				<section className="max-w-7xl mx-auto px-4 space-y-8">
-					<TestSection tests={popularTests} title="인기 테스트" variant="carousel" size="small" />
+					<TestSection tests={popularTests} title="인기 테스트" variant="carousel" size="small" sectionType="popular" />
 
 					<BalanceGameSection />
 
-					{tests.length > 0 && <TestSection tests={tests} title="새로 추가된 테스트" variant="carousel" size="small" />}
+					{tests.length > 0 && (
+						<TestSection tests={tests} title="새로 추가된 테스트" variant="carousel" size="small" sectionType="new" />
+					)}
 
-					<TestSection tests={recommendedTests} title="추천 테스트" variant="carousel" size="medium" />
+					<TestSection
+						tests={recommendedTests}
+						title="추천 테스트"
+						variant="carousel"
+						size="medium"
+						sectionType="recommended"
+					/>
 
-					<TestSection tests={topByType} title="명예의 전당" variant="grid" size="small" className="pb-12" />
+					<TestSection
+						tests={topByType}
+						title="명예의 전당"
+						variant="grid"
+						size="small"
+						className="pb-12"
+						sectionType="trending"
+					/>
 				</section>
 			</main>
 		</>

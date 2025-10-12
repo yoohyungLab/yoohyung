@@ -1,6 +1,4 @@
 import React from 'react';
-import { Button } from '@pickid/ui';
-import { Download } from 'lucide-react';
 import { FilterBar } from '@/components/ui';
 
 interface ResponseFiltersProps {
@@ -10,12 +8,10 @@ interface ResponseFiltersProps {
 		dateFrom?: string;
 		dateTo?: string;
 	};
-	loading: boolean;
 	onFilterChange: (filters: { search: string; device: string; dateFrom: string; dateTo: string }) => void;
-	onExport: () => void;
 }
 
-export function ResponseFilters({ filters, loading, onFilterChange, onExport }: ResponseFiltersProps) {
+export function ResponseFilters({ filters, onFilterChange }: ResponseFiltersProps) {
 	return (
 		<FilterBar
 			filters={{ search: true, date: true }}
@@ -33,14 +29,6 @@ export function ResponseFilters({ filters, loading, onFilterChange, onExport }: 
 					dateTo: newFilters.dateTo || '',
 				});
 			}}
-			actions={
-				<div className="flex gap-2">
-					<Button onClick={onExport} className="flex items-center gap-2">
-						<Download className="w-4 h-4" />
-						데이터 내보내기
-					</Button>
-				</div>
-			}
 		/>
 	);
 }

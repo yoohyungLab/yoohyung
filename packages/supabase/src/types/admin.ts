@@ -43,6 +43,7 @@ export interface TestStats {
 	draft: number;
 	scheduled: number;
 	archived: number;
+	responses?: number;
 }
 
 export interface CategoryStats {

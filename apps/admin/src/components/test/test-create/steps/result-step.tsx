@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
-import { Button, DefaultInput, DefaultTextarea, Label, Badge } from '@pickid/ui';
+import { Button, DefaultInput, DefaultTextarea, Label, Badge, DefaultSelect } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
 import { testTypes } from '@/constants/testData';
 import { ImageUpload } from '../components/image-upload';
-// ResultData 타입 정의 (useTestCreation과 일치)
+import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
+
+// ============================================================================
+// 타입 정의
+// ============================================================================
+
 interface ResultData {
 	result_name: string;
 	result_order: number;
@@ -12,8 +17,8 @@ interface ResultData {
 	background_image_url: string | null;
 	theme_color: string;
 	features: Record<string, unknown>;
+	target_gender: string | null;
 }
-import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 
 interface ResultStepProps {
 	results: ResultData[];
@@ -23,6 +28,61 @@ interface ResultStepProps {
 	onUpdateResult: (resultIndex: number, updates: Partial<ResultData>) => void;
 }
 
+interface FeatureInput {
+	key: string;
+	value: string;
+}
+
+// ============================================================================
+// 상수
+// ============================================================================
+
+const GENDER_OPTIONS = [
+	{ value: 'all', label: '전체 (성별 무관)' },
+	{ value: 'male', label: '👨 남성 전용' },
+	{ value: 'female', label: '👩 여성 전용' },
+];
+
+const DEFAULT_THEME_COLOR = '#3B82F6';
+
+// ============================================================================
+// 유틸리티 함수
+// ============================================================================
+
+const parseValues = (value: string): string[] => {
+	if (!value.trim()) return [];
+	return value
+		.split(',')
+		.map((v) => v.trim())
+		.filter((v) => v.length > 0);
+};
+
+const getGenderBadgeClass = (gender: string) => {
+	switch (gender) {
+		case 'male':
+			return 'bg-blue-50 text-blue-700';
+		case 'female':
+			return 'bg-pink-50 text-pink-700';
+		default:
+			return 'bg-gray-50 text-gray-700';
+	}
+};
+
+const getGenderLabel = (gender: string) => {
+	switch (gender) {
+		case 'male':
+			return '👨 남성';
+		case 'female':
+			return '👩 여성';
+		default:
+			return '👥 전체';
+	}
+};
+
+// ============================================================================
+// 컴포넌트
+// ============================================================================
+
 export const ResultStep: React.FC<ResultStepProps> = ({
 	results,
 	selectedType,
@@ -30,23 +90,19 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 	onRemoveResult,
 	onUpdateResult,
 }) => {
-	const [featureInputs, setFeatureInputs] = useState<Record<number, { key: string; value: string }>>({});
+	const [featureInputs, setFeatureInputs] = useState<Record<number, FeatureInput>>({});
 
 	const typeConfig = testTypes.find((t) => t.id === selectedType);
+
+	// ============================================================================
+	// 기능 관리 함수들
+	// ============================================================================
 
 	const updateFeatureInput = (resultIndex: number, field: 'key' | 'value', value: string) => {
 		setFeatureInputs((prev) => ({
 			...prev,
 			[resultIndex]: { ...prev[resultIndex], [field]: value },
 		}));
-	};
-
-	const parseValues = (value: string) => {
-		if (!value.trim()) return [];
-		return value
-			.split(',')
-			.map((v) => v.trim())
-			.filter((v) => v.length > 0);
 	};
 
 	const addFeature = (resultIndex: number) => {
@@ -75,7 +131,6 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 
 	const updateFeatureValue = (resultIndex: number, featureKey: string, newValue: string) => {
 		const currentFeatures = results[resultIndex]?.features || {};
-		// 입력값을 그대로 저장하고, 파싱은 필요할 때만 수행
 		onUpdateResult(resultIndex, {
 			features: { ...currentFeatures, [featureKey]: newValue },
 		});
@@ -86,26 +141,22 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 		const currentValue = currentFeatures[featureKey];
 
 		if (Array.isArray(currentValue)) {
-			// 배열인 경우 해당 값을 제거
 			const newValues = currentValue.filter((v) => v !== valueToRemove);
 			onUpdateResult(resultIndex, {
-				features: {
-					...currentFeatures,
-					[featureKey]: newValues,
-				},
+				features: { ...currentFeatures, [featureKey]: newValues },
 			});
 		} else if (typeof currentValue === 'string') {
-			// 문자열인 경우 해당 값을 제거하고 다시 문자열로 변환
 			const values = parseValues(currentValue);
 			const newValues = values.filter((v) => v !== valueToRemove);
 			onUpdateResult(resultIndex, {
-				features: {
-					...currentFeatures,
-					[featureKey]: newValues.join(', '),
-				},
+				features: { ...currentFeatures, [featureKey]: newValues.join(', ') },
 			});
 		}
 	};
+
+	// ============================================================================
+	// 렌더링 함수들
+	// ============================================================================
 
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
 		if (selectedType !== 'psychology') return null;
@@ -142,6 +193,21 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 						placeholder="최대점수"
 					/>
 				</div>
+
+				<div className="mt-3">
+					<Label className="text-sm font-medium text-gray-700">성별 타겟</Label>
+					<DefaultSelect
+						value={result.target_gender || 'all'}
+						onValueChange={(value) =>
+							onUpdateResult(resultIndex, {
+								target_gender: value === 'all' ? null : value,
+							})
+						}
+						className="mt-1"
+						options={GENDER_OPTIONS}
+					/>
+					<p className="text-xs text-gray-500 mt-1">전체: 모든 성별에게 표시, 남성/여성: 해당 성별에게만 표시</p>
+				</div>
 			</div>
 		);
 	};
@@ -149,15 +215,23 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 	const renderScoreBadge = (result: ResultData) => {
 		if (selectedType !== 'psychology') return null;
 		const conditions = result.match_conditions;
+		const gender = result.target_gender;
+
 		return (
-			<Badge variant="outline" className="bg-blue-50">
-				{conditions?.min || 0}-{conditions?.max || 10}점
-			</Badge>
+			<div className="flex items-center gap-2">
+				<Badge variant="outline" className="bg-blue-50">
+					{conditions?.min || 0}-{conditions?.max || 10}점
+				</Badge>
+				{gender && (
+					<Badge variant="outline" className={getGenderBadgeClass(gender)}>
+						{getGenderLabel(gender)}
+					</Badge>
+				)}
+			</div>
 		);
 	};
 
 	const renderFeature = (resultIndex: number, featureKey: string, values: string | string[]) => {
-		// values가 문자열인 경우 배열로 변환, 배열인 경우 그대로 사용
 		const valueArray = Array.isArray(values) ? values : parseValues(values as string);
 		const displayValue = Array.isArray(values) ? values.join(', ') : values;
 
@@ -231,7 +305,10 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 		);
 	};
 
-	// results가 비어있거나 유효하지 않은 경우 처리
+	// ============================================================================
+	// 메인 렌더링
+	// ============================================================================
+
 	if (!results || results.length === 0) {
 		return (
 			<div className="space-y-6">
@@ -265,7 +342,6 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 
 			<div className="grid gap-6">
 				{results.map((result, resultIndex) => {
-					// result가 undefined이거나 유효하지 않은 경우 건너뛰기
 					if (!result) return null;
 
 					return (
@@ -316,7 +392,7 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 											<div className="flex gap-2 mt-2">
 												<input
 													type="color"
-													value={result.theme_color || '#3B82F6'}
+													value={result.theme_color || DEFAULT_THEME_COLOR}
 													onChange={(e) =>
 														onUpdateResult(resultIndex, {
 															theme_color: e.target.value,
@@ -331,7 +407,7 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 															theme_color: e.target.value,
 														})
 													}
-													placeholder="#3B82F6"
+													placeholder={DEFAULT_THEME_COLOR}
 												/>
 											</div>
 										</div>

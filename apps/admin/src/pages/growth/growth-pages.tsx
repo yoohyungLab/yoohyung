@@ -1,3 +1,9 @@
+// TODO: GA로 대체 - Google Analytics 4의 "획득" 및 "참여도" 보고서 사용
+// - 트래픽 획득: GA4 → 수명 주기 → 획득 → 트래픽 획득
+// - 사용자 획득: GA4 → 수명 주기 → 획득 → 사용자 획득
+// - 실시간 통계: GA4 → 실시간
+// - 기기/지역: GA4 → 사용자 → 기술/인구통계
+
 import React, { useState } from 'react';
 import { useMarketingAnalytics } from '@/hooks/useMarketingAnalytics';
 import { MarketingFiltersComponent } from '@/components/marketing/marketing-filters';
@@ -210,9 +216,15 @@ export function GrowthPage() {
 							</div>
 						</div>
 
-						{/* 디바이스별 유입 통계 */}
+						{/* TODO: GA로 대체 - 디바이스별 유입 통계 */}
+						{/* GA4 → 사용자 → 기술 → 기기 카테고리에서 더 상세한 정보 확인 가능 */}
 						<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
 							<h3 className="text-lg font-semibold text-gray-900 mb-4">디바이스별 유입 통계</h3>
+							<div className="text-center py-8 text-gray-500">
+								<p className="mb-2">이 기능은 Google Analytics로 이전되었습니다</p>
+								<p className="text-sm">GA4 → 사용자 → 기술 → 기기 카테고리</p>
+							</div>
+							{/* 
 							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 								{devices?.map((device, index) => (
 									<div key={index} className="bg-gray-50 rounded-lg p-4">
@@ -227,11 +239,18 @@ export function GrowthPage() {
 									</div>
 								)}
 							</div>
+							*/}
 						</div>
 
-						{/* 지역별 유입 통계 */}
+						{/* TODO: GA로 대체 - 지역별 유입 통계 */}
+						{/* GA4 → 사용자 → 인구통계 → 위치에서 국가/도시/언어까지 확인 가능 */}
 						<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
 							<h3 className="text-lg font-semibold text-gray-900 mb-4">지역별 유입 통계</h3>
+							<div className="text-center py-8 text-gray-500">
+								<p className="mb-2">이 기능은 Google Analytics로 이전되었습니다</p>
+								<p className="text-sm">GA4 → 사용자 → 인구통계 → 위치</p>
+							</div>
+							{/* 
 							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
 								{regions?.map((region, index) => (
 									<div key={index} className="bg-gray-50 rounded-lg p-4">
@@ -246,6 +265,7 @@ export function GrowthPage() {
 									</div>
 								)}
 							</div>
+							*/}
 						</div>
 					</div>
 				)}

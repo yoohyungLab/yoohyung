@@ -37,8 +37,8 @@ export function PopularTestsCard({ topTests, renderTrendIcon }: PopularTestsCard
 								</div>
 								<div className="flex items-center gap-3">
 									<div className="text-right">
-										<p className="text-lg font-bold text-gray-900">{test.view_count}</p>
-										<p className="text-xs text-gray-500">조회수</p>
+										<p className="text-lg font-bold text-gray-900">{test.start_count}</p>
+										<p className="text-xs text-gray-500">시작 횟수</p>
 									</div>
 									{renderTrendIcon('stable')}
 								</div>

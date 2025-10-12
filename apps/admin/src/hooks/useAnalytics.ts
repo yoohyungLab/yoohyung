@@ -1,165 +1,113 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { analyticsService } from '@/shared/api';
-import type { Test, DashboardOverviewStats, AnalyticsFilters, AnalyticsStats } from '@pickid/supabase';
+import { queryKeys } from '@/shared/lib/query-client';
+import type { AnalyticsFilters } from '@pickid/supabase';
 
-// 분석용 테스트 타입 (평균 소요시간 포함)
-type TestWithAnalytics = Test & {
-	avg_completion_time?: number;
-};
-
-export const useAnalytics = () => {
-	const [tests, setTests] = useState<TestWithAnalytics[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+export const useAnalytics = (filters: AnalyticsFilters = {}) => {
 	const [selectedTests, setSelectedTests] = useState<string[]>([]);
-	const [totalTests, setTotalTests] = useState(0);
-	const [filters, setFilters] = useState<AnalyticsFilters>({
-		search: '',
-		status: 'all',
-		category: 'all',
-		timeRange: '7d',
+	const queryClient = useQueryClient();
+
+	// 테스트 목록 조회
+	const testsQuery = useQuery({
+		queryKey: queryKeys.analytics.testStats('all'),
+		queryFn: () => analyticsService.getAllTestsForAnalytics(),
+		select: (data) =>
+			data.filter((test) => {
+				const matchesSearch =
+					!filters.search ||
+					test.title.toLowerCase().includes(filters.search.toLowerCase()) ||
+					test.description?.toLowerCase().includes(filters.search.toLowerCase());
+				const matchesStatus = filters.status === 'all' || test.status === filters.status;
+				const matchesCategory = filters.category === 'all';
+				return matchesSearch && matchesStatus && matchesCategory;
+			}),
+		staleTime: 2 * 60 * 1000,
 	});
 
-	// 통계 데이터
-	const [stats, setStats] = useState<AnalyticsStats>({
-		total: 0,
-		published: 0,
-		draft: 0,
-		scheduled: 0,
-		totalResponses: 0,
-		totalCompletions: 0,
-		completionRate: 0,
-		avgCompletionTime: 0,
-		anomalies: 0,
+	// 대시보드 통계 조회
+	const statsQuery = useQuery({
+		queryKey: queryKeys.analytics.dashboard(),
+		queryFn: () => analyticsService.getDashboardOverviewStats(),
+		staleTime: 5 * 60 * 1000,
 	});
 
-	// 필터링된 테스트 목록
-	const filteredTests = useMemo(() => {
-		return tests.filter((test) => {
-			const matchesSearch =
-				!filters.search ||
-				test.title.toLowerCase().includes(filters.search.toLowerCase()) ||
-				test.description?.toLowerCase().includes(filters.search.toLowerCase());
-
-			const matchesStatus = filters.status === 'all' || test.status === filters.status;
-
-			// 카테고리 필터링은 실제 구현에 따라 조정 필요
-			const matchesCategory = filters.category === 'all';
-
-			return matchesSearch && matchesStatus && matchesCategory;
+	// 테스트 상세 통계 조회
+	const useTestDetailedStats = (testId: string) => {
+		return useQuery({
+			queryKey: queryKeys.analytics.testStats(testId),
+			queryFn: () => analyticsService.getTestDetailedStats(testId),
+			enabled: !!testId,
+			staleTime: 3 * 60 * 1000,
 		});
-	}, [tests, filters]);
+	};
 
-	// 데이터 로딩
-	const loadData = useCallback(async (includeStats = false) => {
-		setLoading(true);
-		setError(null);
+	// 테스트 트렌드 데이터 조회
+	const useTestTrendsData = (testId: string, daysBack: number = 30) => {
+		return useQuery({
+			queryKey: queryKeys.analytics.testTrends(testId, daysBack),
+			queryFn: () => analyticsService.getTestTrendsData(testId, daysBack),
+			enabled: !!testId,
+			staleTime: 5 * 60 * 1000,
+		});
+	};
 
-		try {
-			const [testList, statsData] = await Promise.all([
-				analyticsService.getAllTestsForAnalytics(),
-				includeStats ? analyticsService.getDashboardOverviewStats() : null,
-			]);
+	// 카테고리 통계 조회
+	const useCategoryStats = () => {
+		return useQuery({
+			queryKey: queryKeys.analytics.categoryStats(),
+			queryFn: () => analyticsService.getCategoryStats(),
+			staleTime: 10 * 60 * 1000,
+		});
+	};
 
-			setTests(testList);
-			setTotalTests(testList.length);
-
-			// 실제 통계 데이터 사용
-			if (statsData) {
-				setStats({
-					total: statsData.total,
-					published: statsData.published,
-					draft: statsData.draft,
-					scheduled: statsData.scheduled,
-					totalResponses: statsData.totalResponses,
-					totalCompletions: statsData.totalCompletions,
-					completionRate: statsData.completionRate,
-					avgCompletionTime: statsData.avgCompletionTime,
-					anomalies: statsData.anomalies,
-				});
-			}
-		} catch (error) {
-			console.error('데이터 로딩 실패:', error);
-			// 에러 발생 시에도 기본값으로 설정하여 UI가 깨지지 않도록 함
-			setStats({
-				total: 0,
-				published: 0,
-				draft: 0,
-				scheduled: 0,
-				totalResponses: 0,
-				totalCompletions: 0,
-				completionRate: 0,
-				avgCompletionTime: 0,
-				anomalies: 0,
-			});
-			setError(null); // 에러 상태를 초기화하여 정상 UI 표시
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
-	// 필터 변경 시 데이터 로딩 (디바운싱 적용)
-	useEffect(() => {
-		const timeoutId = setTimeout(() => {
-			loadData(true);
-		}, 300); // 300ms 디바운싱
-
-		return () => clearTimeout(timeoutId);
-	}, [filters.search, filters.status, filters.category, filters.timeRange, loadData]);
-
-	// 초기 로딩
-	useEffect(() => {
-		loadData(true);
-	}, [loadData]);
-
-	const handleExport = useCallback(async () => {
-		try {
-			console.log('Exporting data...');
-			// 실제 내보내기 로직 구현
-		} catch (error) {
-			console.error('내보내기 실패:', error);
-		}
-	}, []);
-
+	// 액션들
 	const handleBulkAction = useCallback(
-		async (action: string) => {
-			if (selectedTests.length === 0) return;
+		(action: string) => {
 			console.log(`Bulk action: ${action}`, selectedTests);
 			setSelectedTests([]);
 		},
 		[selectedTests]
 	);
 
-	// 필터 업데이트
-	const updateFilters = useCallback((newFilters: Partial<AnalyticsFilters>) => {
-		setFilters((prev) => ({ ...prev, ...newFilters }));
-	}, []);
-
-	// 선택된 테스트 관리
-	const updateSelectedTests = useCallback((testIds: string[]) => {
-		setSelectedTests(testIds);
-	}, []);
-
-	const clearSelectedTests = useCallback(() => {
-		setSelectedTests([]);
-	}, []);
+	// 캐시 무효화
+	const invalidateCache = {
+		invalidateAll: () => queryClient.invalidateQueries({ queryKey: queryKeys.analytics.all }),
+		invalidateTestStats: (testId?: string) =>
+			queryClient.invalidateQueries({ queryKey: queryKeys.analytics.testStats(testId || 'all') }),
+		invalidateDashboard: () => queryClient.invalidateQueries({ queryKey: queryKeys.analytics.dashboard() }),
+	};
 
 	return {
 		// 데이터
-		tests: filteredTests,
-		loading,
-		error,
+		tests: testsQuery.data || [],
+		loading: testsQuery.isLoading || statsQuery.isLoading,
+		error: testsQuery.error?.message || statsQuery.error?.message || null,
+		stats: statsQuery.data || {
+			total: 0,
+			published: 0,
+			draft: 0,
+			scheduled: 0,
+			totalResponses: 0,
+			totalCompletions: 0,
+			completionRate: 0,
+			avgCompletionTime: 0,
+			anomalies: 0,
+		},
 		selectedTests,
-		totalTests,
 		filters,
-		stats,
 
 		// 액션들
-		loadData,
-		handleExport,
 		handleBulkAction,
-		updateFilters,
-		updateSelectedTests,
-		clearSelectedTests,
+		updateSelectedTests: setSelectedTests,
+		clearSelectedTests: () => setSelectedTests([]),
+
+		// 추가 쿼리 훅들
+		useTestDetailedStats,
+		useTestTrendsData,
+		useCategoryStats,
+
+		// 캐시 관리
+		invalidateCache,
 	};
 };

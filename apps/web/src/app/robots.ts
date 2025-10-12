@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
 		rules: {
 			userAgent: '*',
 			allow: '/',
-			disallow: ['/api/', '/admin/', '/_next/', '/private/'],
+			disallow: ['/admin/', '/api/', '/auth/'],
 		},
-		sitemap: 'https://pickid.com/sitemap.xml',
+		sitemap: 'https://pickid.co.kr/sitemap.xml',
 	};
 }

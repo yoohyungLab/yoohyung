@@ -19,20 +19,55 @@ type Tables<T extends keyof Database['public']['Tables']> = Database['public']['
 
 export const analyticsService = {
 	/**
-	 * 테스트별 상세 통계 조회
+	 * 테스트별 상세 통계 조회 (일반 쿼리 사용)
 	 */
 	async getTestDetailedStats(testId: string): Promise<TestDetailedStats> {
 		try {
-			const { data, error } = await supabase.rpc('get_test_detailed_stats', {
-				test_id: testId,
-			});
+			// 테스트 기본 정보 조회
+			const { data: testData, error: testError } = await supabase
+				.from('tests')
+				.select('id, title, response_count, start_count, created_at')
+				.eq('id', testId)
+				.single();
 
-			if (error) {
-				console.error('Error fetching test detailed stats:', error);
-				throw new Error(`테스트 상세 통계 조회 실패: ${error.message}`);
+			if (testError) {
+				throw new Error(`테스트 정보 조회 실패: ${testError.message}`);
 			}
 
-			return data as TestDetailedStats;
+			// 응답 데이터 조회
+			const { data: responses, error: responsesError } = await supabase
+				.from('user_test_responses')
+				.select('id, created_at, completed_at, total_score, completion_time_seconds')
+				.eq('test_id', testId);
+
+			if (responsesError) {
+				throw new Error(`응답 데이터 조회 실패: ${responsesError.message}`);
+			}
+
+			const responseData = responses || [];
+			const totalResponses = responseData.length;
+			const completedResponses = responseData.filter((r) => r.completed_at).length;
+			const completionRate = totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0;
+			const avgScore =
+				responseData.length > 0
+					? responseData.reduce((sum, r) => sum + (r.total_score || 0), 0) / responseData.length
+					: 0;
+			const avgTime =
+				responseData.length > 0
+					? responseData.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0) / responseData.length
+					: 0;
+
+			return {
+				testId,
+				testTitle: testData?.title || '',
+				totalResponses,
+				completedResponses,
+				completionRate: Math.round(completionRate * 100) / 100,
+				avgScore: Math.round(avgScore * 100) / 100,
+				avgTime: Math.round(avgTime),
+				viewCount: testData?.start_count || 0,
+				createdAt: testData?.created_at || '',
+			} as TestDetailedStats;
 		} catch (error) {
 			console.error('Error in getTestDetailedStats:', error);
 			throw error;
@@ -40,25 +75,40 @@ export const analyticsService = {
 	},
 
 	/**
-	 * 응답 차트 데이터 조회
+	 * 응답 차트 데이터 조회 (일반 쿼리 사용)
 	 */
 	async getResponsesChartData(testId?: string, daysBack: number = 30): Promise<ResponseChartData> {
 		try {
-			const { data, error } = await supabase.rpc('get_responses_chart_data', {
-				test_id: testId || '',
-				days: daysBack,
-			});
+			const endDate = new Date();
+			const startDate = new Date();
+			startDate.setDate(endDate.getDate() - daysBack);
 
-			if (error) {
-				console.error('Error fetching responses chart data:', error);
-				throw new Error(`응답 차트 데이터 조회 실패: ${error.message}`);
+			// 응답 데이터 조회
+			const { data: responses, error: responsesError } = await supabase
+				.from('user_test_responses')
+				.select('created_at')
+				.gte('created_at', startDate.toISOString())
+				.lte('created_at', endDate.toISOString())
+				.order('created_at', { ascending: true });
+
+			if (responsesError) {
+				throw new Error(`응답 데이터 조회 실패: ${responsesError.message}`);
 			}
 
-			// 차트 데이터 포맷팅
-			const chartData = data as Array<{
-				date: string;
-				responses: number;
-			}>;
+			// 날짜별 응답 수 집계
+			const dateMap = new Map<string, number>();
+			const responseData = responses || [];
+
+			responseData.forEach((response) => {
+				const date = new Date(response.created_at).toISOString().split('T')[0];
+				dateMap.set(date, (dateMap.get(date) || 0) + 1);
+			});
+
+			// 차트 데이터 생성
+			const chartData = Array.from(dateMap.entries()).map(([date, responses]) => ({
+				date,
+				responses,
+			}));
 
 			return {
 				labels: chartData.map((item) => item.date),
@@ -79,45 +129,38 @@ export const analyticsService = {
 	},
 
 	/**
-	 * 사용자 응답 통계 조회
+	 * 사용자 응답 통계 조회 (일반 쿼리 사용)
 	 */
 	async getUserResponseStats(testId: string): Promise<UserResponseStats> {
 		try {
-			const { data, error } = await supabase.rpc('get_user_responses_stats', {
-				test_id: testId,
-			});
+			// 응답 데이터 조회
+			const { data: responses, error: responsesError } = await supabase
+				.from('user_test_responses')
+				.select('id, user_id, created_at, completed_at, total_score')
+				.eq('test_id', testId);
 
-			if (error) {
-				console.error('Error fetching user response stats:', error);
-				throw new Error(`사용자 응답 통계 조회 실패: ${error.message}`);
+			if (responsesError) {
+				throw new Error(`응답 데이터 조회 실패: ${responsesError.message}`);
 			}
 
-			return data as UserResponseStats;
+			const responseData = responses || [];
+			const totalResponses = responseData.length;
+			const uniqueUsers = new Set(responseData.map((r) => r.user_id).filter(Boolean)).size;
+			const completedResponses = responseData.filter((r) => r.completed_at).length;
+			const avgScore =
+				responseData.length > 0
+					? responseData.reduce((sum, r) => sum + (r.total_score || 0), 0) / responseData.length
+					: 0;
+
+			return {
+				totalResponses,
+				uniqueUsers,
+				completedResponses,
+				completionRate: totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0,
+				avgScore: Math.round(avgScore * 100) / 100,
+			} as UserResponseStats;
 		} catch (error) {
 			console.error('Error in getUserResponseStats:', error);
-			throw error;
-		}
-	},
-
-	/**
-	 * 사용자 응답 데이터 내보내기
-	 */
-	async exportUserResponses(testId: string, limitCount: number = 1000, offsetCount: number = 0): Promise<ExportData[]> {
-		try {
-			const { data, error } = await supabase.rpc('export_user_responses', {
-				test_id: testId,
-				limit_count: limitCount,
-				offset_count: offsetCount,
-			});
-
-			if (error) {
-				console.error('Error exporting user responses:', error);
-				throw new Error(`사용자 응답 내보내기 실패: ${error.message}`);
-			}
-
-			return data as ExportData[];
-		} catch (error) {
-			console.error('Error in exportUserResponses:', error);
 			throw error;
 		}
 	},
@@ -129,7 +172,7 @@ export const analyticsService = {
 		try {
 			const { data, error } = await supabase
 				.from('tests')
-				.select('id, title, slug, status, type, response_count, view_count, created_at')
+				.select('id, title, slug, status, type, response_count, start_count, created_at')
 				.order('created_at', { ascending: false });
 
 			if (error) {
@@ -214,7 +257,7 @@ export const analyticsService = {
 					// 해당 카테고리의 테스트들 조회
 					const { data: tests, error: testError } = await supabase
 						.from('tests')
-						.select('id, response_count, view_count')
+						.select('id, response_count, start_count')
 						.contains('category_ids', [category.id])
 						.eq('status', 'published');
 
@@ -235,7 +278,7 @@ export const analyticsService = {
 						0
 					);
 					const totalViews = testList.reduce(
-						(sum: number, test: Tables<'tests'>['Row']) => sum + (test.view_count || 0),
+						(sum: number, test: Tables<'tests'>['Row']) => sum + (test.start_count || 0),
 						0
 					);
 					const averageCompletionRate = totalViews > 0 ? (totalResponses / totalViews) * 100 : 0;
@@ -332,34 +375,50 @@ export const analyticsService = {
 	},
 
 	/**
-	 * 테스트별 기본 통계 조회 (서버에서 처리)
+	 * 테스트별 기본 통계 조회 (일반 쿼리 사용)
 	 */
 	async getTestBasicStats(testId: string): Promise<TestBasicStats> {
 		try {
-			// 서버의 RPC 함수 호출
-			const { data, error } = await supabase.rpc('get_test_basic_stats', {
-				test_id: testId,
-			});
+			// 응답 데이터 조회
+			const { data: responses, error: responsesError } = await supabase
+				.from('user_test_responses')
+				.select('id, completed_at, total_score, completion_time_seconds, device_type')
+				.eq('test_id', testId);
 
-			if (error) {
-				console.error('Error fetching test basic stats:', error);
-				throw new Error(`테스트 기본 통계 조회 실패: ${error.message}`);
+			if (responsesError) {
+				throw new Error(`응답 데이터 조회 실패: ${responsesError.message}`);
 			}
 
-			const result: TestBasicStats = data || {
-				responses: 0,
-				completions: 0,
-				completionRate: 0,
-				avgTime: 0,
-				avgScore: 0,
-				deviceBreakdown: {
-					mobile: 0,
-					desktop: 0,
-					tablet: 0,
-				},
+			const responseData = responses || [];
+			const totalResponses = responseData.length;
+			const completedResponses = responseData.filter((r) => r.completed_at).length;
+			const completionRate = totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0;
+
+			const avgTime =
+				responseData.length > 0
+					? responseData.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0) / responseData.length
+					: 0;
+
+			const avgScore =
+				responseData.length > 0
+					? responseData.reduce((sum, r) => sum + (r.total_score || 0), 0) / responseData.length
+					: 0;
+
+			// 디바이스별 통계
+			const deviceBreakdown = {
+				mobile: responseData.filter((r) => r.device_type === 'mobile').length,
+				desktop: responseData.filter((r) => r.device_type === 'desktop').length,
+				tablet: responseData.filter((r) => r.device_type === 'tablet').length,
 			};
 
-			return result;
+			return {
+				responses: totalResponses,
+				completions: completedResponses,
+				completionRate: Math.round(completionRate * 100) / 100,
+				avgTime: Math.round(avgTime),
+				avgScore: Math.round(avgScore * 100) / 100,
+				deviceBreakdown,
+			};
 		} catch (error) {
 			console.error('Error in getTestBasicStats:', error);
 			// 에러 발생 시 기본값 반환
@@ -379,21 +438,60 @@ export const analyticsService = {
 	},
 
 	/**
-	 * 테스트별 상세 분석 데이터 조회 (RPC 함수 사용)
+	 * 테스트별 상세 분석 데이터 조회 (일반 쿼리 사용)
 	 */
 	async getTestAnalyticsData(testId: string, days: number = 30): Promise<TestAnalyticsData> {
 		try {
-			const { data, error } = await supabase.rpc('get_test_analytics_data', {
-				test_id: testId,
-				days: days,
-			});
+			const endDate = new Date();
+			const startDate = new Date();
+			startDate.setDate(endDate.getDate() - days);
 
-			if (error) {
-				console.error('Error fetching test analytics data:', error);
-				throw new Error(`테스트 분석 데이터 조회 실패: ${error.message}`);
+			// 테스트 기본 정보 조회
+			const { data: testData, error: testError } = await supabase
+				.from('tests')
+				.select('id, title, description, created_at, response_count, start_count')
+				.eq('id', testId)
+				.single();
+
+			if (testError) {
+				throw new Error(`테스트 정보 조회 실패: ${testError.message}`);
 			}
 
-			return data as TestAnalyticsData;
+			// 응답 데이터 조회
+			const { data: responses, error: responsesError } = await supabase
+				.from('user_test_responses')
+				.select('id, created_at, completed_at, total_score, completion_time_seconds')
+				.eq('test_id', testId)
+				.gte('created_at', startDate.toISOString())
+				.lte('created_at', endDate.toISOString());
+
+			if (responsesError) {
+				throw new Error(`응답 데이터 조회 실패: ${responsesError.message}`);
+			}
+
+			// 기본 분석 데이터 구성
+			const totalResponses = responses?.length || 0;
+			const completedResponses = responses?.filter((r) => r.completed_at)?.length || 0;
+			const completionRate = totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0;
+			const avgScore =
+				responses?.length > 0 ? responses.reduce((sum, r) => sum + (r.total_score || 0), 0) / responses.length : 0;
+			const avgTime =
+				responses?.length > 0
+					? responses.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0) / responses.length
+					: 0;
+
+			return {
+				testId,
+				testTitle: testData?.title || '',
+				period: `${days}일`,
+				totalResponses,
+				completedResponses,
+				completionRate: Math.round(completionRate * 100) / 100,
+				avgScore: Math.round(avgScore * 100) / 100,
+				avgTime: Math.round(avgTime),
+				dailyData: [], // 일별 데이터는 별도 구현 필요
+				scoreDistribution: [], // 점수 분포는 별도 구현 필요
+			} as TestAnalyticsData;
 		} catch (error) {
 			console.error('Error in getTestAnalyticsData:', error);
 			throw error;
@@ -642,7 +740,7 @@ export const analyticsService = {
 			// 응답 데이터 조회
 			const { data: responses, error: responsesError } = await supabase
 				.from('user_test_responses')
-				.select('responses_json, created_at, completed_at, completion_time_seconds')
+				.select('responses, created_at, completed_at, completion_time_seconds')
 				.eq('test_id', testId);
 
 			if (responsesError) {
@@ -659,9 +757,9 @@ export const analyticsService = {
 				let totalTime = 0;
 
 				responseData.forEach((response: Tables<'user_test_responses'>['Row']) => {
-					if (response.responses_json) {
+					if (response.responses) {
 						try {
-							const responses = JSON.parse(response.responses_json);
+							const responses = response.responses as any[];
 							// 해당 질문까지 도달한 응답 수
 							if (responses.length > index) {
 								reached++;

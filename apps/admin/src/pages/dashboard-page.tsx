@@ -85,6 +85,8 @@ export function SimplifiedDashboard() {
 				/>
 			</div>
 
+			{/* TODO: GA로 대체 - Google Analytics 4의 "실시간" 보고서 사용 */}
+			{/* GA 실시간 보고서가 더 정확하고 상세한 정보 제공 */}
 			{/* 실시간 통계 (새로 추가) */}
 			{realtimeStats && (
 				<Card className="border-l-4 border-l-blue-500 bg-blue-50">
@@ -92,8 +94,12 @@ export function SimplifiedDashboard() {
 						<div className="flex items-center justify-between">
 							<div>
 								<h3 className="font-semibold text-gray-900">🔄 실시간 활동</h3>
-								<p className="text-sm text-gray-600">최근 1시간 기준</p>
+								<p className="text-sm text-gray-600">GA4에서 더 정확한 데이터 확인 가능</p>
 							</div>
+							<div className="text-sm text-gray-500">
+								<p>Google Analytics → 실시간 보고서</p>
+							</div>
+							{/* 
 							<div className="flex items-center gap-6">
 								<div className="text-center">
 									<div className="text-2xl font-bold text-blue-600">{realtimeStats.recentResponses}</div>
@@ -108,6 +114,7 @@ export function SimplifiedDashboard() {
 									<div className="text-sm text-gray-600">완료율</div>
 								</div>
 							</div>
+							*/}
 						</div>
 					</CardContent>
 				</Card>

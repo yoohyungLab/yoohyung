@@ -271,6 +271,7 @@ export type Database = {
 					match_conditions: Json | null;
 					result_name: string;
 					result_order: number;
+					target_gender: string | null;
 					test_id: string | null;
 					theme_color: string | null;
 					updated_at: string | null;
@@ -284,6 +285,7 @@ export type Database = {
 					match_conditions?: Json | null;
 					result_name: string;
 					result_order: number;
+					target_gender?: string | null;
 					test_id?: string | null;
 					theme_color?: string | null;
 					updated_at?: string | null;
@@ -297,6 +299,7 @@ export type Database = {
 					match_conditions?: Json | null;
 					result_name?: string;
 					result_order?: number;
+					target_gender?: string | null;
 					test_id?: string | null;
 					theme_color?: string | null;
 					updated_at?: string | null;
@@ -321,6 +324,7 @@ export type Database = {
 					intro_text: string | null;
 					max_score: number | null;
 					published_at: string | null;
+					requires_gender: boolean;
 					response_count: number | null;
 					scheduled_at: string | null;
 					short_code: string | null;
@@ -330,7 +334,7 @@ export type Database = {
 					title: string;
 					type: string | null;
 					updated_at: string;
-					view_count: number | null;
+					start_count: number | null;
 				};
 				Insert: {
 					category_ids?: string[] | null;
@@ -341,6 +345,7 @@ export type Database = {
 					intro_text?: string | null;
 					max_score?: number | null;
 					published_at?: string | null;
+					requires_gender?: boolean;
 					response_count?: number | null;
 					scheduled_at?: string | null;
 					short_code?: string | null;
@@ -350,7 +355,7 @@ export type Database = {
 					title: string;
 					type?: string | null;
 					updated_at?: string;
-					view_count?: number | null;
+					start_count?: number | null;
 				};
 				Update: {
 					category_ids?: string[] | null;
@@ -361,6 +366,7 @@ export type Database = {
 					intro_text?: string | null;
 					max_score?: number | null;
 					published_at?: string | null;
+					requires_gender?: boolean;
 					response_count?: number | null;
 					scheduled_at?: string | null;
 					short_code?: string | null;
@@ -370,7 +376,7 @@ export type Database = {
 					title?: string;
 					type?: string | null;
 					updated_at?: string;
-					view_count?: number | null;
+					start_count?: number | null;
 				};
 				Relationships: [];
 			};
@@ -414,6 +420,7 @@ export type Database = {
 					created_at: string | null;
 					created_date: string | null;
 					device_type: string | null;
+					gender: string | null;
 					id: string;
 					ip_address: unknown | null;
 					referrer: string | null;
@@ -432,6 +439,7 @@ export type Database = {
 					created_at?: string | null;
 					created_date?: string | null;
 					device_type?: string | null;
+					gender?: string | null;
 					id?: string;
 					ip_address?: unknown | null;
 					referrer?: string | null;
@@ -450,6 +458,7 @@ export type Database = {
 					created_at?: string | null;
 					created_date?: string | null;
 					device_type?: string | null;
+					gender?: string | null;
 					id?: string;
 					ip_address?: unknown | null;
 					referrer?: string | null;
@@ -509,7 +518,7 @@ export type Database = {
 					thumbnail_url: string;
 					title: string;
 					type: string;
-					view_count: number;
+					start_count: number;
 				}[];
 			};
 			get_test_by_slug: {
@@ -539,7 +548,7 @@ export type Database = {
 					thumbnail_url: string;
 					title: string;
 					type: string;
-					view_count: number;
+					start_count: number;
 				}[];
 			};
 			get_tests_list: {
@@ -561,7 +570,7 @@ export type Database = {
 					thumbnail_url: string;
 					title: string;
 					type: string;
-					view_count: number;
+					start_count: number;
 				}[];
 			};
 			get_tests_list_with_categories: {
@@ -586,7 +595,7 @@ export type Database = {
 					thumbnail_url: string;
 					title: string;
 					type: string;
-					view_count: number;
+					start_count: number;
 				}[];
 			};
 			increment_test_response: {

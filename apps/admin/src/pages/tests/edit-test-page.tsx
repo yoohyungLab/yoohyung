@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@pickid/ui';
 import { ErrorState } from '@/components/ui';
 import { LoadingState } from '@/components/ui';
-import { ArrowLeft, ArrowRight, Check, RefreshCw, ExternalLink } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, ExternalLink } from 'lucide-react';
 import { testService } from '@/shared/api/services/test.service';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 
@@ -19,19 +19,99 @@ import {
 import { steps } from '@/constants/testData';
 import { useTestCreation } from '@/hooks/useTestCreation';
 import type { Test } from '@pickid/supabase';
-import type { QuestionCreationData, ResultCreationData } from '@/shared/api/services/test.service';
+import type { QuestionCreationData } from '@/shared/api/services/test.service';
+
+// ============================================================================
+// 타입 정의
+// ============================================================================
+
+interface EditTestPageState {
+	initialTest: Test | null;
+	loadingTest: boolean;
+	error: string | null;
+}
+
+// ============================================================================
+// 유틸리티 함수
+// ============================================================================
+
+const convertQuestionsData = (questionsData: any[]): QuestionCreationData[] => {
+	if (!questionsData || questionsData.length === 0) {
+		return [
+			{
+				question_text: '',
+				question_order: 0,
+				image_url: null,
+				choices: [
+					{ choice_text: '', choice_order: 0, score: 1, is_correct: false },
+					{ choice_text: '', choice_order: 1, score: 2, is_correct: false },
+				],
+			},
+		];
+	}
+
+	return questionsData.map((q) => ({
+		id: q.id,
+		question_text: q.question_text || '',
+		question_order: q.question_order || 0,
+		image_url: q.image_url,
+		choices:
+			q.choices?.map((c: any) => ({
+				id: c.id,
+				choice_text: c.choice_text || '',
+				choice_order: c.choice_order || 0,
+				score: c.score,
+				is_correct: c.is_correct,
+			})) || [],
+	}));
+};
+
+const convertResultsData = (resultsData: any[]): any[] => {
+	if (!resultsData || resultsData.length === 0) {
+		return [
+			{
+				result_name: '',
+				result_order: 0,
+				description: '',
+				match_conditions: { type: 'score', min: 0, max: 30 },
+				background_image_url: null,
+				theme_color: '#3B82F6',
+				features: {},
+				target_gender: null,
+			},
+		];
+	}
+
+	return resultsData.map((r) => ({
+		id: r.id,
+		result_name: r.result_name || '',
+		result_order: r.result_order || 0,
+		description: r.description,
+		match_conditions: (r.match_conditions as Record<string, unknown>) || { type: 'score', min: 0, max: 30 },
+		background_image_url: r.background_image_url,
+		theme_color: r.theme_color || '#3B82F6',
+		features: (r.features as any) || {},
+		target_gender: r.target_gender ?? null, // null 체크를 위해 ?? 사용
+	}));
+};
+
+// ============================================================================
+// 메인 컴포넌트
+// ============================================================================
 
 export function EditTestPage() {
 	const { id } = useParams<{ id: string }>();
 	const navigate = useNavigate();
-	const [initialTest, setInitialTest] = useState<Test | null>(null);
-	const [loadingTest, setLoadingTest] = useState(true);
-	const [error, setError] = useState<string | null>(null);
 	const hasLoadedRef = useRef(false);
+
+	const [state, setState] = useState<EditTestPageState>({
+		initialTest: null,
+		loadingTest: true,
+		error: null,
+	});
 
 	// 훅 사용
 	const {
-		// 테스트 생성 관련
 		step,
 		type,
 		setStep,
@@ -60,8 +140,11 @@ export function EditTestPage() {
 	// ID가 변경될 때 로딩 상태 초기화
 	useEffect(() => {
 		hasLoadedRef.current = false;
-		setInitialTest(null);
-		setLoadingTest(true);
+		setState({
+			initialTest: null,
+			loadingTest: true,
+			error: null,
+		});
 	}, [id]);
 
 	// 테스트 데이터 로드
@@ -72,19 +155,16 @@ export function EditTestPage() {
 				return;
 			}
 
-			// 이미 로드된 경우 중복 요청 방지
-			if (hasLoadedRef.current) {
-				return;
-			}
+			if (hasLoadedRef.current) return;
 
 			try {
-				setLoadingTest(true);
+				setState((prev) => ({ ...prev, loadingTest: true }));
 				hasLoadedRef.current = true;
 
-				// 테스트와 관련된 모든 데이터 가져오기
 				const testWithDetails = await testService.getTestWithDetails(id);
 				const { test, questions: questionsData, results: resultsData } = testWithDetails;
-				setInitialTest(test);
+
+				setState((prev) => ({ ...prev, initialTest: test }));
 
 				// 테스트 데이터로 폼 초기화
 				setType(test.type || 'psychology');
@@ -99,90 +179,25 @@ export function EditTestPage() {
 					estimated_time: test.estimated_time || 5,
 					max_score: test.max_score || 100,
 					intro_text: test.intro_text || '',
+					requires_gender: Boolean((test as any).requires_gender),
+					short_code: test.short_code || '',
+					type: (test.type as 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle') || 'psychology',
 				});
 
-				// 질문 데이터 로드 및 변환
-				if (questionsData && questionsData.length > 0) {
-					const convertedQuestions: QuestionCreationData[] = questionsData.map((q) => ({
-						id: q.id,
-						question_text: q.question_text || '',
-						question_order: q.question_order || 0,
-						image_url: q.image_url,
-						choices:
-							q.choices?.map((c) => ({
-								id: c.id,
-								choice_text: c.choice_text || '',
-								choice_order: c.choice_order || 0,
-								score: c.score,
-								is_correct: c.is_correct,
-							})) || [],
-					}));
-					setQuestions(convertedQuestions);
-				} else {
-					// 질문이 없는 경우 기본 질문 추가
-					setQuestions([
-						{
-							question_text: '',
-							question_order: 0,
-							image_url: null,
-							choices: [
-								{
-									choice_text: '',
-									choice_order: 0,
-									score: 1,
-									is_correct: false,
-								},
-								{
-									choice_text: '',
-									choice_order: 1,
-									score: 2,
-									is_correct: false,
-								},
-							],
-						},
-					]);
-				}
-
-				// 결과 데이터 로드 및 변환
-				if (resultsData && resultsData.length > 0) {
-					const convertedResults: ResultCreationData[] = resultsData.map((r) => ({
-						id: r.id,
-						result_name: r.result_name || '',
-						result_order: r.result_order || 0,
-						description: r.description,
-						match_conditions: (r.match_conditions as Record<string, unknown>) || { type: 'score', min: 0, max: 30 },
-						background_image_url: r.background_image_url,
-						theme_color: r.theme_color || '#3B82F6',
-						features: (r.features as any) || {},
-					}));
-					setResults(convertedResults as any);
-				} else {
-					// 결과가 없는 경우 기본 결과 추가
-					setResults([
-						{
-							result_name: '',
-							result_order: 0,
-							description: '',
-							match_conditions: { type: 'score', min: 0, max: 30 },
-							background_image_url: null,
-							theme_color: '#3B82F6',
-							features: {},
-						},
-					]);
-				}
+				// 질문 및 결과 데이터 변환 및 설정
+				setQuestions(convertQuestionsData(questionsData));
+				setResults(convertResultsData(resultsData) as any);
 			} catch (error) {
 				console.error('테스트 로딩 실패:', error);
 				const errorMessage = error instanceof Error ? error.message : '테스트를 불러오는데 실패했습니다.';
-				setError(errorMessage);
+				setState((prev) => ({ ...prev, error: errorMessage }));
 			} finally {
-				setLoadingTest(false);
+				setState((prev) => ({ ...prev, loadingTest: false }));
 			}
 		};
 
 		loadTest();
 	}, [id, navigate, setType, updateBasicInfo, setQuestions, setResults]);
-
-	const currentStepInfo = steps.find((s) => s.id === step);
 
 	// 스텝별 컴포넌트 렌더링
 	const renderStep = () => {
@@ -215,10 +230,10 @@ export function EditTestPage() {
 				return (
 					<ResultStep
 						selectedType={type || ''}
-						results={results}
+						results={results as any}
 						onAddResult={addResult}
 						onRemoveResult={removeResult}
-						onUpdateResult={updateResult}
+						onUpdateResult={updateResult as any}
 					/>
 				);
 			case 5:
@@ -249,14 +264,18 @@ export function EditTestPage() {
 		}
 	};
 
+	const currentStepInfo = steps.find((s) => s.id === step);
+
 	// 로딩 중일 때
-	if (loadingTest) {
+	if (state.loadingTest) {
 		return <LoadingState message="테스트를 불러오는 중..." />;
 	}
 
 	// 에러 상태
-	if (error) {
-		return <ErrorState title="테스트를 불러올 수 없습니다" message={error} onRetry={() => window.location.reload()} />;
+	if (state.error) {
+		return (
+			<ErrorState title="테스트를 불러올 수 없습니다" message={state.error} onRetry={() => window.location.reload()} />
+		);
 	}
 
 	return (
@@ -271,11 +290,11 @@ export function EditTestPage() {
 						</Button>
 						<div>
 							<h1 className="text-2xl font-bold text-gray-900">테스트 수정</h1>
-							<p className="text-gray-600 text-sm">{initialTest?.title || '테스트'}</p>
+							<p className="text-gray-600 text-sm">{state.initialTest?.title || '테스트'}</p>
 						</div>
 					</div>
-					{initialTest && (
-						<Button variant="outline" onClick={() => window.open(`/tests/${initialTest.id}`, '_blank')}>
+					{state.initialTest && (
+						<Button variant="outline" onClick={() => window.open(`/tests/${state.initialTest!.id}`, '_blank')}>
 							<ExternalLink className="w-4 h-4 mr-2" />
 							미리보기
 						</Button>

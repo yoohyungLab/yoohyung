@@ -4,23 +4,12 @@ import { useState, useMemo } from 'react';
 import { useTestTakingVM } from '../hooks';
 import { colorThemes } from '../themes';
 import { TestStartScreen } from './test-start-screen';
-import { GenderSelectionScreen } from './gender-selection-screen';
-import { TestCalculatingScreen } from './test-calculating-screen';
+import { ResultCalculatingScreen } from './test-calculating-screen';
 import { TestQuestionScreen } from './test-question-screen';
 import type { TestTakingInterfaceProps } from '@/shared/types';
 
-// 성별 필드 타입 정의
-interface GenderField {
-	key: string;
-	label: string;
-	type: string;
-	required: boolean;
-	choices: Array<{ value: string; label: string }>;
-}
-
 export function TestTakingInterface({ test, onComplete, onExit }: TestTakingInterfaceProps) {
 	const [isStarting, setIsStarting] = useState(true);
-	const [isGenderSelection, setIsGenderSelection] = useState(false);
 	const [isCalculating, setIsCalculating] = useState(false);
 
 	const theme = useMemo(() => {
@@ -34,60 +23,36 @@ export function TestTakingInterface({ test, onComplete, onExit }: TestTakingInte
 		currentQuestion,
 		handleAnswer: originalHandleAnswer,
 		handlePrevious,
-		setSelectedGender: setVMSelectedGender,
+		setSelectedGender,
 	} = useTestTakingVM({
 		test,
-		config: {
-			allowBackNavigation: true,
-			showProgress: true,
-			showQuestionNumbers: true,
-			requireAllAnswers: true,
+		config: { allowBackNavigation: true, showProgress: true, showQuestionNumbers: true, requireAllAnswers: true },
+		onComplete: (result) => {
+			// 테스트 완료 시 계산 화면을 보여주고 결과 페이지로 이동
+			setIsCalculating(true);
+			setTimeout(() => {
+				setIsCalculating(false);
+				onComplete?.(result);
+			}, 2000);
 		},
-		onComplete,
 		onExit,
 	});
 
 	const handleAnswer = (choiceId: string) => {
-		const isLastQuestion = progress.currentQuestionIndex === progress.totalQuestions - 1;
-		if (isLastQuestion) setIsCalculating(true);
 		originalHandleAnswer(choiceId);
-		if (isLastQuestion) setTimeout(() => setIsCalculating(false), 2000);
 	};
 
-	const handleStart = () => {
-		// 성별 필드가 설정되어 있고 활성화되어 있는지 확인
-		const preQuestions = (test?.test as { pre_questions?: GenderField[] })?.pre_questions;
-		const hasGenderField = preQuestions?.some((field) => field.key === 'gender' && field.required);
-
-		if (hasGenderField) {
-			setIsGenderSelection(true);
-		} else {
-			setIsStarting(false);
+	const handleStart = (selectedGender?: 'male' | 'female') => {
+		setIsStarting(false);
+		if (selectedGender) {
+			setSelectedGender(selectedGender);
 		}
 	};
 
-	const handleGenderSelected = (gender: string) => {
-		setIsGenderSelection(false);
-		setIsStarting(false);
-		// useTestTakingVM의 setSelectedGender도 호출
-		setVMSelectedGender(gender);
-	};
-
-	if (isStarting) {
-		return <TestStartScreen test={test} onStart={handleStart} theme={theme} />;
-	}
-
-	if (isGenderSelection) {
-		return <GenderSelectionScreen test={test} onGenderSelected={handleGenderSelected} theme={theme} />;
-	}
-
-	if (isCalculating) {
-		return <TestCalculatingScreen theme={theme} />;
-	}
-
-	if (progress.isCompleted || !currentQuestion) {
-		return null; // 결과 페이지로 이동
-	}
+	// 화면 상태별 렌더링
+	if (isStarting) return <TestStartScreen test={test} onStart={handleStart} theme={theme} />;
+	if (isCalculating) return <ResultCalculatingScreen />;
+	if (progress.isCompleted || !currentQuestion) return null;
 
 	return (
 		<TestQuestionScreen

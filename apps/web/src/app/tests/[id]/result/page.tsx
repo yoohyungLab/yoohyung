@@ -5,8 +5,9 @@ import { useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Share2 } from 'lucide-react';
 import { TestResultShareModal } from '@/shared/components/test-result-share-modal';
+import { TestResultStructuredData } from '@/shared/components/test-result-structured-data';
 import { trackResultViewed, trackResultShared } from '@/shared/lib/analytics';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { TestResult, UserTestResponse } from '@pickid/supabase';
 
 function ResultPageContent() {
@@ -17,10 +18,12 @@ function ResultPageContent() {
 	const [isLoading, setIsLoading] = useState(true);
 	const [testResult, setTestResult] = useState<TestResult | null>(null);
 	const [totalScore, setTotalScore] = useState<number>(0);
+	const [userGender, setUserGender] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
 
 	const testId = params?.id as string;
 
+	// TODO: 쿼리 분리하기
 	useEffect(() => {
 		const loadResultData = async () => {
 			if (!testId) {
@@ -59,7 +62,14 @@ function ResultPageContent() {
 					if (userResponses && userResponses.length > 0) {
 						responseData = userResponses[0];
 						totalScore = userResponses[0].total_score || 0;
+						// 사용자 성별 정보 가져오기
+						const gender = (userResponses[0] as { gender?: string })?.gender;
+						setUserGender(gender || null);
 					}
+				} else {
+					// 세션 데이터에서도 성별 정보 확인
+					const gender = (responseData as { gender?: string })?.gender;
+					setUserGender(gender || null);
 				}
 
 				setTotalScore(totalScore);
@@ -101,7 +111,18 @@ function ResultPageContent() {
 						background_image_url: sessionData.background_image_url,
 					};
 				} else {
-					for (const result of results) {
+					// 성별 기반 결과 매칭 로직
+					let matchingResult = null;
+
+					// 1. 성별별 결과 필터링
+					const genderFilteredResults = userGender
+						? results.filter((result: { target_gender?: string }) => {
+								return !result.target_gender || result.target_gender === userGender;
+						  })
+						: results;
+
+					// 2. 점수 범위 매칭 (성별 필터링된 결과에서)
+					for (const result of genderFilteredResults) {
 						if (result.match_conditions) {
 							const conditions = result.match_conditions as {
 								min?: number;
@@ -119,6 +140,28 @@ function ResultPageContent() {
 						}
 					}
 
+					// 3. 폴백: 성별 무관하게 점수만으로 매칭
+					if (!matchingResult && userGender && genderFilteredResults.length === 0) {
+						for (const result of results) {
+							if (result.match_conditions) {
+								const conditions = result.match_conditions as {
+									min?: number;
+									max?: number;
+									min_score?: number;
+									max_score?: number;
+								};
+								const minScore = conditions.min || conditions.min_score || 0;
+								const maxScore = conditions.max || conditions.max_score || 999999;
+
+								if (totalScore >= minScore && totalScore <= maxScore) {
+									matchingResult = result;
+									break;
+								}
+							}
+						}
+					}
+
+					// 4. 최종 폴백: 첫 번째 결과
 					if (!matchingResult && results.length > 0) {
 						matchingResult = results[0];
 					}
@@ -130,7 +173,7 @@ function ResultPageContent() {
 					return;
 				}
 
-				setTestResult(matchingResult);
+				setTestResult(matchingResult as TestResult);
 				setIsLoggedIn(!!localStorage.getItem('authToken'));
 				setIsLoading(false);
 			} catch (err) {
@@ -141,7 +184,7 @@ function ResultPageContent() {
 		};
 
 		loadResultData();
-	}, [testId]);
+	}, [testId, userGender]);
 
 	useEffect(() => {
 		if (testResult) {
@@ -198,14 +241,33 @@ function ResultPageContent() {
 		}
 	};
 
+	console.log(testResult);
 	return (
 		<div className="min-h-screen font-sans bg-gradient-to-b from-sky-50 via-white to-blue-100">
+			{/* 구조화된 데이터 */}
+			<TestResultStructuredData
+				testId={testId || ''}
+				testTitle="심리테스트"
+				resultName={testResult.result_name}
+				resultDescription={testResult.description || ''}
+				resultImage={testResult.background_image_url || undefined}
+				totalScore={totalScore}
+				userGender={userGender || undefined}
+			/>
+
 			{/* 배경 이미지 헤더 */}
 			<div className="relative w-full">
 				{testResult.background_image_url ? (
 					<>
 						<div className="w-full aspect-[4/3] relative">
-							<Image src={testResult.background_image_url} alt="결과 배경" fill className="object-cover" />
+							<Image
+								src={testResult.background_image_url}
+								alt="결과 배경"
+								fill
+								className="object-cover"
+								sizes="100vw"
+								priority={true}
+							/>
 						</div>
 						<div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-b from-transparent via-white/60 to-white" />
 					</>

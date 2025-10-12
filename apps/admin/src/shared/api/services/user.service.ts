@@ -1,172 +1,126 @@
-import { supabase } from '@pickid/shared';
-import type { User } from '@pickid/supabase';
+import { supabase, createAdminClient } from '@pickid/supabase';
+import type { ExtendedUser } from '@/shared/types/user.types';
 
+// 간소화된 사용자 서비스
 export const userService = {
 	// 사용자 목록 조회
-	async getUsers(): Promise<User[]> {
+	async getUsers(): Promise<ExtendedUser[]> {
 		const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
 
 		if (error) throw error;
-		return data || [];
+
+		return (data || []).map((user) => ({
+			...user,
+			name: user.name || undefined,
+			provider: (user.provider as 'email' | 'google' | 'kakao') || 'email',
+			status: (user.status as 'active' | 'inactive' | 'deleted') || 'active',
+			avatar_url: user.avatar_url || undefined,
+		}));
 	},
 
 	// 사용자 상세 조회
-	async getUserById(id: string): Promise<User> {
+	async getUserById(id: string): Promise<ExtendedUser> {
 		const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
-		if (error) throw error;
-		return data;
-	},
 
-	// 사용자 생성
-	async createUser(user: {
-		email: string;
-		name?: string;
-		avatar_url?: string;
-		provider?: string;
-		status?: string;
-	}): Promise<User> {
-		const userData = {
-			...user,
-			status: user.status || 'active',
+		if (error) throw error;
+		if (!data) throw new Error('사용자를 찾을 수 없습니다.');
+
+		return {
+			...data,
+			name: data.name || undefined,
+			provider: (data.provider as 'email' | 'google' | 'kakao') || 'email',
+			status: (data.status as 'active' | 'inactive' | 'deleted') || 'active',
+			avatar_url: data.avatar_url || undefined,
 		};
-		const { data, error } = await supabase.from('users').insert(userData).select().single();
-		if (error) throw error;
-		return data;
 	},
 
-	// 사용자 수정
-	async updateUser(id: string, updates: Partial<User>): Promise<User> {
-		const { data, error } = await supabase
-			.from('users')
-			.update({ ...updates, updated_at: new Date().toISOString() })
-			.eq('id', id)
-			.select()
-			.single();
-		if (error) throw error;
-		return data;
-	},
-
-	// 상태 변경
-	async updateUserStatus(id: string, status: 'active' | 'inactive' | 'deleted'): Promise<User> {
-		return this.updateUser(id, { status });
-	},
-
-	// 대량 상태 변경
-	async bulkUpdateStatus(userIds: string[], status: 'active' | 'inactive' | 'deleted'): Promise<number> {
+	// 사용자 상태 변경
+	async updateUserStatus(id: string, status: 'active' | 'inactive' | 'deleted'): Promise<ExtendedUser> {
 		const { data, error } = await supabase
 			.from('users')
 			.update({ status, updated_at: new Date().toISOString() })
-			.in('id', userIds)
-			.select();
+			.eq('id', id)
+			.select()
+			.single();
+
 		if (error) throw error;
-		return data?.length || 0;
+
+		return {
+			...data,
+			name: data.name || undefined,
+			provider: (data.provider as 'email' | 'google' | 'kakao') || 'email',
+			status: (data.status as 'active' | 'inactive' | 'deleted') || 'active',
+			avatar_url: data.avatar_url || undefined,
+		};
 	},
 
-	// 사용자 삭제 (소프트 삭제)
+	// 사용자 삭제
 	async deleteUser(id: string): Promise<void> {
-		await this.updateUserStatus(id, 'deleted');
+		const { error } = await supabase.from('users').delete().eq('id', id);
+		if (error) throw error;
 	},
 
 	// 사용자 통계 조회
-	async getUserStats(): Promise<{
-		total: number;
-		active: number;
-		inactive: number;
-		deleted: number;
-		today: number;
-		this_week: number;
-		this_month: number;
-		email_signups: number;
-		google_signups: number;
-		kakao_signups: number;
-	}> {
-		const { data, error } = await supabase.from('users').select('status, provider, created_at');
-		if (error) {
-			console.error('getUserStats error:', error);
-			throw error;
-		}
+	async getUserStats() {
+		const { data, error } = await supabase.from('users').select('*');
+		if (error) throw error;
 
+		const users = data || [];
 		const now = new Date();
 		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 		const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 		const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
 		return {
-			total: data?.length || 0,
-			active: data?.filter((u: User) => u.status === 'active').length || 0,
-			inactive: data?.filter((u: User) => u.status === 'inactive').length || 0,
-			deleted: data?.filter((u: User) => u.status === 'deleted').length || 0,
-			today: data?.filter((u: User) => new Date(u.created_at || '') >= today).length || 0,
-			this_week: data?.filter((u: User) => new Date(u.created_at || '') >= thisWeek).length || 0,
-			this_month: data?.filter((u: User) => new Date(u.created_at || '') >= thisMonth).length || 0,
-			email_signups: data?.filter((u: User) => u.provider === 'email').length || 0,
-			google_signups: data?.filter((u: User) => u.provider === 'google').length || 0,
-			kakao_signups: data?.filter((u: User) => u.provider === 'kakao').length || 0,
+			total: users.length,
+			active: users.filter((u) => u.status === 'active').length,
+			inactive: users.filter((u) => u.status === 'inactive').length,
+			deleted: users.filter((u) => u.status === 'deleted').length,
+			today: users.filter((u) => u.created_at && new Date(u.created_at) >= today).length,
+			this_week: users.filter((u) => u.created_at && new Date(u.created_at) >= thisWeek).length,
+			this_month: users.filter((u) => u.created_at && new Date(u.created_at) >= thisMonth).length,
+			email_signups: users.filter((u) => u.provider === 'email').length,
+			google_signups: users.filter((u) => u.provider === 'google').length,
+			kakao_signups: users.filter((u) => u.provider === 'kakao').length,
 		};
 	},
 
-	// 사용자 활동 조회
-	async getUserActivity(userId: string) {
-		const { data, error } = await supabase
-			.from('user_test_responses')
-			.select(
-				`
-				id,
-				test_id,
-				started_at,
-				completed_at,
-				duration_sec,
-				result_type,
-				status,
-				tests!inner(
-					id,
-					title,
-					emoji
-				)
-			`
-			)
-			.eq('user_id', userId)
-			.order('started_at', { ascending: false });
+	// 사용자 동기화 (Admin 전용)
+	async syncAuthUsersToPublic() {
+		const adminClient = createAdminClient();
+		const { data: authUsers, error: authError } = await adminClient.auth.admin.listUsers();
 
-		if (error) throw error;
+		if (authError) throw authError;
 
-		return (data || []).map(
-			(item: {
-				id: string;
-				test_id: string;
-				started_at: string;
-				completed_at: string | null;
-				duration_sec: number | null;
-				result_type: string | null;
-				status: string | null;
-				tests: {
-					id: string;
-					title: string;
-					emoji: string | null;
-				} | null;
-			}) => ({
-				id: item.id,
-				test_id: item.test_id,
-				test_title: item.tests?.title || 'Unknown Test',
-				test_emoji: item.tests?.emoji || '📝',
-				started_at: item.started_at,
-				completed_at: item.completed_at,
-				duration_sec: item.duration_sec,
-				result_type: item.result_type,
-				status: item.status || 'pending',
-			})
-		);
-	},
+		let synced = 0;
+		const errors: string[] = [];
 
-	// 사용자 피드백 조회
-	async getUserFeedbacks(userId: string) {
-		const { data, error } = await supabase
-			.from('feedbacks')
-			.select('*')
-			.eq('user_id', userId)
-			.order('created_at', { ascending: false });
+		for (const authUser of authUsers.users) {
+			try {
+				const { error } = await supabase.from('users').upsert({
+					id: authUser.id,
+					email: authUser.email,
+					name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'Unknown',
+					provider: authUser.app_metadata?.provider || 'email',
+					status:
+						(authUser as any).banned_until && new Date((authUser as any).banned_until) > new Date()
+							? 'inactive'
+							: 'active',
+					avatar_url: authUser.user_metadata?.avatar_url || null,
+					created_at: authUser.created_at,
+					updated_at: new Date().toISOString(),
+				});
 
-		if (error) throw error;
-		return data || [];
+				if (error) {
+					errors.push(`${authUser.email}: ${error.message}`);
+				} else {
+					synced++;
+				}
+			} catch (error) {
+				errors.push(`${authUser.email}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+			}
+		}
+
+		return { synced, errors };
 	},
 };

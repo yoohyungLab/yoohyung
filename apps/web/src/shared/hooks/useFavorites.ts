@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import { useAuthVM } from '@/features/auth/hooks';
 
 interface FavoriteContentId {

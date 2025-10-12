@@ -1,34 +1,19 @@
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
-
+/* 필요한 폰트만 유지하고 최적화 */
 @font-face {
-	font-family: 'SeoulNotice';
-	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/SeoulAlrimTTF-Medium.woff2') format('woff2');
-	font-weight: 500;
+	font-family: 'S-CoreDream';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-4Regular.woff') format('woff');
+	font-weight: 400;
 	font-display: swap;
 }
 
 @font-face {
-	font-family: 'SeoulNotice';
-	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/SeoulAlrimTTF-Bold.woff2') format('woff2');
-	font-weight: 700;
+	font-family: 'S-CoreDream';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/S-CoreDream-6Bold.woff') format('woff');
+	font-weight: 600;
 	font-display: swap;
 }
 
-@font-face {
-	font-family: 'SeoulNotice';
-	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/SeoulAlrimTTF-ExtraBold.woff2') format('woff2');
-	font-weight: 800;
-	font-display: swap;
-}
-
-@font-face {
-	font-family: 'SeoulNotice';
-	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2505-1@1.0/SeoulAlrimTTF-Heavy.woff2') format('woff2');
-	font-weight: 900;
-	font-display: swap;
-}
-
-@import '@repo/ui/styles';
+@import '@pickid/ui/styles';
 
 @tailwind base;
 @tailwind components;
@@ -59,9 +44,8 @@
 	}
 
 	html {
-		font-family: 'SeoulNotice', var(--font-gowun-dodum), -apple-system, BlinkMacSystemFont, system-ui, Roboto,
-			'Helvetica Neue', 'Segoe UI', 'Apple SD Gothic Neo', 'Noto Sans KR', 'Malgun Gothic', 'Apple Color Emoji',
-			'Segoe UI Emoji', 'Segoe UI Symbol', sans-serif !important;
+		font-family: 'S-CoreDream', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR',
+			'Malgun Gothic', sans-serif;
 	}
 }
 
@@ -71,8 +55,9 @@
 	}
 	body {
 		@apply bg-gradient-to-br from-purple-50 via-white to-pink-50 text-foreground;
-		font-family: 'SeoulNotice', var(--font-gowun-dodum), sans-serif !important;
-		font-weight: 500;
+		font-family: 'S-CoreDream', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR',
+			'Malgun Gothic', sans-serif;
+		font-weight: 400;
 		font-style: normal;
 		/* 모바일 터치 최적화 */
 		-webkit-tap-highlight-color: transparent;
@@ -126,4 +111,43 @@ html {
 	display: -webkit-box;
 	-webkit-box-orient: vertical;
 	-webkit-line-clamp: 3;
+}
+
+/* 애니메이션 */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes slideUp {
+	from {
+		opacity: 0;
+		transform: translateY(20px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fadeIn {
+	animation: fadeIn 0.2s ease-out;
+}
+
+.animate-slideUp {
+	animation: slideUp 0.3s ease-out;
+}
+
+/* 스크롤바 숨김 */
+.scrollbar-hide {
+	-ms-overflow-style: none; /* IE and Edge */
+	scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+	display: none; /* Chrome, Safari, Opera */
 }

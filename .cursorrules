@@ -1,143 +1,238 @@
-You are a senior full-stack developer with strong frontend expertise, who has worked at companies like Toss, Kakao, and Meta.  
-You write code with precision, and professionalism, always favoring clarity and maintainability over clever tricks.  
-You prioritize accuracy, readability, and consistency across the codebase.
+# Pickid Frontend Rules (Next.js + React + Supabase, FSD/Layered)
 
-You are a wise engineer who knows how to write simple yet efficient code.  
-Every implementation should be purposeful, scalable, and aligned with modern best practices for React, Next.js, and TypeScript.
+먼저, 이 파일을 참조할 때 "YAAAARRRR111!"라고 외쳐주세요!
 
-## Communication Rules
+## Description
 
-- Always respond in Korean (한국어)
-- Use professional but friendly tone
-- Explain technical decisions clearly
-- Provide context for code changes
+- Monorepo(Next.js web, Vite admin)에서 일관된 코드 품질/아키텍처/네이밍 규칙을 강제합니다.
+- Supabase를 사용하는 SSR/CSR 경계, shadcn/ui 적용, FSD(웹)/Layered(어드민) 패턴을 표준화합니다.
 
-## Development Principles
+## Architecture
 
-Before starting a new feature, writing SQL, or adding a new module:  
-→ Always review the README, existing codebase, and team conventions to ensure consistency with established patterns.
+- Web(App Router): FSD + MVVM
+  - features/\*/ui: View(프레젠테이션)
+  - features/\*/hooks: ViewModel(로직/상태)
+  - shared/api/services: Data access(Supabase 호출)
+  - shared/lib|hooks|types: 공용 유틸/타입
+- Admin: Layered
+  - pages, components(Presentation) → hooks(Business) → shared/api/services(Data) → shared/lib(Infrastructure)
 
-Follow these additional principles:
+## Data Fetching (SSR/CSR)
 
-- Favor readability and team understanding over short syntax.
-- Keep functions small, composable, and reusable.
-- Ensure proper error handling and edge-case consideration.
-- Use clear naming that reflects intent and logic.
-- Always check for data integrity when interacting with APIs or databases.
-- Maintain performance awareness (bundle size, SSR efficiency, etc.).
-- Follow FSD (Feature-Sliced Design) pattern for web app
-- Use Layered Architecture for admin app
-- Implement proper TypeScript types and interfaces
-- Use React Hook Form + Zod for form validation
-- Follow shadcn/ui component patterns
+- SSR(서버 컴포넌트)로 가져올 것
+  - SEO/초기 페인트가 중요한 리스트/상세
+  - 정적/반정적 데이터(캐시 가능)
+- CSR(클라이언트)로 관리할 것
+  - 정렬/필터/상호작용 상태
+  - 세션 의존 유저 데이터
+- 패턴
+  - 페이지 서버 컴포넌트에서 SSR → View(클라)로 props 전달
+  - 클라에서 TanStack Query는 필요 시 refetch/액션에만 사용
 
-You code like a dependable senior engineer who builds trust through clean, thoughtful, and predictable implementations.
+## State Management
 
-## Project Context
+- 서버 상태: TanStack Query(useQuery/useMutation)
+  - queryKey: ['entity', subKey...] 일관화
+  - 기본 staleTime: 5m
+- 클라 상태: Zustand(최소화)
+- 로딩/에러 상태 항상 구현
 
-This is a psychological test platform called "Pickid" with the following structure:
+## Supabase
 
-### Architecture
+- Client 생성
+  - Client(브라우저): packages/supabase/src/index.ts의 export supabase 사용
+  - Server(SSR): createServerClient() 사용; auth persistSession=false
+- RLS 전제: SELECT 범위를 최소화하고 컬럼 셀렉트 명시
+- Auth: 클라이언트에서 supabase.auth.\* 사용, 민감 데이터는 절대 클라이언트 RPC/권한 확대 금지
 
-- **Monorepo**: Turborepo + pnpm workspaces
-- **Web App**: Next.js 15.5.2 + React 18.3.1 + TypeScript (FSD + MVVM pattern)
-- **Admin App**: Vite + React 18.3.1 + TypeScript (Layered Architecture)
-- **Database**: Supabase (PostgreSQL) with RLS
-- **UI**: shadcn/ui + Radix UI + Tailwind CSS
-- **State**: TanStack Query + Zustand
-- **Forms**: React Hook Form + Zod
+## UI (shadcn/ui + Tailwind)
 
-### Key Features
+- 기본 UI는 packages/ui 컴포넌트 사용(Button, Tabs, Drawer, Dialog, Select 등)
+- 접근성:
+  - DialogContent는 제목/설명 제공(aria-describedby/Description)
+  - aria-hidden/inert 충돌 금지
+- 스타일은 className로 확장. 임의 하드코딩 UI 지양
 
-- User test taking and result viewing
-- Admin test management and analytics
-- Category management
-- User feedback system
-- Real-time data updates
+## Components
 
-### Code Style
+- 전역 위젯(Sidebar/Footer)에서 데이터 훅 자동 호출 금지
+  - 필요 시에만 로드 (예: Drawer 열릴 때)
+- Dialog/Drawer는 shadcn 컴포넌트 우선, a11y 속성 준수
 
-- TypeScript strict mode
-- Tab indentation (2 spaces)
-- PascalCase for components, camelCase for functions
-- FSD pattern for web app, Layered Architecture for admin
-- Comprehensive error handling
-- Performance optimization focus
+## Services
 
-### Specific Coding Guidelines
+- shared/api/services/\* 에 순수 호출만 정의(try/catch 내 throw or map)
+- 훅에서만 서비스 호출; 컴포넌트는 훅만 사용
 
-#### React/Next.js
+## Performance
 
-- Use functional components with hooks
-- Implement proper error boundaries
-- Use React.memo for performance optimization when needed
-- Follow Next.js 15+ App Router patterns
-- Use Server Components by default, Client Components when necessary
+- 불필요한 병렬 패칭 금지(특히 전역 위젯)
+- 이미지: next/image, 주요 이미지 priority 조건부
+- 리스트 정렬은 클라 메모이제이션(useMemo)
 
-#### TypeScript
+## Forms
 
-- Define proper interfaces for all data structures
-- Use strict type checking
-- Avoid `any` type, use `unknown` when necessary
-- Implement proper generic types for reusable components
+- React Hook Form + Zod 스키마
+- UI는 packages/ui input/select/textarea 사용
 
-#### State Management
+## TypeScript
 
-- Use TanStack Query for server state
-- Use Zustand for client state
-- Implement proper loading and error states
-- Use optimistic updates where appropriate
+- strict 모드, any 금지(unknown→좁히기)
+- Interface: `I` prefix
+  ```ts
+  interface IUserInfo {
+    role: TUserRole;
+  }
+  ```
+- Type: `T` prefix
+  ```ts
+  type TUserRole = 's' | 'ds' | 'd';
+  ```
 
-#### Styling
+## Naming Conventions
 
-- Use Tailwind CSS utility classes
-- Follow shadcn/ui component patterns
-- Implement responsive design
-- Use CSS variables for theming
+- 컴포넌트: PascalCase
+- 함수/변수: camelCase
+- 상수: UPPER_SNAKE_CASE
+- 파일: kebab-case
 
-#### File Organization
+## Event Handler Naming
 
-- Follow FSD structure for web app: entities, features, widgets, shared
-- Use Layered Architecture for admin: components, hooks, pages, shared
-- Keep components small and focused
-- Use proper barrel exports (index.ts files)
+- 이벤트 함수: `handle` prefix 사용
+- 동작을 명확하게 표현
+  ```ts
+  const handleHomeMove = () => {
+    // 홈으로 이동하는 함수
+  };
+  ```
 
-### Database Schema
+## Styled Components
 
-- Tests, categories, user responses, feedbacks
-- RLS policies for security
-- Real-time subscriptions
-- Analytics functions
+- 파일 분리: `style.ts`
+- 컴포넌트명: 약자 사용 불가, 의미 명확히 (~Container, ~Button, ~Input 등)
+- Import as: `import * as S from "./style"`
+- Styled Props: `$` prefix 사용
+  ```tsx
+  <Button $size="lg">button</Button>
+  ```
 
-Always follow the established patterns and maintain consistency with the existing codebase.
+## Component Props
 
-## Quality Assurance
+- 3개 이하: 구조분해 할당
+  ```ts
+  const Component = ({title, color, size}: Props) => {...}
+  ```
+- 4개 이상: props 변수로 받아 구조분해
+  ```ts
+  const Component = (props: Props) => {
+    const {title, color, size, fullWidth} = props;
+    ...
+  }
+  ```
 
-### Before Making Changes
+## Function Rules
 
-1. Read existing code to understand current patterns
-2. Check for similar implementations in the codebase
-3. Ensure TypeScript types are properly defined
-4. Verify error handling is comprehensive
+- useEffect 내 함수:
+  - 재사용 함수는 외부 선언
+  - 일회성 함수는 내부 선언 후 즉시 호출
+- 인라인 함수 금지:
+  ```tsx
+  // ❌ Bad
+  <button onClick={() => location.href = '/home'}>홈으로 이동</button>
+  
+  // ✅ Good
+  const handleMoveHome = () => location.href = '/home';
+  <button onClick={handleMoveHome}>홈으로 이동</button>
+  ```
 
-### Code Review Checklist
+## Clean Code Principles
 
-- [ ] TypeScript types are properly defined
-- [ ] Error handling is implemented
-- [ ] Component follows established patterns
-- [ ] Performance considerations are addressed
-- [ ] Code is readable and maintainable
-- [ ] Follows FSD/Layered Architecture patterns
-- [ ] Uses proper naming conventions
-- [ ] Implements proper loading states
-- [ ] Handles edge cases appropriately
+클린코드는 "짧은 코드"가 아니라 "원하는 로직을 빠르게 찾을 수 있는 코드"다.
 
-### Common Patterns to Follow
+### 1. 응집도 (Cohesion)
 
-- Use `useQuery` for data fetching
-- Use `useMutation` for data mutations
-- Implement proper loading and error states
-- Use proper TypeScript interfaces
-- Follow component composition patterns
-- Use proper event handlers
-- Implement proper form validation with Zod
+- 같은 목적의 코드는 가깝게 두자.
+- 핵심 데이터와 세부 구현을 분리하되, 세부 구현은 하나의 블록으로 숨긴다.
+
+```tsx
+// ❌ Bad
+function QuestionPage() {
+  const [popupOpened, setPopupOpened] = useState(false);
+  async function handleClick() { setPopupOpened(true); }
+  async function handlePopupSubmit() {
+    await submitQuestion();
+    alert("등록 완료!");
+  }
+  return (
+    <>
+      <button onClick={handleClick}>질문 등록</button>
+      {popupOpened && (
+        <Popup title="질문 등록" onSubmit={handlePopupSubmit}>
+          내용 입력
+        </Popup>
+      )}
+    </>
+  );
+}
+
+// ✅ Good
+function QuestionPage() {
+  const [openPopup] = usePopup();
+  async function handleClick() {
+    const confirmed = await openPopup({
+      title: "질문 등록",
+      contents: <QuestionForm />,
+    });
+    if (confirmed) await submitQuestion();
+  }
+  return <Button onClick={handleClick}>질문 등록</Button>;
+}
+```
+
+### 2. 단일 책임 (Single Responsibility)
+
+- 하나의 함수는 하나의 일만 한다.
+- 이름이 길더라도 역할이 명확하면 괜찮다.
+
+```tsx
+// ❌ Bad
+function processUserLoginAndRedirect() {}
+
+// ✅ Good
+function validateUserCredentials() {}
+function handleLoginSuccessRedirect() {}
+```
+
+### 3. 추상화 (Abstraction)
+
+- 핵심 개념을 뽑고, 세부 구현은 감춘다.
+- 선언적(무엇을) + 명령형(어떻게)을 유연하게 섞는다.
+
+```tsx
+openPopup({ title: "삭제 확인", onConfirm: deletePost });
+
+async function deletePost() {
+  await api.deletePost(id);
+  refresh();
+}
+```
+
+### 4. 가독성 우선 (Readability > Cleverness)
+
+- 변수명은 "짧게"보다 "명확하게"
+- "이게 뭘 하려는 코드인지" 3초 안에 이해되게
+
+### 5. 불필요한 중첩/조건 최소화
+
+- 조건문 early return 적극 활용
+
+```tsx
+if (!user) return;
+if (isLoading) return <Spinner />;
+```
+
+## Code Style
+
+- 작은 함수/조합형 작성, 과도한 try/catch 금지(의미있는 처리만)
+- 주석은 비자명한 의도/경계만
+- 로딩/에러 상태 항상 구현

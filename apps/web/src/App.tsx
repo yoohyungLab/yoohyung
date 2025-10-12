@@ -1,9 +1,8 @@
-// src/App.tsx
 'use client';
 
-import { ReactNode } from 'react';
 import { Footer } from '@/widgets/footer';
 import Sidebar from '@/widgets/sidebar';
+import { ReactNode } from 'react';
 
 interface AppProps {
 	children: ReactNode;

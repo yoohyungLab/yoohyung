@@ -10,6 +10,7 @@ export { analyticsService } from './services/analytics.service';
 export { marketingService } from './services/marketing.service';
 
 // Re-export service types for convenience
+export type * from './services/user.service';
 export type * from './services/test.service';
 export type * from './services/feedback.service';
 export type * from './services/category.service';

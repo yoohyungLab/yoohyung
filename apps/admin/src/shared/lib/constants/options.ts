@@ -72,30 +72,12 @@ export const TEST_STATUS_OPTIONS = [
 	{ value: 'archived', label: '보관됨' },
 ] as const;
 
-export const TEST_TYPE_OPTIONS = [
-	{ value: 'psychology', label: '심리형' },
-	{ value: 'balance', label: '밸런스형' },
-	{ value: 'character', label: '캐릭터 매칭형' },
-	{ value: 'quiz', label: '퀴즈형' },
-	{ value: 'meme', label: '밈형' },
-	{ value: 'lifestyle', label: '라이프스타일형' },
-] as const;
-
 // 테스트 라벨과 색상
 export const TEST_STATUS_LABELS = {
 	draft: '초안',
 	published: '게시됨',
 	scheduled: '예약됨',
 	archived: '보관됨',
-} as const;
-
-export const TEST_TYPE_LABELS = {
-	psychology: '심리형',
-	balance: '밸런스형',
-	character: '캐릭터 매칭형',
-	quiz: '퀴즈형',
-	meme: '밈형',
-	lifestyle: '라이프스타일형',
 } as const;
 
 export const TEST_STATUS_COLORS = {
@@ -112,8 +94,6 @@ export const FILTER_TEST_STATUS_OPTIONS = [
 	{ value: 'published', label: '게시됨' },
 	{ value: 'archived', label: '보관됨' },
 ] as const;
-
-export const FILTER_TEST_TYPE_OPTIONS = [{ value: 'all', label: '전체 유형' }, ...TEST_TYPE_OPTIONS] as const;
 
 // ===== 피드백 관련 =====
 export const FEEDBACK_STATUS_OPTIONS = [
@@ -170,14 +150,5 @@ export const FILTER_FEEDBACK_CATEGORY_OPTIONS = [
 	...FEEDBACK_CATEGORY_OPTIONS,
 ] as const;
 
-// ===== 검색 관련 =====
-export const SEARCH_PLACEHOLDERS = {
-	users: '이메일 또는 이름으로 검색',
-	categories: '카테고리명 또는 설명으로 검색',
-	tests: '테스트명 또는 설명으로 검색',
-	feedbacks: '제목 또는 내용으로 검색',
-} as const;
-
 // ===== 타입 정의 =====
-export type UserProvider = (typeof USER_PROVIDER_OPTIONS)[number]['value'];
 export type FeedbackCategory = (typeof FEEDBACK_CATEGORY_OPTIONS)[number]['value'];

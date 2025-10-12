@@ -1,6 +1,6 @@
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
-import { useAnalyticsTests, useDashboardStats } from '@/hooks';
+import { useAnalytics } from '@/hooks';
 import { useColumnRenderers } from '@/shared/hooks';
 import { PAGINATION } from '@/shared/lib/constants';
 import { getTestStatusStyle } from '@/shared/lib/utils';
@@ -20,7 +20,7 @@ export function AnalyticsPage() {
 	const renderers = useColumnRenderers();
 	const navigate = useNavigate();
 
-	// React Query 기반 훅 사용
+	// 통합된 useAnalytics 훅 사용
 	const [filters, setFilters] = React.useState<AnalyticsFilters>({
 		search: '',
 		status: 'all',
@@ -28,25 +28,9 @@ export function AnalyticsPage() {
 		timeRange: '7d',
 	});
 
-	const [selectedTests, setSelectedTests] = React.useState<string[]>([]);
+	const { tests, loading, error, stats, selectedTests, handleBulkAction, updateSelectedTests, clearSelectedTests } =
+		useAnalytics(filters);
 
-	const testsQuery = useAnalyticsTests(filters);
-	const statsQuery = useDashboardStats();
-
-	const tests = testsQuery.data || [];
-	const loading = testsQuery.isLoading || statsQuery.isLoading;
-	const error = testsQuery.error?.message || statsQuery.error?.message || null;
-	const stats = statsQuery.data || {
-		total: 0,
-		published: 0,
-		draft: 0,
-		scheduled: 0,
-		totalResponses: 0,
-		totalCompletions: 0,
-		completionRate: 0,
-		avgCompletionTime: 0,
-		anomalies: 0,
-	};
 	const totalTests = tests.length;
 
 	const pagination = usePagination({
@@ -65,14 +49,6 @@ export function AnalyticsPage() {
 	const handleFilterChange = useCallback((newFilters: Partial<AnalyticsFilters>) => {
 		setFilters((prev: AnalyticsFilters) => ({ ...prev, ...newFilters }));
 	}, []);
-
-	const handleBulkActionClick = useCallback(
-		(action: string) => {
-			console.log(`Bulk action: ${action}`, selectedTests);
-			setSelectedTests([]);
-		},
-		[selectedTests]
-	);
 
 	// 테이블 컬럼 정의
 	const columns: Column<TestWithAnalytics>[] = useMemo(
@@ -120,8 +96,8 @@ export function AnalyticsPage() {
 				header: '완료율',
 				cell: ({ row }) => {
 					const rate =
-						row.original.response_count && row.original.view_count
-							? Math.round((row.original.response_count / row.original.view_count) * 100)
+						row.original.response_count && row.original.start_count
+							? Math.round((row.original.response_count / row.original.start_count) * 100)
 							: 0;
 					return (
 						<div className="flex items-center gap-2">
@@ -215,17 +191,7 @@ export function AnalyticsPage() {
 			/>
 
 			{/* 대량 작업 */}
-			<BulkActions
-				selectedCount={selectedTests.length}
-				actions={[
-					{
-						id: 'export',
-						label: '내보내기',
-						onClick: () => handleBulkActionClick('export'),
-					},
-				]}
-				onClear={() => setSelectedTests([])}
-			/>
+			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={clearSelectedTests} />
 
 			{/* 테스트 목록 */}
 			<AdminCard>
@@ -241,7 +207,7 @@ export function AnalyticsPage() {
 							columns={columns}
 							selectable={true}
 							selectedItems={selectedTests}
-							onSelectionChange={setSelectedTests}
+							onSelectionChange={updateSelectedTests}
 							getRowId={(test: Test) => test.id}
 							onRowClick={(test: Test) => handleTestSelect(test)}
 						/>

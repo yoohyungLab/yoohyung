@@ -1,7 +1,9 @@
 'use client';
 
+import { memo } from 'react';
 import { Heart } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { cn } from '@pickid/shared';
 
 interface HomeCardProps {
@@ -15,7 +17,7 @@ interface HomeCardProps {
 	className?: string;
 }
 
-export function HomeCard({
+export const HomeCard = memo(function HomeCard({
 	id,
 	title,
 	image,
@@ -34,11 +36,13 @@ export function HomeCard({
 		>
 			<div className="block">
 				<div className="aspect-square relative overflow-hidden">
-					{/* eslint-disable-next-line @next/next/no-img-element */}
-					<img
+					<Image
 						src={image}
 						alt={title}
-						className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+						fill
+						className="object-cover group-hover:scale-105 transition-transform duration-300"
+						sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
+						priority={false}
 					/>
 					<div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
 					<div className="absolute top-2 left-2 flex flex-wrap gap-1 max-w-[calc(100%-60px)]">
@@ -75,11 +79,11 @@ export function HomeCard({
 
 	if (href) {
 		return (
-			<Link href={href} className="block">
+			<Link href={href} className="block" prefetch={false}>
 				{CardContent}
 			</Link>
 		);
 	}
 
 	return CardContent;
-}
+});

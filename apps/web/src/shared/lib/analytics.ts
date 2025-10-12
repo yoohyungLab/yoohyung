@@ -1,34 +1,110 @@
-// 분석 이벤트 추적 함수들
+// Google Analytics 이벤트 트래킹 유틸리티
 
-export const trackResultViewed = (testType: string, resultType: string, isLoggedIn: boolean) => {
-	console.log('Result viewed:', { testType, resultType, isLoggedIn });
-	// 실제 분석 도구 연동 시 여기에 구현
+// gtag 타입 확장
+declare global {
+	interface Window {
+		gtag: (
+			command: 'config' | 'event' | 'js' | 'set',
+			targetId: string | Date,
+			config?: Record<string, unknown>
+		) => void;
+	}
+}
+
+// 페이지뷰 이벤트
+export const pageview = (url: string) => {
+	if (typeof window.gtag !== 'undefined') {
+		window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
+			page_path: url,
+		});
+	}
 };
 
-export const trackResultShared = (action: string, testType: string, resultType: string) => {
-	console.log('Result shared:', { action, testType, resultType });
-	// 실제 분석 도구 연동 시 여기에 구현
+// 커스텀 이벤트
+export const event = ({
+	action,
+	category,
+	label,
+	value,
+}: {
+	action: string;
+	category: string;
+	label?: string;
+	value?: number;
+}) => {
+	if (typeof window.gtag !== 'undefined') {
+		window.gtag('event', action, {
+			event_category: category,
+			event_label: label,
+			value: value,
+		});
+	}
 };
 
-export const trackCtaClicked = (action: string, testType: string, metadata?: Record<string, unknown>) => {
-	console.log('CTA clicked:', { action, testType, metadata });
-	// 실제 분석 도구 연동 시 여기에 구현
+// 테스트 관련 이벤트들
+export const trackTestStart = (testId: string, testTitle: string) => {
+	event({
+		action: 'test_start',
+		category: 'engagement',
+		label: testTitle,
+		value: 1,
+	});
 };
 
-export const trackNextTestImpression = (
-	recommendedTests: Array<{ test_id: string; rank: number }>,
-	algorithm: string
-) => {
-	console.log('Next test impression:', { recommendedTests, algorithm });
-	// 실제 분석 도구 연동 시 여기에 구현
+export const trackTestComplete = (testId: string, testTitle: string, completionTime: number) => {
+	event({
+		action: 'test_complete',
+		category: 'engagement',
+		label: testTitle,
+		value: Math.round(completionTime),
+	});
 };
 
-export const trackTestStarted = (testType: string) => {
-	console.log('Test started:', { testType });
-	// 실제 분석 도구 연동 시 여기에 구현
+export const trackQuestionAnswer = (testId: string, questionNumber: number) => {
+	event({
+		action: 'question_answer',
+		category: 'engagement',
+		label: `question_${questionNumber}`,
+	});
 };
 
-export const trackTestCompleted = (testType: string, resultType: string, score: number, duration: number) => {
-	console.log('Test completed:', { testType, resultType, score, duration });
-	// 실제 분석 도구 연동 시 여기에 구현
+export const trackResultShare = (testId: string, resultType: string, shareMethod: string) => {
+	event({
+		action: 'result_share',
+		category: 'social',
+		label: `${resultType}_${shareMethod}`,
+	});
+};
+
+export const trackResultView = (testId: string, resultType: string) => {
+	event({
+		action: 'result_view',
+		category: 'engagement',
+		label: resultType,
+	});
+};
+
+// 기존 코드 호환성을 위한 별칭
+export const trackResultViewed = (testId: string, resultName: string, isLoggedIn: boolean) => {
+	event({
+		action: 'result_viewed',
+		category: 'engagement',
+		label: `${resultName}_${isLoggedIn ? 'logged_in' : 'guest'}`,
+	});
+};
+
+export const trackResultShared = (shareMethod: string, testId: string, resultName: string) => {
+	event({
+		action: 'result_shared',
+		category: 'social',
+		label: `${shareMethod}_${resultName}`,
+	});
+};
+
+export const trackCategoryView = (categorySlug: string) => {
+	event({
+		action: 'category_view',
+		category: 'navigation',
+		label: categorySlug,
+	});
 };
