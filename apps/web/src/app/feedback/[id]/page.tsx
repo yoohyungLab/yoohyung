@@ -2,10 +2,15 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useFeedbackDetail } from '@/features/feedback/hooks/useFeedback';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
-import { getCategoryInfo, getStatusInfo, formatDateTime, getStatusClassName } from '@/features/feedback/utils';
+import {
+	useFeedbackDetail,
+	getCategoryInfo,
+	getStatusInfo,
+	formatDateTime,
+	getStatusClassName,
+} from '@/features/feedback';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();

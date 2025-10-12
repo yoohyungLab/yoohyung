@@ -2,8 +2,13 @@
 const nextConfig = {
 	transpilePackages: ['@pickid/ui', '@pickid/shared', '@pickid/supabase', '@pickid/types'],
 	images: {
-		domains: ['localhost'],
-		unoptimized: true, // 개발 환경에서 이미지 최적화 비활성화
+		remotePatterns: [
+			{
+				protocol: 'https',
+				hostname: '**.supabase.co',
+			},
+		],
+		formats: ['image/webp'],
 	},
 	// 개발 환경에서 소스맵 활성화
 	productionBrowserSourceMaps: true,

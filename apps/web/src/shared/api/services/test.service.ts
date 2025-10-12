@@ -5,23 +5,25 @@ import type { TestResult, UserTestResponse } from '@pickid/supabase';
 // 타입 정의
 // ============================================================================
 
-export interface TestResponseData {
+// 테스트 응답 데이터 - Supabase UserTestResponse 타입 기반
+export interface TestResponseData extends Pick<UserTestResponse, 'created_at'> {
+	// Supabase에 없는 클라이언트 전용 필드들
 	id?: string;
 	gender: string;
 	result: unknown;
 	score: number;
 	answers: number[];
-	created_at?: string;
 }
 
-interface UserResponseParams {
+// 사용자 응답 파라미터 - Supabase UserTestResponse 타입 기반
+interface UserResponseParams
+	extends Pick<UserTestResponse, 'test_id' | 'user_id' | 'responses' | 'result_id' | 'started_at' | 'completed_at'> {
+	// Supabase 필드명을 클라이언트 친화적으로 변경
 	testId: string;
 	userId: string | null;
-	responses: Record<string, unknown>;
-	resultId?: string;
-	score?: number;
 	startedAt?: string;
 	completedAt?: string;
+	score?: number;
 }
 
 // ============================================================================
@@ -176,7 +178,7 @@ export const testService = {
 						test_id: params.testId,
 						user_id: params.userId,
 						responses: params.responses,
-						result_id: params.resultId,
+						result_id: params.result_id,
 						score: params.score,
 						started_at: params.startedAt,
 						completed_at: params.completedAt,

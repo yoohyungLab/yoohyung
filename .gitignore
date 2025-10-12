@@ -74,9 +74,9 @@ jspm_packages/
 .nuxt
 dist
 
-# Gatsby files
+# Gatsby files (Next.js 프로젝트에서는 public 폴더 필요)
 .cache/
-public
+# public  # Next.js에서는 public 폴더를 커밋해야 함
 
 # Storybook build outputs
 .out

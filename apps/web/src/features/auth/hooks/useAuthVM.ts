@@ -3,7 +3,7 @@
 import { useContext, useCallback } from 'react';
 import { SessionContext } from '@/shared/providers/session.provider';
 import { authService } from '@/shared/api/services/auth.service';
-import type { AuthState } from '@/shared/types/auth';
+import type { AuthState } from '@/shared/types';
 
 /**
  * 인증 ViewModel

@@ -3,7 +3,7 @@
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@pickid/ui';
 import { CarouselCard } from '@/shared/ui/cards/carousel-card';
 import { SectionBadge } from '@/shared/ui/badge/section-badge';
-import type { TestCardProps } from '@/shared/types/home';
+import type { TestCardProps } from '@/shared/types';
 
 type TestSectionVariant = 'carousel' | 'grid';
 type TestSectionSize = 'small' | 'medium' | 'large';

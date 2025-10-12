@@ -57,18 +57,18 @@ const config = {
 					foreground: 'hsl(var(--card-foreground))',
 				},
 			},
-			fontFamily: {
-				sans: [
-					'S-CoreDream',
-					'-apple-system',
-					'BlinkMacSystemFont',
-					'system-ui',
-					'Apple SD Gothic Neo',
-					'Noto Sans KR',
-					'Malgun Gothic',
-					'sans-serif',
-				],
-			},
+		fontFamily: {
+			sans: [
+				'Pretendard',
+				'-apple-system',
+				'BlinkMacSystemFont',
+				'system-ui',
+				'Apple SD Gothic Neo',
+				'Noto Sans KR',
+				'Malgun Gothic',
+				'sans-serif',
+			],
+		},
 			// 모바일 우선 반응형 브레이크포인트
 			screens: {
 				xs: '375px', // iPhone SE

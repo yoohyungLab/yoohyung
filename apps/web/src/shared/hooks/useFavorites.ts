@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { supabase } from '@pickid/supabase';
 import { useAuthVM } from '@/features/auth/hooks';
 
+// 즐겨찾기 콘텐츠 ID - Supabase favorites 테이블 기반
 interface FavoriteContentId {
 	content_id: string;
 }

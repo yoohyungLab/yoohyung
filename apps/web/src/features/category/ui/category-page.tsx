@@ -1,60 +1,52 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useState, useMemo } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
 import Image from 'next/image';
 import { Button, DefaultSelect } from '@pickid/ui';
 import { CheckCircle, Eye } from 'lucide-react';
-import type { Category } from '@pickid/supabase';
+import type { Category, Test } from '@pickid/supabase';
 
-interface CategoryTestItem {
-	id: string;
-	title: string;
-	description: string;
+// 카테고리 테스트 아이템 - Supabase Test 타입 기반
+interface CategoryTestItem extends Pick<Test, 'id' | 'title' | 'description' | 'thumbnail_url' | 'created_at'> {
+	// Supabase에 없는 클라이언트 전용 필드들
 	thumbnailUrl: string | null;
 	completions?: number; // 완료 횟수 (결과 완료)
-	createdAt?: string;
 	starts?: number; // 시작 횟수 ("시작하기" 버튼 클릭)
 }
 
 interface CategoryPageProps {
-	category: Category;
 	tests: CategoryTestItem[];
 	allCategories: Category[];
 }
 
-// 추후 카테고리별 그라데이션 적용 시 사용 예정
-// const CATEGORY_GRADIENTS: Record<string, string> = {
-// 	all: 'from-gray-600 to-gray-700',
-// 	personality: 'from-violet-500 to-purple-600',
-// 	typetype: 'from-indigo-500 to-blue-600',
-// 	category: 'from-pink-500 to-rose-600',
-// 	'category-1': 'from-amber-500 to-orange-600',
-// 	'category-2': 'from-emerald-500 to-teal-600',
-// 	'category-3': 'from-cyan-500 to-blue-500',
-// 	test: 'from-fuchsia-500 to-pink-600',
-// 	tendency: 'from-red-500 to-rose-600',
-// 	'test-1': 'from-lime-500 to-green-600',
-// 	'category-4': 'from-sky-500 to-blue-600',
-// 	psychologypsychology: 'from-purple-500 to-violet-600',
-// 	'category-5': 'from-slate-500 to-gray-600',
-// 	'category-6': 'from-orange-500 to-red-600',
-// };
-
 export function CategoryPage({ tests, allCategories }: CategoryPageProps) {
 	const router = useRouter();
-	const params = useParams();
+	const pathname = usePathname();
 	const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'starts'>('popular');
 
-	const currentSlug = params?.slug as string;
+	// 현재 카테고리 slug 추출 (pathname에서)
+	const currentSlug = useMemo(() => {
+		const segments = pathname.split('/');
+		return segments[segments.length - 1]; // 마지막 세그먼트가 slug
+	}, [pathname]);
 
 	// 정렬된 테스트
-	const sortedTests = [...tests].sort((a, b) => {
-		if (sortBy === 'popular') return (b.completions || 0) - (a.completions || 0);
-		if (sortBy === 'recent') return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
-		if (sortBy === 'starts') return (b.starts || 0) - (a.starts || 0);
-		return 0;
-	});
+	const sortedTests = useMemo(() => {
+		return [...tests].sort((a, b) => {
+			if (sortBy === 'popular') return (b.completions || 0) - (a.completions || 0);
+			if (sortBy === 'recent') return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+			if (sortBy === 'starts') return (b.starts || 0) - (a.starts || 0);
+			return 0;
+		});
+	}, [tests, sortBy]);
+
+	// 카테고리 네비게이션 핸들러
+	const handleCategoryChange = (targetSlug: string) => {
+		if (targetSlug !== currentSlug) {
+			router.push(`/category/${targetSlug}`);
+		}
+	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
@@ -71,7 +63,7 @@ export function CategoryPage({ tests, allCategories }: CategoryPageProps) {
 										key={cat.id}
 										variant={isActive ? 'default' : 'outline'}
 										size="sm"
-										onClick={() => router.push(`/category/${cat.slug}`)}
+										onClick={() => handleCategoryChange(cat.slug)}
 										className="whitespace-nowrap flex-shrink-0"
 									>
 										{cat.name}

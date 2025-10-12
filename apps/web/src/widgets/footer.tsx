@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useTestListVM } from '@/features/test/hooks';
+import { useTestListVM } from '@/features/test';
 
 const PopularTestsSection = () => {
 	const { popularTests } = useTestListVM();
@@ -15,7 +15,7 @@ const PopularTestsSection = () => {
 				{popularTests.slice(0, 4).map((test) => (
 					<li key={test.id}>
 						<Link href={`/tests/${test.id}`} className="text-sm text-gray-600 hover:text-gray-900 hover:underline">
-							{test.title} · {(test.completions || 0).toLocaleString()}명 완료
+							{test.title}
 						</Link>
 					</li>
 				))}
@@ -45,7 +45,7 @@ export const Footer = () => {
 							<Image src="/icons/logo.svg" alt="픽키드" width={28} height={28} />
 							<span className="text-xl font-bold text-gray-900">픽키드</span>
 						</Link>
-						<p className="text-sm text-gray-600 leading-relaxed mb-6">나를 알아가는 심리 테스트 플랫폼</p>
+						<p className="text-sm text-gray-600 leading-relaxed mb-6">나를 알아가는 테스트</p>
 
 						{/* 소셜 미디어 링크 */}
 						<div className="flex gap-2">

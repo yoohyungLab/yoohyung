@@ -1,7 +1,7 @@
 'use client';
 
 import { useAuthVM } from '@/features/auth/hooks';
-import { useCategories } from '@/features/home/hooks';
+import { useCategories } from '@/features/home';
 import {
 	Button,
 	Drawer,

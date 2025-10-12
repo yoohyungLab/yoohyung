@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DefaultInput, DefaultTextarea, Button } from '@pickid/ui';
-import { useFeedback } from '../hooks';
+import { useFeedback } from '../model';
 import { FeedbackCategorySelector } from './feedback-category-selector';
 
 interface FeedbackFormProps {

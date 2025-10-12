@@ -1,5 +1,5 @@
 import { supabase } from '@pickid/supabase';
-import { CategoryPage } from '@/features/category/ui/category-page';
+import { CategoryPage } from '@/features/category';
 import type { Category } from '@pickid/supabase';
 
 export default async function PopularPage() {
@@ -23,32 +23,27 @@ export default async function PopularPage() {
 		id: t.id,
 		title: t.title,
 		description: t.description || '',
+		thumbnail_url: t.thumbnail_url || null,
 		thumbnailUrl: t.thumbnail_url || null,
+		created_at: t.created_at,
 		completions: t.response_count || 0,
-		createdAt: t.created_at,
 		starts: t.start_count || 0,
 	}));
 
-	// 가상의 "인기 테스트" 카테고리 생성
-	const popularCategory: Category = {
-		id: 'popular',
-		name: '🔥 요즘 인기 테스트',
-		slug: 'popular',
-		sort_order: 0,
-		created_at: new Date().toISOString(),
-		updated_at: new Date().toISOString(),
-		status: 'active',
-		banner_url: null,
-		description: null,
-		icon_url: null,
-		thumbnail_url: null,
-	};
+	// 가상의 "인기 테스트" 카테고리 생성 (사용하지 않음)
+	// const popularCategory: Category = {
+	// 	id: 'popular',
+	// 	name: '🔥 요즘 인기 테스트',
+	// 	slug: 'popular',
+	// 	sort_order: 0,
+	// 	created_at: new Date().toISOString(),
+	// 	updated_at: new Date().toISOString(),
+	// 	status: 'active',
+	// 	banner_url: null,
+	// 	description: null,
+	// 	icon_url: null,
+	// 	thumbnail_url: null,
+	// };
 
-	return (
-		<CategoryPage
-			category={popularCategory as Category}
-			tests={mappedTests}
-			allCategories={(allCategories || []) as Category[]}
-		/>
-	);
+	return <CategoryPage tests={mappedTests} allCategories={(allCategories || []) as Category[]} />;
 }

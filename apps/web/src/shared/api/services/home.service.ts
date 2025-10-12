@@ -1,5 +1,5 @@
 import { createServerClient } from '@pickid/supabase';
-import type { TestCard } from '@/shared/types/home';
+import type { TestCard } from '@/shared/types';
 
 /**
  * 홈페이지용 서버 사이드 데이터 페칭 서비스
@@ -70,15 +70,15 @@ export const homeService = {
 				slug: test.slug,
 				category_ids: test.category_ids,
 				thumbnail_url: test.thumbnail_url,
-			starts: test.start_count,
-			completions: test.response_count,
+				starts: test.start_count,
+				completions: test.response_count,
 			}));
 
 			// 인기 테스트 (응답 수 기준)
 			const popularTests = [...testsAsCards].sort((a, b) => (b.completions || 0) - (a.completions || 0)).slice(0, 6);
 
-		// 추천 테스트 (시작 횟수 기준)
-		const recommendedTests = [...testsAsCards].sort((a, b) => (b.starts || 0) - (a.starts || 0)).slice(1, 7);
+			// 추천 테스트 (시작 횟수 기준)
+			const recommendedTests = [...testsAsCards].sort((a, b) => (b.starts || 0) - (a.starts || 0)).slice(1, 7);
 
 			// 명예의 전당 (인기 테스트와 동일)
 			const topByType = popularTests;

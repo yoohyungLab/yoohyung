@@ -10,8 +10,8 @@ import App from '@/App';
 import './globals.css';
 
 export const metadata: Metadata = {
-	title: '픽키드 - 나를 알아가는 심리테스트',
-	description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요. Z세대를 위한 트렌디한 테스트 플랫폼.',
+	title: '픽키드 - 나를 알아가는 테스트',
+	description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요. Z세대를 위한 테스트 플랫폼.',
 	keywords: ['심리테스트', '성격분석', '밸런스게임', 'MBTI', '자기계발', '픽키드', 'Z세대'],
 	authors: [{ name: '픽키드' }],
 	creator: '픽키드',
@@ -33,22 +33,22 @@ export const metadata: Metadata = {
 	openGraph: {
 		type: 'website',
 		url: 'https://pickid.co.kr',
-		title: '픽키드 - 나를 알아가는 심리테스트',
-		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',
+		title: '픽키드 - 나를 알아가는 테스트',
+		description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요.',
 		siteName: '픽키드',
 		images: [
 			{
 				url: '/og-image.png',
 				width: 1200,
 				height: 630,
-				alt: '픽키드 - 심리테스트 플랫폼',
+				alt: '픽키드 - 나를 알아가는 테스트',
 			},
 		],
 	},
 	twitter: {
 		card: 'summary_large_image',
-		title: '픽키드 - 나를 알아가는 심리테스트',
-		description: '재미있는 심리테스트로 나를 발견하고 친구들과 공유해보세요.',
+		title: '픽키드 - 나를 알아가는 테스트',
+		description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요.',
 		creator: '@pickid',
 		images: ['/og-image.png'],
 	},

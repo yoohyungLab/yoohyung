@@ -6,7 +6,7 @@ import type { User } from '@supabase/supabase-js';
 import { authService } from '@/shared/api/services/auth.service';
 import { supabase } from '@pickid/supabase';
 
-// 세션 상태 타입 - user만 노출 (AuthState의 일부)
+// 세션 상태 타입 - Supabase User 타입 기반
 interface SessionState {
 	user: User | null;
 	session: null; // 현재는 session을 사용하지 않음
