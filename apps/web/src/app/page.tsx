@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { HomePageClient } from '@/features/home';
+import { HomeContainer } from '@/features/home';
 import { homeService } from '@/shared/api/services/home.service';
 
 export function generateMetadata(): Metadata {
@@ -65,7 +65,7 @@ export default async function Page() {
 	const data = await homeService.getHomePageData();
 
 	return (
-		<HomePageClient
+		<HomeContainer
 			tests={data.tests}
 			categories={data.categories}
 			popularTests={data.popularTests}

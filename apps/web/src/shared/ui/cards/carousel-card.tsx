@@ -2,9 +2,8 @@
 
 import { memo } from 'react';
 import { Heart } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
 import { cn } from '@pickid/shared';
+import { BaseCard, CardImage, CardTags, CardContent } from './base-card';
 
 interface CarouselCardProps {
 	id: string;
@@ -31,69 +30,58 @@ export const CarouselCard = memo(function CarouselCard({
 	href = `/tests/${id}`,
 	className,
 }: CarouselCardProps) {
-	const content = (
-		<div className={cn('group relative overflow-hidden', className)}>
-			<div className="relative rounded-md overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300">
-				<div className="relative aspect-[3/4] overflow-hidden bg-gray-100">
-					<Image
-						src={image}
-						alt={title}
-						fill
-						className="object-cover group-hover:scale-105 transition-transform duration-500"
-						sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
-						priority={false}
-					/>
-					<div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
+	const handleToggleFavorite = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		onToggleFavorite?.(id);
+	};
 
-					{tags.length > 0 && (
-						<div className="absolute top-2.5 left-2.5 flex flex-wrap gap-1 max-w-[calc(100%-3rem)]">
-							{tags.slice(0, 2).map((tag, index) => (
-								<span
-									key={index}
-									className="inline-block text-[10px] font-bold bg-white text-gray-900 px-2 py-1 rounded-full"
-								>
-									{tag}
-								</span>
-							))}
-							{tags.length > 2 && (
-								<span className="inline-block text-[10px] font-bold bg-white/80 text-gray-600 px-2 py-1 rounded-full">
-									+{tags.length - 2}
-								</span>
-							)}
-						</div>
-					)}
-
-					{showFavoriteButton && onToggleFavorite && (
-						<button
-							onClick={(e) => {
-								e.preventDefault();
-								onToggleFavorite(id);
-							}}
-							className={cn(
-								'absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all',
-								isFavorite ? 'bg-white shadow-md hover:scale-110' : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
-							)}
-						>
-							<Heart
-								className={cn('w-4 h-4 transition-all', isFavorite ? 'fill-red-500 text-red-500' : 'text-white')}
-							/>
-						</button>
-					)}
-
-					<div className="absolute bottom-0 left-0 right-0 p-3">
-						<h3 className="font-extrabold text-white text-sm leading-tight line-clamp-2 mb-0.5">{title}</h3>
-						<p className="text-[11px] text-white/70 line-clamp-1 font-medium whitespace-pre-line">{description}</p>
-					</div>
+	return (
+		<BaseCard
+			href={href}
+			variant="default"
+			size="md"
+			aspectRatio="portrait"
+			className={className}
+		>
+			<div className="relative h-full">
+				<CardImage
+					src={image}
+					alt={title}
+					overlay
+					overlayGradient="from-black/70 via-black/10 to-transparent"
+				/>
+				
+				{/* 태그 */}
+				<div className="absolute top-2.5 left-2.5 max-w-[calc(100%-3rem)]">
+					<CardTags tags={tags} maxVisible={2} size="xs" />
 				</div>
-			</div>
-		</div>
-	);
 
-	return href ? (
-		<Link href={href} className="block" prefetch={false}>
-			{content}
-		</Link>
-	) : (
-		content
+				{/* 즐겨찾기 버튼 */}
+				{showFavoriteButton && onToggleFavorite && (
+					<button
+						onClick={handleToggleFavorite}
+						className={cn(
+							'absolute top-2.5 right-2.5 w-8 h-8 rounded-full flex items-center justify-center transition-all',
+							isFavorite ? 'bg-white shadow-md hover:scale-110' : 'bg-white/20 backdrop-blur-sm hover:bg-white/30'
+						)}
+					>
+						<Heart
+							className={cn('w-4 h-4 transition-all', isFavorite ? 'fill-red-500 text-red-500' : 'text-white')}
+						/>
+					</button>
+				)}
+
+				{/* 콘텐츠 */}
+				<CardContent className="absolute bottom-0 left-0 right-0">
+					<h3 className="font-extrabold text-white text-sm leading-tight line-clamp-2 mb-0.5">
+						{title}
+					</h3>
+					<p className="text-[11px] text-white/70 line-clamp-1 font-medium whitespace-pre-line">
+						{description}
+					</p>
+				</CardContent>
+			</div>
+		</BaseCard>
 	);
 });

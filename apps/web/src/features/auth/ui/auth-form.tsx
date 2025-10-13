@@ -10,9 +10,6 @@ import { useAuthVM } from '../hooks';
 import { mapAuthError } from '@/shared/lib/error-mapper';
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '../schemas/auth.schema';
 
-// 타입 정의
-type AuthFormData = LoginFormData | RegisterFormData;
-
 export interface AuthFormProps {
 	mode: 'login' | 'register';
 	children?: ReactNode;
@@ -27,7 +24,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 	const isRegister = mode === 'register';
 
 	// React Hook Form 설정
-	const form = useForm<AuthFormData>({
+	const form = useForm({
 		resolver: zodResolver(isLogin ? loginSchema : registerSchema),
 		defaultValues: isLogin ? { email: '', password: '' } : { name: '', email: '', password: '', confirmPassword: '' },
 		mode: 'onChange', // 실시간 유효성 검사
@@ -39,7 +36,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 		formState: { errors, isSubmitting },
 	} = form;
 
-	const onSubmit = async (data: AuthFormData) => {
+	const onSubmit = async (data: LoginFormData | RegisterFormData) => {
 		try {
 			if (isLogin) {
 				const loginData = data as LoginFormData;

@@ -1,5 +1,5 @@
 import { supabase } from '@pickid/supabase';
-import { CategoryPage } from '@/features/category';
+import { CategoryContainer } from '@/features/category';
 import type { Category } from '@pickid/supabase';
 
 export default async function PopularPage() {
@@ -45,5 +45,7 @@ export default async function PopularPage() {
 	// 	thumbnail_url: null,
 	// };
 
-	return <CategoryPage tests={mappedTests} allCategories={(allCategories || []) as Category[]} />;
+	return (
+		<CategoryContainer tests={mappedTests} allCategories={(allCategories || []) as Category[]} currentSlug="popular" />
+	);
 }
