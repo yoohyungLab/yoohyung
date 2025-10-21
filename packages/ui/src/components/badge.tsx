@@ -14,6 +14,12 @@ const badgeVariants = cva(
 				success: 'border-transparent bg-green-100 text-green-800 hover:bg-green-100/80',
 				warning: 'border-transparent bg-yellow-100 text-yellow-800 hover:bg-yellow-100/80',
 				info: 'border-transparent bg-blue-100 text-blue-800 hover:bg-blue-100/80',
+				// 섹션용 variants
+				popular: 'border-transparent bg-gradient-to-r from-red-500 to-pink-500 text-white font-bold shadow-sm',
+				new: 'border-transparent bg-gradient-to-r from-green-500 to-emerald-500 text-white font-bold shadow-sm',
+				recommended: 'border-transparent bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-bold shadow-sm',
+				trending: 'border-transparent bg-gradient-to-r from-purple-500 to-violet-500 text-white font-bold shadow-sm',
+				hot: 'border-transparent bg-gradient-to-r from-orange-500 to-red-500 text-white font-bold shadow-sm',
 			},
 		},
 		defaultVariants: {

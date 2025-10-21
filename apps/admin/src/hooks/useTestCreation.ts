@@ -1,97 +1,26 @@
 import { useState, useCallback } from 'react';
 import { testService } from '@/shared/api';
-import type { TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
-import type { ResultVariantRules, BasicInfo } from '@/components/test/test-create/types';
+import type { Database } from '@pickid/supabase';
+import type {
+	BasicInfo,
+	QuestionData,
+	ResultData,
+	ResultVariantRules,
+	UseTestCreationReturn,
+} from '../types/test.types';
+import { DEFAULT_QUESTION, DEFAULT_RESULT } from '../constants/test.constants';
+import { generateShortCode, generateSlug, createBasicInfoWithShortCode } from '../utils/test.utils';
 
-// ============================================================================
-// 타입 정의
-// ============================================================================
-
+// 타입 별칭 정의
 type TestInsert = Database['public']['Tables']['tests']['Insert'];
 type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
 type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
-
-interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	choices: Omit<TestChoice, 'id' | 'question_id' | 'created_at'>[];
-}
-
-interface ResultData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	match_conditions: { type: 'score'; min: number; max: number };
-	target_gender: string | null;
-}
-
-// ============================================================================
-// 상수
-// ============================================================================
-
-const DEFAULT_BASIC_INFO: BasicInfo = {
-	title: '',
-	description: '',
-	slug: '',
-	thumbnail_url: '',
-	category_ids: [],
-	short_code: '',
-	intro_text: '',
-	status: 'draft',
-	estimated_time: 5,
-	scheduled_at: null,
-	max_score: 100,
-	type: 'psychology',
-	published_at: null,
-	requires_gender: false,
-	features: {
-		scoring: {
-			mode: 'score_range',
-			max_score: 100,
-			base_types: [],
-		},
-	},
-};
-
-const DEFAULT_QUESTION: QuestionData = {
-	question_text: '',
-	question_order: 0,
-	image_url: null,
-	choices: [
-		{ choice_text: '', choice_order: 0, score: 1, is_correct: false },
-		{ choice_text: '', choice_order: 1, score: 2, is_correct: false },
-	],
-};
-
-const DEFAULT_RESULT: ResultData = {
-	result_name: '',
-	result_order: 0,
-	description: null,
-	match_conditions: { type: 'score', min: 0, max: 30 },
-	background_image_url: null,
-	theme_color: '#3B82F6',
-	features: {},
-	target_gender: null,
-};
-
-// ============================================================================
-// 유틸리티 함수
-// ============================================================================
-
-const generateShortCode = (): string => {
-	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-	let result = '';
-	for (let i = 0; i < 6; i++) {
-		result += chars.charAt(Math.floor(Math.random() * chars.length));
-	}
-	return result;
-};
-
-const createBasicInfoWithShortCode = (): BasicInfo => ({
-	...DEFAULT_BASIC_INFO,
-	short_code: generateShortCode(),
-});
 
 // ============================================================================
 // 테스트 생성 훅
 // ============================================================================
 
-export const useTestCreation = () => {
+export const useTestCreation = (): UseTestCreationReturn => {
 	const [step, setStep] = useState(1);
 	const [type, setType] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -163,7 +92,7 @@ export const useTestCreation = () => {
 								{
 									choice_text: '',
 									choice_order: q.choices.length,
-									score: 1,
+									score: 0,
 									is_correct: false,
 								},
 							],
@@ -233,14 +162,23 @@ export const useTestCreation = () => {
 					updateBasicInfo({ short_code: finalShortCode });
 				}
 
+				// slug 생성 (제목 기반)
+				let finalSlug = basicInfo.slug;
+				if (!finalSlug || finalSlug.trim() === '') {
+					finalSlug = generateSlug(basicInfo.title || '');
+					updateBasicInfo({ slug: finalSlug });
+				}
+
 				// 테스트 데이터 준비
+				const finalStatus = basicInfo.status || 'published';
 				const testData: TestInsert = {
 					...basicInfo,
 					short_code: finalShortCode,
+					slug: finalSlug,
 					id: testId,
 					type: type || 'psychology',
-					status: basicInfo.status || 'published',
-					published_at: basicInfo.status === 'published' ? new Date().toISOString() : null,
+					status: finalStatus,
+					published_at: finalStatus === 'published' ? new Date().toISOString() : null,
 					category_ids: basicInfo.category_ids || [],
 					requires_gender: Boolean(basicInfo.requires_gender), // 명시적으로 boolean 변환
 					estimated_time: basicInfo.estimated_time || 5,
@@ -248,21 +186,34 @@ export const useTestCreation = () => {
 					intro_text: basicInfo.intro_text || null,
 					thumbnail_url: basicInfo.thumbnail_url || null,
 					description: basicInfo.description || null,
-					slug: basicInfo.slug || '',
 				} as TestInsert;
 
 				// 질문 데이터 준비
-				const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({
-					question_text: q.question_text,
-					question_order: index,
-					image_url: q.image_url,
-					choices: q.choices.map((c, choiceIndex) => ({
-						choice_text: c.choice_text,
-						choice_order: choiceIndex,
-						score: c.score,
-						is_correct: c.is_correct,
-					})),
-				}));
+				console.log('질문 데이터 준비 중:', questions);
+				const questionsData: TestQuestionInsert[] = questions.map((q, index) => {
+					console.log(`질문 ${index + 1} 변환:`, {
+						question_text: q.question_text,
+						choicesCount: q.choices.length,
+						choices: q.choices.map((c) => ({
+							choice_text: c.choice_text,
+							score: c.score,
+							is_correct: c.is_correct,
+						})),
+					});
+
+					return {
+						question_text: q.question_text,
+						question_order: index,
+						image_url: q.image_url,
+						choices: q.choices.map((c, choiceIndex) => ({
+							choice_text: c.choice_text,
+							choice_order: choiceIndex,
+							score: c.score,
+							is_correct: c.is_correct,
+						})),
+					};
+				});
+				console.log('최종 질문 데이터:', questionsData);
 
 				// 결과 데이터 준비
 				const resultsData: TestResultInsert[] = results.map((r, index) => ({

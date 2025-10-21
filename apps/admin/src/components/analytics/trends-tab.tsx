@@ -1,4 +1,4 @@
-// TODO: GA로 대체 - Google Analytics 4의 "탐색 → 자유 형식" 보고서 사용
+// 이 컴포넌트의 기능은 Google Analytics 4로 이전되었습니다
 // GA의 시계열 분석이 더 강력하고 세그먼트/비교 기능 제공
 /*
 import React from 'react';

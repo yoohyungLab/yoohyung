@@ -6,8 +6,8 @@ Disallow: /api/
 Disallow: /auth/
 
 # Host
-Host: https://pickid.co.kr
+Host: https://pickid.com
 
 # Sitemaps
-Sitemap: https://pickid.co.kr/sitemap.xml
+Sitemap: https://pickid.com/sitemap.xml
 Sitemap: https://pickid.co.kr/sitemap.xml

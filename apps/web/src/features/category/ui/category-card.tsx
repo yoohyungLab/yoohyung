@@ -14,6 +14,7 @@ export interface TestItem {
 	created_at: string;
 	completions?: number;
 	starts?: number;
+	category_ids?: string[] | string;
 }
 
 interface CategoryCardProps {

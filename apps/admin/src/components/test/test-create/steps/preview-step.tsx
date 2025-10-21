@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
-import { testTypes } from '@/constants/testData';
+import { TEST_TYPES } from '@/constants/test.constants';
 import type { BasicInfo } from '../types';
 // ResultData 타입 정의 (useTestCreation과 일치)
 interface ResultData {
@@ -35,7 +35,7 @@ interface PreviewStepProps {
 }
 
 export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, results, selectedType }) => {
-	const getTypeConfig = () => testTypes.find((t) => t.id === selectedType);
+	const getTypeConfig = () => TEST_TYPES.find((t: any) => t.id === selectedType);
 
 	const checklistItems = [
 		{ check: testData.title?.trim(), text: '테스트 제목이 입력되었나요?' },

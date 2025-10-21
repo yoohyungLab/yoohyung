@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Feedback } from '@pickid/supabase';
-import { getCategoryInfo, getStatusInfo, formatDate, getStatusClassName } from '../lib';
+import { getCategoryInfo, getStatusInfo, formatDate, getStatusClassName } from '@/features/feedback';
 
 interface FeedbackListProps {
 	feedbacks: Feedback[];

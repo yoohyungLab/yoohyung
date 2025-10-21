@@ -3,10 +3,10 @@ import { LoadingState, ErrorState } from '@/components/ui';
 import { Activity, BarChart3, FileText, Plus, Target, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '@/hooks/useDashboard';
-import { KPICard, AlertCard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
+import { KPICard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
 
 export function SimplifiedDashboard() {
-	const { stats, topTests, realtimeStats, loading, error, lastUpdated } = useDashboard();
+	const { stats, topTests, loading, error, lastUpdated } = useDashboard();
 
 	// 트렌드 아이콘 렌더링 함수
 	const renderTrendIcon = (trend: string) => {
@@ -85,40 +85,20 @@ export function SimplifiedDashboard() {
 				/>
 			</div>
 
-			{/* TODO: GA로 대체 - Google Analytics 4의 "실시간" 보고서 사용 */}
-			{/* GA 실시간 보고서가 더 정확하고 상세한 정보 제공 */}
-			{/* 실시간 통계 (새로 추가) */}
-			{realtimeStats && (
-				<Card className="border-l-4 border-l-blue-500 bg-blue-50">
-					<CardContent className="p-4">
-						<div className="flex items-center justify-between">
-							<div>
-								<h3 className="font-semibold text-gray-900">🔄 실시간 활동</h3>
-								<p className="text-sm text-gray-600">GA4에서 더 정확한 데이터 확인 가능</p>
-							</div>
-							<div className="text-sm text-gray-500">
-								<p>Google Analytics → 실시간 보고서</p>
-							</div>
-							{/* 
-							<div className="flex items-center gap-6">
-								<div className="text-center">
-									<div className="text-2xl font-bold text-blue-600">{realtimeStats.recentResponses}</div>
-									<div className="text-sm text-gray-600">새 응답</div>
-								</div>
-								<div className="text-center">
-									<div className="text-2xl font-bold text-green-600">{realtimeStats.activeUsers}</div>
-									<div className="text-sm text-gray-600">활성 사용자</div>
-								</div>
-								<div className="text-center">
-									<div className="text-2xl font-bold text-purple-600">{realtimeStats.completionRate}%</div>
-									<div className="text-sm text-gray-600">완료율</div>
-								</div>
-							</div>
-							*/}
+			{/* 실시간 통계는 Google Analytics에서 확인하세요 */}
+			<Card className="border-l-4 border-l-blue-500 bg-blue-50">
+				<CardContent className="p-4">
+					<div className="flex items-center justify-between">
+						<div>
+							<h3 className="font-semibold text-gray-900">🔄 실시간 활동</h3>
+							<p className="text-sm text-gray-600">Google Analytics에서 더 정확한 실시간 데이터 확인 가능</p>
 						</div>
-					</CardContent>
-				</Card>
-			)}
+						<div className="text-sm text-gray-500">
+							<p>GA4 → 실시간 → 개요</p>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
 			{/* 오늘의 테스트 성과 (TOP 3만) */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

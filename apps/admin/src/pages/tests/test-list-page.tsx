@@ -7,6 +7,7 @@ import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
 import { getTestStatusStyle } from '@/shared/lib/utils';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
+import type { TestWithDetails } from '@/types/test.types';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
 import { useCallback, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';

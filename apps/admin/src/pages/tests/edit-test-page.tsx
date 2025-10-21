@@ -16,84 +16,11 @@ import {
 	StepIndicator,
 	TypeSelectionStep,
 } from '@/components/test/test-create';
-import { steps } from '@/constants/testData';
+import { TEST_CREATION_STEPS } from '@/constants/test.constants';
 import { useTestCreation } from '@/hooks/useTestCreation';
+import type { EditTestPageState, QuestionWithChoices, ResultWithDetails } from '@/types/test.types';
 import type { Test } from '@pickid/supabase';
-import type { QuestionCreationData } from '@/shared/api/services/test.service';
-
-// ============================================================================
-// 타입 정의
-// ============================================================================
-
-interface EditTestPageState {
-	initialTest: Test | null;
-	loadingTest: boolean;
-	error: string | null;
-}
-
-// ============================================================================
-// 유틸리티 함수
-// ============================================================================
-
-const convertQuestionsData = (questionsData: any[]): QuestionCreationData[] => {
-	if (!questionsData || questionsData.length === 0) {
-		return [
-			{
-				question_text: '',
-				question_order: 0,
-				image_url: null,
-				choices: [
-					{ choice_text: '', choice_order: 0, score: 1, is_correct: false },
-					{ choice_text: '', choice_order: 1, score: 2, is_correct: false },
-				],
-			},
-		];
-	}
-
-	return questionsData.map((q) => ({
-		id: q.id,
-		question_text: q.question_text || '',
-		question_order: q.question_order || 0,
-		image_url: q.image_url,
-		choices:
-			q.choices?.map((c: any) => ({
-				id: c.id,
-				choice_text: c.choice_text || '',
-				choice_order: c.choice_order || 0,
-				score: c.score,
-				is_correct: c.is_correct,
-			})) || [],
-	}));
-};
-
-const convertResultsData = (resultsData: any[]): any[] => {
-	if (!resultsData || resultsData.length === 0) {
-		return [
-			{
-				result_name: '',
-				result_order: 0,
-				description: '',
-				match_conditions: { type: 'score', min: 0, max: 30 },
-				background_image_url: null,
-				theme_color: '#3B82F6',
-				features: {},
-				target_gender: null,
-			},
-		];
-	}
-
-	return resultsData.map((r) => ({
-		id: r.id,
-		result_name: r.result_name || '',
-		result_order: r.result_order || 0,
-		description: r.description,
-		match_conditions: (r.match_conditions as Record<string, unknown>) || { type: 'score', min: 0, max: 30 },
-		background_image_url: r.background_image_url,
-		theme_color: r.theme_color || '#3B82F6',
-		features: (r.features as any) || {},
-		target_gender: r.target_gender ?? null, // null 체크를 위해 ?? 사용
-	}));
-};
+import { convertQuestionsData, convertResultsData } from '@/utils/test.utils';
 
 // ============================================================================
 // 메인 컴포넌트
@@ -179,14 +106,14 @@ export function EditTestPage() {
 					estimated_time: test.estimated_time || 5,
 					max_score: test.max_score || 100,
 					intro_text: test.intro_text || '',
-					requires_gender: Boolean((test as any).requires_gender),
+					requires_gender: Boolean(test.requires_gender),
 					short_code: test.short_code || '',
 					type: (test.type as 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle') || 'psychology',
 				});
 
 				// 질문 및 결과 데이터 변환 및 설정
-				setQuestions(convertQuestionsData(questionsData));
-				setResults(convertResultsData(resultsData) as any);
+				setQuestions(convertQuestionsData(questionsData as QuestionWithChoices[]));
+				setResults(convertResultsData(resultsData as unknown as ResultWithDetails[]) as any);
 			} catch (error) {
 				console.error('테스트 로딩 실패:', error);
 				const errorMessage = error instanceof Error ? error.message : '테스트를 불러오는데 실패했습니다.';
@@ -264,7 +191,7 @@ export function EditTestPage() {
 		}
 	};
 
-	const currentStepInfo = steps.find((s) => s.id === step);
+	const currentStepInfo = TEST_CREATION_STEPS.find((s) => s.id === step);
 
 	// 로딩 중일 때
 	if (state.loadingTest) {
@@ -301,7 +228,7 @@ export function EditTestPage() {
 					)}
 				</div>
 
-				<StepIndicator steps={steps} currentStep={step} onStepClick={setStep} disabled={!type} />
+				<StepIndicator steps={TEST_CREATION_STEPS as any} currentStep={step} onStepClick={setStep} disabled={!type} />
 
 				<AdminCard variant="step" padding="lg">
 					<AdminCardHeader

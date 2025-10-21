@@ -1,0 +1,23 @@
+/* CategoryNavigation Swiper 스타일 */
+.category-swiper {
+	padding: 0 4px;
+}
+
+.category-swiper .swiper-slide {
+	width: auto !important;
+}
+
+.category-swiper .swiper-slide-active {
+	/* 활성 슬라이드 스타일 */
+}
+
+/* Swiper 네비게이션 버튼 숨기기 (터치 스와이프만 사용) */
+.category-swiper .swiper-button-next,
+.category-swiper .swiper-button-prev {
+	display: none;
+}
+
+/* Swiper 페이지네이션 숨기기 */
+.category-swiper .swiper-pagination {
+	display: none;
+}

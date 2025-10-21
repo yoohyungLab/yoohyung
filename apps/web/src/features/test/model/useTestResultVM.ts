@@ -3,7 +3,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@pickid/supabase';
 import type { TestAnswer } from '@/shared/types';
-import type { TestResult } from '@pickid/supabase';
+import type { TestResult, Json } from '@pickid/supabase';
 
 // ============================================================================
 // 타입 정의
@@ -33,6 +33,7 @@ interface ISessionData extends Pick<TestResult, 'test_id' | 'result_name' | 'des
 	resultId: string;
 	completedAt: string;
 	duration: number;
+	answers?: TestAnswer[]; // 사용자 답변 데이터 추가
 }
 
 // ============================================================================
@@ -172,7 +173,7 @@ export function useTestResultVM() {
 							session_id: sessionId,
 							result_id: matchingResult.id,
 							total_score: totalScore,
-							responses: resultData.answers,
+							responses: resultData.answers as unknown as Json,
 							gender: resultData.gender || null,
 							started_at: new Date(
 								new Date(resultData.completedAt).getTime() - resultData.duration * 1000
@@ -200,13 +201,15 @@ export function useTestResultVM() {
 				// 6. 세션 스토리지에 결과 저장
 				const sessionData: ISessionData = {
 					testId: resultData.testId,
+					test_id: resultData.testId,
 					totalScore,
 					resultId: matchingResult.id,
-					resultName: matchingResult.result_name,
+					result_name: matchingResult.result_name,
 					description: matchingResult.description,
-					features: (matchingResult.features as Record<string, unknown>) || {},
+					features: (matchingResult.features as Json) || {},
 					completedAt: resultData.completedAt,
 					duration: resultData.duration,
+					answers: resultData.answers, // 사용자 답변 데이터 추가
 				};
 				saveToSessionStorage(sessionData);
 
@@ -222,9 +225,10 @@ export function useTestResultVM() {
 				// 에러 발생 시 폴백 데이터 저장
 				const fallbackData: ISessionData = {
 					testId: resultData.testId,
+					test_id: resultData.testId,
 					totalScore: 0,
 					resultId: 'temp',
-					resultName: '기본 결과',
+					result_name: '기본 결과',
 					description: '결과를 불러오는 중 오류가 발생했습니다.',
 					features: { error: ['오류 발생'] },
 					completedAt: resultData.completedAt,

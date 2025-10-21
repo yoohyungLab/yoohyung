@@ -1,73 +1,79 @@
-import type { Category } from '@pickid/supabase';
+import type { Category, Test } from '@pickid/supabase';
 import { supabase } from '@pickid/supabase';
+import { createServerClient } from '@pickid/supabase';
 
-// Category Service - 순수한 API 호출만 담당
+// ============================================================================
+// 타입 정의 (Supabase Category 타입 기반 확장)
+// ============================================================================
+
+// Category에 테스트 개수를 추가한 확장 타입
+export interface ICategoryWithTestCount extends Category {
+	test_count: number;
+}
+
+// 카테고리 페이지 데이터 (SSR용)
+export interface ICategoryPageData {
+	category: Category;
+	allCategories: Category[];
+	tests: Test[];
+}
+
+// 전체 카테고리 데이터 (SSR용)
+export interface IAllCategoriesData {
+	allCategories: Category[];
+	allTests: Test[];
+}
+
 export const categoryService = {
-	// 활성 카테고리 목록 조회 (웹에서 사용할 카테고리)
+	/** 활성 카테고리 목록 조회 (CSR) */
 	async getActiveCategories(): Promise<Category[]> {
-		const { data, error } = await supabase
-			.from('categories')
-			.select('*')
-			.eq('status', 'active')
-			.order('sort_order', { ascending: true });
-
-		if (error) {
-			console.error('Error fetching active categories:', error);
-			throw error;
-		}
-
-		console.log('활성 카테고리 데이터:', data);
-		return data || [];
-	},
-
-	// 모든 카테고리 조회 (관리자용)
-	async getAllCategories(): Promise<Category[]> {
-		const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
-
-		if (error) {
-			console.error('Error fetching all categories:', error);
-			throw error;
-		}
-
-		return data || [];
-	},
-
-	// 카테고리별 테스트 개수 조회 (최적화된 버전)
-	async getCategoryWithTestCounts(): Promise<Array<Category & { test_count: number }>> {
 		try {
-			// 1. 카테고리 목록 조회
-			const { data: categories, error: categoryError } = await supabase
+			const { data, error } = await supabase
 				.from('categories')
 				.select('*')
 				.eq('status', 'active')
 				.order('sort_order', { ascending: true });
 
-			if (categoryError) {
-				console.error('Error fetching categories:', categoryError);
-				throw categoryError;
-			}
+			if (error) throw error;
+			return data || [];
+		} catch (error) {
+			console.error('Failed to get active categories:', error);
+			return [];
+		}
+	},
 
-			if (!categories || categories.length === 0) {
-				return [];
-			}
+	/** 모든 카테고리 조회 (CSR - 관리자용) */
+	async getAllCategories(): Promise<Category[]> {
+		try {
+			const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
 
-			// 2. 모든 테스트 조회 (한 번만)
-			const { data: tests, error: testsError } = await supabase
-				.from('tests')
-				.select('id, category_ids')
-				.eq('status', 'published');
+			if (error) throw error;
+			return data || [];
+		} catch (error) {
+			console.error('Failed to get all categories:', error);
+			return [];
+		}
+	},
 
-			if (testsError) {
-				console.error('Error fetching tests:', testsError);
-				// 테스트 조회 실패 시 카테고리만 반환 (test_count = 0)
-				return categories.map((category: Category) => ({ ...category, test_count: 0 }));
-			}
+	/** 카테고리별 테스트 개수 조회 (CSR) */
+	async getCategoryWithTestCounts(): Promise<ICategoryWithTestCount[]> {
+		try {
+			const [categoriesResult, testsResult] = await Promise.all([
+				supabase.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
+				supabase.from('tests').select('id, category_ids').eq('status', 'published'),
+			]);
 
-			// 3. 클라이언트에서 카테고리별 카운트 계산
+			if (categoriesResult.error) throw categoriesResult.error;
+			if (testsResult.error) throw testsResult.error;
+
+			const categories = categoriesResult.data || [];
+			const tests = testsResult.data || [];
+
+			if (categories.length === 0) return [];
+
 			const categoryCounts = new Map<string, number>();
 
-			// 각 테스트의 category_ids를 확인하여 카테고리별 카운트 증가
-			tests?.forEach((test: { id: string; category_ids?: string[] }) => {
+			tests.forEach((test) => {
 				if (test.category_ids && Array.isArray(test.category_ids)) {
 					test.category_ids.forEach((categoryId: string) => {
 						const currentCount = categoryCounts.get(categoryId) || 0;
@@ -76,46 +82,122 @@ export const categoryService = {
 				}
 			});
 
-			// 4. 카테고리와 카운트 결합
-			const categoriesWithCounts = categories.map((category: Category) => ({
+			return categories.map((category) => ({
 				...category,
 				test_count: categoryCounts.get(category.id) || 0,
 			}));
-
-			return categoriesWithCounts;
 		} catch (error) {
-			console.error('Error in getCategoryWithTestCounts:', error);
-			// 에러 발생 시 빈 배열 반환
+			console.error('Failed to get category with test counts:', error);
 			return [];
 		}
 	},
 
-	// 특정 카테고리 조회
+	/** 특정 카테고리 조회 (CSR) */
 	async getCategoryById(id: string): Promise<Category | null> {
-		const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
+		try {
+			const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
 
-		if (error) {
-			console.error('Error fetching category:', error);
-			throw error;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			console.error('Failed to get category by id:', error);
+			return null;
 		}
-
-		return data;
 	},
 
-	// 슬러그로 카테고리 조회
+	/** 슬러그로 카테고리 조회 (CSR) */
 	async getCategoryBySlug(slug: string): Promise<Category | null> {
-		const { data, error } = await supabase
-			.from('categories')
-			.select('*')
-			.eq('slug', slug)
-			.eq('status', 'active')
-			.single();
+		try {
+			const { data, error } = await supabase
+				.from('categories')
+				.select('*')
+				.eq('slug', slug)
+				.eq('status', 'active')
+				.single();
 
-		if (error) {
-			console.error('Error fetching category by slug:', error);
-			throw error;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			console.error('Failed to get category by slug:', error);
+			return null;
 		}
+	},
 
-		return data;
+	/** 카테고리 페이지 데이터 조회 (SSR) */
+	async getCategoryPageDataSSR(slug: string): Promise<ICategoryPageData | null> {
+		try {
+			const supabase = createServerClient();
+
+			const [categoryResult, allCategoriesResult] = await Promise.all([
+				supabase.from('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
+				supabase.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
+			]);
+
+			if (categoryResult.error || !categoryResult.data) {
+				return null;
+			}
+
+			const category = categoryResult.data;
+
+			const { data: tests } = await supabase
+				.from('tests')
+				.select('*')
+				.eq('status', 'published')
+				.contains('category_ids', [category.id]);
+
+			return {
+				category,
+				allCategories: allCategoriesResult.data || [],
+				tests: (tests as Test[]) || [],
+			};
+		} catch (error) {
+			console.error('Failed to get category page data:', error);
+			return null;
+		}
+	},
+
+	/** 모든 카테고리 데이터 조회 (SSR) */
+	async getAllCategoriesDataSSR(): Promise<IAllCategoriesData | null> {
+		try {
+			const supabase = createServerClient();
+
+			const [categoriesResult, testsResult] = await Promise.all([
+				supabase.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
+				supabase.from('tests').select('*').eq('status', 'published'),
+			]);
+
+			if (categoriesResult.error) throw categoriesResult.error;
+			if (testsResult.error) throw testsResult.error;
+
+			const categories = categoriesResult.data || [];
+			const tests = (testsResult.data as Test[]) || [];
+
+			if (categories.length === 0) {
+				console.warn('No active categories found');
+			}
+
+			return {
+				allCategories: categories,
+				allTests: tests,
+			};
+		} catch (error) {
+			console.error('Failed to get all categories data:', error);
+			return null;
+		}
+	},
+
+	/** 테스트 데이터 변환 */
+	transformTestData(tests: Test[]) {
+		return tests.map((test) => ({
+			id: test.id,
+			title: test.title,
+			description: test.description || '',
+			thumbnail_url: test.thumbnail_url || '/images/placeholder.svg',
+			thumbnailUrl: test.thumbnail_url || '/images/placeholder.svg',
+			created_at: test.created_at,
+			completions: test.response_count || 0,
+			starts: test.start_count || 0,
+			category_ids: test.category_ids || undefined,
+		}));
 	},
 };

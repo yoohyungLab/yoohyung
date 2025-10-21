@@ -5,52 +5,34 @@ import { ReactNode } from 'react';
 import { SessionProvider } from '@/shared/providers/session.provider';
 import { QueryProvider } from '@/shared/providers/query.provider';
 import { GoogleAnalytics } from '@/shared/components/google-analytics';
+import { SITE_CONFIG, VERIFICATION } from '@/shared/config/metadata';
+import { Toaster } from '@pickid/ui';
 import App from '@/App';
 
 import './globals.css';
 
+// 전체 사이트 공통 메타데이터 (모든 페이지에 적용)
 export const metadata: Metadata = {
-	title: '픽키드 - 나를 알아가는 테스트',
-	description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요. Z세대를 위한 테스트 플랫폼.',
-	keywords: ['심리테스트', '성격분석', '밸런스게임', 'MBTI', '자기계발', '픽키드', 'Z세대'],
-	authors: [{ name: '픽키드' }],
-	creator: '픽키드',
-	publisher: '픽키드',
+	metadataBase: new URL(SITE_CONFIG.url),
+	title: {
+		default: SITE_CONFIG.title,
+		template: '%s | 픽키드',
+	},
+	description: SITE_CONFIG.description,
+	applicationName: SITE_CONFIG.name,
+	keywords: SITE_CONFIG.keywords,
+	authors: [{ name: SITE_CONFIG.name, url: SITE_CONFIG.url }],
+	creator: SITE_CONFIG.name,
+	publisher: SITE_CONFIG.name,
 	formatDetection: {
 		email: false,
 		address: false,
 		telephone: false,
 	},
-	metadataBase: new URL('https://pickid.co.kr'),
-	alternates: {
-		canonical: '/',
-	},
 	icons: {
-		icon: '/favicon.ico?v=2',
-		shortcut: '/favicon.ico?v=2',
-		apple: '/favicon.ico?v=2',
-	},
-	openGraph: {
-		type: 'website',
-		url: 'https://pickid.co.kr',
-		title: '픽키드 - 나를 알아가는 테스트',
-		description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요.',
-		siteName: '픽키드',
-		images: [
-			{
-				url: '/og-image.png',
-				width: 1200,
-				height: 630,
-				alt: '픽키드 - 나를 알아가는 테스트',
-			},
-		],
-	},
-	twitter: {
-		card: 'summary_large_image',
-		title: '픽키드 - 나를 알아가는 테스트',
-		description: '심리테스트, 성격분석, 밸런스게임으로 진짜 나를 발견하세요.',
-		creator: '@pickid',
-		images: ['/og-image.png'],
+		icon: '/favicon.ico',
+		shortcut: '/favicon.ico',
+		apple: '/favicon.ico',
 	},
 	robots: {
 		index: true,
@@ -63,9 +45,16 @@ export const metadata: Metadata = {
 			'max-snippet': -1,
 		},
 	},
-	verification: {
-		google: 'your-google-verification-code',
-	},
+	...(VERIFICATION.google && {
+		verification: {
+			google: VERIFICATION.google,
+		},
+	}),
+	...(VERIFICATION.naver && {
+		other: {
+			'naver-site-verification': VERIFICATION.naver,
+		},
+	}),
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -76,16 +65,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			<head>
 				<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 			</head>
-			<body className="flex min-h-screen">
-				{/* Google Analytics */}
+			<body className="flex min-h-screen" suppressHydrationWarning>
 				{gaId && <GoogleAnalytics gaId={gaId} />}
 
-				{/* ✅ QueryProvider → AuthProvider 순서 중요 (Auth가 Query 사용 가능) */}
 				<QueryProvider>
 					<SessionProvider>
 						<App>{children}</App>
 					</SessionProvider>
 				</QueryProvider>
+
+				<Toaster />
 			</body>
 		</html>
 	);

@@ -18,13 +18,19 @@ export type TestQuestion = Tables<'test_questions'>['Row'];
 export type TestChoice = Tables<'test_choices'>['Row'];
 export type TestResult = Tables<'test_results'>['Row'];
 export type UserTestResponse = Tables<'user_test_responses'>['Row'];
+export type HomeBalanceGame = Tables<'home_balance_games'>['Row'];
+export type HomeBalanceVote = Tables<'home_balance_votes'>['Row'];
 
 // ===== Enum 타입들 =====
-export type TestType = Database['public']['Enums']['test_type'];
-export type TestStatus = Database['public']['Enums']['test_status'];
-export type FeedbackStatus = Database['public']['Enums']['feedback_status'];
-export type UserStatus = Database['public']['Enums']['user_status'];
+// 실제 DB에 있는 Enums
 export type CategoryStatus = Database['public']['Enums']['category_status'];
+export type GenderType = Database['public']['Enums']['gender_type'];
+
+// DB에 Enum이 없어서 수동 정의
+export type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
+export type TestStatus = 'draft' | 'published' | 'scheduled' | 'archived';
+export type FeedbackStatus = 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
+export type UserStatus = 'active' | 'inactive' | 'deleted';
 
 // ===== 확장 타입들 (실제 사용되는 것들만) =====
 
@@ -141,11 +147,49 @@ export type UserResponseStats = {
 	unique_users: number;
 };
 
-// Marketing RPC 함수 반환 타입들
-export type MarketingFunnel = Database['public']['Functions']['get_marketing_funnel']['Returns'];
-export type ChannelPerformance = Database['public']['Functions']['get_channel_performance']['Returns'];
-export type LandingPerformance = Database['public']['Functions']['get_landing_performance']['Returns'];
-export type PopularTest = Database['public']['Functions']['get_popular_tests']['Returns'][0];
+// Marketing 관련 타입들 (RPC 함수가 없어서 수동 정의)
+export type MarketingFunnel = {
+	visits: number;
+	test_starts: number;
+	test_completes: number;
+	sign_ups: number;
+	start_rate: number;
+	complete_rate: number;
+	sign_up_rate: number;
+};
+
+export type ChannelPerformance = {
+	source: string;
+	medium: string;
+	campaign: string;
+	sessions: number;
+	start_rate: number;
+	complete_rate: number;
+	sign_up_rate: number;
+	avg_dwell_time: number;
+	avg_question_depth: number;
+	share_rate: number;
+};
+
+export type LandingPerformance = {
+	url: string;
+	sessions: number;
+	bounce_rate: number;
+	start_rate: number;
+	complete_rate: number;
+	avg_dwell_time: number;
+	conversion_value: number;
+};
+
+export type PopularTest = {
+	id: string;
+	title: string;
+	slug: string;
+	thumbnail_url: string;
+	type: string;
+	response_count: number;
+	start_count: number;
+};
 
 // 차트 데이터
 export interface ResponseChartData {

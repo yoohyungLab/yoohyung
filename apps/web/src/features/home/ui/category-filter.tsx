@@ -4,50 +4,41 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Category } from '@pickid/supabase';
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-	all: 'from-gray-600 to-gray-700',
-	personality: 'from-violet-500 to-purple-600',
-	typetype: 'from-indigo-500 to-blue-600',
-	category: 'from-pink-500 to-rose-600',
-	'category-1': 'from-amber-500 to-orange-600',
-	'category-2': 'from-emerald-500 to-teal-600',
-	'category-3': 'from-cyan-500 to-blue-500',
-	test: 'from-fuchsia-500 to-pink-600',
-	tendency: 'from-red-500 to-rose-600',
-	'test-1': 'from-lime-500 to-green-600',
-	'category-4': 'from-sky-500 to-blue-600',
-	psychologypsychology: 'from-purple-500 to-violet-600',
-	'category-5': 'from-slate-500 to-gray-600',
-	'category-6': 'from-orange-500 to-red-600',
-};
+interface CategoryFilterProps {
+	categories: Category[];
+}
 
-export function CategoryFilter({ categories }: { categories: Category[] }) {
+export function CategoryFilter({ categories }: CategoryFilterProps) {
 	const [showAll, setShowAll] = useState(false);
-	const displayedCategories = showAll ? categories : categories.slice(0, 7);
 	const router = useRouter();
+
+	// 표시할 카테고리 결정
+	const displayedCategories = showAll ? categories : categories.slice(0, 7);
+	const hasMoreCategories = categories.length > 7;
+
+	// 카테고리 클릭 핸들러
+	const handleCategoryClick = (slug: string) => {
+		router.push(`/category?category=${slug}`);
+	};
 
 	return (
 		<div className="space-y-3">
+			{/* 카테고리 그리드 */}
 			<div className="grid grid-cols-4 sm:grid-cols-5 lg:grid-cols-7 gap-2">
-				{displayedCategories.map((category) => {
-					const gradient = CATEGORY_GRADIENTS[category.slug] || CATEGORY_GRADIENTS.all;
-
-					return (
-						<button
-							key={category.id}
-							onClick={() => router.push(`/category/${category.slug}`)}
-							className="group relative px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-700 border border-gray-200 hover:border-transparent transition-all overflow-hidden"
-						>
-							<span className="relative z-10 group-hover:text-white transition-colors">{category.name}</span>
-							<div
-								className={`absolute inset-0 bg-gradient-to-r ${gradient} opacity-0 group-hover:opacity-100 transition-opacity`}
-							/>
-						</button>
-					);
-				})}
+				{displayedCategories.map((category) => (
+					<button
+						key={category.id}
+						onClick={() => handleCategoryClick(category.slug)}
+						className="group relative px-3 py-2 rounded-lg text-xs font-semibold bg-white text-gray-700 border border-gray-200 hover:border-transparent transition-all overflow-hidden"
+					>
+						<span className="relative z-10 group-hover:text-white transition-colors">{category.name}</span>
+						<div className="absolute inset-0 bg-gradient-to-r from-primary to-primary/80 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+					</button>
+				))}
 			</div>
 
-			{categories.length > 7 && (
+			{/* 더보기/접기 버튼 */}
+			{hasMoreCategories && (
 				<div className="text-center">
 					<button
 						onClick={() => setShowAll(!showAll)}

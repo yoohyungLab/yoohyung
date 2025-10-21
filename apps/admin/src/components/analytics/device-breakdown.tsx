@@ -1,4 +1,4 @@
-// TODO: GA로 대체 - Google Analytics 4의 "기술 → 기기 카테고리" 보고서 사용
+// 이 컴포넌트의 기능은 Google Analytics 4로 이전되었습니다
 // GA에서 더 정확하고 상세한 디바이스 정보 (모델명, OS 버전 등) 제공
 /*
 import React from 'react';

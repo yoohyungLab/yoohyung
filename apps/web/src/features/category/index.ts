@@ -1,12 +1,9 @@
-// Category feature public API - FSD 구조
-// Model layer (비즈니스 로직)
-export * from './model';
+// ============================================================================
+// Category Feature - Public API
+// ============================================================================
 
-// UI layer (프레젠테이션 컴포넌트)
-export * from './ui';
-
-// API layer (데이터 페칭)
-export * from './api';
-
-// Lib layer (유틸리티와 상수)
-export * from './lib';
+// UI Components
+export { CategoryCard } from './ui/category-card';
+export { CategoryContainer } from './ui/category-container';
+export { CategoryNavigation } from './ui/category-navigation';
+export { TestFilter } from './ui/test-filter';

@@ -15,13 +15,6 @@ export const useDashboard = () => {
 		staleTime: 5 * 60 * 1000,
 	});
 
-	const realtimeStatsQuery = useQuery({
-		queryKey: ['dashboard', 'realtime'],
-		queryFn: () => dashboardService.getRealtimeStats(),
-		staleTime: 1 * 60 * 1000,
-		refetchInterval: 5 * 60 * 1000, // 5분마다 자동 갱신
-	});
-
 	const stats = statsQuery.data || {
 		total: 0,
 		published: 0,
@@ -47,7 +40,6 @@ export const useDashboard = () => {
 			visitorGrowth: stats.totalCompletions > 0 ? ('up' as const) : ('down' as const),
 		},
 		topTests: topTestsQuery.data || [],
-		realtimeStats: realtimeStatsQuery.data,
 		loading: statsQuery.isLoading || topTestsQuery.isLoading,
 		error: statsQuery.error?.message || topTestsQuery.error?.message || null,
 		lastUpdated: new Date(),

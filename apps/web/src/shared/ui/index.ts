@@ -1,7 +1,18 @@
-// UI 컴포넌트들은 이제 @pickid/ui에서 import
+// ============================================================================
+// Shared UI Components - Public API
+// ============================================================================
 
-// 커스텀 UI 컴포넌트들
-export { SectionBadge } from './badge/section-badge';
+// Badge Components
+export { Badge } from '@pickid/ui';
 
-// Card 컴포넌트들
-export * from './cards';
+// Card Components
+export { BaseCard, CardImage, CardTags, CardContent } from './cards/base-card';
+export { HomeCard } from './cards/home-card';
+export { CarouselCard } from './cards/carousel-card';
+export type { CardVariant, CardSize, CardAspectRatio } from './cards/base-card';
+
+// Icon Components
+export { PopularIcon, NewIcon, RecommendedIcon, TrendingIcon, TestIcon } from './icons/section-icons';
+
+// Other UI Components
+export { ImageWithFallback, CardImageWithFallback } from './image-with-fallback';

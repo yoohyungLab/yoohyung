@@ -1,9 +1,10 @@
-// Home feature public API - FSD 구조
-// Model layer (비즈니스 로직)
-export * from './model';
+// ============================================================================
+// Home Feature - Public API
+// ============================================================================
 
-// UI layer (프레젠테이션 컴포넌트)
-export * from './ui';
-
-// API layer (데이터 페칭)
-export * from './api';
+// UI Components
+export { default as BalanceGameSection } from './ui/balance-game-section';
+export { BannerCarousel } from './ui/banner-carousel';
+export { CategoryFilter } from './ui/category-filter';
+export { HomeContainer } from './ui/home-container';
+export { TestSection } from './ui/test-section';

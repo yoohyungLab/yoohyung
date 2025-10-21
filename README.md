@@ -176,15 +176,17 @@ View → Business Logic → Data Access → Infrastructure
 
 ### test_choices 테이블
 
-| 필드명       | 타입                        | 제약조건 | 설명               |
-| ------------ | --------------------------- | -------- | ------------------ |
-| id           | uuid                        | NOT NULL | 고유 식별자        |
-| question_id  | uuid                        | -        | 질문 참조          |
-| choice_text  | text                        | NOT NULL | 선택지 내용        |
-| choice_order | integer                     | NOT NULL | 선택지 순서        |
-| score        | integer                     | -        | 점수값 (기본값: 0) |
-| is_correct   | boolean                     | -        | 정답 여부 (퀴즈용) |
-| created_at   | timestamp without time zone | -        | 생성일시           |
+| 필드명         | 타입                        | 제약조건 | 설명                    |
+| -------------- | --------------------------- | -------- | ----------------------- |
+| id             | uuid                        | NOT NULL | 고유 식별자             |
+| question_id    | uuid                        | -        | 질문 참조               |
+| choice_text    | text                        | NOT NULL | 선택지 내용             |
+| choice_order   | integer                     | NOT NULL | 선택지 순서             |
+| score          | integer                     | -        | 점수값 (기본값: 0)      |
+| is_correct     | boolean                     | -        | 정답 여부 (퀴즈용)      |
+| created_at     | timestamp without time zone | -        | 생성일시                |
+| response_count | integer                     | -        | 응답 카운트 (기본값: 0) |
+| last_updated   | timestamp with time zone    | -        | 마지막 업데이트 시간    |
 
 ### test_questions 테이블
 

@@ -1,26 +1,50 @@
 import { createServerClient } from '@pickid/supabase';
+import type { Category, Test } from '@pickid/supabase';
 import type { TestCard } from '@/shared/types';
 
-/**
- * 홈페이지용 서버 사이드 데이터 페칭 서비스
- * SSR을 위한 서버에서 실행되는 함수들
- */
+// ============================================================================
+// 타입 정의 (Supabase 기본 타입 기반)
+// ============================================================================
+
+// 홈 페이지 데이터 (SSR용)
+export interface IHomePageData {
+	tests: TestCard[];
+	categories: Category[]; // Supabase Category 타입
+	popularTests: TestCard[];
+	recommendedTests: TestCard[];
+	topByType: TestCard[];
+}
+
+const getCategoryNames = (categoryIds: string[] | null, categories: Category[]): string[] => {
+	if (!categoryIds || categoryIds.length === 0) return ['미분류'];
+
+	const categoryNames = categoryIds
+		.map((id) => categories.find((cat) => cat.id === id)?.name || '알 수 없음')
+		.filter((name) => name !== '알 수 없음');
+
+	return categoryNames.length > 0 ? categoryNames : ['미분류'];
+};
+
+const transformToTestCard = (test: Test, categories: Category[]): TestCard => ({
+	id: test.id,
+	title: test.title,
+	description: test.description || '',
+	image: test.thumbnail_url || '/images/placeholder.svg',
+	tags: getCategoryNames(test.category_ids, categories),
+	type: test.type,
+	status: test.status,
+	slug: test.slug,
+	category_ids: test.category_ids,
+	thumbnail_url: test.thumbnail_url,
+	starts: test.start_count,
+	completions: test.response_count,
+});
+
 export const homeService = {
-	/**
-	 * 홈페이지에 필요한 모든 데이터를 한 번에 가져오기 (프리패치 최적화)
-	 * - 테스트 목록
-	 * - 카테고리 목록
-	 * - 섹션별 정렬된 데이터
-	 *
-	 * @description 서버에서 병렬로 모든 데이터를 미리 로드하여
-	 * 클라이언트의 추가 요청 없이 완성된 페이지 제공
-	 */
-	async getHomePageData() {
+	async getHomePageData(): Promise<IHomePageData> {
 		try {
-			// 서버 사이드 Supabase 클라이언트 생성
 			const supabase = createServerClient();
 
-			// 병렬로 데이터 가져오기 (프리패치 최적화)
 			const [testsData, categoriesData] = await Promise.all([
 				supabase.from('tests').select('*').eq('status', 'published').order('created_at', { ascending: false }),
 				supabase.from('categories').select('*').eq('status', 'active').order('name'),
@@ -32,56 +56,39 @@ export const homeService = {
 			const tests = testsData.data || [];
 			const categories = categoriesData.data || [];
 
-			// 카테고리 매핑 함수
-			const getCategoryNames = (categoryIds: string[] | null): string[] => {
-				if (!categoryIds || categoryIds.length === 0) {
-					return ['미분류'];
-				}
+			const testsAsCards: TestCard[] = tests.map((test) => transformToTestCard(test, categories));
 
-				// PostgreSQL 배열 처리
-				let processedCategoryIds = categoryIds;
-				if (typeof categoryIds === 'string') {
-					try {
-						processedCategoryIds = JSON.parse(categoryIds);
-					} catch {
-						processedCategoryIds = [categoryIds];
-					}
-				}
-
-				const categoryNames = processedCategoryIds
-					.map((categoryId) => {
-						const category = categories.find((cat) => cat.id === categoryId);
-						return category?.name || '알 수 없음';
-					})
-					.filter((name) => name !== '알 수 없음');
-
-				return categoryNames.length > 0 ? categoryNames : ['미분류'];
-			};
-
-			// 테스트 데이터를 카드 형태로 변환
-			const testsAsCards: TestCard[] = tests.map((test) => ({
-				id: test.id,
-				title: test.title,
-				description: test.description || '',
-				image: test.thumbnail_url || '/images/egen-teto/thumbnail.png',
-				tags: getCategoryNames(test.category_ids),
-				type: test.type,
-				status: test.status,
-				slug: test.slug,
-				category_ids: test.category_ids,
-				thumbnail_url: test.thumbnail_url,
-				starts: test.start_count,
-				completions: test.response_count,
-			}));
-
-			// 인기 테스트 (응답 수 기준)
+			// 인기 테스트 (참여자 수 기준)
 			const popularTests = [...testsAsCards].sort((a, b) => (b.completions || 0) - (a.completions || 0)).slice(0, 6);
 
-			// 추천 테스트 (시작 횟수 기준)
-			const recommendedTests = [...testsAsCards].sort((a, b) => (b.starts || 0) - (a.starts || 0)).slice(1, 7);
+			// 추천 테스트 (최근 2주 내 + 시작 횟수 높은 순)
+			const twoWeeksAgo = new Date();
+			twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
 
-			// 명예의 전당 (인기 테스트와 동일)
-			const topByType = popularTests;
+			const recentTests = tests.filter((test) => new Date(test.created_at) >= twoWeeksAgo);
+
+			const recommendedTests =
+				recentTests.length > 0
+					? recentTests
+							.map((test) => transformToTestCard(test, categories))
+							.sort((a, b) => (b.starts || 0) - (a.starts || 0))
+							.slice(0, 6)
+					: [...testsAsCards].sort((a, b) => (b.starts || 0) - (a.starts || 0)).slice(0, 6);
+
+			// 명예의 전당 (완료율 기준)
+			const topByType = [...testsAsCards]
+				.filter((test) => (test.starts || 0) > 10)
+				.map((test) => ({
+					...test,
+					completionRate: (test.starts || 0) > 0 ? ((test.completions || 0) / (test.starts || 0)) * 100 : 0,
+				}))
+				.sort((a, b) => {
+					if (Math.abs(b.completionRate - a.completionRate) < 0.1) {
+						return (b.completions || 0) - (a.completions || 0);
+					}
+					return b.completionRate - a.completionRate;
+				})
+				.slice(0, 6);
 
 			return {
 				tests: testsAsCards,
@@ -91,8 +98,7 @@ export const homeService = {
 				topByType,
 			};
 		} catch (error) {
-			console.error('Error fetching home page data:', error);
-			// 에러 발생 시 빈 데이터 반환
+			console.error('Failed to get home page data:', error);
 			return {
 				tests: [],
 				categories: [],

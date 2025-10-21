@@ -2,8 +2,8 @@
 
 import { memo, ReactNode } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { cn } from '@pickid/shared';
+import { CardImageWithFallback } from '../image-with-fallback';
 
 // 공통 카드 타입 정의
 export type CardVariant = 'default' | 'outline' | 'elevated' | 'minimal' | 'gradient';
@@ -100,17 +100,14 @@ export const CardImage = memo(function CardImage({
 	overlayGradient = 'from-black/20 to-transparent',
 }: CardImageProps) {
 	return (
-		<div className="relative overflow-hidden">
-			<Image
-				src={src}
-				alt={alt}
-				fill
-				className={cn('object-cover group-hover:scale-105 transition-transform duration-300', className)}
-				priority={priority}
-				sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-			/>
-			{overlay && <div className={cn('absolute inset-0 bg-gradient-to-t', overlayGradient)} />}
-		</div>
+		<CardImageWithFallback
+			src={src}
+			alt={alt}
+			className={className}
+			priority={priority}
+			overlay={overlay}
+			overlayGradient={overlayGradient}
+		/>
 	);
 });
 

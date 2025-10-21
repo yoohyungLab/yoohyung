@@ -12,7 +12,7 @@ import {
 	StepIndicator,
 	TypeSelectionStep,
 } from '@/components/test/test-create';
-import { steps } from '@/constants/testData';
+import { TEST_CREATION_STEPS } from '@/constants/test.constants';
 import { useTestCreation } from '@/hooks/useTestCreation';
 
 export function CreateTestPage() {
@@ -48,7 +48,7 @@ export function CreateTestPage() {
 		updateResultVariantRules,
 	} = useTestCreation();
 
-	const currentStepInfo = steps.find((s) => s.id === step);
+	const currentStepInfo = TEST_CREATION_STEPS.find((s) => s.id === step);
 
 	const renderStep = () => {
 		switch (step) {
@@ -114,7 +114,7 @@ export function CreateTestPage() {
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
 			<div className="max-w-7xl mx-auto p-5 space-y-6">
-				<StepIndicator steps={steps} currentStep={step} onStepClick={setStep} disabled={!type} />
+				<StepIndicator steps={TEST_CREATION_STEPS as any} currentStep={step} onStepClick={setStep} disabled={!type} />
 
 				<AdminCard variant="step" padding="lg">
 					<AdminCardHeader variant="step" title={currentStepInfo?.title} subtitle={currentStepInfo?.description} />

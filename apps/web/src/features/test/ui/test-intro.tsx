@@ -1,18 +1,20 @@
-import Image from 'next/image';
 import { useCountAnimation } from '@/shared/hooks';
+import { ImageWithFallback } from '@/shared/ui/image-with-fallback';
+import { Button } from '@pickid/ui';
 import { useTestStartVM } from '../model/useTestStartVM';
-import { StartButton } from './start-button';
 import { GenderSelectModal } from './gender-select-modal';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import type { ColorTheme } from '../lib/themes';
 
-interface ITestIntroProps {
+interface TestIntroProps {
 	test: TestWithNestedDetails;
 	onStart: (selectedGender?: 'male' | 'female') => void;
 	theme: ColorTheme;
 }
 
-export function TestIntro({ test, onStart, theme }: ITestIntroProps) {
+export function TestIntro(props: TestIntroProps) {
+	const { test, onStart, theme } = props;
+
 	// TypeScript 캐시 이슈로 타입 단언 사용
 	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	const startCount = (test?.test as any)?.start_count || 0;
@@ -22,6 +24,13 @@ export function TestIntro({ test, onStart, theme }: ITestIntroProps) {
 		testId: test?.test?.id,
 		testTitle: test?.test?.title,
 		requiresGender: test?.test?.requires_gender,
+	});
+
+	// 디버깅 로그
+	console.log('TestIntro Debug:', {
+		testId: test?.test?.id,
+		requiresGender: test?.test?.requires_gender,
+		showGenderModal,
 	});
 
 	const handleStart = () => {
@@ -41,12 +50,12 @@ export function TestIntro({ test, onStart, theme }: ITestIntroProps) {
 					className={`absolute bottom-0 left-0 w-32 h-32 bg-${theme.primary}-300 rounded-full blur-3xl opacity-30`}
 				/>
 
-				{/* 썸네일 */}
+				{/* 썸네일 - 썸네일이 있을 때만 표시 */}
 				{test?.test?.thumbnail_url && (
 					<figure className="relative w-full aspect-square mb-6 rounded-3xl overflow-hidden shadow-xl">
-						<Image
+						<ImageWithFallback
 							src={test.test.thumbnail_url}
-							alt={test.test.title || '테스트'}
+							alt={test?.test?.title || '테스트'}
 							fill
 							className="object-cover"
 							sizes="(max-width: 768px) 100vw, 420px"
@@ -90,7 +99,16 @@ export function TestIntro({ test, onStart, theme }: ITestIntroProps) {
 				</section>
 
 				{/* 시작 버튼 */}
-				<StartButton onClick={handleStart} theme={theme} />
+				<Button
+					onClick={handleStart}
+					size="xl"
+					className={`w-full bg-gradient-to-r ${theme.button} bg-[length:200%_100%] text-white font-black rounded-2xl hover:bg-right hover:animate-gradient transition-all duration-500 shadow-xl hover:shadow-2xl `}
+					style={{
+						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
+					}}
+				>
+					시작하기
+				</Button>
 
 				{/* 성별 선택 모달 */}
 				{showGenderModal && <GenderSelectModal onSelect={handleGenderChoice} />}

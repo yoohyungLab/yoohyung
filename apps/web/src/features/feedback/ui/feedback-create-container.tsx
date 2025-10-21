@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@pickid/supabase';
-import { FeedbackForm } from '@/features/feedback';
+import { FeedbackForm } from '@/features/feedback/ui/feedback-form';
 import { Button } from '@pickid/ui';
 
 export function FeedbackCreateContainer() {

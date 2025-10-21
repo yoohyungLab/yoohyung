@@ -1,5 +1,5 @@
 // dashboardService.ts
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { DashboardOverviewStats, TestDetailedStats } from '@pickid/supabase';
 
 // PopularTest 타입 정의

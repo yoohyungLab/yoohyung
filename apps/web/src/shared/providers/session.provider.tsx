@@ -4,7 +4,6 @@
 import { createContext, useState, useEffect, ReactNode } from 'react';
 import type { User } from '@supabase/supabase-js';
 import { authService } from '@/shared/api/services/auth.service';
-import { supabase } from '@pickid/supabase';
 
 // 세션 상태 타입 - Supabase User 타입 기반
 interface SessionState {
@@ -28,21 +27,9 @@ export function SessionProvider({ children }: SessionProviderProps) {
 		// 사용자 동기화 함수
 		const syncUserToPublic = async (user: User) => {
 			try {
-				const { error } = await supabase.from('users').upsert({
-					id: user.id,
-					email: user.email,
-					name: user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown',
-					provider: user.app_metadata?.provider || 'email',
-					status: 'active',
-					avatar_url: user.user_metadata?.avatar_url || null,
-					created_at: user.created_at,
-					updated_at: new Date().toISOString(),
-				});
-
-				if (error) {
-					console.error('사용자 동기화 실패:', error);
-				} else {
-					console.log('사용자 동기화 성공:', user.email);
+				const result = await authService.syncUserToPublic(user);
+				if (result?.error) {
+					console.error('사용자 동기화 실패:', result.error);
 				}
 			} catch (error) {
 				console.error('사용자 동기화 중 오류:', error);
@@ -72,8 +59,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
 
 		// 인증 상태 변화 감지
 		const subscription = authService.onAuthStateChange(async (event, session) => {
-			console.log('Session changed:', event, session?.user?.email);
-
 			const currentUser = session?.user ?? null;
 			setUser(currentUser);
 

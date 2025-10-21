@@ -1,4 +1,4 @@
-import { FEEDBACK_CATEGORIES, FEEDBACK_STATUS } from '@/shared/constants';
+import { FEEDBACK_CATEGORIES, FEEDBACK_STATUS } from '@/shared/constants/index';
 
 const CATEGORY_EMOJIS: Record<string, string> = {
 	bug: '🐛',

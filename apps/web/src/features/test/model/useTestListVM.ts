@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@pickid/supabase';
-import { useFavorites } from '@/shared/hooks/useFavorites';
+import { useFavorites } from '@/shared/hooks';
 import type { Test, Category } from '@pickid/supabase';
 import type { TestCard, TestCardProps } from '@/shared/types';
 
@@ -47,7 +47,8 @@ export function useTestListVM() {
 
 	useEffect(() => {
 		loadTests();
-	}, [loadTests]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, []); // loadTests는 빈 의존성 배열로 정의되어 있으므로 제외
 
 	// 카테고리 매핑
 	const getCategoryNames = useCallback(

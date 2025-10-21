@@ -1,4 +1,4 @@
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@pickid/supabase';
 
 // Re-export types for convenience

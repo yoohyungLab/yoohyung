@@ -4,12 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useTestListVM } from '@/features/test';
+import { useTestListVM } from '@/features/test/model/useTestListVM';
 
 const PopularTestsSection = () => {
 	const { popularTests } = useTestListVM();
 	return (
-		<div className="md:col-span-4 md:col-start-7">
+		<div>
 			<h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">인기 테스트</h4>
 			<ul className="space-y-2">
 				{popularTests.slice(0, 4).map((test) => (
@@ -26,7 +26,7 @@ const PopularTestsSection = () => {
 
 export const Footer = () => {
 	const pathname = usePathname();
-	const showPopular = pathname === '/' || pathname?.startsWith('/category/');
+	const showPopular = pathname === '/' || pathname?.startsWith('/category');
 
 	return (
 		<footer className="relative bg-gradient-to-b from-white via-purple-50/20 to-purple-100/30 border-t border-purple-100/50 backdrop-blur-sm">
@@ -37,13 +37,12 @@ export const Footer = () => {
 			</div>
 
 			<div className="max-w-6xl mx-auto px-4 py-12">
-				{/* 상단 섹션 */}
-				<div className="grid grid-cols-1 md:grid-cols-3 gap-10 mb-10">
+				{/* 상단 섹션 - 2단 레이아웃 */}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-10">
 					{/* 브랜드 영역 */}
-					<div className="md:col-span-4">
+					<div>
 						<Link href="/" className="inline-flex items-center gap-2 mb-3" prefetch={true}>
 							<Image src="/icons/logo.svg" alt="픽키드" width={28} height={28} />
-							<span className="text-xl font-bold text-gray-900">픽키드</span>
 						</Link>
 						<p className="text-sm text-gray-600 leading-relaxed mb-6">나를 알아가는 테스트</p>
 

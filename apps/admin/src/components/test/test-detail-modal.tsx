@@ -24,19 +24,12 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import type { Test, TestWithNestedDetails, Category } from '@pickid/supabase';
+import type { TestWithNestedDetails, Category } from '@pickid/supabase';
 import { getTestTypeInfo, getTestStatusInfo } from '@/shared/lib/test-utils';
 import { testService } from '@/shared/api';
 import { categoryService } from '@/shared/api/services/category.service';
-
-type TestDetailModalProps = {
-	test: Test;
-	onClose: () => void;
-	onTogglePublish: (testId: string, currentStatus: boolean) => void;
-	onDelete: (testId: string) => void;
-};
-
-type TabType = 'basic' | 'questions' | 'results' | 'stats' | 'preview';
+import type { TestDetailModalProps, TabType, QuestionWithChoices } from '@/types/test.types';
+import { calculateTestStats, getCategoryNames } from '@/utils/test.utils';
 
 export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: TestDetailModalProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('basic');
@@ -70,31 +63,10 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 	}, [test.id]);
 
 	// 통계 계산
-	const stats = {
-		totalQuestions: testDetails?.questions?.length || 0,
-		totalResults: testDetails?.results?.length || 0,
-		avgChoicesPerQuestion: testDetails?.questions?.length
-			? Math.round(
-					(testDetails.questions.reduce((sum, q) => sum + (q.choices?.length || 0), 0) / testDetails.questions.length) *
-						10
-			  ) / 10
-			: 0,
-		questionsWithImages: testDetails?.questions?.filter((q) => q.image_url).length || 0,
-		resultsWithTheme: testDetails?.results?.filter((r) => r.theme_color).length || 0,
-		resultsWithImages: testDetails?.results?.filter((r) => r.background_image_url).length || 0,
-		completionRate: 0,
-	};
+	const stats = calculateTestStats(testDetails?.questions || [], testDetails?.results || []);
 
 	// 카테고리 정보 가져오기
-	const getCategoryNames = (categoryIds: string[] | null) => {
-		if (!categoryIds || categoryIds.length === 0) return ['미분류'];
-		return categoryIds.map((id) => {
-			const category = categories.find((cat) => cat.id === id);
-			return category ? category.name : '알 수 없음';
-		});
-	};
-
-	const categoryNames = getCategoryNames(test.category_ids);
+	const categoryNames = getCategoryNames(test.category_ids, categories);
 
 	const tabs = [
 		{ id: 'basic', label: '기본 정보', icon: Hash },
@@ -433,7 +405,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																</div>
 															)}
 															<div>
-																{question.choices?.map((choice, choiceIndex) => (
+																{(question as QuestionWithChoices).test_choices?.map((choice, choiceIndex: number) => (
 																	<div
 																		key={choice.id}
 																		className={`flex items-center gap-2 text-sm ${choiceIndex > 0 ? 'mt-2' : ''}`}

@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect, useMemo } from 'react';
 import { testService } from '@/shared/api';
-import type { Test, TestWithDetails, TestFilters, TestStats } from '@pickid/supabase';
+import type { Test, TestFilters, TestStats } from '@pickid/supabase';
+import type { TestWithDetails } from '@/types/test.types';
 
 export const useTests = () => {
 	const [tests, setTests] = useState<Test[]>([]);
@@ -14,7 +15,8 @@ export const useTests = () => {
 	// 필터링된 테스트
 	const filteredTests = useMemo(() => {
 		return tests.filter((test) => {
-			const matchesSearch = filters.search === '' || test.title.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesSearch =
+				filters.search === '' || test.title.toLowerCase().includes((filters.search || '').toLowerCase());
 			const matchesStatus = filters.status === 'all' || test.status === filters.status;
 			return matchesSearch && matchesStatus;
 		});
@@ -27,8 +29,8 @@ export const useTests = () => {
 				...test,
 				category_name: '기타',
 				emoji: '📝',
-				status: test.status || 'draft',
-				type: test.type || 'psychology',
+				status: (test.status as 'draft' | 'published' | 'scheduled' | 'archived') || 'draft',
+				type: (test.type as 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle') || 'psychology',
 				thumbnailImage: test.thumbnail_url || '',
 				startMessage: '',
 				scheduledAt: test.scheduled_at || '',
@@ -58,6 +60,7 @@ export const useTests = () => {
 				published: 0,
 				draft: 0,
 				scheduled: 0,
+				archived: 0,
 				responses: 0,
 			};
 		}
@@ -67,6 +70,7 @@ export const useTests = () => {
 			published: tests.filter((test) => test.status === 'published').length,
 			draft: tests.filter((test) => test.status === 'draft').length,
 			scheduled: tests.filter((test) => test.status === 'scheduled').length,
+			archived: tests.filter((test) => test.status === 'archived').length,
 			responses: tests.reduce((sum, test) => sum + (test.response_count || 0), 0),
 		};
 	}, [tests]);

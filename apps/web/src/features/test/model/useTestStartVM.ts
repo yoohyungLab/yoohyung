@@ -40,26 +40,27 @@ export function useTestStartVM({ testId, testTitle, requiresGender }: IUseTestSt
 			if (isIncrementingRef.current) return;
 			isIncrementingRef.current = true;
 
+			console.log('handleStartTest called:', { requiresGender, testId, testTitle });
+
 			await incrementStartCount();
 			trackStart();
 
 			if (requiresGender) {
+				console.log('Showing gender modal');
 				setShowGenderModal(true);
 			} else {
+				console.log('Starting test without gender');
 				onStart();
 			}
 		},
-		[incrementStartCount, trackStart, requiresGender]
+		[incrementStartCount, trackStart, requiresGender, testId, testTitle]
 	);
 
 	// 성별 선택 처리
-	const handleGenderSelect = useCallback(
-		(gender: 'male' | 'female', onStart: (gender?: 'male' | 'female') => void) => {
-			setShowGenderModal(false);
-			onStart(gender);
-		},
-		[]
-	);
+	const handleGenderSelect = useCallback((gender: 'male' | 'female', onStart: (gender?: 'male' | 'female') => void) => {
+		setShowGenderModal(false);
+		onStart(gender);
+	}, []);
 
 	return {
 		showGenderModal,
@@ -67,4 +68,3 @@ export function useTestStartVM({ testId, testTitle, requiresGender }: IUseTestSt
 		handleGenderSelect,
 	};
 }
-

@@ -1,18 +1,13 @@
-import { supabase } from '@pickid/shared';
-import type {
-	Test,
-	TestInsert,
-	TestQuestionInsert,
-	TestResultInsert,
-	TestWithNestedDetails,
-	TestQuestion,
-	TestChoice,
-	TestResult,
-} from '@pickid/supabase';
+import { supabase } from '@pickid/supabase';
+import type { Test, TestWithNestedDetails, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
 
 // ============================================================================
 // 타입 정의
 // ============================================================================
+
+type TestInsert = Database['public']['Tables']['tests']['Insert'];
+type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
+type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 export interface QuestionCreationData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
 	choices: ChoiceCreationData[];
@@ -72,6 +67,7 @@ export const testService = {
 			return data || [];
 		} catch (error) {
 			handleSupabaseError(error, 'getTests');
+			return [];
 		}
 	},
 
@@ -80,12 +76,86 @@ export const testService = {
 	 */
 	async getTestWithDetails(testId: string): Promise<TestWithNestedDetails> {
 		try {
-			const { data, error } = await supabase.rpc('get_test_complete_optimized', {
-				test_uuid: testId,
+			// RPC 함수 대신 직접 쿼리 사용 (target_gender 필드 포함)
+			const { data: testData, error: testError } = await supabase.from('tests').select('*').eq('id', testId).single();
+
+			if (testError) throw testError;
+
+			const { data: questionsData, error: questionsError } = await supabase
+				.from('test_questions')
+				.select(
+					`
+					id,
+					question_text,
+					question_order,
+					image_url,
+					created_at,
+					updated_at,
+					test_choices:test_choices(
+						id,
+						choice_text,
+						choice_order,
+						score,
+						is_correct,
+						created_at
+					)
+				`
+				)
+				.eq('test_id', testId)
+				.order('question_order');
+
+			if (questionsError) throw questionsError;
+
+			const { data: resultsData, error: resultsError } = await supabase
+				.from('test_results')
+				.select(
+					`
+					id,
+					result_name,
+					result_order,
+					description,
+					match_conditions,
+					background_image_url,
+					theme_color,
+					features,
+					target_gender,
+					created_at,
+					updated_at
+				`
+				)
+				.eq('test_id', testId)
+				.order('result_order');
+
+			if (resultsError) throw resultsError;
+
+			console.log('직접 쿼리 결과 데이터:', {
+				testId,
+				hasTestData: !!testData,
+				questionsCount: questionsData?.length || 0,
+				resultsCount: resultsData?.length || 0,
+				questions: questionsData?.map((q: any) => ({
+					id: q.id,
+					question_text: q.question_text,
+					choicesCount: q.test_choices?.length || 0,
+					choices:
+						q.test_choices?.map((c: any) => ({
+							id: c.id,
+							choice_text: c.choice_text,
+							score: c.score,
+						})) || [],
+				})),
+				results: resultsData?.map((r: any) => ({
+					name: r.result_name,
+					target_gender: r.target_gender,
+					raw: r,
+				})),
 			});
 
-			if (error) throw error;
-			return validateTestData(testId, data) as TestWithNestedDetails;
+			return {
+				test: testData,
+				questions: questionsData || [],
+				results: resultsData || [],
+			} as TestWithNestedDetails;
 		} catch (error) {
 			handleSupabaseError(error, 'getTestWithDetails');
 		}
@@ -96,15 +166,32 @@ export const testService = {
 	 */
 	async updateTestStatus(id: string, status: string): Promise<Test> {
 		try {
-			const { data, error } = await supabase.rpc('update_test_status', {
-				test_uuid: id,
-				new_status: status,
-			});
+			console.log('테스트 상태 변경 시도:', { id, status });
 
-			if (error) throw error;
-			const result = validateRpcResult(data, '상태 변경에 실패했습니다.');
-			return result.test as Test;
+			// published_at 필드도 함께 업데이트
+			const updateData: any = {
+				status,
+				updated_at: new Date().toISOString(),
+			};
+
+			// published로 변경할 때 published_at 설정
+			if (status === 'published') {
+				updateData.published_at = new Date().toISOString();
+			} else if (status === 'draft') {
+				updateData.published_at = null;
+			}
+
+			const { data, error } = await supabase.from('tests').update(updateData).eq('id', id).select().single();
+
+			if (error) {
+				console.error('테스트 상태 변경 에러:', error);
+				throw error;
+			}
+
+			console.log('테스트 상태 변경 성공:', data);
+			return data;
 		} catch (error) {
+			console.error('테스트 상태 변경 실패:', error);
 			handleSupabaseError(error, 'updateTestStatus');
 		}
 	},
@@ -135,42 +222,137 @@ export const testService = {
 	): Promise<TestWithNestedDetails> {
 		try {
 			const isUpdate = !!testData.id;
-			const rpcName = isUpdate ? 'update_test_complete' : 'create_test_complete';
-			const rpcParams = isUpdate
-				? {
-						test_uuid: testData.id,
-						test_data: testData,
-						questions_data: questionsData,
-						results_data: resultsData,
-				  }
-				: {
-						test_data: testData,
-						questions_data: questionsData,
-						results_data: resultsData,
-				  };
 
-			const { data: result, error } = await supabase.rpc(rpcName, rpcParams);
+			if (isUpdate) {
+				// 업데이트 모드: 직접 테이블 업데이트
+				return await this.updateTestDirectly(testData, questionsData, resultsData);
+			} else {
+				// 생성 모드: RPC 함수 사용
+				const { data: result, error } = await supabase.rpc('create_test_complete', {
+					test_data: testData,
+					questions_data: questionsData,
+					results_data: resultsData,
+				});
 
-			if (error) throw error;
-
-			// 🔧 임시 수정: RPC 함수가 requires_gender를 제대로 업데이트하지 않는 문제 해결
-			// update_test_complete RPC 함수를 수정하기 전까지 직접 UPDATE 실행
-			if (isUpdate && testData.id && testData.requires_gender !== undefined) {
-				const { error: updateError } = await supabase
-					.from('tests')
-					.update({
-						requires_gender: testData.requires_gender,
-					})
-					.eq('id', testData.id);
-
-				if (updateError) {
-					throw updateError;
-				}
+				if (error) throw error;
+				return result as TestWithNestedDetails;
 			}
-
-			return result as TestWithNestedDetails;
 		} catch (error) {
 			handleSupabaseError(error, 'saveCompleteTest');
 		}
+	},
+
+	/**
+	 * 테스트 직접 업데이트 (RPC 함수 대신)
+	 */
+	async updateTestDirectly(
+		testData: TestInsert,
+		questionsData: TestQuestionInsert[],
+		resultsData: TestResultInsert[]
+	): Promise<TestWithNestedDetails> {
+		const testId = testData.id!;
+
+		console.log('직접 업데이트 시작:', {
+			testId,
+			questionsCount: questionsData.length,
+			resultsCount: resultsData.length,
+			questionsData: questionsData.map((q) => ({
+				question_text: q.question_text,
+				choicesCount: q.choices?.length || 0,
+				choices:
+					q.choices?.map((c) => ({
+						choice_text: c.choice_text,
+						score: c.score,
+					})) || [],
+			})),
+		});
+
+		// 1. 테스트 기본 정보 업데이트
+		const { error: testError } = await supabase
+			.from('tests')
+			.update({
+				title: testData.title,
+				description: testData.description,
+				slug: testData.slug,
+				thumbnail_url: testData.thumbnail_url,
+				category_ids: testData.category_ids,
+				short_code: testData.short_code,
+				intro_text: testData.intro_text,
+				status: testData.status,
+				published_at: testData.published_at,
+				requires_gender: testData.requires_gender,
+				estimated_time: testData.estimated_time,
+				max_score: testData.max_score,
+				type: testData.type,
+			})
+			.eq('id', testId);
+
+		if (testError) throw testError;
+
+		// 2. 기존 질문과 선택지 삭제
+		const { error: deleteQuestionsError } = await supabase.from('test_questions').delete().eq('test_id', testId);
+
+		if (deleteQuestionsError) throw deleteQuestionsError;
+
+		// 3. 새 질문과 선택지 삽입
+		for (let i = 0; i < questionsData.length; i++) {
+			const questionData = questionsData[i];
+
+			// 질문 삽입
+			const { data: questionResult, error: questionError } = await supabase
+				.from('test_questions')
+				.insert({
+					test_id: testId,
+					question_text: questionData.question_text,
+					question_order: i,
+					image_url: questionData.image_url,
+				})
+				.select('id')
+				.single();
+
+			if (questionError) throw questionError;
+
+			// 선택지 삽입
+			if (questionData.choices && questionData.choices.length > 0) {
+				const choicesToInsert = questionData.choices.map((choice, choiceIndex) => ({
+					question_id: questionResult.id,
+					choice_text: choice.choice_text,
+					choice_order: choiceIndex,
+					score: choice.score,
+					is_correct: choice.is_correct,
+				}));
+
+				const { error: choicesError } = await supabase.from('test_choices').insert(choicesToInsert);
+
+				if (choicesError) throw choicesError;
+			}
+		}
+
+		// 4. 기존 결과 삭제
+		const { error: deleteResultsError } = await supabase.from('test_results').delete().eq('test_id', testId);
+
+		if (deleteResultsError) throw deleteResultsError;
+
+		// 5. 새 결과 삽입
+		if (resultsData.length > 0) {
+			const resultsToInsert = resultsData.map((result, index) => ({
+				test_id: testId,
+				result_name: result.result_name,
+				description: result.description,
+				result_order: index,
+				background_image_url: result.background_image_url,
+				theme_color: result.theme_color,
+				match_conditions: result.match_conditions,
+				features: result.features,
+				target_gender: result.target_gender,
+			}));
+
+			const { error: resultsError } = await supabase.from('test_results').insert(resultsToInsert);
+
+			if (resultsError) throw resultsError;
+		}
+
+		// 6. 업데이트된 테스트 데이터 반환
+		return await this.getTestWithDetails(testId);
 	},
 };

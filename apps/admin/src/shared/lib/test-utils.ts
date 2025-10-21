@@ -71,13 +71,13 @@ export function formatTestDuration(minutes: number): string {
 	return remainingMinutes > 0 ? `${hours}시간 ${remainingMinutes}분` : `${hours}시간`;
 }
 
-export function calculateEstimatedTime(test: Test): number {
+export function calculateEstimatedTime(test: any): number {
 	// 질문당 평균 소요시간 (초)
 	const baseTimePerQuestion = 30;
-	const questionTime = test.questions.length * baseTimePerQuestion;
+	const questionTime = (test.questions?.length || 0) * baseTimePerQuestion;
 
 	// 유형별 가중치
-	const typeMultiplier = {
+	const typeMultiplier: Record<string, number> = {
 		psychology: 1.2, // 심리형은 조금 더 오래 걸림
 		balance: 0.8, // 밸런스형은 빠름
 		character: 1.0, // 기본
@@ -86,26 +86,35 @@ export function calculateEstimatedTime(test: Test): number {
 		lifestyle: 1.1, // 라이프스타일은 약간 오래
 	};
 
-	return Math.round((questionTime * typeMultiplier[test.type]) / 60); // 분 단위로 변환
+	return Math.round((questionTime * (typeMultiplier[test.type] || 1.0)) / 60); // 분 단위로 변환
 }
 
-export function getQuestionStats(test: Test) {
-	const optionCounts = test.questions.map((q) => q.options.length);
+export function getQuestionStats(test: any) {
+	const optionCounts = (test.questions || []).map((q: any) => q.options?.length || 0);
 	return {
-		total: test.questions.length,
-		avgOptions: Math.round((optionCounts.reduce((a, b) => a + b, 0) / optionCounts.length) * 10) / 10,
-		minOptions: Math.min(...optionCounts),
-		maxOptions: Math.max(...optionCounts),
-		groups: [...new Set(test.questions.map((q) => q.group).filter(Boolean))],
+		total: test.questions?.length || 0,
+		avgOptions:
+			optionCounts.length > 0
+				? Math.round((optionCounts.reduce((a: number, b: number) => a + b, 0) / optionCounts.length) * 10) / 10
+				: 0,
+		minOptions: optionCounts.length > 0 ? Math.min(...optionCounts) : 0,
+		maxOptions: optionCounts.length > 0 ? Math.max(...optionCounts) : 0,
+		groups: [...new Set((test.questions || []).map((q: any) => q.group).filter(Boolean))],
 	};
 }
 
-export function getResultStats(test: Test) {
+export function getResultStats(test: any) {
 	return {
-		total: test.results.length,
-		withEmoji: test.results.filter((r) => r.emoji).length,
-		withTheme: test.results.filter((r) => r.themeColor).length,
+		total: test.results?.length || 0,
+		withEmoji: (test.results || []).filter((r: any) => r.emoji).length,
+		withTheme: (test.results || []).filter((r: any) => r.themeColor).length,
 		avgKeywords:
-			Math.round((test.results.reduce((sum, r) => sum + r.keywords.length, 0) / test.results.length) * 10) / 10,
+			test.results?.length > 0
+				? Math.round(
+						((test.results || []).reduce((sum: number, r: any) => sum + (r.keywords?.length || 0), 0) /
+							test.results.length) *
+							10
+				  ) / 10
+				: 0,
 	};
 }

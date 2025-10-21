@@ -2,7 +2,7 @@
 
 import { DefaultSelect } from '@pickid/ui';
 
-type SortOption = 'popular' | 'recent' | 'starts';
+type SortOption = 'recent' | 'starts';
 
 interface TestFilterProps {
 	sortBy: SortOption;
@@ -23,9 +23,8 @@ export function TestFilter({ sortBy, onSortChange, totalCount }: TestFilterProps
 					value={sortBy}
 					onValueChange={(v) => onSortChange(v as SortOption)}
 					options={[
-						{ value: 'popular', label: '인기순(완료)' },
 						{ value: 'recent', label: '최신순' },
-						{ value: 'starts', label: '시작순' },
+						{ value: 'starts', label: '조회순' },
 					]}
 					placeholder="정렬 선택"
 					size="sm"

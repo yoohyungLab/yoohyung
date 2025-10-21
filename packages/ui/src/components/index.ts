@@ -17,6 +17,7 @@ export * from './progress-bar';
 export * from './switch';
 export * from './table';
 export * from './tabs';
+export * from './toaster';
 
 export * from './input/input';
 export * from './input/default-input';

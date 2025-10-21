@@ -1,6 +1,7 @@
 import React from 'react';
 import { DefaultInput, DefaultTextarea, DefaultSelect, Button } from '@pickid/ui';
 import { RefreshCw } from 'lucide-react';
+import { generateSlug } from '@/utils/test.utils';
 import { BasicInfoFormProps } from '../types';
 
 const TIME_OPTIONS = [
@@ -25,8 +26,30 @@ export function BasicInfoForm({
 					label="테스트 제목"
 					required
 					value={testData.title}
-					onChange={(e) => onUpdateTitle(e.target.value)}
+					onChange={(e) => {
+						const newTitle = e.target.value;
+						onUpdateTitle(newTitle);
+
+						// 제목이 변경되면 자동으로 slug 생성 (slug가 비어있을 때만)
+						if (!testData.slug || testData.slug.trim() === '') {
+							const newSlug = generateSlug(newTitle);
+							onUpdateTestData({ ...testData, title: newTitle, slug: newSlug });
+						} else {
+							onUpdateTestData({ ...testData, title: newTitle });
+						}
+					}}
 					placeholder="예: 나는 어떤 MBTI 유형일까?"
+				/>
+			</div>
+
+			<div>
+				<DefaultInput
+					label="URL 슬러그"
+					required
+					value={testData.slug}
+					onChange={(e) => onUpdateTestData({ ...testData, slug: e.target.value })}
+					placeholder="예: my-mbti-test"
+					helpText="URL에 사용될 고유한 식별자입니다. 한글, 영문, 숫자, 하이픈만 사용 가능합니다."
 				/>
 				{testData.slug && <p className="text-sm text-gray-500 mt-1">URL: /tests/{testData.slug}</p>}
 			</div>
@@ -82,7 +105,7 @@ export function BasicInfoForm({
 
 				<DefaultSelect
 					label="테스트 상태"
-					value={testData.status || 'draft'}
+					value={testData.status || 'published'}
 					onValueChange={(value: string) =>
 						onUpdateTestData({
 							...testData,
@@ -90,8 +113,8 @@ export function BasicInfoForm({
 						})
 					}
 					options={[
-						{ value: 'draft', label: '초안' },
 						{ value: 'published', label: '공개' },
+						{ value: 'draft', label: '초안' },
 					]}
 					placeholder="상태를 선택하세요"
 				/>

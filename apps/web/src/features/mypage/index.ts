@@ -1,2 +1,6 @@
-// UI layer exports - 프레젠테이션 컴포넌트
+// ============================================================================
+// MyPage Feature - Public API
+// ============================================================================
+
+// UI Components
 export { MyPageContainer } from './ui/mypage-container';

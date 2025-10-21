@@ -29,6 +29,8 @@ const buttonVariants = cva(
 				default: 'h-9 px-4 py-2',
 				sm: 'h-8 rounded-md px-3 text-xs',
 				lg: 'h-10 rounded-md px-8',
+				xl: 'h-13 px-6 py-3 text-base',
+				xxl: 'h-20 px-8 py-6 text-lg',
 				icon: 'h-9 w-9',
 			},
 		},
@@ -75,8 +77,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 				disabled={isDisabled}
 				{...props}
 			>
-				{loading && <Loader2 className="w-4 h-4 animate-spin" />}
-				{loading ? loadingText : children}
+				{loading ? (
+					<>
+						<Loader2 className="w-4 h-4 animate-spin" />
+						{loadingText}
+					</>
+				) : (
+					children
+				)}
 			</Comp>
 		);
 	}

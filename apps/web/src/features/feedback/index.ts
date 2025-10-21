@@ -1,12 +1,16 @@
-// Feedback feature public API - FSD 구조
-// Model layer (비즈니스 로직)
-export * from './model';
+// ============================================================================
+// Feedback Feature - Public API
+// ============================================================================
 
-// UI layer (프레젠테이션 컴포넌트)
-export * from './ui';
+// UI Components
+export { FeedbackCategorySelector } from './ui/feedback-category-selector';
+export { FeedbackContainer } from './ui/feedback-container';
+export { FeedbackCreateContainer } from './ui/feedback-create-container';
+export { FeedbackForm } from './ui/feedback-form';
+export { FeedbackList } from './ui/feedback-list';
 
-// API layer (데이터 페칭)
-export * from './api';
+// Model/Hooks
+export { useFeedback, useFeedbackList, useFeedbackDetail } from './model/useFeedback';
 
-// Lib layer (유틸리티와 상수)
-export * from './lib';
+// Utils
+export { getCategoryInfo, getStatusInfo, formatDate, formatDateTime, getStatusClassName } from './lib/utils';

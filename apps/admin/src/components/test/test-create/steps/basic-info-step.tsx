@@ -186,7 +186,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 				<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
 					<div className="text-base font-medium">즉시발행</div>
 					<Switch
-						checked={testData.status === 'published'}
+						checked={testData.status === 'published' || testData.status === undefined}
 						onCheckedChange={(checked) =>
 							onUpdateTestData({
 								...testData,

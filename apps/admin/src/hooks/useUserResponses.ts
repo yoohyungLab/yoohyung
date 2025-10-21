@@ -62,7 +62,7 @@ export const useUserResponses = () => {
 				extendedResponse.category_names?.some((cat: string) =>
 					cat.toLowerCase().includes(filters.search?.toLowerCase() || '')
 				) ||
-				extendedResponse.result_name?.toLowerCase().includes(filters.search.toLowerCase());
+				extendedResponse.result_name?.toLowerCase().includes((filters.search || '').toLowerCase());
 			const matchesTestId = filters.testId === 'all' || response.test_id === filters.testId;
 			const matchesCategory = filters.category === 'all' || extendedResponse.category_ids?.includes(filters.category);
 			const matchesDevice = filters.device === 'all' || response.device_type === filters.device;

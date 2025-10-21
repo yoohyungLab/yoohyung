@@ -1,274 +1,103 @@
-// TODO: GA로 대체 - Google Analytics 4의 "획득" 및 "참여도" 보고서 사용
+// 이 페이지의 기능들은 Google Analytics 4로 이전되었습니다
 // - 트래픽 획득: GA4 → 수명 주기 → 획득 → 트래픽 획득
 // - 사용자 획득: GA4 → 수명 주기 → 획득 → 사용자 획득
 // - 실시간 통계: GA4 → 실시간
 // - 기기/지역: GA4 → 사용자 → 기술/인구통계
 
-import React, { useState } from 'react';
-import { useMarketingAnalytics } from '@/hooks/useMarketingAnalytics';
-import { MarketingFiltersComponent } from '@/components/marketing/marketing-filters';
-import { BarChart3, Activity } from 'lucide-react';
+import React from 'react';
+import { BarChart3, Activity, ExternalLink } from 'lucide-react';
 
 export function GrowthPage() {
-	const { funnelData, landingPerformance, devices, regions, filters, setFilters, loading } = useMarketingAnalytics();
-
-	const [activeTab, setActiveTab] = useState<'overview' | 'traffic'>('overview');
-
-	const tabs = [
-		{ id: 'overview', label: '개요', icon: BarChart3 },
-		{ id: 'traffic', label: '유입 통계', icon: Activity },
-	];
-
 	return (
 		<div className="space-y-6">
-			{/* 필터 */}
-			<MarketingFiltersComponent
-				filters={filters}
-				onFiltersChange={setFilters}
-				devices={devices}
-				regions={regions}
-				loading={loading.filters}
-			/>
-
-			{/* 탭 네비게이션 */}
-			<div className="border-b border-gray-200">
-				<nav className="-mb-px flex space-x-8">
-					{tabs.map((tab) => {
-						const Icon = tab.icon;
-						return (
-							<button
-								key={tab.id}
-								onClick={() => setActiveTab(tab.id as 'overview' | 'traffic')}
-								className={`flex items-center gap-2 py-2 px-1 border-b-2 font-medium text-sm ${
-									activeTab === tab.id
-										? 'border-blue-500 text-blue-600'
-										: 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-								}`}
-							>
-								<Icon className="w-4 h-4" />
-								{tab.label}
-							</button>
-						);
-					})}
-				</nav>
+			{/* 헤더 */}
+			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+				<div>
+					<h1 className="text-3xl font-bold text-gray-900">성장 분석</h1>
+					<p className="text-gray-600 mt-1">Google Analytics에서 더 강력한 분석 기능을 확인하세요</p>
+				</div>
 			</div>
 
-			{/* 탭 콘텐츠 */}
-			<div className="space-y-6">
-				{activeTab === 'overview' && (
-					<div className="space-y-6">
-						{/* 핵심 지표 카드들 */}
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<Activity className="h-8 w-8 text-blue-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">총 방문자</p>
-										<p className="text-2xl font-semibold text-gray-900">{funnelData?.visits || 0}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<BarChart3 className="h-8 w-8 text-green-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">테스트 시작</p>
-										<p className="text-2xl font-semibold text-gray-900">{funnelData?.test_starts || 0}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<Activity className="h-8 w-8 text-purple-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">테스트 완료</p>
-										<p className="text-2xl font-semibold text-gray-900">{funnelData?.test_completes || 0}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<BarChart3 className="h-8 w-8 text-orange-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">완료율</p>
-										<p className="text-2xl font-semibold text-gray-900">
-											{funnelData?.complete_rate?.toFixed(1) || 0}%
-										</p>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* 주요 통계 요약 */}
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-							{/* 최근 활동 요약 */}
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<h3 className="text-lg font-semibold text-gray-900 mb-4">최근 활동</h3>
-								<div className="space-y-3 text-sm text-gray-600">
-									<div className="flex justify-between">
-										<span>오늘 테스트 응답:</span>
-										<span className="font-medium text-gray-900">{funnelData?.test_completes || 0}건</span>
-									</div>
-									<div className="flex justify-between">
-										<span>이번 주 총 응답:</span>
-										<span className="font-medium text-gray-900">{funnelData?.visits || 0}건</span>
-									</div>
-									<div className="flex justify-between">
-										<span>평균 완료율:</span>
-										<span className="font-medium text-gray-900">{funnelData?.complete_rate?.toFixed(1) || 0}%</span>
-									</div>
-									<div className="flex justify-between">
-										<span>시작율:</span>
-										<span className="font-medium text-gray-900">{funnelData?.start_rate?.toFixed(1) || 0}%</span>
-									</div>
-								</div>
-							</div>
-
-							{/* 시스템 상태 */}
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<h3 className="text-lg font-semibold text-gray-900 mb-4">시스템 상태</h3>
-								<div className="space-y-3 text-sm text-gray-600">
-									<div className="flex justify-between">
-										<span>활성 테스트 수:</span>
-										<span className="font-medium text-gray-900">{landingPerformance?.length || 0}개</span>
-									</div>
-									<div className="flex justify-between">
-										<span>데이터 수집 상태:</span>
-										<span className="font-medium text-green-600">정상</span>
-									</div>
-									<div className="flex justify-between">
-										<span>마지막 업데이트:</span>
-										<span className="font-medium text-gray-900">방금 전</span>
-									</div>
-									<div className="flex justify-between">
-										<span>서버 상태:</span>
-										<span className="font-medium text-green-600">온라인</span>
-									</div>
-								</div>
-							</div>
-						</div>
+			{/* GA 안내 카드들 */}
+			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+				{/* 트래픽 획득 */}
+				<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+					<div className="flex items-center mb-4">
+						<Activity className="h-8 w-8 text-blue-600 mr-3" />
+						<h3 className="text-lg font-semibold text-gray-900">트래픽 획득</h3>
 					</div>
-				)}
-
-				{activeTab === 'traffic' && (
-					<div className="space-y-6">
-						{/* 유입 통계 카드들 */}
-						<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<Activity className="h-8 w-8 text-blue-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">총 방문자</p>
-										<p className="text-2xl font-semibold text-gray-900">{funnelData?.visits || 0}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<BarChart3 className="h-8 w-8 text-green-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">완료율</p>
-										<p className="text-2xl font-semibold text-gray-900">
-											{funnelData?.complete_rate?.toFixed(1) || 0}%
-										</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<Activity className="h-8 w-8 text-purple-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">테스트 수</p>
-										<p className="text-2xl font-semibold text-gray-900">{landingPerformance?.length || 0}</p>
-									</div>
-								</div>
-							</div>
-
-							<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-								<div className="flex items-center">
-									<div className="flex-shrink-0">
-										<BarChart3 className="h-8 w-8 text-orange-600" />
-									</div>
-									<div className="ml-4">
-										<p className="text-sm font-medium text-gray-500">시작율</p>
-										<p className="text-2xl font-semibold text-gray-900">{funnelData?.start_rate?.toFixed(1) || 0}%</p>
-									</div>
-								</div>
-							</div>
-						</div>
-
-						{/* TODO: GA로 대체 - 디바이스별 유입 통계 */}
-						{/* GA4 → 사용자 → 기술 → 기기 카테고리에서 더 상세한 정보 확인 가능 */}
-						<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-							<h3 className="text-lg font-semibold text-gray-900 mb-4">디바이스별 유입 통계</h3>
-							<div className="text-center py-8 text-gray-500">
-								<p className="mb-2">이 기능은 Google Analytics로 이전되었습니다</p>
-								<p className="text-sm">GA4 → 사용자 → 기술 → 기기 카테고리</p>
-							</div>
-							{/* 
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-								{devices?.map((device, index) => (
-									<div key={index} className="bg-gray-50 rounded-lg p-4">
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium text-gray-900 capitalize">{device}</span>
-											<span className="text-sm text-gray-500">데이터 수집 중</span>
-										</div>
-									</div>
-								)) || (
-									<div className="col-span-full text-center py-8 text-gray-500">
-										<p>디바이스별 데이터를 수집 중입니다.</p>
-									</div>
-								)}
-							</div>
-							*/}
-						</div>
-
-						{/* TODO: GA로 대체 - 지역별 유입 통계 */}
-						{/* GA4 → 사용자 → 인구통계 → 위치에서 국가/도시/언어까지 확인 가능 */}
-						<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-							<h3 className="text-lg font-semibold text-gray-900 mb-4">지역별 유입 통계</h3>
-							<div className="text-center py-8 text-gray-500">
-								<p className="mb-2">이 기능은 Google Analytics로 이전되었습니다</p>
-								<p className="text-sm">GA4 → 사용자 → 인구통계 → 위치</p>
-							</div>
-							{/* 
-							<div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-								{regions?.map((region, index) => (
-									<div key={index} className="bg-gray-50 rounded-lg p-4">
-										<div className="flex items-center justify-between">
-											<span className="text-sm font-medium text-gray-900">{region}</span>
-											<span className="text-sm text-gray-500">데이터 수집 중</span>
-										</div>
-									</div>
-								)) || (
-									<div className="col-span-full text-center py-8 text-gray-500">
-										<p>지역별 데이터를 수집 중입니다.</p>
-									</div>
-								)}
-							</div>
-							*/}
-						</div>
+					<p className="text-sm text-gray-600 mb-4">사용자 유입 경로와 채널별 성과를 분석하세요</p>
+					<div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+						<p className="font-semibold mb-1">GA4에서 확인하기:</p>
+						<p>수명 주기 → 획득 → 트래픽 획득</p>
 					</div>
-				)}
+				</div>
+
+				{/* 사용자 획득 */}
+				<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+					<div className="flex items-center mb-4">
+						<BarChart3 className="h-8 w-8 text-green-600 mr-3" />
+						<h3 className="text-lg font-semibold text-gray-900">사용자 획득</h3>
+					</div>
+					<p className="text-sm text-gray-600 mb-4">신규 사용자와 재방문 사용자 패턴을 분석하세요</p>
+					<div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+						<p className="font-semibold mb-1">GA4에서 확인하기:</p>
+						<p>수명 주기 → 획득 → 사용자 획득</p>
+					</div>
+				</div>
+
+				{/* 실시간 분석 */}
+				<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+					<div className="flex items-center mb-4">
+						<Activity className="h-8 w-8 text-purple-600 mr-3" />
+						<h3 className="text-lg font-semibold text-gray-900">실시간 분석</h3>
+					</div>
+					<p className="text-sm text-gray-600 mb-4">현재 사이트 활동과 사용자 행동을 실시간으로 모니터링하세요</p>
+					<div className="text-xs text-gray-500 bg-gray-50 p-3 rounded">
+						<p className="font-semibold mb-1">GA4에서 확인하기:</p>
+						<p>실시간 → 개요</p>
+					</div>
+				</div>
+			</div>
+
+			{/* 상세 분석 안내 */}
+			<div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6">
+				<h3 className="text-lg font-semibold text-gray-900 mb-4">📊 추가 분석 기능</h3>
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+					<div>
+						<h4 className="font-medium text-gray-900 mb-2">기술 분석</h4>
+						<ul className="text-sm text-gray-600 space-y-1">
+							<li>• 기기 카테고리 (모바일/데스크톱/태블릿)</li>
+							<li>• 브라우저 및 OS 정보</li>
+							<li>• 화면 해상도 및 색상</li>
+						</ul>
+						<p className="text-xs text-gray-500 mt-2">GA4 → 사용자 → 기술</p>
+					</div>
+					<div>
+						<h4 className="font-medium text-gray-900 mb-2">인구통계 분석</h4>
+						<ul className="text-sm text-gray-600 space-y-1">
+							<li>• 지역별 사용자 분포</li>
+							<li>• 언어 및 국가 정보</li>
+							<li>• 연령 및 성별 데이터</li>
+						</ul>
+						<p className="text-xs text-gray-500 mt-2">GA4 → 사용자 → 인구통계</p>
+					</div>
+				</div>
+			</div>
+
+			{/* GA 접속 안내 */}
+			<div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 text-center">
+				<h3 className="text-lg font-semibold text-gray-900 mb-2">Google Analytics 접속하기</h3>
+				<p className="text-gray-600 mb-4">더 상세하고 정확한 분석 데이터를 확인하세요</p>
+				<a
+					href="https://analytics.google.com"
+					target="_blank"
+					rel="noopener noreferrer"
+					className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+				>
+					<ExternalLink className="w-4 h-4" />
+					Google Analytics 열기
+				</a>
 			</div>
 		</div>
 	);

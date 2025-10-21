@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { Button } from '@pickid/ui';
+import { useRef, useCallback } from 'react';
 import type { Category } from '@pickid/supabase';
 
 interface CategoryNavigationProps {
@@ -12,46 +11,88 @@ interface CategoryNavigationProps {
 
 /**
  * 카테고리 네비게이션 컴포넌트
- * 카테고리 목록을 가로 스크롤로 표시하는 컴포넌트
+ * 단순한 가로 스크롤 카테고리 목록
  */
 export function CategoryNavigation({ categories, currentSlug, onCategoryChange }: CategoryNavigationProps) {
-	const scrollContainerRef = useRef<HTMLDivElement>(null);
+	const scrollRef = useRef<HTMLDivElement>(null);
+	const isDraggingRef = useRef(false);
+	const dragStartRef = useRef({ x: 0, scrollLeft: 0 });
 
-	// 현재 활성 카테고리로 자동 스크롤
-	useEffect(() => {
-		if (scrollContainerRef.current) {
-			const activeButton = scrollContainerRef.current.querySelector(
-				`[data-category-slug="${currentSlug}"]`
-			) as HTMLElement;
-			if (activeButton) {
-				activeButton.scrollIntoView({
-					behavior: 'smooth',
-					block: 'nearest',
-					inline: 'center',
-				});
-			}
-		}
-	}, [currentSlug]);
+	// 드래그 스크롤 시작
+	const handleMouseDown = useCallback((e: React.MouseEvent) => {
+		if (!scrollRef.current) return;
+
+		isDraggingRef.current = true;
+		dragStartRef.current = {
+			x: e.pageX - scrollRef.current.offsetLeft,
+			scrollLeft: scrollRef.current.scrollLeft,
+		};
+
+		scrollRef.current.style.cursor = 'grabbing';
+		scrollRef.current.style.userSelect = 'none';
+	}, []);
+
+	// 드래그 스크롤 중
+	const handleMouseMove = useCallback((e: React.MouseEvent) => {
+		if (!isDraggingRef.current || !scrollRef.current) return;
+
+		e.preventDefault();
+		const x = e.pageX - scrollRef.current.offsetLeft;
+		const walk = (x - dragStartRef.current.x) * 2;
+		scrollRef.current.scrollLeft = dragStartRef.current.scrollLeft - walk;
+	}, []);
+
+	// 드래그 스크롤 종료
+	const handleMouseUp = useCallback(() => {
+		if (!scrollRef.current) return;
+
+		isDraggingRef.current = false;
+		scrollRef.current.style.cursor = 'grab';
+		scrollRef.current.style.userSelect = '';
+	}, []);
+
+	// 카테고리 클릭 핸들러
+	const handleCategoryClick = useCallback(
+		(slug: string) => {
+			if (isDraggingRef.current) return;
+			onCategoryChange(slug);
+		},
+		[onCategoryChange]
+	);
 
 	return (
-		<div
-			ref={scrollContainerRef}
-			className="overflow-x-auto -mx-4 px-4 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none] scroll-smooth"
-		>
-			<div className="flex gap-2 min-w-max pb-1">
+		<div className="px-4 py-3">
+			<div
+				ref={scrollRef}
+				className="flex gap-1 overflow-x-auto scrollbar-hide scroll-smooth cursor-grab"
+				style={{
+					scrollbarWidth: 'none',
+					msOverflowStyle: 'none',
+					WebkitOverflowScrolling: 'touch',
+				}}
+				onMouseDown={handleMouseDown}
+				onMouseMove={handleMouseMove}
+				onMouseUp={handleMouseUp}
+				onMouseLeave={handleMouseUp}
+			>
 				{categories.map((cat) => {
 					const isActive = cat.slug === currentSlug;
 					return (
-						<Button
+						<button
 							key={cat.id}
-							variant={isActive ? 'default' : 'outline'}
-							size="sm"
-							onClick={() => onCategoryChange(cat.slug)}
-							className="whitespace-nowrap flex-shrink-0"
-							data-category-slug={cat.slug}
+							onClick={() => handleCategoryClick(cat.slug)}
+							className={`
+								flex-shrink-0 px-3 py-1.5 rounded-lg transition-all duration-200 ease-in-out
+								whitespace-nowrap text-xs font-semibold
+								${
+									isActive
+										? 'bg-primary text-primary-foreground border border-transparent shadow-sm'
+										: 'bg-white text-gray-700 border border-gray-200 hover:bg-primary hover:text-white hover:border-transparent'
+								}
+							`}
 						>
 							{cat.name}
-						</Button>
+						</button>
 					);
 				})}
 			</div>

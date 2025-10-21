@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { FeedbackList, useFeedbackList } from '@/features/feedback';
+import { FeedbackList } from '@/features/feedback';
+import { useFeedbackList } from '@/features/feedback';
 import { Button } from '@pickid/ui';
 
 export function FeedbackContainer() {

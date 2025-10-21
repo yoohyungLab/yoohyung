@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, DefaultInput, InputPassword, IconButton } from '@pickid/ui';
-import { useAuthVM } from '../hooks';
+import { useAuthVM } from '@/features/auth';
 import { mapAuthError } from '@/shared/lib/error-mapper';
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '../schemas/auth.schema';
 
@@ -23,18 +23,25 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 	const isLogin = mode === 'login';
 	const isRegister = mode === 'register';
 
-	// React Hook Form 설정
-	const form = useForm({
-		resolver: zodResolver(isLogin ? loginSchema : registerSchema),
-		defaultValues: isLogin ? { email: '', password: '' } : { name: '', email: '', password: '', confirmPassword: '' },
-		mode: 'onChange', // 실시간 유효성 검사
+	// React Hook Form 설정 - 조건부로 생성
+	const loginForm = useForm<LoginFormData>({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		resolver: zodResolver(loginSchema as any),
+		defaultValues: { email: '', password: '' },
+		mode: 'onChange',
 	});
 
-	const {
-		handleSubmit,
-		register,
-		formState: { errors, isSubmitting },
-	} = form;
+	const registerForm = useForm<RegisterFormData>({
+		// eslint-disable-next-line @typescript-eslint/no-explicit-any
+		resolver: zodResolver(registerSchema as any),
+		defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
+		mode: 'onChange',
+	});
+
+	// 현재 폼에 따라 적절한 handleSubmit과 formState 사용
+	const handleSubmit = isLogin ? loginForm.handleSubmit : registerForm.handleSubmit;
+	const isSubmitting = isLogin ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting;
+	const currentForm = isLogin ? loginForm : registerForm;
 
 	const onSubmit = async (data: LoginFormData | RegisterFormData) => {
 		try {
@@ -48,7 +55,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 			router.push('/');
 		} catch (err) {
 			// 에러는 form.setError로 처리
-			form.setError('root', {
+			currentForm.setError('root', {
 				type: 'manual',
 				message: mapAuthError(err),
 			});
@@ -59,7 +66,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 		try {
 			await signInWithKakao();
 		} catch (err) {
-			form.setError('root', {
+			currentForm.setError('root', {
 				type: 'manual',
 				message: mapAuthError(err),
 			});
@@ -69,11 +76,13 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 	return (
 		<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
 			{/* 에러 메시지 */}
-			{errors.root && (
+			{(isLogin ? loginForm.formState.errors.root : registerForm.formState.errors.root) && (
 				<div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg animate-shake">
 					<div className="flex items-center">
 						<span className="text-red-500 mr-2">⚠️</span>
-						<p className="text-red-700 text-sm font-medium">{errors.root.message}</p>
+						<p className="text-red-700 text-sm font-medium">
+							{String((isLogin ? loginForm.formState.errors.root : registerForm.formState.errors.root)?.message)}
+						</p>
 					</div>
 				</div>
 			)}
@@ -107,64 +116,78 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 			{isRegister && (
 				<div className="space-y-2">
 					<DefaultInput
-						{...register('name')}
+						{...registerForm.register('name')}
 						id="name"
 						type="text"
 						placeholder="닉네임 또는 이름을 입력하세요"
 						label="닉네임 또는 이름"
 						className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
-							'name' in errors && errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+							registerForm.formState.errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
 						}`}
 					/>
-					{'name' in errors && errors.name && <p className="text-red-500 text-sm mt-1">{errors.name.message}</p>}
+					{registerForm.formState.errors.name && (
+						<p className="text-red-500 text-sm mt-1">{String(registerForm.formState.errors.name.message)}</p>
+					)}
 				</div>
 			)}
 
 			{/* 이메일 필드 */}
 			<div className="space-y-2">
 				<DefaultInput
-					{...register('email')}
+					{...(isLogin ? loginForm.register('email') : registerForm.register('email'))}
 					id="email"
 					type="email"
 					placeholder="your@email.com"
 					label="이메일"
 					className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
-						errors.email ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+						(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email)
+							? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+							: ''
 					}`}
 				/>
-				{errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+				{(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email) && (
+					<p className="text-red-500 text-sm mt-1">
+						{String((isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email)?.message)}
+					</p>
+				)}
 			</div>
 
 			{/* 비밀번호 필드 */}
 			<div className="space-y-2">
 				<InputPassword
-					{...register('password')}
+					{...(isLogin ? loginForm.register('password') : registerForm.register('password'))}
 					id="password"
 					placeholder={isLogin ? '••••••••' : '6자 이상의 비밀번호'}
 					label="비밀번호"
 					className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
-						errors.password ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
+						(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password)
+							? 'border-red-500 focus:border-red-500 focus:ring-red-500'
+							: ''
 					}`}
 				/>
-				{errors.password && <p className="text-red-500 text-sm mt-1">{errors.password.message}</p>}
+				{(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password) && (
+					<p className="text-red-500 text-sm mt-1">
+						{String((isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password)?.message)}
+					</p>
+				)}
 			</div>
 
 			{/* 회원가입 시 비밀번호 확인 필드 */}
 			{isRegister && (
 				<div className="space-y-2">
 					<InputPassword
-						{...register('confirmPassword')}
+						{...registerForm.register('confirmPassword')}
 						id="confirmPassword"
 						placeholder="비밀번호를 다시 입력하세요"
 						label="비밀번호 확인"
 						className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
-							'confirmPassword' in errors && errors.confirmPassword
+							registerForm.formState.errors.confirmPassword
 								? 'border-red-500 focus:border-red-500 focus:ring-red-500'
 								: ''
 						}`}
 					/>
-					{'confirmPassword' in errors && errors.confirmPassword && (
-						<p className="text-red-500 text-sm mt-1">{errors.confirmPassword.message}</p>
+					{registerForm.formState.errors.confirmPassword && (
+						<p className="text-red-500 text-sm mt-1">{String(registerForm.formState.errors.confirmPassword.message)}</p>
 					)}
 				</div>
 			)}

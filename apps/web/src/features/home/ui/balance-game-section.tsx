@@ -1,120 +1,176 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import type { BalanceOption } from '@/shared/types';
-
-const BALANCE_OPTIONS: BalanceOption[] = [
-	{ id: 'A', emoji: '🍜', label: '라면', percentage: 52 },
-	{ id: 'B', emoji: '🍕', label: '피자', percentage: 48 },
-];
-
-const TOTAL_VOTES = 1234;
+import Link from 'next/link';
+import { useHomeBalanceGame } from '@/shared/hooks/use-home-balance-game';
 
 export default function BalanceGameSection() {
-	const [selectedBalance, setSelectedBalance] = useState<'A' | 'B' | null>(null);
-	const [showResult, setShowResult] = useState(false);
+	const { game, isLoading, vote, isVoting, voteResult, resetVote } = useHomeBalanceGame();
 
-	const handleVote = useCallback((id: 'A' | 'B') => {
-		setSelectedBalance(id);
-		setShowResult(true);
-	}, []);
+	if (isLoading) {
+		return (
+			<section className="py-8">
+				<h2 className="text-2xl font-black text-gray-900 mb-4">밸런스 게임</h2>
+				<div className="bg-white rounded-2xl p-5 animate-pulse border border-gray-200">
+					<div className="h-32 bg-gray-200 rounded-lg" />
+				</div>
+			</section>
+		);
+	}
 
-	const handleReset = useCallback(() => {
-		setShowResult(false);
-		setSelectedBalance(null);
-	}, []);
+	if (!game) return null;
 
-	const selectedOption = BALANCE_OPTIONS.find((opt) => opt.id === selectedBalance);
+	const showResult = voteResult !== null;
+	const selectedChoice = voteResult?.choice;
+
+	const stats = voteResult?.stats || {
+		totalVotes: game.totalVotes,
+		votesA: game.votesA,
+		votesB: game.votesB,
+		percentageA: game.totalVotes > 0 ? Math.round((game.votesA / game.totalVotes) * 100) : 50,
+		percentageB: game.totalVotes > 0 ? Math.round((game.votesB / game.totalVotes) * 100) : 50,
+	};
+
+	const options = [
+		{
+			id: 'A' as const,
+			emoji: game.optionAEmoji,
+			label: game.optionALabel,
+			votes: stats.votesA,
+			percentage: stats.percentageA,
+		},
+		{
+			id: 'B' as const,
+			emoji: game.optionBEmoji,
+			label: game.optionBLabel,
+			votes: stats.votesB,
+			percentage: stats.percentageB,
+		},
+	];
 
 	return (
 		<section className="py-8">
-			<header className="mb-5">
-				<h2 className="text-xl font-bold text-gray-900">오늘의 밸런스</h2>
-			</header>
-			<div className="bg-white rounded-lg border border-gray-200 p-5">
-				<p className="text-sm font-bold text-gray-900 mb-4">평생 라면만 먹기 vs 평생 피자만 먹기</p>
+			<h2 className="text-2xl font-black text-gray-900 mb-4">{game.title}</h2>
 
+			<div className="bg-white rounded-2xl p-5 relative overflow-hidden border border-gray-200 shadow-sm">
 				{!showResult ? (
 					<>
-						<section className="grid grid-cols-2 gap-3">
-							{BALANCE_OPTIONS.map(({ id, emoji, label }) => (
+						<div className="grid grid-cols-2 gap-3 mb-4">
+							{options.map(({ id, emoji, label }) => (
 								<button
 									key={id}
-									onClick={() => handleVote(id)}
-									className="rounded-lg p-4 bg-gray-100 hover:bg-gray-200 transition-all"
+									onClick={() => vote(id)}
+									disabled={isVoting}
+									className="group bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 hover:border-gray-900 transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
 									type="button"
 								>
-									<div className="text-2xl mb-2" aria-hidden="true">
-										{emoji}
+									<div className="text-center space-y-2">
+										<div
+											className={`w-11 h-11 mx-auto rounded-full flex items-center justify-center text-xl ${
+												id === 'A' ? 'bg-purple-50' : 'bg-pink-50'
+											}`}
+										>
+											{emoji}
+										</div>
+										<p className="text-sm font-bold text-gray-900 break-keep leading-tight">{label}</p>
 									</div>
-									<div className="text-sm font-bold text-gray-900">{label}</div>
 								</button>
 							))}
-						</section>
-						<p className="text-xs text-gray-500 text-center mt-4">선택하고 결과를 확인하세요</p>
+						</div>
+
+						<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+							<div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-pink-100 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+								<span className="text-xs font-black text-gray-700">VS</span>
+							</div>
+						</div>
+
+						<p className="text-xs text-center text-gray-500 mt-3">
+							{stats.totalVotes > 0 ? `${stats.totalVotes.toLocaleString()}명 참여` : '아직 투표가 없습니다'}
+						</p>
 					</>
 				) : (
 					<div className="space-y-4">
-						{/* 투표 결과 */}
-						<section className="space-y-2">
-							{BALANCE_OPTIONS.map(({ id, emoji, label, percentage }) => {
-								const isSelected = selectedBalance === id;
+						<div className="space-y-2.5">
+							{options.map(({ id, emoji, label, votes, percentage }) => {
+								const isSelected = selectedChoice === id;
+								const isA = id === 'A';
+
 								return (
-									<div key={id} className="relative">
-										<div className="flex items-center justify-between mb-1">
-											<div className="flex items-center gap-2">
+									<div
+										key={id}
+										className={`rounded-xl p-3.5 transition-all border ${
+											isSelected
+												? isA
+													? 'bg-gradient-to-br from-purple-50 to-pink-50 border-purple-200'
+													: 'bg-gradient-to-br from-pink-50 to-rose-50 border-pink-200'
+												: 'bg-gray-50 border-gray-200'
+										}`}
+									>
+										<div className="flex items-center justify-between mb-2">
+											<div className="flex items-center gap-2.5">
 												<span className="text-lg">{emoji}</span>
 												<span className="text-sm font-semibold text-gray-900">{label}</span>
 												{isSelected && (
-													<span className="text-xs font-bold text-white bg-gray-900 px-2 py-0.5 rounded">내 선택</span>
+													<span
+														className={`text-[10px] px-1.5 py-0.5 rounded font-bold ${
+															isA ? 'bg-purple-200 text-purple-700' : 'bg-pink-200 text-pink-700'
+														}`}
+													>
+														선택
+													</span>
 												)}
 											</div>
-											<span className="text-sm font-bold text-gray-900">{percentage}%</span>
+											<div className="text-right">
+												<span className="text-sm font-bold text-gray-900">{percentage}%</span>
+												<span className="text-xs text-gray-500 ml-1">({votes.toLocaleString()}명)</span>
+											</div>
 										</div>
-										<div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+										<div
+											className={`h-1.5 rounded-full overflow-hidden ${
+												isSelected ? (isA ? 'bg-purple-100' : 'bg-pink-100') : 'bg-gray-200'
+											}`}
+										>
 											<div
-												className={`h-full transition-all duration-500 ${isSelected ? 'bg-gray-900' : 'bg-gray-400'}`}
+												className={`h-full transition-all duration-1000 ${
+													isSelected
+														? isA
+															? 'bg-gradient-to-r from-purple-400 to-pink-400'
+															: 'bg-gradient-to-r from-pink-400 to-rose-400'
+														: 'bg-gray-400'
+												}`}
 												style={{ width: `${percentage}%` }}
 											/>
 										</div>
 									</div>
 								);
 							})}
-						</section>
+						</div>
 
-						{/* 통계 정보 */}
-						<section className="bg-gray-50 rounded-lg p-3 text-center">
-							<div className="text-xs text-gray-600">
-								<span className="font-semibold">{TOTAL_VOTES.toLocaleString()}명</span>이 참여했어요
-							</div>
-							<div className="text-xs text-gray-500 mt-1">
-								{selectedOption &&
-									`${Math.round(
-										(TOTAL_VOTES * selectedOption.percentage) / 100
-									).toLocaleString()}명이 같은 선택을 했어요`}
-							</div>
-						</section>
-
-						{/* 공유 & 다시하기 */}
-						<nav className="grid grid-cols-2 gap-2">
-							<button className="px-4 py-2 bg-gray-900 text-white text-xs font-semibold rounded-lg hover:bg-gray-800 transition-colors">
-								결과 공유하기
-							</button>
+						<div className="grid grid-cols-2 gap-2">
+							<Link
+								href="/tests"
+								className="py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-all text-center flex items-center justify-center"
+							>
+								다른 테스트 하기
+							</Link>
 							<button
-								onClick={handleReset}
-								className="px-4 py-2 bg-gray-100 text-gray-900 text-xs font-semibold rounded-lg hover:bg-gray-200 transition-colors"
+								onClick={resetVote}
+								className="py-2.5 bg-white text-gray-900 text-sm font-bold rounded-lg hover:bg-gray-50 transition-all border border-gray-200"
 								type="button"
 							>
-								다시 참여하기
+								다시하기
 							</button>
-						</nav>
+						</div>
 					</div>
 				)}
 
-				{/* TODO: 밸런스 게임 페이지 추가 시 활성화 */}
-				{/* <Link href="/balance-game" className="block text-center text-xs text-gray-600 hover:text-gray-900 mt-4">
-					더 많은 밸런스 게임 →
-				</Link> */}
+				{!showResult && (
+					<Link
+						href="/tests?category=balance"
+						className="block text-center text-xs text-gray-500 hover:text-gray-900 mt-4 w-full py-1 font-medium transition-colors"
+					>
+						더 많은 밸런스 게임 →
+					</Link>
+				)}
 			</div>
 		</section>
 	);

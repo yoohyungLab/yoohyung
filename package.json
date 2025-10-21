@@ -7,6 +7,8 @@
 		"build": "turbo build",
 		"lint": "turbo lint",
 		"test": "turbo test",
+		"test:watch": "turbo test -- --watch",
+		"test:coverage": "turbo test -- --coverage",
 		"types": "cd packages/supabase && pnpm generate-types",
 		"types-local": "cd packages/supabase && pnpm generate-types-local",
 		"type-check": "turbo type-check",

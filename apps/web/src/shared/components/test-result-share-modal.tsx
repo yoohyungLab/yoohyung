@@ -13,9 +13,35 @@ interface TestResultShareModalProps {
 	thumbnailUrl?: string;
 }
 
+interface KakaoShare {
+	isInitialized(): boolean;
+	init(key: string): void;
+	Share: {
+		sendDefault(options: {
+			objectType: string;
+			content: {
+				title: string;
+				description: string;
+				imageUrl: string;
+				link: {
+					mobileWebUrl: string;
+					webUrl: string;
+				};
+			};
+			buttons: Array<{
+				title: string;
+				link: {
+					mobileWebUrl: string;
+					webUrl: string;
+				};
+			}>;
+		}): void;
+	};
+}
+
 declare global {
 	interface Window {
-		Kakao: any;
+		Kakao: KakaoShare;
 	}
 }
 
@@ -56,26 +82,30 @@ export function TestResultShareModal({
 		}
 
 		if (!window.Kakao.isInitialized()) {
-			window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY);
+			window.Kakao.init(process.env.NEXT_PUBLIC_KAKAO_JS_KEY || '');
 		}
+
+		// 공유용 링크 생성 (테스트 시작 페이지로)
+		const testStartUrl = shareUrl.replace('/result?ref=share', '');
+		const displayName = '친구'; // 실제로는 사용자 이름 사용
 
 		window.Kakao.Share.sendDefault({
 			objectType: 'feed',
 			content: {
-				title: title,
-				description: description,
+				title: `${displayName}님이 심리테스트를 완료했어요!`,
+				description: `"${title}"\n\n${description.split('\n')[0]}\n\n나도 테스트해보기 →`,
 				imageUrl: thumbnailUrl || `${window.location.origin}/images/og-image.png`,
 				link: {
-					mobileWebUrl: shareUrl,
-					webUrl: shareUrl,
+					mobileWebUrl: testStartUrl,
+					webUrl: testStartUrl,
 				},
 			},
 			buttons: [
 				{
 					title: '나도 테스트하기',
 					link: {
-						mobileWebUrl: shareUrl,
-						webUrl: shareUrl,
+						mobileWebUrl: testStartUrl,
+						webUrl: testStartUrl,
 					},
 				},
 			],
@@ -88,7 +118,7 @@ export function TestResultShareModal({
 			await navigator.clipboard.writeText(shareUrl);
 			setCopied(true);
 			setTimeout(() => setCopied(false), 2000);
-		} catch (err) {
+		} catch {
 			const textArea = document.createElement('textarea');
 			textArea.value = shareUrl;
 			document.body.appendChild(textArea);
@@ -108,8 +138,8 @@ export function TestResultShareModal({
 				text: description,
 				url: shareUrl,
 			});
-		} catch (err) {
-			console.error('공유 실패:', err);
+		} catch {
+			console.error('공유 실패');
 		}
 	};
 

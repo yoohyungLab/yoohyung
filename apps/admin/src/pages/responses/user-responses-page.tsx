@@ -39,7 +39,7 @@ export function UserResponsesPage() {
 			</div>
 
 			{/* 필터 */}
-			<ResponseFilters filters={filters} loading={loading} onFilterChange={updateFilters} onExport={onExport} />
+			<ResponseFilters filters={filters} onFilterChange={updateFilters} onExport={onExport} />
 
 			{/* 주요 통계 카드 */}
 			<ResponseStatsCards stats={stats} />

@@ -1,4 +1,4 @@
-import { supabase } from '@pickid/shared';
+import { supabase } from '@pickid/supabase';
 import type { Category } from '@pickid/supabase';
 
 export const categoryService = {

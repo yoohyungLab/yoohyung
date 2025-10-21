@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, DefaultInput, DefaultTextarea, Label, Badge, DefaultSelect } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
-import { testTypes } from '@/constants/testData';
+import { TEST_TYPES } from '@/constants/test.constants';
 import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 
@@ -39,8 +39,8 @@ interface FeatureInput {
 
 const GENDER_OPTIONS = [
 	{ value: 'all', label: '전체 (성별 무관)' },
-	{ value: 'male', label: '👨 남성 전용' },
-	{ value: 'female', label: '👩 여성 전용' },
+	{ value: 'male', label: '남성' },
+	{ value: 'female', label: '여성' },
 ];
 
 const DEFAULT_THEME_COLOR = '#3B82F6';
@@ -92,7 +92,7 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 }) => {
 	const [featureInputs, setFeatureInputs] = useState<Record<number, FeatureInput>>({});
 
-	const typeConfig = testTypes.find((t) => t.id === selectedType);
+	const typeConfig = TEST_TYPES.find((t: any) => t.id === selectedType);
 
 	// ============================================================================
 	// 기능 관리 함수들
@@ -308,6 +308,45 @@ export const ResultStep: React.FC<ResultStepProps> = ({
 	// ============================================================================
 	// 메인 렌더링
 	// ============================================================================
+
+	// 밸런스 게임 타입일 때는 특별한 안내 메시지 표시
+	if (selectedType === 'balance') {
+		return (
+			<div className="space-y-6">
+				<div className="text-center py-12">
+					<div className="text-6xl mb-4">⚖️</div>
+					<h3 className="text-2xl font-bold text-gray-900 mb-4">밸런스 게임 결과</h3>
+					<p className="text-lg text-gray-600 mb-6">밸런스 게임은 별도의 결과 설정이 필요하지 않습니다.</p>
+					<div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl mx-auto">
+						<h4 className="font-semibold text-blue-900 mb-3">밸런스 게임 결과 화면 구성</h4>
+						<div className="text-left space-y-3 text-sm text-blue-800">
+							<div className="flex items-start gap-2">
+								<span className="text-blue-600">🧭</span>
+								<span>
+									<strong>당신의 선택 여정:</strong> A vs B 중 어떤 쪽을 더 자주 골랐는지 비율 시각화
+								</span>
+							</div>
+							<div className="flex items-start gap-2">
+								<span className="text-blue-600">👀</span>
+								<span>
+									<strong>다른 사람들과 비교:</strong> 소수파 vs 다수파 체감형 비교
+								</span>
+							</div>
+							<div className="flex items-start gap-2">
+								<span className="text-blue-600">📊</span>
+								<span>
+									<strong>주제별 전체 통계:</strong> 최다 선택 문항, 가장 팽팽했던 문항 등
+								</span>
+							</div>
+						</div>
+					</div>
+					<p className="text-sm text-gray-500 mt-6">
+						사용자가 테스트를 완료하면 자동으로 선택 패턴 분석 결과가 표시됩니다.
+					</p>
+				</div>
+			</div>
+		);
+	}
 
 	if (!results || results.length === 0) {
 		return (

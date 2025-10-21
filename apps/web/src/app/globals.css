@@ -1,3 +1,57 @@
+/* SejongGeulggot 폰트 */
+@font-face {
+	font-family: 'SejongGeulggot';
+	src: url('/fonts/SejongGeulggot.otf') format('opentype');
+	font-weight: normal;
+	font-display: swap;
+}
+
+/* JejuStoneWall 폰트 */
+@font-face {
+	font-family: 'JejuStoneWall';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2210-EF@1.0/EF_jejudoldam.woff2') format('woff2');
+	font-weight: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'OneStoreMobilePop';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2105_2@1.0/ONE-Mobile-POP.woff') format('woff');
+	font-weight: normal;
+	font-display: swap;
+}
+
+/* ------------------------------------------------------------------------------------------------ */
+
+@font-face {
+	font-family: 'RomanticGumi';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2410-1@1.0/GumiRomanceTTF.woff2') format('woff2');
+	font-weight: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'LaundryGothic';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicR.woff2') format('woff2');
+	font-weight: 400;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'LaundryGothic';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2403-2@1.0/TTLaundryGothicB.woff2') format('woff2');
+	font-weight: 700;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: 'SinchonRhapsody';
+	src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2503@1.0/SinchonRhapsody.woff2') format('woff2');
+	font-weight: normal;
+	font-display: swap;
+}
+
+/* ------------------------------------------------------------------------------------------------ */
 /* Pretendard 폰트 */
 @font-face {
 	font-family: 'Pretendard';
@@ -20,9 +74,11 @@
 	font-display: swap;
 }
 
+/* Pretendard 폰트 - 로컬 폴백 사용 */
 @font-face {
 	font-family: 'Pretendard';
-	src: url('https://cdn.jsdelivr.net/gh/Project-Noonnu/noonfonts_2107@1.1/Pretendard-Regular.woff') format('woff');
+	src: local('Pretendard-Regular'), local('Pretendard'), local('-apple-system'), local('BlinkMacSystemFont'),
+		local('system-ui');
 	font-weight: 400;
 	font-display: swap;
 }
@@ -93,26 +149,26 @@
 	}
 
 	html {
-		font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR',
-			'Malgun Gothic', sans-serif;
+		font-family: 'SejongGeulggot', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo',
+			'Noto Sans KR', 'Malgun Gothic', sans-serif !important;
 	}
 }
 
 @layer base {
 	* {
 		@apply border-border;
+		font-family: 'SejongGeulggot', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo',
+			'Noto Sans KR', 'Malgun Gothic', sans-serif !important;
 	}
 	body {
 		@apply bg-gradient-to-br from-purple-50 via-white to-pink-50 text-foreground;
-		font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo', 'Noto Sans KR',
-			'Malgun Gothic', sans-serif;
+		font-family: 'SejongGeulggot', 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, 'Apple SD Gothic Neo',
+			'Noto Sans KR', 'Malgun Gothic', sans-serif !important;
 		font-weight: 400;
 		font-style: normal;
 		/* 모바일 터치 최적화 */
 		-webkit-tap-highlight-color: transparent;
 		-webkit-touch-callout: none;
-		-webkit-user-select: none;
-		user-select: none;
 		min-height: 100vh;
 	}
 }
@@ -199,4 +255,26 @@ html {
 
 .scrollbar-hide::-webkit-scrollbar {
 	display: none; /* Chrome, Safari, Opera */
+}
+
+/* 타이틀 전용 폰트 클래스 */
+.title-font {
+	font-family: 'LaundryGothic', 'JejuStoneWall', 'Pretendard', sans-serif !important;
+}
+
+/* 그라데이션 애니메이션 */
+@keyframes gradient-shift {
+	0% {
+		background-position: 0% 50%;
+	}
+	50% {
+		background-position: 100% 50%;
+	}
+	100% {
+		background-position: 0% 50%;
+	}
+}
+
+.animate-gradient {
+	animation: gradient-shift 3s ease infinite;
 }

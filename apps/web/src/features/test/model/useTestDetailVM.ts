@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { supabase } from '@pickid/supabase';
-import type { TestWithNestedDetails } from '@pickid/supabase';
+import { testService } from '@/shared/api/services/test.service';
+import { categoryService } from '@/shared/api/services/category.service';
+import { mapTestWithDetailsToNested } from '@/shared/lib/test-mappers';
+import type { TestWithNestedDetails, Category } from '@pickid/supabase';
 
 /**
  * 테스트 상세 ViewModel
@@ -10,76 +12,54 @@ import type { TestWithNestedDetails } from '@pickid/supabase';
  */
 export function useTestDetailVM(id: string) {
 	const [test, setTest] = useState<TestWithNestedDetails | null>(null);
+	const [categories, setCategories] = useState<Category[]>([]);
 	const [isLoading, setIsLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
 
 	const loadTest = useCallback(async () => {
-		if (!id) {
+		if (!id || id.trim() === '') {
 			setError('잘못된 접근입니다.');
 			setIsLoading(false);
 			return;
 		}
 
 		try {
+			console.log('Starting test fetch for id:', id);
 			setIsLoading(true);
 			setError(null);
 
-			// 테스트 기본 정보 조회
-			const { data: testData, error: testError } = await supabase
-				.from('tests')
-				.select('*')
-				.eq('id', id)
-				.eq('status', 'published')
-				.single();
+			// 병렬로 테스트 데이터와 카테고리 데이터 조회
+			console.log('Fetching test data and categories...');
+			const [testData, categoryData] = await Promise.all([
+				testService.getTestWithDetails(id),
+				categoryService.getAllCategories(),
+			]);
 
-			if (testError) {
-				if (testError.code === 'PGRST116') {
-					throw new Error('테스트를 찾을 수 없습니다.');
-				}
-				throw testError;
-			}
+			console.log('Test data result:', { testData: !!testData, categories: categoryData.length });
 
 			if (!testData) {
 				throw new Error('테스트를 찾을 수 없습니다.');
 			}
 
-			// 질문과 선택지 조회
-			const { data: questionsData, error: questionsError } = await supabase
-				.from('test_questions')
-				.select(
-					`
-					*,
-					test_choices (*)
-				`
-				)
-				.eq('test_id', id)
-				.order('question_order');
+			// 카테고리 데이터 저장
+			setCategories(categoryData);
 
-			if (questionsError) throw questionsError;
+			// TestWithDetails를 TestWithNestedDetails로 변환
+			const formattedTest = mapTestWithDetailsToNested(testData);
 
-			// 데이터 구조 변환
-			type TChoiceLite = { choice_order: number } & Record<string, unknown>;
-			type TQuestionLite = { test_choices?: TChoiceLite[] } & Record<string, unknown>;
-			const formattedQuestions = ((questionsData || []) as TQuestionLite[]).map((q) => ({
-				...q,
-				choices: (q.test_choices ?? [])
-					.slice()
-					.sort((a: TChoiceLite, b: TChoiceLite) => a.choice_order - b.choice_order),
-			})) as unknown as TestWithNestedDetails['questions'];
-
-			const formattedTest: TestWithNestedDetails = {
-				test: testData,
-				questions: formattedQuestions,
-				results: [], // 결과는 결과 페이지에서만 로드
-			};
-
+			console.log('Test fetch successful:', {
+				title: formattedTest.test?.title,
+				requires_gender: formattedTest.test?.requires_gender,
+				category_ids: formattedTest.test?.category_ids,
+			});
 			setTest(formattedTest);
 		} catch (err) {
+			console.log('Test fetch failed:', err);
 			const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
 			setError(errorMessage);
 			setTest(null);
-			console.error('Error loading test:', err);
 		} finally {
+			console.log('Test fetch completed, setting isLoading to false');
 			setIsLoading(false);
 		}
 	}, [id]);
@@ -88,5 +68,5 @@ export function useTestDetailVM(id: string) {
 		loadTest();
 	}, [loadTest]);
 
-	return { test, isLoading, error, refresh: loadTest };
+	return { test, categories, isLoading, error, refresh: loadTest };
 }

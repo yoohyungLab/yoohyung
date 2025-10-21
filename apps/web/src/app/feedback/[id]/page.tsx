@@ -4,13 +4,9 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
-import {
-	useFeedbackDetail,
-	getCategoryInfo,
-	getStatusInfo,
-	formatDateTime,
-	getStatusClassName,
-} from '@/features/feedback';
+import { useFeedbackDetail } from '@/features/feedback';
+import { getCategoryInfo, getStatusInfo, formatDateTime, getStatusClassName } from '@/features/feedback';
+// import { useErrorHandling } from '@/shared/hooks/use-error-handling';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();
@@ -20,7 +16,10 @@ export default function FeedbackDetailPage() {
 	if (isLoading) {
 		return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
-				<div className="w-8 h-8 border-2 border-gray-200 border-t-gray-900 rounded-full animate-spin"></div>
+				<div className="text-center">
+					<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 mx-auto"></div>
+					<p className="mt-2 text-gray-600">로딩 중...</p>
+				</div>
 			</div>
 		);
 	}
@@ -29,16 +28,12 @@ export default function FeedbackDetailPage() {
 		return (
 			<div className="min-h-screen bg-gray-50 flex items-center justify-center">
 				<div className="text-center">
-					<div className="w-12 h-12 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
-						<span className="text-xl">⚠️</span>
+					<h1 className="text-2xl font-bold text-gray-900 mb-2">피드백을 찾을 수 없어요</h1>
+					<p className="text-gray-600 mb-4">요청하신 피드백이 존재하지 않습니다</p>
+					<div className="space-x-4">
+						<Button onClick={() => router.back()}>뒤로가기</Button>
+						<Button onClick={() => router.push('/')}>홈으로</Button>
 					</div>
-					<h1 className="text-base font-semibold text-gray-900 mb-2">피드백을 찾을 수 없습니다</h1>
-					<p className="text-sm text-gray-500 mb-6">{error || '요청하신 피드백이 존재하지 않습니다'}</p>
-					<Link href="/feedback">
-						<Button variant="outline" className="text-sm">
-							목록으로
-						</Button>
-					</Link>
 				</div>
 			</div>
 		);

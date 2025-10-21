@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useMemo } from 'react';
-import { supabase } from '@pickid/supabase';
+import { testService } from '@/shared/api/services/test.service';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import type { TestProgress, TestAnswer, TestCompletionResult, TestConfig } from '@/shared/types';
 
@@ -62,33 +62,12 @@ const calculateDuration = (startTime: number): number => {
 // 테스트 결과 저장 (간소화 버전 - 필수만)
 const saveTestResult = async (result: TestCompletionResult) => {
 	try {
-		const {
-			data: { user },
-		} = await supabase.auth.getUser();
-		const sessionId = user?.id || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-
-		// 응답 저장
-		await supabase.from('user_test_responses').insert([
-			{
-				test_id: result.testId,
-				user_id: user?.id || null,
-				session_id: sessionId,
-				result_id: result.resultId,
-				total_score: result.totalScore,
-				responses: result.answers,
-				gender: result.gender || null,
-				started_at: new Date(new Date(result.completedAt).getTime() - result.duration * 1000).toISOString(),
-				completed_at: result.completedAt,
-				completion_time_seconds: result.duration,
-				created_date: new Date().toISOString().split('T')[0],
-			},
-		]);
+		// 사용자 응답 저장
+		await testService.saveUserTestResponse(result);
 
 		// 응답수 증가
-		try {
-			await supabase.rpc('increment_test_response', { test_uuid: result.testId });
-		} catch (e) {
-			console.warn('Failed to increment response_count:', e);
+		if (result.test_id) {
+			await testService.incrementTestResponse(result.test_id);
 		}
 	} catch (error) {
 		console.error('Error saving test result:', error);
@@ -147,13 +126,15 @@ export function useTestTakingVM({ test, config = {}, onComplete, onExit }: ITest
 			if (isLastQuestion) {
 				// 마지막 질문 - 완료 처리
 				const result: TestCompletionResult = {
-					testId: test.test.id,
+					test_id: test.test.id,
 					resultId: test.results?.[0]?.id || '',
 					totalScore: calculateTotalScore(newAnswers),
+					score: calculateTotalScore(newAnswers),
 					answers: newAnswers,
 					completedAt: new Date().toISOString(),
 					duration: calculateDuration(progress.startTime),
 					gender: selectedGender,
+					created_at: new Date().toISOString(),
 				};
 
 				setProgress((prev) => ({

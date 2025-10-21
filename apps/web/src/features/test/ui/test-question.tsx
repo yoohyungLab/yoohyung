@@ -3,7 +3,7 @@ import type { TestWithNestedDetails } from '@pickid/supabase';
 import type { TestProgress } from '@/shared/types';
 import type { ColorTheme } from '../lib/themes';
 
-interface ITestQuestionProps {
+interface TestQuestionProps {
 	progress: TestProgress;
 	currentQuestion: TestWithNestedDetails['questions'][0];
 	onAnswer: (choiceId: string) => void;
@@ -11,7 +11,7 @@ interface ITestQuestionProps {
 	theme: ColorTheme;
 }
 
-export function TestQuestion(props: ITestQuestionProps) {
+export function TestQuestion(props: TestQuestionProps) {
 	const { progress, currentQuestion, onAnswer, onPrevious, theme } = props;
 
 	const progressPercentage = (progress.currentQuestionIndex / progress.totalQuestions) * 100;
@@ -52,7 +52,6 @@ export function TestQuestion(props: ITestQuestionProps) {
 
 				{/* 질문 */}
 				<section className={`bg-gradient-to-br ${theme.question} rounded-xl p-6 mb-8 relative`}>
-					<div className={`absolute -top-2 -right-2 w-8 h-8 bg-${theme.secondary}-400 rounded-full animate-bounce`} />
 					<h2 className="text-lg font-bold text-center text-gray-800 leading-relaxed">
 						{currentQuestion.question_text}
 					</h2>

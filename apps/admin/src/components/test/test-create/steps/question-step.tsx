@@ -2,19 +2,8 @@ import React from 'react';
 import { DefaultInput, DefaultTextarea, Label, Switch, IconButton } from '@pickid/ui';
 import { Plus, Trash2 } from 'lucide-react';
 import { ImageUpload } from '../components';
-import { ChoiceCreationData, QuestionCreationData } from '@/api';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
-
-interface QuestionStepProps {
-	questions: QuestionCreationData[];
-	selectedType: string;
-	onAddQuestion: () => void;
-	onRemoveQuestion: (questionIndex: number) => void;
-	onUpdateQuestion: (questionIndex: number, updates: Partial<QuestionCreationData>) => void;
-	onAddChoice: (questionIndex: number) => void;
-	onRemoveChoice: (questionIndex: number, choiceIndex: number) => void;
-	onUpdateChoice: (questionIndex: number, choiceIndex: number, updates: Partial<ChoiceCreationData>) => void;
-}
+import type { QuestionStepProps } from '@/types/test.types';
 
 export const QuestionStep = (props: QuestionStepProps) => {
 	const {
@@ -99,7 +88,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 								</div>
 
 								<div className="space-y-3">
-									{question.choices.map((choice: any, choiceIndex: number) => (
+									{question.choices.map((choice, choiceIndex: number) => (
 										<div key={choiceIndex} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
 											<div className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
 												{String.fromCharCode(65 + choiceIndex)}
@@ -137,11 +126,11 @@ export const QuestionStep = (props: QuestionStepProps) => {
 														value={choice.score}
 														onChange={(e) =>
 															onUpdateChoice(questionIndex, choiceIndex, {
-																score: parseInt(e.target.value) || 1,
+																score: parseInt(e.target.value) || 0,
 															})
 														}
 														className="w-20"
-														min="1"
+														min="0"
 													/>
 												</div>
 											)}
