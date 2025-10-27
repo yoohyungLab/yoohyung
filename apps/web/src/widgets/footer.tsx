@@ -4,10 +4,10 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useTestListVM } from '@/features/test/model/useTestListVM';
+import { useTestList } from '@/features/test';
 
 const PopularTestsSection = () => {
-	const { popularTests } = useTestListVM();
+	const { popularTests } = useTestList();
 	return (
 		<div>
 			<h4 className="text-xs font-bold text-gray-900 uppercase tracking-wider mb-4">인기 테스트</h4>
@@ -29,10 +29,10 @@ export const Footer = () => {
 	const showPopular = pathname === '/' || pathname?.startsWith('/category');
 
 	return (
-		<footer className="relative bg-gradient-to-b from-white via-purple-50/20 to-purple-100/30 border-t border-purple-100/50 backdrop-blur-sm">
+		<footer className="relative bg-gradient-to-b from-white via-sky-50/20 to-sky-100/30 border-t border-sky-100/50 backdrop-blur-sm">
 			{/* 장식 요소 */}
 			<div className="absolute inset-0 overflow-hidden pointer-events-none">
-				<div className="absolute top-0 right-0 w-64 h-64 bg-purple-200/20 rounded-full blur-3xl"></div>
+				<div className="absolute top-0 right-0 w-64 h-64 bg-rose-200/20 rounded-full blur-3xl"></div>
 				<div className="absolute bottom-0 left-0 w-48 h-48 bg-pink-200/20 rounded-full blur-3xl"></div>
 			</div>
 
@@ -91,13 +91,13 @@ export const Footer = () => {
 				</div>
 
 				{/* 하단 정보 */}
-				<div className="border-t border-purple-200/50 pt-7 mt-2">
+				<div className="border-t border-rose-200/50 pt-7 mt-2">
 					<div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
 						<div className="text-xs text-gray-500 space-y-1.5">
 							<p className="font-medium text-gray-600">© 2025 픽키드(PickID). All rights reserved.</p>
 							<p className="flex items-center gap-1.5">
 								<span className="text-gray-400">Contact:</span>
-								<Link href="mailto:alstjr9438@gmail.com" className="text-purple-600 font-medium">
+								<Link href="mailto:alstjr9438@gmail.com" className="text-rose-600 font-medium">
 									alstjr9438@gmail.com
 								</Link>
 							</p>

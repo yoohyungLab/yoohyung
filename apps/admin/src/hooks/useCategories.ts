@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { categoryService } from '@/shared/api';
+import { queryKeys } from '@/shared/lib/query-client';
 import type { Category, CategoryFilters } from '@pickid/supabase';
 
 interface CategoryStats {
@@ -9,12 +11,20 @@ interface CategoryStats {
 }
 
 export const useCategories = () => {
-	const [categories, setCategories] = useState<Category[]>([]);
-	const [loading, setLoading] = useState(false);
+	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<CategoryFilters>({
 		search: '',
 		status: 'all',
+	});
+
+	const {
+		data: categories = [],
+		isLoading,
+		refetch,
+	} = useQuery({
+		queryKey: queryKeys.categories.all,
+		queryFn: () => categoryService.getCategories(),
 	});
 
 	// 통계 계산
@@ -46,61 +56,27 @@ export const useCategories = () => {
 		});
 	}, [categories, filters]);
 
-	// 데이터 로딩
 	const loadCategories = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await categoryService.getCategories();
-			setCategories(data);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '카테고리를 불러오는데 실패했습니다.');
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+		setError(null);
+		await refetch();
+	}, [refetch]);
 
 	// 카테고리 생성
-	const createCategory = useCallback(
-		async (categoryData: { name: string; slug: string; sort_order?: number; status?: 'active' | 'inactive' }) => {
-			try {
-				const newCategory = await categoryService.createCategory(categoryData);
-				setCategories((prev) => [newCategory, ...prev]); // 맨 앞에 추가
-				return newCategory;
-			} catch (err) {
-				let errorMessage = '카테고리 생성에 실패했습니다.';
-
-				if (err instanceof Error) {
-					// Supabase 에러 메시지 처리
-					if (err.message.includes('duplicate key value violates unique constraint')) {
-						if (err.message.includes('categories_slug_key')) {
-							errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-						} else if (err.message.includes('categories_name_key')) {
-							errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-						}
-					} else {
-						errorMessage = err.message;
-					}
-				}
-
-				setError(errorMessage);
-				throw err;
-			}
+	const { mutateAsync: createCategory } = useMutation({
+		mutationFn: async (categoryData: {
+			name: string;
+			slug: string;
+			sort_order?: number;
+			status?: 'active' | 'inactive';
+		}) => {
+			return categoryService.createCategory(categoryData);
 		},
-		[]
-	);
-
-	// 카테고리 수정
-	const updateCategory = useCallback(async (id: string, updates: Partial<Category>) => {
-		try {
-			const updatedCategory = await categoryService.updateCategory(id, updates);
-			setCategories((prev) => prev.map((cat) => (cat.id === id ? updatedCategory : cat)));
-			return updatedCategory;
-		} catch (err) {
-			let errorMessage = '카테고리 수정에 실패했습니다.';
-
+		onSuccess: (newCategory) => {
+			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) => [newCategory, ...prev]);
+		},
+		onError: (err: unknown) => {
+			let errorMessage = '카테고리 생성에 실패했습니다.';
 			if (err instanceof Error) {
-				// Supabase 에러 메시지 처리
 				if (err.message.includes('duplicate key value violates unique constraint')) {
 					if (err.message.includes('categories_slug_key')) {
 						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
@@ -111,70 +87,102 @@ export const useCategories = () => {
 					errorMessage = err.message;
 				}
 			}
-
 			setError(errorMessage);
-			throw err;
-		}
-	}, []);
+		},
+	});
+
+	// 카테고리 수정
+	const { mutateAsync: updateCategory } = useMutation({
+		mutationFn: async ({ id, updates }: { id: string; updates: Partial<Category> }) => {
+			return categoryService.updateCategory(id, updates);
+		},
+		onSuccess: (updatedCategory) => {
+			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
+				prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+			);
+		},
+		onError: (err: unknown) => {
+			let errorMessage = '카테고리 수정에 실패했습니다.';
+			if (err instanceof Error) {
+				if (err.message.includes('duplicate key value violates unique constraint')) {
+					if (err.message.includes('categories_slug_key')) {
+						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+					} else if (err.message.includes('categories_name_key')) {
+						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
+					}
+				} else {
+					errorMessage = err.message;
+				}
+			}
+			setError(errorMessage);
+		},
+	});
 
 	// 상태 변경
-	const updateCategoryStatus = useCallback(async (id: string, isActive: boolean) => {
-		try {
-			const updatedCategory = await categoryService.updateCategoryStatus(id, isActive);
-			setCategories((prev) => prev.map((cat) => (cat.id === id ? updatedCategory : cat)));
-		} catch (err) {
+	const { mutateAsync: updateCategoryStatus } = useMutation({
+		mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+			return categoryService.updateCategoryStatus(id, isActive);
+		},
+		onSuccess: (updatedCategory) => {
+			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
+				prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
+			);
+		},
+		onError: (err: unknown) => {
 			setError(err instanceof Error ? err.message : '카테고리 상태 변경에 실패했습니다.');
-		}
-	}, []);
+		},
+	});
 
 	// 대량 상태 변경
-	const bulkUpdateStatus = useCallback(
-		async (categoryIds: string[], isActive: boolean) => {
-			try {
-				await categoryService.bulkUpdateStatus(categoryIds, isActive);
-				// 상태 업데이트 후 전체 데이터 다시 로드
-				await loadCategories();
-			} catch (err) {
-				setError(err instanceof Error ? err.message : '카테고리 일괄 상태 변경에 실패했습니다.');
-			}
+	const { mutateAsync: bulkUpdateStatus } = useMutation({
+		mutationFn: async ({ categoryIds, isActive }: { categoryIds: string[]; isActive: boolean }) => {
+			return categoryService.bulkUpdateStatus(categoryIds, isActive);
 		},
-		[loadCategories]
-	);
+		onSuccess: async () => {
+			await queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+		},
+		onError: (err: unknown) => {
+			setError(err instanceof Error ? err.message : '카테고리 일괄 상태 변경에 실패했습니다.');
+		},
+	});
 
 	// 삭제
-	const deleteCategory = useCallback(async (id: string) => {
-		try {
-			await categoryService.deleteCategory(id);
-			setCategories((prev) => prev.filter((cat) => cat.id !== id));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '카테고리 삭제에 실패했습니다.');
-		}
-	}, []);
+	const { mutateAsync: deleteCategory } = useMutation({
+		mutationFn: async (id: string) => categoryService.deleteCategory(id),
+		onMutate: async (id: string) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.categories.all });
+			const previous = queryClient.getQueryData<Category[]>(queryKeys.categories.all);
+			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
+				prev.filter((cat) => cat.id !== id)
+			);
+			return { previous } as { previous?: Category[] };
+		},
+		onError: (_err, _id, context) => {
+			if (context?.previous) queryClient.setQueryData(queryKeys.categories.all, context.previous);
+		},
+		onSettled: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+		},
+	});
 
 	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<CategoryFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 초기 로딩
-	useEffect(() => {
-		loadCategories();
-	}, [loadCategories]);
-
 	return {
 		categories: filteredCategories,
-		loading,
+		loading: isLoading,
 		error,
 		filters,
 		stats,
 		loadCategories,
-		fetchCategories: loadCategories, // 별칭 추가
+		fetchCategories: loadCategories,
 		createCategory,
-		updateCategory,
-		updateCategoryStatus,
-		bulkUpdateStatus,
+		updateCategory: (id: string, updates: Partial<Category>) => updateCategory({ id, updates }),
+		updateCategoryStatus: (id: string, isActive: boolean) => updateCategoryStatus({ id, isActive }),
+		bulkUpdateStatus: (categoryIds: string[], isActive: boolean) => bulkUpdateStatus({ categoryIds, isActive }),
 		deleteCategory,
-
 		updateFilters,
-	};
+	} as const;
 };

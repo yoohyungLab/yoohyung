@@ -7,7 +7,7 @@ export { AuthForm } from './ui/auth-form';
 export { AuthLayout } from './ui/auth-layout';
 
 // Hooks
-export { useAuthVM } from './hooks/useAuthVM';
+export { useAuth } from './hooks/use-auth';
 
 // Schemas
 export { loginSchema, registerSchema } from './schemas/auth.schema';

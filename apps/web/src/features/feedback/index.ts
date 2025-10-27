@@ -10,7 +10,8 @@ export { FeedbackForm } from './ui/feedback-form';
 export { FeedbackList } from './ui/feedback-list';
 
 // Model/Hooks
-export { useFeedback, useFeedbackList, useFeedbackDetail } from './model/useFeedback';
+export { useFeedback, useFeedbackList, useFeedbackDetail } from './model/use-feedback';
 
 // Utils
-export { getCategoryInfo, getStatusInfo, formatDate, formatDateTime, getStatusClassName } from './lib/utils';
+export { getCategoryInfo, getStatusInfo, getStatusClassName } from './lib/utils';
+export { formatDate, formatDateTime } from '@/shared/lib';

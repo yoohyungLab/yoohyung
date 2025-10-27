@@ -23,23 +23,11 @@ export interface ITestTypeConfig {
 // 테스트 타입별 설정 맵
 export type TTestTypeConfigMap = Record<TTestType, ITestTypeConfig>;
 
-// 테스트 카드 (홈페이지용 간소화된 버전) - Supabase Test 타입 기반
-export type TestCard = Pick<
-	Test,
-	'id' | 'title' | 'description' | 'thumbnail_url' | 'slug' | 'category_ids' | 'type' | 'status'
-> & {
-	// Supabase에 없는 클라이언트 전용 필드들
-	image: string;
-	tags: string[];
-	starts: number | null;
-	completions: number | null;
-};
+// 테스트 카드 (홈페이지용 간소화된 버전) - @pickid/supabase에서 import
+export type { TestCard } from '@pickid/supabase';
 
-// 테스트 카드 Props (즐겨찾기 기능 포함)
-export interface TestCardProps extends TestCard {
-	isFavorite?: boolean;
-	onToggleFavorite?: (id: string) => void;
-}
+// 테스트 카드 Props
+export type TestCardProps = import('@pickid/supabase').TestCard;
 
 // 사용자 답변 (Supabase에 없는 클라이언트 전용 타입)
 export interface TestAnswer {
@@ -202,16 +190,13 @@ export interface AuthFormData {
 // 밸런스 게임 질문 Props (TestQuestion, TestChoice 기반)
 export interface IBalanceGameQuestionProps {
 	testId: string;
-	question: Pick<TestQuestion, 'id' | 'question_text'> & {
+	question: Pick<TestQuestion, 'id' | 'question_text' | 'image_url'> & {
 		choices: Array<Pick<TestChoice, 'id' | 'choice_text' | 'choice_order'>>;
 	};
 	questionNumber: number;
 	totalQuestions: number;
 	onAnswer: (questionId: string, choiceId: string) => void;
-	onNext: () => void;
 	onPrevious?: () => void;
-	isFirstQuestion: boolean;
-	isLastQuestion: boolean;
 }
 
 // 밸런스 게임 결과 데이터 Props

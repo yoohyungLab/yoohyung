@@ -4,7 +4,7 @@ import { Button, IconButton } from '@pickid/ui';
 import { LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { useAuthVM } from '@/features/auth/hooks/useAuthVM';
+import { useAuth } from '@/features/auth/hooks/use-auth';
 
 interface AuthSectionProps {
 	onMenuClose: () => void;
@@ -12,7 +12,7 @@ interface AuthSectionProps {
 
 export function AuthSection({ onMenuClose }: AuthSectionProps) {
 	const router = useRouter();
-	const { user, signOut, signInWithKakao } = useAuthVM();
+	const { user, signOut, signInWithKakao } = useAuth();
 
 	const handleSignOut = async () => {
 		try {
@@ -35,6 +35,18 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 			router.push('/auth/login');
 		}
 		onMenuClose();
+	};
+
+	const handleKakaoSignIn = () => {
+		handleSignIn('kakao');
+	};
+
+	const handleLoginClick = () => {
+		handleMenuClick('/auth/login');
+	};
+
+	const handleRegisterClick = () => {
+		handleMenuClick('/auth/register');
 	};
 
 	const handleMenuClick = (href: string) => {
@@ -88,17 +100,17 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 			<IconButton
 				variant="kakao"
 				className="w-full rounded-lg font-normal hover:scale-100"
-				onClick={() => handleSignIn('kakao')}
+				onClick={handleKakaoSignIn}
 				icon={<Image src="/icons/kakao.svg" alt="카카오" width={16} height={16} />}
 				label="카카오로 시작하기"
 			/>
 			<div className="text-center">
 				<span className="text-sm text-gray-500">간편하게 3초만에 시작하세요</span>
 			</div>
-			<Button variant="outline" className="w-full" onClick={() => handleMenuClick('/auth/login')}>
+			<Button variant="outline" className="w-full" onClick={handleLoginClick}>
 				로그인
 			</Button>
-			<Button variant="outline" className="w-full" onClick={() => handleMenuClick('/auth/register')}>
+			<Button variant="outline" className="w-full" onClick={handleRegisterClick}>
 				회원가입
 			</Button>
 		</div>

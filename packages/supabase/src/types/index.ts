@@ -216,3 +216,167 @@ export interface FunnelDataItem {
 	avgTime: number;
 	order: number;
 }
+
+// ===== Service Layer Types =====
+// Auth Service Types
+export type AuthResponse = {
+	data: {
+		user: import('@supabase/supabase-js').User | null;
+		session: import('@supabase/supabase-js').Session | null;
+	} | null;
+	error: null;
+};
+
+export type SignUpResponse = {
+	data: {
+		user: import('@supabase/supabase-js').User | null;
+		session: import('@supabase/supabase-js').Session | null;
+	} | null;
+	error: null;
+};
+
+export type SignOutResponse = {
+	error: null;
+};
+
+export type SessionResponse = {
+	data: {
+		session: import('@supabase/supabase-js').Session | null;
+	};
+	error: null;
+};
+
+// Balance Game Stats Types
+export type ChoiceStats = {
+	choiceId: string;
+	choiceText: string;
+	count: number;
+	percentage: number;
+};
+
+export type QuestionStats = {
+	questionId: string;
+	questionText: string;
+	choiceStats: ChoiceStats[];
+	totalResponses: number;
+};
+
+export type PopularQuestion = {
+	questionId: string;
+	questionText: string;
+	aChoiceText: string;
+	bChoiceText: string;
+	aPercentage: number;
+	bPercentage: number;
+	totalResponses: number;
+};
+
+export type BalanceGameStats = {
+	testId: string;
+	totalParticipants: number;
+	questionStats: QuestionStats[];
+	popularQuestions: PopularQuestion[];
+	mostControversialQuestion: PopularQuestion | null;
+};
+
+export type OptimizedChoiceStats = {
+	choiceId: string;
+	choiceText: string;
+	responseCount: number;
+	percentage: number;
+};
+
+export type OptimizedQuestionStats = {
+	questionId: string;
+	questionText: string;
+	choiceStats: OptimizedChoiceStats[];
+	totalResponses: number;
+};
+
+// Category Service Types
+export type CategoryWithTestCount = Category & { test_count: number };
+
+export type CategoryPageData = {
+	category: Category;
+	allCategories: Category[];
+	tests: Test[];
+};
+
+export type AllCategoriesData = {
+	allCategories: Category[];
+	allTests: Test[];
+};
+
+// Home Balance Game Types
+export type HomeBalanceGameStats = {
+	totalVotes: number;
+	votesA: number;
+	votesB: number;
+	percentageA: number;
+	percentageB: number;
+};
+
+export type VoteResult = {
+	success: boolean;
+	message: string;
+	choice: 'A' | 'B';
+	stats: HomeBalanceGameStats;
+};
+
+export type HomeBalanceGameResponse = Pick<
+	HomeBalanceGame,
+	| 'id'
+	| 'title'
+	| 'option_a_emoji'
+	| 'option_a_label'
+	| 'option_b_emoji'
+	| 'option_b_label'
+	| 'total_votes'
+	| 'votes_a'
+	| 'votes_b'
+	| 'week_number'
+> & {
+	optionAEmoji: string;
+	optionALabel: string;
+	optionBEmoji: string;
+	optionBLabel: string;
+	totalVotes: number;
+	votesA: number;
+	votesB: number;
+	weekNumber: number;
+};
+
+// Home Service Types
+export type TestCard = Pick<
+	Test,
+	'id' | 'title' | 'description' | 'thumbnail_url' | 'slug' | 'category_ids' | 'type' | 'status'
+> & {
+	image: string;
+	tags: string[];
+	starts: number | null;
+	completions: number | null;
+};
+
+export type HomePageData = {
+	tests: TestCard[];
+	categories: Category[];
+	popularTests: TestCard[];
+	recommendedTests: TestCard[];
+	topByType: TestCard[];
+};
+
+// Popular Service Types
+export type PopularPageData = {
+	tests: Array<{
+		id: string;
+		title: string;
+		description: string;
+		thumbnail_url: string;
+		thumbnailUrl: string;
+		created_at: string;
+		category_ids?: string[] | null;
+		completions: number;
+		starts: number;
+	}>;
+	categories: Category[];
+};

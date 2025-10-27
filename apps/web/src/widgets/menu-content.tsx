@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { Gamepad2, HeartHandshake, MessageSquare, TestTube, TrendingUp, UserCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React from 'react';
@@ -11,6 +12,13 @@ interface MenuSectionProps {
 }
 
 function MenuSection({ title, menus, onMenuClick }: MenuSectionProps) {
+	const handleMenuItemClick = useCallback(
+		(href: string) => {
+			onMenuClick(href);
+		},
+		[onMenuClick]
+	);
+
 	return (
 		<div className="my-6">
 			<h3 className="text-sm font-semibold text-gray-500 mb-3 border-b border-gray-200 pb-2">{title}</h3>
@@ -18,7 +26,7 @@ function MenuSection({ title, menus, onMenuClick }: MenuSectionProps) {
 				{menus.map((menu, index) => (
 					<button
 						key={index}
-						onClick={() => onMenuClick(menu.href)}
+						onClick={() => handleMenuItemClick(menu.href)}
 						className="w-full flex items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
 					>
 						<menu.icon className="w-4 h-4 mr-3" />

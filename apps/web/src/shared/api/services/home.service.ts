@@ -1,19 +1,5 @@
-import { createServerClient } from '@pickid/supabase';
-import type { Category, Test } from '@pickid/supabase';
-import type { TestCard } from '@/shared/types';
-
-// ============================================================================
-// 타입 정의 (Supabase 기본 타입 기반)
-// ============================================================================
-
-// 홈 페이지 데이터 (SSR용)
-export interface IHomePageData {
-	tests: TestCard[];
-	categories: Category[]; // Supabase Category 타입
-	popularTests: TestCard[];
-	recommendedTests: TestCard[];
-	topByType: TestCard[];
-}
+import { createServerClient, supabase } from '@pickid/supabase';
+import type { Category, Test, TestCard, HomePageData } from '@pickid/supabase';
 
 const getCategoryNames = (categoryIds: string[] | null, categories: Category[]): string[] => {
 	if (!categoryIds || categoryIds.length === 0) return ['미분류'];
@@ -40,14 +26,23 @@ const transformToTestCard = (test: Test, categories: Category[]): TestCard => ({
 	completions: test.response_count,
 });
 
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
+
 export const homeService = {
-	async getHomePageData(): Promise<IHomePageData> {
+	getClient() {
+		return typeof window === 'undefined' ? createServerClient() : supabase;
+	},
+
+	async getHomePageData(): Promise<HomePageData> {
 		try {
-			const supabase = createServerClient();
+			const client = this.getClient();
 
 			const [testsData, categoriesData] = await Promise.all([
-				supabase.from('tests').select('*').eq('status', 'published').order('created_at', { ascending: false }),
-				supabase.from('categories').select('*').eq('status', 'active').order('name'),
+				client.from('tests').select('*').eq('status', 'published').order('created_at', { ascending: false }),
+				client.from('categories').select('*').eq('status', 'active').order('name'),
 			]);
 
 			if (testsData.error) throw testsData.error;
@@ -55,17 +50,14 @@ export const homeService = {
 
 			const tests = testsData.data || [];
 			const categories = categoriesData.data || [];
-
 			const testsAsCards: TestCard[] = tests.map((test) => transformToTestCard(test, categories));
 
-			// 인기 테스트 (참여자 수 기준)
 			const popularTests = [...testsAsCards].sort((a, b) => (b.completions || 0) - (a.completions || 0)).slice(0, 6);
 
-			// 추천 테스트 (최근 2주 내 + 시작 횟수 높은 순)
 			const twoWeeksAgo = new Date();
 			twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-
-			const recentTests = tests.filter((test) => new Date(test.created_at) >= twoWeeksAgo);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const recentTests = (tests as any[]).filter((test: any) => new Date(test.created_at) >= twoWeeksAgo);
 
 			const recommendedTests =
 				recentTests.length > 0
@@ -75,7 +67,6 @@ export const homeService = {
 							.slice(0, 6)
 					: [...testsAsCards].sort((a, b) => (b.starts || 0) - (a.starts || 0)).slice(0, 6);
 
-			// 명예의 전당 (완료율 기준)
 			const topByType = [...testsAsCards]
 				.filter((test) => (test.starts || 0) > 10)
 				.map((test) => ({
@@ -90,22 +81,10 @@ export const homeService = {
 				})
 				.slice(0, 6);
 
-			return {
-				tests: testsAsCards,
-				categories,
-				popularTests,
-				recommendedTests,
-				topByType,
-			};
+			return { tests: testsAsCards, categories, popularTests, recommendedTests, topByType };
 		} catch (error) {
-			console.error('Failed to get home page data:', error);
-			return {
-				tests: [],
-				categories: [],
-				popularTests: [],
-				recommendedTests: [],
-				topByType: [],
-			};
+			handleSupabaseError(error, 'getHomePageData');
+			return { tests: [], categories: [], popularTests: [], recommendedTests: [], topByType: [] };
 		}
 	},
 };

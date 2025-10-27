@@ -1,5 +1,14 @@
 import { supabase } from '@pickid/supabase';
-import type { Test, TestWithNestedDetails, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
+import type {
+	Database,
+	QuestionWithChoices,
+	Test,
+	TestChoice,
+	TestQuestion,
+	TestResult,
+	TestStatus,
+	TestWithNestedDetails,
+} from '@pickid/supabase';
 
 // ============================================================================
 // 타입 정의
@@ -25,30 +34,23 @@ export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 
 	score_min?: number; // match_conditions에서 추출
 	score_max?: number; // match_conditions에서 추출
 	order_index?: number; // result_order의 별칭
-	target_gender?: string | null; // 성별 타겟 필드 추가
 }
 
 // ============================================================================
 // 유틸리티 함수
 // ============================================================================
 
-const handleSupabaseError = (error: any, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
+const handleSupabaseError = (error: unknown, context: string): never => {
+	const message = error instanceof Error ? error.message : String(error);
+	throw new Error(`${context}: ${message}`);
 };
 
-const validateTestData = (testId: string, data: any) => {
-	if (!data) {
-		throw new Error(`Test with id ${testId} not found`);
+const validateRpcResult = (result: unknown, errorMessage: string) => {
+	const r = result as { success?: boolean; error?: string } | null;
+	if (!r || r.success !== true) {
+		throw new Error(r?.error || errorMessage);
 	}
-	return data;
-};
-
-const validateRpcResult = (result: any, errorMessage: string) => {
-	if (!result.success) {
-		throw new Error(result.error || errorMessage);
-	}
-	return result;
+	return r;
 };
 
 // ============================================================================
@@ -128,48 +130,82 @@ export const testService = {
 
 			if (resultsError) throw resultsError;
 
-			console.log('직접 쿼리 결과 데이터:', {
-				testId,
-				hasTestData: !!testData,
-				questionsCount: questionsData?.length || 0,
-				resultsCount: resultsData?.length || 0,
-				questions: questionsData?.map((q: any) => ({
+			// 질문/결과 타입을 명확히 매핑
+			type QueryQuestionRow = {
+				id: string;
+				question_text: string;
+				question_order: number;
+				image_url: string | null;
+				created_at: string;
+				updated_at: string;
+				test_choices: Array<{
+					id: string;
+					choice_text: string;
+					choice_order: number;
+					score: number | null;
+					is_correct: boolean | null;
+					created_at: string | null;
+				}>;
+			};
+
+			const questionRows: QueryQuestionRow[] = (questionsData as unknown as QueryQuestionRow[]) || [];
+			const questions: QuestionWithChoices[] = questionRows.map((q) => {
+				const mappedChoices = q.test_choices as unknown as TestChoice[];
+				const mapped: QuestionWithChoices & { test_choices: TestChoice[] } = {
 					id: q.id,
 					question_text: q.question_text,
-					choicesCount: q.test_choices?.length || 0,
-					choices:
-						q.test_choices?.map((c: any) => ({
-							id: c.id,
-							choice_text: c.choice_text,
-							score: c.score,
-						})) || [],
-				})),
-				results: resultsData?.map((r: any) => ({
-					name: r.result_name,
-					target_gender: r.target_gender,
-					raw: r,
-				})),
+					question_order: q.question_order,
+					image_url: q.image_url,
+					created_at: q.created_at,
+					updated_at: q.updated_at,
+					choices: mappedChoices,
+					test_choices: mappedChoices,
+				};
+				return mapped as unknown as QuestionWithChoices;
 			});
 
+			const results: TestResult[] = (resultsData as unknown as TestResult[]) || [];
+
+			// Fallback: nested join 보정 - 필요시 직접 조인
+			if (questions.some((q) => !q.choices || q.choices.length === 0)) {
+				const ids = questions.map((q) => q.id);
+				const { data: rawChoices } = await supabase
+					.from('test_choices')
+					.select('id, choice_text, choice_order, score, is_correct, created_at, question_id')
+					.in('question_id', ids)
+					.order('choice_order');
+
+				const byQ: Record<string, TestChoice[]> = {} as Record<string, TestChoice[]>;
+				for (const ch of (rawChoices as unknown as (TestChoice & { question_id: string })[]) || []) {
+					if (!byQ[ch.question_id]) byQ[ch.question_id] = [] as TestChoice[];
+					const { question_id, ...rest } = ch as unknown as { question_id: string } & TestChoice;
+					(byQ[question_id] as TestChoice[]).push(rest as TestChoice);
+				}
+
+				for (const q of questions) {
+					if (!q.choices || q.choices.length === 0) {
+						q.choices = byQ[q.id] || [];
+					}
+				}
+			}
+
 			return {
-				test: testData,
-				questions: questionsData || [],
-				results: resultsData || [],
-			} as TestWithNestedDetails;
+				test: testData as Test,
+				questions,
+				results,
+			} satisfies TestWithNestedDetails;
 		} catch (error) {
-			handleSupabaseError(error, 'getTestWithDetails');
+			return handleSupabaseError(error, 'getTestWithDetails');
 		}
 	},
 
 	/**
 	 * 테스트 상태 변경
 	 */
-	async updateTestStatus(id: string, status: string): Promise<Test> {
+	async updateTestStatus(id: string, status: TestStatus): Promise<Test> {
 		try {
-			console.log('테스트 상태 변경 시도:', { id, status });
-
 			// published_at 필드도 함께 업데이트
-			const updateData: any = {
+			const updateData: Partial<Test> & { updated_at: string; published_at?: string | null } = {
 				status,
 				updated_at: new Date().toISOString(),
 			};
@@ -183,16 +219,10 @@ export const testService = {
 
 			const { data, error } = await supabase.from('tests').update(updateData).eq('id', id).select().single();
 
-			if (error) {
-				console.error('테스트 상태 변경 에러:', error);
-				throw error;
-			}
-
-			console.log('테스트 상태 변경 성공:', data);
+			if (error) throw error;
 			return data;
 		} catch (error) {
-			console.error('테스트 상태 변경 실패:', error);
-			handleSupabaseError(error, 'updateTestStatus');
+			return handleSupabaseError(error, 'updateTestStatus');
 		}
 	},
 
@@ -225,7 +255,15 @@ export const testService = {
 
 			if (isUpdate) {
 				// 업데이트 모드: 직접 테이블 업데이트
-				return await this.updateTestDirectly(testData, questionsData, resultsData);
+				return await this.updateTestDirectly(
+					testData,
+					questionsData as Array<
+						TestQuestionInsert & {
+							choices?: Array<Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number }>;
+						}
+					>,
+					resultsData
+				);
 			} else {
 				// 생성 모드: RPC 함수 사용
 				const { data: result, error } = await supabase.rpc('create_test_complete', {
@@ -235,10 +273,10 @@ export const testService = {
 				});
 
 				if (error) throw error;
-				return result as TestWithNestedDetails;
+				return result as unknown as TestWithNestedDetails;
 			}
 		} catch (error) {
-			handleSupabaseError(error, 'saveCompleteTest');
+			return handleSupabaseError(error, 'saveCompleteTest');
 		}
 	},
 
@@ -247,25 +285,16 @@ export const testService = {
 	 */
 	async updateTestDirectly(
 		testData: TestInsert,
-		questionsData: TestQuestionInsert[],
+		questionsData: Array<
+			TestQuestionInsert & {
+				choices?: Array<Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number }>;
+			}
+		>,
 		resultsData: TestResultInsert[]
 	): Promise<TestWithNestedDetails> {
 		const testId = testData.id!;
 
-		console.log('직접 업데이트 시작:', {
-			testId,
-			questionsCount: questionsData.length,
-			resultsCount: resultsData.length,
-			questionsData: questionsData.map((q) => ({
-				question_text: q.question_text,
-				choicesCount: q.choices?.length || 0,
-				choices:
-					q.choices?.map((c) => ({
-						choice_text: c.choice_text,
-						score: c.score,
-					})) || [],
-			})),
-		});
+		// 과도한 콘솔 출력 제거
 
 		// 1. 테스트 기본 정보 업데이트
 		const { error: testError } = await supabase
@@ -314,13 +343,18 @@ export const testService = {
 
 			// 선택지 삽입
 			if (questionData.choices && questionData.choices.length > 0) {
-				const choicesToInsert = questionData.choices.map((choice, choiceIndex) => ({
-					question_id: questionResult.id,
-					choice_text: choice.choice_text,
-					choice_order: choiceIndex,
-					score: choice.score,
-					is_correct: choice.is_correct,
-				}));
+				const choicesToInsert = questionData.choices.map(
+					(
+						choice: Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number },
+						choiceIndex: number
+					) => ({
+						question_id: questionResult.id,
+						choice_text: choice.choice_text,
+						choice_order: choiceIndex,
+						score: choice.score ?? choice.score_value ?? null,
+						is_correct: choice.is_correct ?? null,
+					})
+				);
 
 				const { error: choicesError } = await supabase.from('test_choices').insert(choicesToInsert);
 

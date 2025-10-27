@@ -32,7 +32,6 @@ export default defineConfig(({ mode }) => {
 			outDir: 'dist',
 			assetsDir: 'assets',
 			rollupOptions: {
-				external: ['@supabase/supabase-js'],
 				output: {
 					manualChunks: (id) => {
 						if (id.includes('node_modules')) {

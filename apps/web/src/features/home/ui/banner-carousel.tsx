@@ -2,6 +2,7 @@
 
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import { useCallback } from 'react';
 import { DefaultCarousel } from '@pickid/ui';
 import type { Banner } from '@/shared/types';
 
@@ -12,11 +13,14 @@ interface BannerCarouselProps {
 export function BannerCarousel({ banners }: BannerCarouselProps) {
 	const router = useRouter();
 
-	if (banners.length === 0) return null;
+	const handleBannerClick = useCallback(
+		(banner: Banner) => {
+			router.push(`/tests/${banner.id}`);
+		},
+		[router]
+	);
 
-	const handleBannerClick = (banner: Banner) => {
-		router.push(`/tests/${banner.id}`);
-	};
+	if (banners.length === 0) return null;
 
 	const bannerItems = banners.map((banner, index) => (
 		<div key={banner.id} className="relative w-full h-full cursor-pointer" onClick={() => handleBannerClick(banner)}>

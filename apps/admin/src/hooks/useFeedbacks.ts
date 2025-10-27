@@ -1,15 +1,26 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { feedbackService } from '@/shared/api';
+import { queryKeys } from '@/shared/lib/query-client';
 import type { Feedback, FeedbackFilters, FeedbackStats } from '@pickid/supabase';
 
 export const useFeedbacks = () => {
-	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-	const [loading, setLoading] = useState(false);
+	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<FeedbackFilters>({
 		search: '',
 		status: 'all',
 		category: 'all',
+	});
+
+	const {
+		data: feedbacks = [],
+		isLoading,
+		refetch,
+	} = useQuery({
+		queryKey: queryKeys.feedbacks.lists(),
+		queryFn: () => feedbackService.getFeedbacks(),
+		staleTime: 5 * 60 * 1000,
 	});
 
 	// 통계 계산 (원본 데이터 기준)
@@ -22,16 +33,10 @@ export const useFeedbacks = () => {
 				completed: 0,
 				replied: 0,
 				rejected: 0,
-				today: 0,
-				this_week: 0,
-				this_month: 0,
 			};
 		}
 
-		const now = new Date();
-		const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-		const thisWeek = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-		const thisMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+		// 날짜 기준값 계산은 제거 (현재 반환 타입에 불필요)
 
 		return {
 			total: feedbacks.length,
@@ -40,9 +45,6 @@ export const useFeedbacks = () => {
 			completed: feedbacks.filter((f) => f.status === 'completed').length,
 			replied: feedbacks.filter((f) => f.status === 'replied').length,
 			rejected: feedbacks.filter((f) => f.status === 'rejected').length,
-			today: feedbacks.filter((f) => new Date(f.created_at) >= today).length,
-			this_week: feedbacks.filter((f) => new Date(f.created_at) >= thisWeek).length,
-			this_month: feedbacks.filter((f) => new Date(f.created_at) >= thisMonth).length,
 		};
 	}, [feedbacks]);
 
@@ -60,86 +62,79 @@ export const useFeedbacks = () => {
 		});
 	}, [feedbacks, filters]);
 
-	// 데이터 로딩
 	const loadFeedbacks = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await feedbackService.getFeedbacks();
-			setFeedbacks(data);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '피드백을 불러오는데 실패했습니다.');
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+		setError(null);
+		await refetch();
+	}, [refetch]);
 
 	// 피드백 상태 변경
-	const updateFeedbackStatus = useCallback(async (id: string, status: string) => {
-		try {
-			const updatedFeedback = await feedbackService.updateFeedbackStatus(id, status);
-			setFeedbacks((prev) => prev.map((f) => (f.id === id ? updatedFeedback : f)));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '피드백 상태 변경에 실패했습니다.');
-		}
-	}, []);
+	const { mutateAsync: updateFeedbackStatus } = useMutation({
+		mutationFn: async ({ id, status }: { id: string; status: string }) =>
+			feedbackService.updateFeedbackStatus(id, status),
+		onMutate: async ({ id, status }) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.feedbacks.lists() });
+			const previous = queryClient.getQueryData<Feedback[]>(queryKeys.feedbacks.lists());
+			queryClient.setQueryData<Feedback[]>(queryKeys.feedbacks.lists(), (prev = []) =>
+				prev.map((f) => (f.id === id ? { ...f, status, updated_at: new Date().toISOString() } : f))
+			);
+			return { previous } as { previous?: Feedback[] };
+		},
+		onError: (_err, _vars, context) => {
+			if (context?.previous) queryClient.setQueryData(queryKeys.feedbacks.lists(), context.previous);
+		},
+		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.lists() }),
+	});
 
 	// 대량 상태 변경
-	const bulkUpdateStatus = useCallback(
-		async (feedbackIds: string[], status: string) => {
-			try {
-				await feedbackService.bulkUpdateStatus(feedbackIds, status);
-				// 상태 업데이트 후 전체 데이터 다시 로드
-				await loadFeedbacks();
-			} catch (err) {
-				setError(err instanceof Error ? err.message : '피드백 일괄 상태 변경에 실패했습니다.');
-			}
-		},
-		[loadFeedbacks]
-	);
+	const { mutateAsync: bulkUpdateStatus } = useMutation({
+		mutationFn: async ({ feedbackIds, status }: { feedbackIds: string[]; status: string }) =>
+			feedbackService.bulkUpdateStatus(feedbackIds, status),
+		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.lists() }),
+		onError: (err: unknown) => setError(err instanceof Error ? err.message : '피드백 일괄 상태 변경에 실패했습니다.'),
+	});
 
 	// 관리자 답변 추가
-	const addAdminReply = useCallback(async (id: string, reply: string) => {
-		try {
-			const updatedFeedback = await feedbackService.addAdminReply(id, reply);
-			setFeedbacks((prev) => prev.map((f) => (f.id === id ? updatedFeedback : f)));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '답변 추가에 실패했습니다.');
-			throw err;
-		}
-	}, []);
+	const { mutateAsync: addAdminReply } = useMutation({
+		mutationFn: async ({ id, reply }: { id: string; reply: string }) => feedbackService.addAdminReply(id, reply),
+		onSuccess: (updated) => {
+			queryClient.setQueryData<Feedback[]>(queryKeys.feedbacks.lists(), (prev = []) =>
+				prev.map((f) => (f.id === updated.id ? updated : f))
+			);
+		},
+		onError: (err: unknown) => setError(err instanceof Error ? err.message : '답변 추가에 실패했습니다.'),
+	});
 
 	// 피드백 삭제
-	const deleteFeedback = useCallback(async (id: string) => {
-		try {
-			await feedbackService.deleteFeedback(id);
-			setFeedbacks((prev) => prev.filter((f) => f.id !== id));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '피드백 삭제에 실패했습니다.');
-		}
-	}, []);
+	const { mutateAsync: deleteFeedback } = useMutation({
+		mutationFn: async (id: string) => feedbackService.deleteFeedback(id),
+		onMutate: async (id: string) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.feedbacks.lists() });
+			const previous = queryClient.getQueryData<Feedback[]>(queryKeys.feedbacks.lists());
+			queryClient.setQueryData<Feedback[]>(queryKeys.feedbacks.lists(), (prev = []) => prev.filter((f) => f.id !== id));
+			return { previous } as { previous?: Feedback[] };
+		},
+		onError: (_err, _id, context) => {
+			if (context?.previous) queryClient.setQueryData(queryKeys.feedbacks.lists(), context.previous);
+		},
+		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.feedbacks.lists() }),
+	});
 
 	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<FeedbackFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 초기 로딩
-	useEffect(() => {
-		loadFeedbacks();
-	}, [loadFeedbacks]);
-
 	return {
 		feedbacks: filteredFeedbacks,
-		loading,
+		loading: isLoading,
 		error,
 		filters,
 		stats,
 		loadFeedbacks,
-		updateFeedbackStatus,
-		bulkUpdateStatus,
-		addAdminReply,
+		updateFeedbackStatus: (id: string, status: string) => updateFeedbackStatus({ id, status }),
+		bulkUpdateStatus: (feedbackIds: string[], status: string) => bulkUpdateStatus({ feedbackIds, status }),
+		addAdminReply: (id: string, reply: string) => addAdminReply({ id, reply }),
 		deleteFeedback,
 		updateFilters,
-	};
+	} as const;
 };

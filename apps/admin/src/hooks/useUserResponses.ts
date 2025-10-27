@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { UserResponsesService } from '@/shared/api/services/user-responses.service';
+import { useCallback, useMemo, useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { userResponsesService } from '@/shared/api/services/user-responses.service';
+import { queryKeys } from '@/shared/lib/query-client';
 import type { UserTestResponse } from '@pickid/supabase';
 
 interface UserResponseFilters {
@@ -12,8 +14,7 @@ interface UserResponseFilters {
 }
 
 export const useUserResponses = () => {
-	const [responses, setResponses] = useState<UserTestResponse[]>([]);
-	const [loading, setLoading] = useState(false);
+	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<UserResponseFilters>({
 		search: '',
@@ -22,6 +23,23 @@ export const useUserResponses = () => {
 		device: 'all',
 		dateFrom: '',
 		dateTo: '',
+	});
+
+	const {
+		data: responses = [],
+		isLoading,
+		refetch,
+	} = useQuery({
+		queryKey: queryKeys.responses.list({
+			search: filters.search,
+			testId: filters.testId,
+			category: filters.category,
+			device: filters.device,
+			dateFrom: filters.dateFrom,
+			dateTo: filters.dateTo,
+		}),
+		queryFn: () => userResponsesService.getResponses(),
+		staleTime: 5 * 60 * 1000,
 	});
 
 	// 통계 계산 (원본 데이터 기준)
@@ -64,8 +82,10 @@ export const useUserResponses = () => {
 				) ||
 				extendedResponse.result_name?.toLowerCase().includes((filters.search || '').toLowerCase());
 			const matchesTestId = filters.testId === 'all' || response.test_id === filters.testId;
-			const matchesCategory = filters.category === 'all' || extendedResponse.category_ids?.includes(filters.category);
-			const matchesDevice = filters.device === 'all' || response.device_type === filters.device;
+			const matchesCategory =
+				filters.category === 'all' ||
+				(filters.category ? extendedResponse.category_ids?.includes(filters.category) : true);
+			const matchesDevice = filters.device === 'all' || response.device_type === (filters.device as string);
 
 			// 날짜 필터링
 			let matchesDate = true;
@@ -73,60 +93,66 @@ export const useUserResponses = () => {
 				matchesDate = matchesDate && new Date(response.completed_at) >= new Date(filters.dateFrom);
 			}
 			if (filters.dateTo && response.completed_at) {
-				matchesDate = matchesDate && new Date(response.completed_at) <= new Date(filters.dateTo + 'T23:59:59');
+				const endOfDay = `${filters.dateTo as string}T23:59:59`;
+				matchesDate = matchesDate && new Date(response.completed_at) <= new Date(endOfDay);
 			}
 
 			return matchesSearch && matchesTestId && matchesCategory && matchesDevice && matchesDate;
 		});
 	}, [responses, filters]);
 
-	// 데이터 로딩
 	const loadResponses = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await UserResponsesService.getResponses();
-			setResponses(data);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '응답을 불러오는데 실패했습니다.');
-		} finally {
-			setLoading(false);
-		}
-	}, []);
+		setError(null);
+		await refetch();
+	}, [refetch]);
 
 	// 응답 삭제
-	const deleteResponse = useCallback(async (id: string) => {
-		try {
-			await UserResponsesService.deleteResponse(id);
-			setResponses((prev) => prev.filter((r) => r.id !== id));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '응답 삭제에 실패했습니다.');
-		}
-	}, []);
+	const { mutateAsync: deleteResponse } = useMutation({
+		mutationFn: async (id: string) => userResponsesService.deleteResponse(id),
+		onMutate: async (id: string) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.responses.lists() });
+			const previous = queryClient.getQueryData<UserTestResponse[]>(queryKeys.responses.lists());
+			queryClient.setQueryData<UserTestResponse[]>(queryKeys.responses.lists(), (prev = []) =>
+				prev.filter((r) => r.id !== id)
+			);
+			return { previous } as { previous?: UserTestResponse[] };
+		},
+		onError: (_err, _id, context) => {
+			if (context?.previous) queryClient.setQueryData(queryKeys.responses.lists(), context.previous);
+			setError('응답 삭제에 실패했습니다.');
+		},
+		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.responses.all }),
+	});
 
 	// 대량 삭제
-	const bulkDeleteResponses = useCallback(async (responseIds: string[]) => {
-		try {
-			await Promise.all(responseIds.map((id) => UserResponsesService.deleteResponse(id)));
-			setResponses((prev) => prev.filter((r) => !responseIds.includes(r.id)));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '대량 삭제에 실패했습니다.');
-		}
-	}, []);
+	const { mutateAsync: bulkDeleteResponses } = useMutation({
+		mutationFn: async (responseIds: string[]) =>
+			Promise.all(responseIds.map((id) => userResponsesService.deleteResponse(id))),
+		onMutate: async (responseIds: string[]) => {
+			await queryClient.cancelQueries({ queryKey: queryKeys.responses.lists() });
+			const previous = queryClient.getQueryData<UserTestResponse[]>(queryKeys.responses.lists());
+			queryClient.setQueryData<UserTestResponse[]>(queryKeys.responses.lists(), (prev = []) =>
+				prev.filter((r) => !responseIds.includes(r.id))
+			);
+			return { previous } as { previous?: UserTestResponse[] };
+		},
+		onError: (_err, _vars, context) => {
+			if (context?.previous) queryClient.setQueryData(queryKeys.responses.lists(), context.previous);
+			setError('대량 삭제에 실패했습니다.');
+		},
+		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.responses.all }),
+	});
 
 	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<UserResponseFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 초기 로딩
-	useEffect(() => {
-		loadResponses();
-	}, [loadResponses]);
+	// 초기 로딩은 useQuery가 담당. 필요시 수동 refetch 사용
 
 	return {
 		responses: filteredResponses,
-		loading,
+		loading: isLoading,
 		error,
 		filters,
 		stats,
@@ -134,5 +160,5 @@ export const useUserResponses = () => {
 		deleteResponse,
 		bulkDeleteResponses,
 		updateFilters,
-	};
+	} as const;
 };

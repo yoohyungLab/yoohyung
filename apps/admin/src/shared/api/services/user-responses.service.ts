@@ -1,15 +1,6 @@
-// apps/admin/src/shared/api/services/user-responses.service.ts
 import { supabase } from '@pickid/supabase';
-import type { Database } from '@pickid/supabase';
+import type { UserTestResponse } from '@pickid/supabase';
 
-// 타입 정의
-type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
-
-export type UserTestResponse = Tables<'user_test_responses'>['Row'];
-export type Test = Tables<'tests'>['Row'];
-export type TestResult = Tables<'test_results'>['Row'];
-
-// UI용 확장 타입
 export interface UserResponse extends UserTestResponse {
 	test_title: string;
 	test_slug: string;
@@ -17,7 +8,6 @@ export interface UserResponse extends UserTestResponse {
 	result_name: string | null;
 }
 
-// 필터 타입
 export interface ResponseFilters {
 	test_id?: string;
 	category_id?: string;
@@ -29,7 +19,6 @@ export interface ResponseFilters {
 	offset?: number;
 }
 
-// 통계 타입
 export interface ResponseStats {
 	total_responses: number;
 	completed_responses: number;
@@ -41,7 +30,6 @@ export interface ResponseStats {
 	stats_generated_at: string;
 }
 
-// 차트 데이터 타입
 export interface ResponseChartData {
 	daily_responses: Array<{ date: string; count: number }>;
 	device_breakdown: Array<{ device: string; count: number }>;
@@ -50,7 +38,6 @@ export interface ResponseChartData {
 	generated_at: string;
 }
 
-// 상세 정보 타입
 export interface UserResponseDetail extends UserTestResponse {
 	test: { id: string; title: string; slug: string; type: string };
 	result: { id: string; name: string; description: string | null } | null;
@@ -63,7 +50,6 @@ export interface UserResponseDetail extends UserTestResponse {
 	};
 }
 
-// 내보내기 데이터 타입
 export interface ExportData {
 	response_id: string;
 	test_title: string;
@@ -75,13 +61,15 @@ export interface ExportData {
 	responses_json: string;
 }
 
-export class UserResponsesService {
-	/**
-	 * 사용자 응답 목록 조회 (간단한 버전)
-	 */
-	static async getResponses(): Promise<UserResponse[]> {
-		// RPC 함수 대신 직접 쿼리 사용
-		const { data, error } = await supabase
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
+
+export const userResponsesService = {
+	async getResponses(): Promise<UserResponse[]> {
+		try {
+			const { data, error } = await supabase
 			.from('user_test_responses')
 			.select(
 				`
@@ -109,51 +97,49 @@ export class UserResponsesService {
 				)
 			`
 			)
-			.order('completed_at', { ascending: false })
-			.limit(1000);
+				.order('completed_at', { ascending: false })
+				.limit(1000);
 
-		if (error) throw new Error(`사용자 응답 조회 실패: ${error.message}`);
+			if (error) throw error;
+			const categoryIds = new Set<string>();
+			(data || []).forEach((item: Record<string, unknown>) => {
+				const test = item.tests as Record<string, unknown>;
+				const testCategoryIds = (test?.category_ids as string[]) || [];
+				testCategoryIds.forEach((id) => categoryIds.add(id));
+			});
 
-		// 카테고리 정보를 별도로 조회
-		const categoryIds = new Set<string>();
-		(data || []).forEach((item: Record<string, unknown>) => {
-			const test = item.tests as Record<string, unknown>;
-			const testCategoryIds = (test?.category_ids as string[]) || [];
-			testCategoryIds.forEach((id) => categoryIds.add(id));
-		});
+			const { data: categoriesData } = await supabase
+				.from('categories')
+				.select('id, name')
+				.in('id', Array.from(categoryIds));
 
-		// 카테고리 정보 조회
-		const { data: categoriesData } = await supabase
-			.from('categories')
-			.select('id, name')
-			.in('id', Array.from(categoryIds));
+			const categoriesMap = new Map<string, string>();
+			(categoriesData || []).forEach((cat: Record<string, unknown>) => {
+				categoriesMap.set(cat.id as string, cat.name as string);
+			});
 
-		const categoriesMap = new Map<string, string>();
-		(categoriesData || []).forEach((cat: Record<string, unknown>) => {
-			categoriesMap.set(cat.id as string, cat.name as string);
-		});
+			return (data || []).map((item: Record<string, unknown>) => {
+				const test = item.tests as Record<string, unknown>;
+				const testCategoryIds = (test?.category_ids as string[]) || [];
+				const categoryNames = testCategoryIds.map((id) => categoriesMap.get(id)).filter(Boolean);
 
-		// 데이터 변환
-		return (data || []).map((item: Record<string, unknown>) => {
-			const test = item.tests as Record<string, unknown>;
-			const testCategoryIds = (test?.category_ids as string[]) || [];
-			const categoryNames = testCategoryIds.map((id) => categoriesMap.get(id)).filter(Boolean);
+				return {
+					...item,
+					test_title: (test?.title as string) || '',
+					test_slug: (test?.slug as string) || '',
+					category_names: categoryNames,
+					result_name: ((item.test_results as Record<string, unknown>)?.result_name as string) || null,
+				};
+			}) as UserResponse[];
+		} catch (error) {
+			handleSupabaseError(error, 'getResponses');
+			throw error;
+		}
+	},
 
-			return {
-				...item,
-				test_title: (test?.title as string) || '',
-				test_slug: (test?.slug as string) || '',
-				category_names: categoryNames,
-				result_name: ((item.test_results as Record<string, unknown>)?.result_name as string) || null,
-			};
-		}) as UserResponse[];
-	}
-
-	/**
-	 * 사용자 응답 목록 조회 (필터링 포함)
-	 */
-	static async getResponsesWithFilters(filters: ResponseFilters = {}): Promise<UserResponse[]> {
-		let query = supabase.from('user_test_responses').select(`
+	async getResponsesWithFilters(filters: ResponseFilters = {}): Promise<UserResponse[]> {
+		try {
+			let query = supabase.from('user_test_responses').select(`
 				id,
 				test_id,
 				session_id,
@@ -176,188 +162,237 @@ export class UserResponsesService {
 					id,
 					result_name
 				)
-			`);
+				`);
 
-		// 필터 적용
-		if (filters.test_id) {
-			query = query.eq('test_id', filters.test_id);
+			if (filters.test_id) {
+				query = query.eq('test_id', filters.test_id);
+			}
+
+			if (filters.device_type) {
+				query = query.eq('device_type', filters.device_type);
+			}
+
+			if (filters.date_from) {
+				query = query.gte('completed_at', filters.date_from);
+			}
+
+			if (filters.date_to) {
+				query = query.lte('completed_at', filters.date_to);
+			}
+
+			if (filters.search_query) {
+				query = query.ilike('tests.title', `%${filters.search_query}%`);
+			}
+
+			query = query
+				.order('completed_at', { ascending: false })
+				.range(filters.offset || 0, (filters.offset || 0) + (filters.limit || 20) - 1);
+
+			const { data, error } = await query;
+
+			if (error) throw error;
+			const categoryIds = new Set<string>();
+			(data || []).forEach((item: Record<string, unknown>) => {
+				const test = item.tests as Record<string, unknown>;
+				const testCategoryIds = (test?.category_ids as string[]) || [];
+				testCategoryIds.forEach((id) => categoryIds.add(id));
+			});
+
+			const { data: categoriesData } = await supabase
+				.from('categories')
+				.select('id, name')
+				.in('id', Array.from(categoryIds));
+
+			const categoriesMap = new Map<string, string>();
+			(categoriesData || []).forEach((cat: Record<string, unknown>) => {
+				categoriesMap.set(cat.id as string, cat.name as string);
+			});
+
+			return (data || []).map((item: Record<string, unknown>) => {
+				const test = item.tests as Record<string, unknown>;
+				const testCategoryIds = (test?.category_ids as string[]) || [];
+				const categoryNames = testCategoryIds.map((id) => categoriesMap.get(id)).filter(Boolean);
+
+				return {
+					...item,
+					test_title: (test?.title as string) || '',
+					test_slug: (test?.slug as string) || '',
+					category_names: categoryNames,
+					result_name: ((item.test_results as Record<string, unknown>)?.result_name as string) || null,
+				};
+			}) as UserResponse[];
+		} catch (error) {
+			handleSupabaseError(error, 'getResponsesWithFilters');
+			throw error;
 		}
+	},
 
-		if (filters.device_type) {
-			query = query.eq('device_type', filters.device_type);
-		}
+	async getResponseStats(filters: ResponseFilters = {}): Promise<ResponseStats> {
+		try {
+			let query = supabase.from('user_test_responses').select('id, completed_at, completion_time_seconds, device_type');
 
-		if (filters.date_from) {
-			query = query.gte('completed_at', filters.date_from);
-		}
+			if (filters.test_id) {
+				query = query.eq('test_id', filters.test_id);
+			}
 
-		if (filters.date_to) {
-			query = query.lte('completed_at', filters.date_to);
-		}
+			if (filters.device_type) {
+				query = query.eq('device_type', filters.device_type);
+			}
 
-		// 검색 쿼리 (테스트 제목에서 검색)
-		if (filters.search_query) {
-			query = query.ilike('tests.title', `%${filters.search_query}%`);
-		}
+			if (filters.date_from) {
+				query = query.gte('completed_at', filters.date_from);
+			}
 
-		query = query
-			.order('completed_at', { ascending: false })
-			.range(filters.offset || 0, (filters.offset || 0) + (filters.limit || 20) - 1);
+			if (filters.date_to) {
+				query = query.lte('completed_at', filters.date_to);
+			}
 
-		const { data, error } = await query;
+			const { data, error } = await query;
 
-		if (error) throw new Error(`사용자 응답 조회 실패: ${error.message}`);
+			if (error) throw error;
 
-		// 카테고리 정보를 별도로 조회
-		const categoryIds = new Set<string>();
-		(data || []).forEach((item: Record<string, unknown>) => {
-			const test = item.tests as Record<string, unknown>;
-			const testCategoryIds = (test?.category_ids as string[]) || [];
-			testCategoryIds.forEach((id) => categoryIds.add(id));
-		});
-
-		// 카테고리 정보 조회
-		const { data: categoriesData } = await supabase
-			.from('categories')
-			.select('id, name')
-			.in('id', Array.from(categoryIds));
-
-		const categoriesMap = new Map<string, string>();
-		(categoriesData || []).forEach((cat: Record<string, unknown>) => {
-			categoriesMap.set(cat.id as string, cat.name as string);
-		});
-
-		// 데이터 변환
-		return (data || []).map((item: Record<string, unknown>) => {
-			const test = item.tests as Record<string, unknown>;
-			const testCategoryIds = (test?.category_ids as string[]) || [];
-			const categoryNames = testCategoryIds.map((id) => categoriesMap.get(id)).filter(Boolean);
+			const responses = data || [];
+			const completed = responses.filter((r) => r.completed_at);
+			const mobile = responses.filter((r) => r.device_type === 'mobile');
+			const desktop = responses.filter((r) => r.device_type === 'desktop');
+			const totalTime = completed.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0);
 
 			return {
-				...item,
-				test_title: (test?.title as string) || '',
-				test_slug: (test?.slug as string) || '',
-				category_names: categoryNames,
-				result_name: ((item.test_results as Record<string, unknown>)?.result_name as string) || null,
+				total_responses: responses.length,
+				completed_responses: completed.length,
+				completion_rate: responses.length > 0 ? (completed.length / responses.length) * 100 : 0,
+				avg_completion_time: completed.length > 0 ? totalTime / completed.length : 0,
+				mobile_count: mobile.length,
+				desktop_count: desktop.length,
+				mobile_ratio: responses.length > 0 ? (mobile.length / responses.length) * 100 : 0,
+				stats_generated_at: new Date().toISOString(),
 			};
-		}) as UserResponse[];
-	}
-
-	/**
-	 * 사용자 응답 통계 조회 (직접 쿼리 사용)
-	 */
-	static async getResponseStats(filters: ResponseFilters = {}): Promise<ResponseStats> {
-		let query = supabase.from('user_test_responses').select('id, completed_at, completion_time_seconds, device_type');
-
-		// 필터 적용
-		if (filters.test_id) {
-			query = query.eq('test_id', filters.test_id);
+		} catch (error) {
+			handleSupabaseError(error, 'getResponseStats');
+			throw error;
 		}
+	},
 
-		if (filters.device_type) {
-			query = query.eq('device_type', filters.device_type);
+	async getResponseDetail(responseId: string): Promise<UserResponseDetail | null> {
+		try {
+			const { data, error } = await supabase
+			.from('user_test_responses')
+			.select(
+				`
+                id, user_id, test_id, started_at, completed_at, completion_time_seconds, device_type, ip_address, user_agent, referrer,
+                tests:tests(id, title, slug, type),
+                test_results:result(id, result_name, description)
+                `
+			)
+				.eq('id', responseId)
+				.single();
+
+			if (error) throw error;
+
+			if (!data) return null;
+
+			const test = (data as any).tests;
+			const result = (data as any).test_results;
+
+			return {
+				...(data as any),
+				test: { id: test?.id, title: test?.title, slug: test?.slug, type: test?.type },
+				result: result ? { id: result.id, name: result.result_name, description: result.description } : null,
+				timing: {
+					started_at: (data as any).started_at,
+					completed_at: (data as any).completed_at,
+					duration_seconds: (data as any).completion_time_seconds,
+				},
+				environment: {
+					ip_address: (data as any).ip_address,
+					user_agent: (data as any).user_agent,
+					device_type: (data as any).device_type,
+					referrer: (data as any).referrer,
+				},
+			} as unknown as UserResponseDetail;
+		} catch (error) {
+			handleSupabaseError(error, 'getResponseDetail');
+			throw error;
 		}
+	},
 
-		if (filters.date_from) {
-			query = query.gte('completed_at', filters.date_from);
+	async deleteResponse(responseId: string): Promise<boolean> {
+		try {
+			const { error } = await supabase.from('user_test_responses').delete().eq('id', responseId);
+			if (error) throw error;
+			return true;
+		} catch (error) {
+			handleSupabaseError(error, 'deleteResponse');
+			throw error;
 		}
+	},
 
-		if (filters.date_to) {
-			query = query.lte('completed_at', filters.date_to);
+	async getResponsesCount(filters: ResponseFilters = {}): Promise<number> {
+		try {
+			let query = supabase.from('user_test_responses').select('id', { count: 'exact', head: true });
+			if (filters.test_id) query = query.eq('test_id', filters.test_id);
+			if (filters.device_type) query = query.eq('device_type', filters.device_type);
+			if (filters.date_from) query = query.gte('completed_at', filters.date_from);
+			if (filters.date_to) query = query.lte('completed_at', filters.date_to);
+			const { count, error } = await query;
+			if (error) throw error;
+			return count || 0;
+		} catch (error) {
+			handleSupabaseError(error, 'getResponsesCount');
+			throw error;
 		}
+	},
 
-		const { data, error } = await query;
-
-		if (error) throw new Error(`통계 조회 실패: ${error.message}`);
-
-		const responses = data || [];
-		const completed = responses.filter((r) => r.completed_at);
-		const mobile = responses.filter((r) => r.device_type === 'mobile');
-		const desktop = responses.filter((r) => r.device_type === 'desktop');
-		const totalTime = completed.reduce((sum, r) => sum + (r.completion_time_seconds || 0), 0);
-
-		return {
-			total_responses: responses.length,
-			completed_responses: completed.length,
-			completion_rate: responses.length > 0 ? (completed.length / responses.length) * 100 : 0,
-			avg_completion_time: completed.length > 0 ? totalTime / completed.length : 0,
-			mobile_count: mobile.length,
-			desktop_count: desktop.length,
-			mobile_ratio: responses.length > 0 ? (mobile.length / responses.length) * 100 : 0,
-			stats_generated_at: new Date().toISOString(),
-		};
-	}
-
-	/**
-	 * 특정 응답 상세 조회 (RPC 함수 사용)
-	 */
-	static async getResponseDetail(responseId: string): Promise<UserResponseDetail | null> {
-		const { data, error } = await supabase.rpc('get_user_response_detail', {
-			response_uuid: responseId,
-		});
-
-		if (error) throw new Error(`응답 상세 조회 실패: ${error.message}`);
-		return data || null;
-	}
-
-	/**
-	 * 응답 삭제 (RPC 함수 사용)
-	 */
-	static async deleteResponse(responseId: string): Promise<boolean> {
-		const { data, error } = await supabase.rpc('delete_user_response', {
-			response_uuid: responseId,
-		});
-
-		if (error) throw new Error(`응답 삭제 실패: ${error.message}`);
-		return data || false;
-	}
-
-	/**
-	 * 응답 개수 조회 (페이지네이션용, RPC 함수 사용)
-	 */
-	static async getResponsesCount(filters: ResponseFilters = {}): Promise<number> {
-		const { data, error } = await supabase.rpc('get_user_responses_count', {
-			test_id_filter: filters.test_id || null,
-			category_filter: filters.category_id || null,
-			device_filter: filters.device_type || null,
-			date_from: filters.date_from || null,
-			date_to: filters.date_to || null,
-			search_query: filters.search_query || null,
-		});
-
-		if (error) throw new Error(`응답 개수 조회 실패: ${error.message}`);
-		return data || 0;
-	}
-
-	/**
-	 * 응답 통계 요약 (대시보드용, RPC 함수 사용)
-	 */
-	static async getQuickStats(): Promise<{
+	async getQuickStats(): Promise<{
 		today_responses: number;
 		total_responses: number;
 		avg_completion_rate: number;
 		top_device: string;
 	}> {
 		try {
-			const { data, error } = await supabase.rpc('get_user_responses_summary');
+			const { count: total } = await supabase.from('user_test_responses').select('id', { count: 'exact', head: true });
+			const todayStart = new Date();
+			todayStart.setHours(0, 0, 0, 0);
+			const { count: today } = await supabase
+				.from('user_test_responses')
+				.select('id', { count: 'exact', head: true })
+				.gte('created_at', todayStart.toISOString());
 
-			if (error) throw new Error(`요약 통계 조회 실패: ${error.message}`);
+			const { data: deviceRows } = await supabase
+				.from('user_test_responses')
+				.select('device_type')
+				.not('device_type', 'is', null);
+			const deviceCounts = new Map<string, number>();
+			(deviceRows || []).forEach((r: { device_type: string | null }) => {
+				if (!r.device_type) return;
+				deviceCounts.set(r.device_type, (deviceCounts.get(r.device_type) || 0) + 1);
+			});
+			let topDevice = 'unknown';
+			let topCount = 0;
+			deviceCounts.forEach((cnt, dev) => {
+				if (cnt > topCount) {
+					topCount = cnt;
+					topDevice = dev;
+				}
+			});
 
-			const stats = data as Record<string, unknown>;
+			const { data: completedRows } = await supabase.from('user_test_responses').select('id, completed_at');
+			const completed = (completedRows || []).filter((r: { completed_at: string | null }) => r.completed_at).length;
+			const avgCompletionRate = total && total > 0 ? Math.round((completed / total) * 100) : 0;
+
 			return {
-				today_responses: (stats.today_responses as number) || 0,
-				total_responses: (stats.total_responses as number) || 0,
-				avg_completion_rate: (stats.avg_completion_rate as number) || 0,
-				top_device: (stats.top_device as string) || 'unknown',
+				today_responses: today || 0,
+				total_responses: total || 0,
+				avg_completion_rate: avgCompletionRate,
+				top_device: topDevice,
 			};
 		} catch (error) {
-			console.error('Failed to fetch quick stats:', error);
-			return { today_responses: 0, total_responses: 0, avg_completion_rate: 0, top_device: 'unknown' };
+			handleSupabaseError(error, 'getQuickStats');
+			throw error;
 		}
-	}
-}
+	},
+};
 
-// 유틸리티 함수
 export const ResponseUtils = {
 	formatDuration(seconds: number | null): string {
 		if (!seconds) return '0초';
@@ -404,5 +439,3 @@ export const ResponseUtils = {
 		};
 	},
 };
-
-export default UserResponsesService;

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, DefaultInput, InputPassword, IconButton } from '@pickid/ui';
-import { useAuthVM } from '@/features/auth';
+import { useAuth } from '@/features/auth';
 import { mapAuthError } from '@/shared/lib/error-mapper';
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '../schemas/auth.schema';
 
@@ -18,7 +18,7 @@ export interface AuthFormProps {
 // React Hook Form을 사용한 인증 폼 컴포넌트
 export function AuthForm({ mode, children }: AuthFormProps) {
 	const router = useRouter();
-	const { signIn, signUp, signInWithKakao } = useAuthVM();
+	const { signIn, signUp, signInWithKakao } = useAuth();
 
 	const isLogin = mode === 'login';
 	const isRegister = mode === 'register';
@@ -43,7 +43,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 	const isSubmitting = isLogin ? loginForm.formState.isSubmitting : registerForm.formState.isSubmitting;
 	const currentForm = isLogin ? loginForm : registerForm;
 
-	const onSubmit = async (data: LoginFormData | RegisterFormData) => {
+	const handleFormSubmit = async (data: LoginFormData | RegisterFormData) => {
 		try {
 			if (isLogin) {
 				const loginData = data as LoginFormData;
@@ -74,7 +74,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 	};
 
 	return (
-		<form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+		<form onSubmit={handleSubmit(handleFormSubmit)} className="space-y-5">
 			{/* 에러 메시지 */}
 			{(isLogin ? loginForm.formState.errors.root : registerForm.formState.errors.root) && (
 				<div className="mb-6 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg animate-shake">
@@ -121,7 +121,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 						type="text"
 						placeholder="닉네임 또는 이름을 입력하세요"
 						label="닉네임 또는 이름"
-						className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
+						className={`h-12 rounded-xl border-gray-200 focus:border-rose-500 focus:ring-rose-500 ${
 							registerForm.formState.errors.name ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : ''
 						}`}
 					/>
@@ -139,7 +139,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 					type="email"
 					placeholder="your@email.com"
 					label="이메일"
-					className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
+					className={`h-12 rounded-xl border-gray-200 focus:border-rose-500 focus:ring-rose-500 ${
 						(isLogin ? loginForm.formState.errors.email : registerForm.formState.errors.email)
 							? 'border-red-500 focus:border-red-500 focus:ring-red-500'
 							: ''
@@ -159,7 +159,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 					id="password"
 					placeholder={isLogin ? '••••••••' : '6자 이상의 비밀번호'}
 					label="비밀번호"
-					className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
+					className={`h-12 rounded-xl border-gray-200 focus:border-rose-500 focus:ring-rose-500 ${
 						(isLogin ? loginForm.formState.errors.password : registerForm.formState.errors.password)
 							? 'border-red-500 focus:border-red-500 focus:ring-red-500'
 							: ''
@@ -180,7 +180,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 						id="confirmPassword"
 						placeholder="비밀번호를 다시 입력하세요"
 						label="비밀번호 확인"
-						className={`h-12 rounded-xl border-gray-200 focus:border-purple-500 focus:ring-purple-500 ${
+						className={`h-12 rounded-xl border-gray-200 focus:border-rose-500 focus:ring-rose-500 ${
 							registerForm.formState.errors.confirmPassword
 								? 'border-red-500 focus:border-red-500 focus:ring-red-500'
 								: ''
@@ -195,7 +195,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 			{/* 제출 버튼 */}
 			<Button
 				type="submit"
-				className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold h-12 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] mt-6"
+				className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold h-12 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] mt-6"
 				loading={isSubmitting}
 				loadingText={isLogin ? '로그인 중...' : '회원가입 중...'}
 			>
@@ -210,7 +210,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 				{isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}{' '}
 				<a
 					href={isLogin ? '/auth/register' : '/auth/login'}
-					className="text-purple-600 hover:text-purple-700 font-semibold hover:underline"
+					className="text-rose-600 hover:text-rose-700 font-semibold hover:underline"
 				>
 					{isLogin ? '회원가입하기' : '로그인하기'}
 				</a>

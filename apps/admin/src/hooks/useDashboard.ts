@@ -10,7 +10,7 @@ export const useDashboard = () => {
 	});
 
 	const topTestsQuery = useQuery({
-		queryKey: ['dashboard', 'top-tests'],
+		queryKey: queryKeys.analytics.topTests(3),
 		queryFn: () => dashboardService.getTopTestsToday(3),
 		staleTime: 5 * 60 * 1000,
 	});

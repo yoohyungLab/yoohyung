@@ -5,20 +5,20 @@ import Image from 'next/image';
 import { Eye } from 'lucide-react';
 
 // 테스트 아이템 타입
-export interface TestItem {
+export interface ITestItem {
 	id: string;
 	title: string;
-	description: string;
+	description: string | null;
 	thumbnail_url: string | null;
 	thumbnailUrl: string | null;
 	created_at: string;
+	category_ids?: string[] | null;
 	completions?: number;
 	starts?: number;
-	category_ids?: string[] | string;
 }
 
 interface CategoryCardProps {
-	test: TestItem;
+	test: ITestItem;
 	className?: string;
 }
 

@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 
 import { SessionProvider } from '@/shared/providers/session.provider';
 import { QueryProvider } from '@/shared/providers/query.provider';
-import { GoogleAnalytics } from '@/shared/components/google-analytics';
+import { GoogleAnalytics } from '@/shared/ui/google-analytics';
 import { SITE_CONFIG, VERIFICATION } from '@/shared/config/metadata';
 import { Toaster } from '@pickid/ui';
 import App from '@/App';

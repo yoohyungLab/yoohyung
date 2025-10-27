@@ -50,6 +50,7 @@ export const queryKeys = {
 	analytics: {
 		all: ['analytics'] as const,
 		dashboard: () => [...queryKeys.analytics.all, 'dashboard'] as const,
+		topTests: (limit: number) => [...queryKeys.analytics.all, 'top-tests', limit] as const,
 		testStats: (testId: string) => [...queryKeys.analytics.all, 'test-stats', testId] as const,
 		testAnalytics: (testId: string) => [...queryKeys.analytics.all, 'test-analytics', testId] as const,
 		testTrends: (testId: string, daysBack: number) =>
@@ -71,5 +72,14 @@ export const queryKeys = {
 	categories: {
 		all: ['categories'] as const,
 		lists: () => [...queryKeys.categories.all, 'list'] as const,
+	},
+
+	// 사용자 응답 관련
+	responses: {
+		all: ['responses'] as const,
+		lists: () => [...queryKeys.responses.all, 'list'] as const,
+		list: (filters: Record<string, unknown>) => [...queryKeys.responses.lists(), { filters }] as const,
+		stats: () => [...queryKeys.responses.all, 'stats'] as const,
+		detail: (id: string) => [...queryKeys.responses.all, 'detail', id] as const,
 	},
 } as const;

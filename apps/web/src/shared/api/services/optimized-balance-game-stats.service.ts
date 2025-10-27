@@ -1,45 +1,21 @@
-import { supabase, type TestQuestion, type TestChoice } from '@pickid/supabase';
-
-// ============================================================================
-// 타입 정의 (Supabase 기본 타입 기반 - 통계 계산용)
-// ============================================================================
-
-// 선택지 통계 (최적화된 통계 계산용)
-export interface IOptimizedChoiceStats {
-	choiceId: string;
-	choiceText: string;
-	responseCount: number;
-	percentage: number;
-}
-
-// 질문 통계 (최적화된 통계 계산용)
-export interface IOptimizedQuestionStats {
-	questionId: string;
-	questionText: string;
-	choiceStats: IOptimizedChoiceStats[];
-	totalResponses: number;
-}
-
-// ============================================================================
-// 유틸리티 함수
-// ============================================================================
+import { createServerClient, supabase } from '@pickid/supabase';
+import type { OptimizedChoiceStats, OptimizedQuestionStats } from '@pickid/supabase';
 
 const handleSupabaseError = (error: unknown, context: string) => {
 	console.error(`Error in ${context}:`, error);
 	throw error;
 };
 
-// ============================================================================
-// 최적화된 밸런스게임 통계 서비스 (비용 최소화)
-// ============================================================================
-
 export const optimizedBalanceGameStatsService = {
-	/**
-	 * 선택지 카운트 증가 (원자적 연산)
-	 */
+	getClient() {
+		return typeof window === 'undefined' ? createServerClient() : supabase;
+	},
+
 	async incrementChoiceCount(choiceId: string): Promise<void> {
 		try {
-			const { error } = await supabase.rpc('increment_choice_response_count', {
+			const client = this.getClient();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const { error } = await (client.rpc as any)('increment_choice_response_count', {
 				choice_uuid: choiceId,
 			});
 
@@ -49,13 +25,10 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 질문별 통계 조회 (최적화된 단일 쿼리)
-	 */
-	async getQuestionStats(questionId: string): Promise<IOptimizedQuestionStats | null> {
+	async getQuestionStats(questionId: string): Promise<OptimizedQuestionStats | null> {
 		try {
-			// 단일 쿼리로 모든 데이터 조회
-			const { data: choices, error } = await supabase
+			const client = this.getClient();
+			const { data: choices, error } = await client
 				.from('test_choices')
 				.select('id, choice_text, response_count')
 				.eq('question_id', questionId)
@@ -72,11 +45,13 @@ export const optimizedBalanceGameStatsService = {
 				};
 			}
 
-			// 총 응답 수 계산
-			const totalResponses = choices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
-
-			// 선택지별 통계 계산
-			const choiceStats: IOptimizedChoiceStats[] = choices.map((choice) => ({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const totalResponses = (choices as any[]).reduce(
+				(sum: number, choice: any) => sum + (choice.response_count || 0),
+				0
+			);
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const choiceStats: OptimizedChoiceStats[] = (choices as any[]).map((choice: any) => ({
 				choiceId: choice.id,
 				choiceText: choice.choice_text,
 				responseCount: choice.response_count || 0,
@@ -95,13 +70,10 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 테스트 전체 통계 조회 (최적화된 쿼리)
-	 */
-	async getAllQuestionStats(testId: string): Promise<IOptimizedQuestionStats[]> {
+	async getAllQuestionStats(testId: string): Promise<OptimizedQuestionStats[]> {
 		try {
-			// JOIN으로 한 번에 모든 데이터 조회
-			const { data: questions, error } = await supabase
+			const client = this.getClient();
+			const { data: questions, error } = await client
 				.from('test_questions')
 				.select(
 					`
@@ -119,21 +91,22 @@ export const optimizedBalanceGameStatsService = {
 				.order('question_order');
 
 			if (error) throw error;
+			if (!questions || questions.length === 0) return [];
 
-			if (!questions || questions.length === 0) {
-				return [];
-			}
-
-			// 질문별 통계 계산
-			return questions.map((question) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return (questions as any[]).map((question: any) => {
 				const choices = question.test_choices || [];
-				const totalResponses = choices.reduce(
-					(sum: number, choice: { response_count: number | null }) => sum + (choice.response_count || 0),
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const totalResponses = (choices as any[]).reduce(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(sum: number, choice: any) => sum + (choice.response_count || 0),
 					0
 				);
 
-				const choiceStats: IOptimizedChoiceStats[] = choices.map(
-					(choice: { id: string; choice_text: string; response_count: number | null }) => ({
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				const choiceStats: OptimizedChoiceStats[] = (choices as any[]).map(
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					(choice: any) => ({
 						choiceId: choice.id,
 						choiceText: choice.choice_text,
 						responseCount: choice.response_count || 0,
@@ -142,8 +115,10 @@ export const optimizedBalanceGameStatsService = {
 				);
 
 				return {
-					questionId: question.id,
-					questionText: question.question_text,
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					questionId: (question as any).id,
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+					questionText: (question as any).question_text,
 					choiceStats,
 					totalResponses,
 				};
@@ -154,12 +129,10 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 인기 선택지 조회 (간단한 쿼리)
-	 */
-	async getPopularChoices(testId: string, limit: number = 5): Promise<IOptimizedChoiceStats[]> {
+	async getPopularChoices(testId: string, limit: number = 5): Promise<OptimizedChoiceStats[]> {
 		try {
-			const { data: choices, error } = await supabase
+			const client = this.getClient();
+			const { data: choices, error } = await client
 				.from('test_choices')
 				.select(
 					`
@@ -175,11 +148,12 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 
-			return (choices || []).map((choice) => ({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return ((choices || []) as any[]).map((choice: any) => ({
 				choiceId: choice.id,
 				choiceText: choice.choice_text,
 				responseCount: choice.response_count || 0,
-				percentage: 0, // 전체 대비 비율은 별도 계산 필요
+				percentage: 0,
 			}));
 		} catch (error) {
 			handleSupabaseError(error, 'getPopularChoices');

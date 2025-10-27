@@ -1,5 +1,6 @@
 'use client';
 
+import { useCallback } from 'react';
 import { FEEDBACK_CATEGORIES } from '@/shared/constants';
 
 interface FeedbackCategorySelectorProps {
@@ -9,6 +10,13 @@ interface FeedbackCategorySelectorProps {
 }
 
 export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, error }: FeedbackCategorySelectorProps) {
+	const handleCategoryClick = useCallback(
+		(key: string) => {
+			onCategoryChange(key);
+		},
+		[onCategoryChange]
+	);
+
 	return (
 		<div className="space-y-2">
 			<label className="text-sm font-semibold text-gray-900">
@@ -35,7 +43,7 @@ export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, e
 						<button
 							key={key}
 							type="button"
-							onClick={() => onCategoryChange(key)}
+							onClick={() => handleCategoryClick(key)}
 							className={`
 								text-left p-3 border rounded-lg transition-all
 								${isSelected ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}

@@ -2,51 +2,51 @@
 // Test Feature - Public API
 // ============================================================================
 
-// UI Components
-export { TestContainer } from './ui/test-container';
-export { TestPageClient } from './ui/test-page-client';
-export { TestIntro } from './ui/test-intro';
-export { TestQuestion } from './ui/test-question';
-export { TestResultContainer } from './ui/test-result-container';
-export { TestResultContent } from './ui/test-result-content';
-export { TestResultHeader } from './ui/test-result-header';
-export { TestCTAButtons } from './ui/test-cta-buttons';
-export { GenderSelectModal } from './ui/gender-select-modal';
-export { SharedResultLanding } from './ui/shared-result-landing';
+// UI Components - Psychology
+export { TestContainer } from './ui/psychology/test-container';
+export { TestIntro } from './ui/psychology/test-intro';
+export { TestQuestion } from './ui/psychology/test-question';
+export { TestResultContainer } from './ui/psychology/test-result-container';
+export { TestResultContent } from './ui/psychology/test-result-content';
+export { TestResultHeader } from './ui/psychology/test-result-header';
+export { GenderSelectModal } from './ui/psychology/gender-select-modal';
+export { SharedResultLanding } from './ui/psychology/shared-result-landing';
 
-// Balance Game Components
+// UI Components - Balance Game
 export { BalanceGameContainer } from './ui/balance-game/balance-game-container';
 export { BalanceGameQuestion } from './ui/balance-game/balance-game-question';
 export { BalanceGameResultContainer } from './ui/balance-game/balance-game-result-container';
 export { BalanceGameResultContent } from './ui/balance-game/balance-game-result-content';
 export { BalanceGameResultHeader } from './ui/balance-game/balance-game-result-header';
 
-// Balance Game Components (Sub-components)
-export { FunStatsSection } from './ui/balance-game/components/fun-stats-section';
-export { LoadingSkeleton } from './ui/balance-game/components/loading-skeleton';
-export { PopularQuestionsSection } from './ui/balance-game/components/popular-questions-section';
-export { PopularTestsSection } from './ui/balance-game/components/popular-tests-section';
+// UI Components - Shared
+export { TestPage } from './ui/shared/test-page';
+export { TestCTAButtons } from './ui/shared/test-cta-buttons';
 
-// Test Sections
-export { CompatibilitySection } from './ui/sections/compatibility-section';
-export { DescriptionSection } from './ui/sections/description-section';
-export { GiftsSection } from './ui/sections/gifts-section';
-export { JobsSection } from './ui/sections/jobs-section';
+// Sections - Balance Game
+export { FunStatsSection } from './ui/balance-game/sections/fun-stats-section';
+export { LoadingSkeleton } from './ui/balance-game/sections/loading-skeleton';
+export { PopularQuestionsSection } from './ui/balance-game/sections/popular-questions-section';
+export { PopularTestsSection } from './ui/balance-game/sections/popular-tests-section';
+
+// Sections - Psychology
+export { CompatibilitySection } from './ui/psychology/sections/compatibility-section';
+export { DescriptionSection } from './ui/psychology/sections/description-section';
+export { GiftsSection } from './ui/psychology/sections/gifts-section';
+export { JobsSection } from './ui/psychology/sections/jobs-section';
 
 // Hooks
-export { useBalanceGameResult } from './hooks/useBalanceGameResult';
-export { useTestResult } from './hooks/useTestResult';
-export { useTestResultShare } from './hooks/useTestResultShare';
-
-// Balance Game Hooks
-export { useBalanceGameResultData } from './ui/balance-game/hooks/useBalanceGameResultData';
+export { useBalanceGameResult } from './hooks/use-balance-game-result';
+export { useTestResult } from './hooks/use-test-result';
+export { useTestResultShare } from './hooks/use-test-result-share';
+export { useAnswerSubmit } from './hooks/use-answer-submit';
+export { useTestProgress } from './hooks/use-test-progress';
 
 // Model/Hooks
-export { useTestDetailVM } from './model/useTestDetailVM';
-export { useTestListVM } from './model/useTestListVM';
-export { useTestResultVM } from './model/useTestResultVM';
-export { useTestStartVM } from './model/useTestStartVM';
-export { useTestTakingVM } from './model/useTestTakingVM';
+export { useTestDetail } from './model/use-test-detail';
+export { useTestList } from './model/use-test-list';
+export { useTestStart } from './model/use-test-start';
+export { useTestTaking } from './model/use-test-taking';
 
 // Lib/Utils
 export { colorThemes } from './lib/themes';

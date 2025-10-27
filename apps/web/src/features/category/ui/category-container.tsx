@@ -5,10 +5,10 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import type { Category } from '@pickid/supabase';
 import { CategoryNavigation } from './category-navigation';
 import { TestFilter } from './test-filter';
-import { CategoryCard, type TestItem } from './category-card';
+import { CategoryCard, type ITestItem } from './category-card';
 
 interface CategoryContainerProps {
-	allTests: TestItem[];
+	allTests: ITestItem[];
 	allCategories: Category[];
 }
 

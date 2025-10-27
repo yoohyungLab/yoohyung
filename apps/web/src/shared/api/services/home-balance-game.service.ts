@@ -1,45 +1,14 @@
-import { supabase, type HomeBalanceGame } from '@pickid/supabase';
+import { createServerClient, supabase } from '@pickid/supabase';
+import type { HomeBalanceGameStats, VoteResult, HomeBalanceGameResponse } from '@pickid/supabase';
 
-// ============================================================================
-// UI용 타입 (Supabase RPC 응답 및 클라이언트 상태 관리용)
-// ============================================================================
-
-export interface IHomeBalanceGameStats {
-	totalVotes: number;
-	votesA: number;
-	votesB: number;
-	percentageA: number;
-	percentageB: number;
-}
-
-export interface IVoteResult {
-	success: boolean;
-	message: string;
-	choice: 'A' | 'B';
-	stats: IHomeBalanceGameStats;
-}
-
-// ============================================================================
-// Supabase 타입 기반 변환 타입
-// ============================================================================
-// RPC 응답을 UI용 타입으로 변환하기 위한 타입
-export interface IHomeBalanceGameResponse {
-	id: string;
-	title: string;
-	optionAEmoji: string;
-	optionALabel: string;
-	optionBEmoji: string;
-	optionBLabel: string;
-	totalVotes: number;
-	votesA: number;
-	votesB: number;
-	weekNumber: number;
-}
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
 
 const calculatePercentages = (votesA: number, votesB: number, totalVotes: number) => {
-	if (totalVotes === 0) {
-		return { percentageA: 50, percentageB: 50 };
-	}
+	if (totalVotes === 0) return { percentageA: 50, percentageB: 50 };
+
 	return {
 		percentageA: Math.round((votesA / totalVotes) * 100),
 		percentageB: Math.round((votesB / totalVotes) * 100),
@@ -47,28 +16,50 @@ const calculatePercentages = (votesA: number, votesB: number, totalVotes: number
 };
 
 export const homeBalanceGameService = {
-	async getCurrentWeekGame(): Promise<IHomeBalanceGameResponse | null> {
+	getClient() {
+		return typeof window === 'undefined' ? createServerClient() : supabase;
+	},
+
+	async getCurrentWeekGame(): Promise<HomeBalanceGameResponse | null> {
 		try {
-			const { data, error } = await supabase.rpc('get_current_week_balance_game');
+			const client = this.getClient();
+			const { data, error } = await client.rpc('get_current_week_balance_game');
 
-			if (error) throw error;
+			console.log('RPC call result:', { data, error });
 
-			const response = data as { success: boolean; game: IHomeBalanceGameResponse | null };
+			if (error) {
+				console.error('RPC error:', error);
+				throw error;
+			}
+
+			// data가 null이거나 undefined일 수 있음
+			if (!data) {
+				console.log('No data returned from RPC');
+				return null;
+			}
+
+			const response = data as { success: boolean; game: HomeBalanceGameResponse | null };
+
+			console.log('Parsed response:', response);
 
 			if (!response || !response.success || !response.game) {
+				console.log('No game found for current week');
 				return null;
 			}
 
 			return response.game;
 		} catch (error) {
-			console.error('Failed to get current week game:', error);
-			return null;
+			console.error('Error in getCurrentWeekGame:', error);
+			handleSupabaseError(error, 'getCurrentWeekGame');
+			return null; // 에러 발생 시 null 반환하여 무한 로딩 방지
 		}
 	},
 
-	async vote(gameId: string, choice: 'A' | 'B'): Promise<IVoteResult> {
+	async vote(gameId: string, choice: 'A' | 'B'): Promise<VoteResult> {
 		try {
-			const { data, error } = await supabase.rpc('increment_balance_game_vote', {
+			const client = this.getClient();
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const { data, error } = await (client.rpc as any)('increment_balance_game_vote', {
 				p_game_id: gameId,
 				p_choice: choice,
 			});
@@ -91,7 +82,7 @@ export const homeBalanceGameService = {
 			return {
 				success: response.success,
 				message: response.message,
-				choice: choice,
+				choice,
 				stats: {
 					totalVotes: response.totalVotes,
 					votesA: response.votesA,
@@ -101,7 +92,7 @@ export const homeBalanceGameService = {
 				},
 			};
 		} catch (error) {
-			console.error('Failed to vote:', error);
+			handleSupabaseError(error, 'vote');
 			throw error;
 		}
 	},

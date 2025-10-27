@@ -29,6 +29,10 @@ export function FeedbackCreateContainer() {
 		}, 2000);
 	};
 
+	const handleNavigateToFeedback = () => {
+		router.push('/feedback');
+	};
+
 	if (showSuccess) {
 		return (
 			<main className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -43,7 +47,7 @@ export function FeedbackCreateContainer() {
 						<p className="text-gray-600 mb-4">소중한 의견 감사합니다.</p>
 					</header>
 					<p className="text-sm text-gray-500">잠시 후 피드백 목록으로 이동합니다...</p>
-					<Button onClick={() => router.push('/feedback')} className="mt-4 w-full" variant="outline">
+					<Button onClick={handleNavigateToFeedback} className="mt-4 w-full" variant="outline">
 						지금 이동하기
 					</Button>
 				</section>

@@ -1,34 +1,19 @@
-import type { Category, Test } from '@pickid/supabase';
-import { supabase } from '@pickid/supabase';
-import { createServerClient } from '@pickid/supabase';
+import { createServerClient, supabase } from '@pickid/supabase';
+import type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCategoriesData } from '@pickid/supabase';
 
-// ============================================================================
-// 타입 정의 (Supabase Category 타입 기반 확장)
-// ============================================================================
-
-// Category에 테스트 개수를 추가한 확장 타입
-export interface ICategoryWithTestCount extends Category {
-	test_count: number;
-}
-
-// 카테고리 페이지 데이터 (SSR용)
-export interface ICategoryPageData {
-	category: Category;
-	allCategories: Category[];
-	tests: Test[];
-}
-
-// 전체 카테고리 데이터 (SSR용)
-export interface IAllCategoriesData {
-	allCategories: Category[];
-	allTests: Test[];
-}
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
 
 export const categoryService = {
-	/** 활성 카테고리 목록 조회 (CSR) */
+	getClient() {
+		return typeof window === 'undefined' ? createServerClient() : supabase;
+	},
 	async getActiveCategories(): Promise<Category[]> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('categories')
 				.select('*')
 				.eq('status', 'active')
@@ -37,30 +22,30 @@ export const categoryService = {
 			if (error) throw error;
 			return data || [];
 		} catch (error) {
-			console.error('Failed to get active categories:', error);
+			handleSupabaseError(error, 'getActiveCategories');
 			return [];
 		}
 	},
 
-	/** 모든 카테고리 조회 (CSR - 관리자용) */
 	async getAllCategories(): Promise<Category[]> {
 		try {
-			const { data, error } = await supabase.from('categories').select('*').order('created_at', { ascending: false });
+			const client = this.getClient();
+			const { data, error } = await client.from('categories').select('*').order('created_at', { ascending: false });
 
 			if (error) throw error;
 			return data || [];
 		} catch (error) {
-			console.error('Failed to get all categories:', error);
+			handleSupabaseError(error, 'getAllCategories');
 			return [];
 		}
 	},
 
-	/** 카테고리별 테스트 개수 조회 (CSR) */
-	async getCategoryWithTestCounts(): Promise<ICategoryWithTestCount[]> {
+	async getCategoryWithTestCounts(): Promise<CategoryWithTestCount[]> {
 		try {
+			const client = this.getClient();
 			const [categoriesResult, testsResult] = await Promise.all([
-				supabase.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
-				supabase.from('tests').select('id, category_ids').eq('status', 'published'),
+				client.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
+				client.from('tests').select('id, category_ids').eq('status', 'published'),
 			]);
 
 			if (categoriesResult.error) throw categoriesResult.error;
@@ -73,7 +58,8 @@ export const categoryService = {
 
 			const categoryCounts = new Map<string, number>();
 
-			tests.forEach((test) => {
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			tests.forEach((test: any) => {
 				if (test.category_ids && Array.isArray(test.category_ids)) {
 					test.category_ids.forEach((categoryId: string) => {
 						const currentCount = categoryCounts.get(categoryId) || 0;
@@ -82,33 +68,34 @@ export const categoryService = {
 				}
 			});
 
-			return categories.map((category) => ({
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return categories.map((category: any) => ({
 				...category,
 				test_count: categoryCounts.get(category.id) || 0,
 			}));
 		} catch (error) {
-			console.error('Failed to get category with test counts:', error);
+			handleSupabaseError(error, 'getCategoryWithTestCounts');
 			return [];
 		}
 	},
 
-	/** 특정 카테고리 조회 (CSR) */
 	async getCategoryById(id: string): Promise<Category | null> {
 		try {
-			const { data, error } = await supabase.from('categories').select('*').eq('id', id).single();
+			const client = this.getClient();
+			const { data, error } = await client.from('categories').select('*').eq('id', id).single();
 
 			if (error) throw error;
 			return data;
 		} catch (error) {
-			console.error('Failed to get category by id:', error);
+			handleSupabaseError(error, 'getCategoryById');
 			return null;
 		}
 	},
 
-	/** 슬러그로 카테고리 조회 (CSR) */
 	async getCategoryBySlug(slug: string): Promise<Category | null> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('categories')
 				.select('*')
 				.eq('slug', slug)
@@ -118,46 +105,48 @@ export const categoryService = {
 			if (error) throw error;
 			return data;
 		} catch (error) {
-			console.error('Failed to get category by slug:', error);
+			handleSupabaseError(error, 'getCategoryBySlug');
 			return null;
 		}
 	},
 
-	/** 카테고리 페이지 데이터 조회 (SSR) */
-	async getCategoryPageDataSSR(slug: string): Promise<ICategoryPageData | null> {
+	async getCategoryPageDataSSR(slug: string): Promise<CategoryPageData | null> {
 		try {
 			const supabase = createServerClient();
 
 			const [categoryResult, allCategoriesResult] = await Promise.all([
-				supabase.from('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
-				supabase.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(supabase.from as any)('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				(supabase.from as any)('categories')
+					.select('*')
+					.eq('status', 'active')
+					.order('sort_order', { ascending: true }),
 			]);
 
 			if (categoryResult.error || !categoryResult.data) {
 				return null;
 			}
 
-			const category = categoryResult.data;
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			const category = categoryResult.data as any;
 
 			const { data: tests } = await supabase
 				.from('tests')
 				.select('*')
 				.eq('status', 'published')
-				.contains('category_ids', [category.id]);
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				.contains('category_ids', [category.id] as any);
 
-			return {
-				category,
-				allCategories: allCategoriesResult.data || [],
-				tests: (tests as Test[]) || [],
-			};
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			return { category, allCategories: (allCategoriesResult.data as any[]) || [], tests: (tests as Test[]) || [] };
 		} catch (error) {
-			console.error('Failed to get category page data:', error);
+			handleSupabaseError(error, 'getCategoryPageDataSSR');
 			return null;
 		}
 	},
 
-	/** 모든 카테고리 데이터 조회 (SSR) */
-	async getAllCategoriesDataSSR(): Promise<IAllCategoriesData | null> {
+	async getAllCategoriesDataSSR(): Promise<AllCategoriesData | null> {
 		try {
 			const supabase = createServerClient();
 
@@ -172,21 +161,15 @@ export const categoryService = {
 			const categories = categoriesResult.data || [];
 			const tests = (testsResult.data as Test[]) || [];
 
-			if (categories.length === 0) {
-				console.warn('No active categories found');
-			}
+			if (categories.length === 0) console.warn('No active categories found');
 
-			return {
-				allCategories: categories,
-				allTests: tests,
-			};
+			return { allCategories: categories, allTests: tests };
 		} catch (error) {
-			console.error('Failed to get all categories data:', error);
+			handleSupabaseError(error, 'getAllCategoriesDataSSR');
 			return null;
 		}
 	},
 
-	/** 테스트 데이터 변환 */
 	transformTestData(tests: Test[]) {
 		return tests.map((test) => ({
 			id: test.id,

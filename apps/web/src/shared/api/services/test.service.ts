@@ -1,47 +1,7 @@
-import { supabase } from '@pickid/supabase';
-import type { Test, TestResult, UserTestResponse, TestQuestion, TestChoice, Json } from '@pickid/supabase';
+import { supabase, createServerClient } from '@pickid/supabase';
+import type { Json, Test, TestChoice, TestResult, TestWithNestedDetails, UserTestResponse } from '@pickid/supabase';
+
 import type { TestCompletionResult } from '@/shared/types';
-
-// ============================================================================
-// 타입 정의 (Supabase 기본 타입 기반)
-// ============================================================================
-
-// 테스트 응답 데이터 (레거시 호환용)
-export interface TestResponseData extends Pick<UserTestResponse, 'created_at'> {
-	id?: string;
-	gender: string;
-	result: unknown;
-	score: number;
-	answers: number[];
-}
-
-// 사용자 응답 저장 파라미터 (Supabase UserTestResponse 기반)
-export interface UserResponseParams {
-	testId: string;
-	userId: string | null;
-	responses: UserTestResponse['responses'];
-	result_id: UserTestResponse['result_id'];
-	startedAt?: string;
-	completedAt?: string;
-	score?: number;
-}
-
-// 테스트 상세 정보 (Supabase 타입 조합)
-export interface TestWithDetails extends Test {
-	test_questions: (TestQuestion & {
-		test_choices: TestChoice[];
-	})[];
-	test_results: TestResult[];
-}
-
-// 결과 포함 사용자 응답 (Supabase 타입 조합)
-export interface UserResponseWithResult extends UserTestResponse {
-	test_results: TestResult;
-}
-
-// ============================================================================
-// 쿼리 상수
-// ============================================================================
 
 const TEST_DETAILS_QUERY = `
 	*,
@@ -81,10 +41,6 @@ const USER_RESPONSE_QUERY = `
 	test_results:result_id(*)
 `;
 
-// ============================================================================
-// 유틸리티 함수
-// ============================================================================
-
 const handleSupabaseError = (error: unknown, context: string) => {
 	console.error(`Error in ${context}:`, error);
 	throw error;
@@ -94,17 +50,16 @@ const isNotFoundError = (error: unknown) => {
 	return (error as { code?: string })?.code === 'PGRST116';
 };
 
-// ============================================================================
-// 테스트 서비스
-// ============================================================================
-
 export const testService = {
-	/**
-	 * 공개된 모든 테스트 조회
-	 */
+	// 클라이언트 팩토리: 공식 가이드에 맞춰 SSR/CSR 분기
+	getClient() {
+		// Next.js 환경: server components/route handlers 에서는 window 없음
+		return typeof window === 'undefined' ? createServerClient() : supabase;
+	},
 	async getPublishedTests(): Promise<Test[]> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('tests')
 				.select('*')
 				.eq('status', 'published')
@@ -118,12 +73,10 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * ID로 특정 테스트 조회
-	 */
 	async getTestById(id: string): Promise<Test | null> {
 		try {
-			const { data, error } = await supabase.from('tests').select('*').eq('id', id).eq('status', 'published').single();
+			const client = this.getClient();
+			const { data, error } = await client.from('tests').select('*').eq('id', id).eq('status', 'published').single();
 
 			if (error) throw error;
 			return data as Test;
@@ -133,12 +86,10 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 슬러그로 특정 테스트 조회
-	 */
 	async getTestBySlug(slug: string): Promise<Test | null> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('tests')
 				.select('*')
 				.eq('slug', slug)
@@ -153,28 +104,101 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 테스트 상세 정보 조회 (질문, 선택지, 결과 포함)
-	 */
-	async getTestWithDetails(id: string): Promise<TestWithDetails | null> {
+	async getTestWithDetails(id: string): Promise<TestWithNestedDetails | null> {
 		try {
-			const { data, error } = await supabase.from('tests').select(TEST_DETAILS_QUERY).eq('id', id).single();
+			const client = this.getClient();
+			const { data, error } = await client.from('tests').select(TEST_DETAILS_QUERY).eq('id', id).single();
 
 			if (error) throw error;
 
-			return data as TestWithDetails;
+			// 타입 변환 및 nested join 보정
+			const testData = data as Test & {
+				test_questions?: Array<{
+					id: string;
+					question_text: string;
+					question_order: number;
+					image_url: string | null;
+					created_at: string;
+					updated_at: string;
+					test_choices?: unknown[];
+				}>;
+				test_results?: unknown[];
+			};
+
+			// 일부 환경에서 nested join으로 choices가 비어오는 경우가 있어 보정
+			if (testData?.test_questions && Array.isArray(testData.test_questions)) {
+				const questionIds = testData.test_questions.map((q) => q.id);
+				if (questionIds.length > 0) {
+					const { data: rawChoices } = await client
+						.from('test_choices')
+						.select('id, choice_text, choice_order, score, is_correct, created_at, question_id')
+						.in('question_id', questionIds)
+						.order('choice_order');
+
+					if (rawChoices) {
+						const byQuestion: Record<string, unknown[]> = {};
+						rawChoices.forEach((ch) => {
+							const choiceData = ch as {
+								question_id: string;
+								id: string;
+								choice_text: string;
+								choice_order: number;
+								score: number;
+								is_correct: boolean;
+								created_at: string;
+							};
+							if (!byQuestion[choiceData.question_id]) byQuestion[choiceData.question_id] = [];
+							byQuestion[choiceData.question_id].push({
+								id: choiceData.id,
+								choice_text: choiceData.choice_text,
+								choice_order: choiceData.choice_order,
+								score: choiceData.score,
+								is_correct: choiceData.is_correct,
+								created_at: choiceData.created_at,
+							});
+						});
+
+						testData.test_questions = testData.test_questions.map((q) => ({
+							...q,
+							test_choices: byQuestion[q.id] || q.test_choices || [],
+						}));
+					}
+				}
+			}
+
+			// TestWithNestedDetails 형식으로 변환
+			return {
+				test: testData as Test,
+				questions:
+					testData?.test_questions?.map((q) => ({
+						id: q.id,
+						question_text: q.question_text,
+						question_order: q.question_order,
+						image_url: q.image_url,
+						created_at: q.created_at,
+						updated_at: q.updated_at,
+						choices: (q.test_choices as TestChoice[]) || [],
+					})) || [],
+				results: (testData?.test_results as TestResult[]) || [],
+			};
 		} catch (error) {
 			handleSupabaseError(error, 'getTestWithDetails');
 			return null;
 		}
 	},
 
-	/**
-	 * 사용자 응답 저장
-	 */
-	async saveUserResponse(params: UserResponseParams): Promise<UserTestResponse> {
+	async saveUserResponse(params: {
+		testId: string;
+		userId: string | null;
+		responses: UserTestResponse['responses'];
+		result_id: UserTestResponse['result_id'];
+		startedAt?: string;
+		completedAt?: string;
+		score?: number;
+	}): Promise<UserTestResponse> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('user_test_responses')
 				.insert([
 					{
@@ -199,12 +223,13 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 사용자별 응답 조회
-	 */
-	async getUserResponseByUser(userId: string, testId: string): Promise<UserResponseWithResult | null> {
+	async getUserResponseByUser(
+		userId: string,
+		testId: string
+	): Promise<(UserTestResponse & { test_results: TestResult }) | null> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('user_test_responses')
 				.select(USER_RESPONSE_QUERY)
 				.eq('user_id', userId)
@@ -212,19 +237,20 @@ export const testService = {
 				.single();
 
 			if (error && !isNotFoundError(error)) throw error;
-			return data as UserResponseWithResult | null;
+			return data as (UserTestResponse & { test_results: TestResult }) | null;
 		} catch (error) {
 			handleSupabaseError(error, 'getUserResponseByUser');
 			return null;
 		}
 	},
 
-	/**
-	 * 세션별 응답 조회
-	 */
-	async getUserResponseBySession(sessionId: string, testId: string): Promise<UserResponseWithResult | null> {
+	async getUserResponseBySession(
+		sessionId: string,
+		testId: string
+	): Promise<(UserTestResponse & { test_results: TestResult }) | null> {
 		try {
-			const { data, error } = await supabase
+			const client = this.getClient();
+			const { data, error } = await client
 				.from('user_test_responses')
 				.select(USER_RESPONSE_QUERY)
 				.eq('session_id', sessionId)
@@ -232,16 +258,13 @@ export const testService = {
 				.single();
 
 			if (error && !isNotFoundError(error)) throw error;
-			return data as UserResponseWithResult | null;
+			return data as (UserTestResponse & { test_results: TestResult }) | null;
 		} catch (error) {
 			handleSupabaseError(error, 'getUserResponseBySession');
 			return null;
 		}
 	},
 
-	/**
-	 * 테스트 결과 저장
-	 */
 	async saveTestResult(insertData: {
 		test_id?: string;
 		result_name: string;
@@ -254,7 +277,8 @@ export const testService = {
 		target_gender?: string | null;
 	}): Promise<TestResult> {
 		try {
-			const { data: result, error } = await supabase.from('test_results').insert([insertData]).select().single();
+			const client = this.getClient();
+			const { data: result, error } = await client.from('test_results').insert([insertData]).select().single();
 
 			if (error) throw error;
 			return result;
@@ -264,12 +288,10 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 모든 테스트 결과 조회
-	 */
 	async getTestResults(): Promise<TestResult[]> {
 		try {
-			const { data, error } = await supabase.from('test_results').select('*').order('created_at', { ascending: false });
+			const client = this.getClient();
+			const { data, error } = await client.from('test_results').select('*').order('created_at', { ascending: false });
 
 			if (error) throw error;
 			return data || [];
@@ -279,12 +301,10 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 특정 테스트의 결과 목록 가져오기
-	 */
 	async getTestResultsByTestId(testId: string): Promise<TestResult[]> {
 		try {
-			const { data: results, error: resultsError } = await supabase
+			const client = this.getClient();
+			const { data: results, error: resultsError } = await client
 				.from('test_results')
 				.select(
 					`
@@ -314,9 +334,6 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 세션 스토리지에서 응답 데이터 가져오기
-	 */
 	async getResponseData(testId: string) {
 		let responseData: UserTestResponse | null = null;
 		let totalScore = 0;
@@ -339,7 +356,8 @@ export const testService = {
 		}
 
 		if (!responseData) {
-			const { data: userResponses } = await supabase
+			const client = this.getClient();
+			const { data: userResponses } = await client
 				.from('user_test_responses')
 				.select('*')
 				.eq('test_id', testId)
@@ -356,16 +374,12 @@ export const testService = {
 		return { responseData, totalScore, userGender };
 	},
 
-	/**
-	 * 결과 매칭 로직
-	 */
 	findMatchingResult(
 		responseData: UserTestResponse | null,
 		results: TestResult[],
 		totalScore: number,
 		userGender: string | null
 	): TestResult | null {
-		// 세션 데이터에서 직접 결과가 있는 경우
 		if (responseData && 'resultName' in responseData && responseData.resultName && responseData.result_id !== 'temp') {
 			const sessionData = responseData as UserTestResponse & {
 				resultName: string;
@@ -386,24 +400,19 @@ export const testService = {
 			} as TestResult;
 		}
 
-		// 성별 기반 결과 매칭
 		const genderFilteredResults = userGender
 			? results.filter((result: { target_gender: string | null }) => {
 					return !result.target_gender || result.target_gender === userGender;
 			  })
 			: results;
 
-		// 점수 범위 매칭
 		let matchingResult = this.findResultByScore(genderFilteredResults, totalScore);
 
-		// 폴백: 성별 필터링된 결과에서 매칭 실패 시, 성별 무관하게 매칭 시도
 		if (!matchingResult && userGender && genderFilteredResults.length > 0) {
 			matchingResult = this.findResultByScore(results, totalScore);
 		}
 
-		// 최종 폴백: 성별 우선순위로 첫 번째 결과 선택
 		if (!matchingResult && results.length > 0) {
-			// 성별이 지정된 경우 해당 성별 결과를 우선 선택
 			if (userGender) {
 				const genderSpecificResult = results.find((r) => r.target_gender === userGender);
 				if (genderSpecificResult) {
@@ -419,11 +428,7 @@ export const testService = {
 		return matchingResult as TestResult;
 	},
 
-	/**
-	 * 점수 범위로 결과 찾기
-	 */
 	findResultByScore(results: TestResult[], totalScore: number): TestResult | null {
-		// 점수 범위별로 정렬하여 가장 정확한 매칭 찾기
 		const sortedResults = results
 			.filter((result) => result.match_conditions)
 			.map((result) => {
@@ -436,27 +441,14 @@ export const testService = {
 				const minScore = conditions.min || conditions.min_score || 0;
 				const maxScore = conditions.max || conditions.max_score || 999999;
 
-				return {
-					result,
-					minScore,
-					maxScore,
-					range: maxScore - minScore, // 범위가 작을수록 더 정확한 매칭
-				};
+				return { result, minScore, maxScore, range: maxScore - minScore };
 			})
 			.filter((item) => totalScore >= item.minScore && totalScore <= item.maxScore)
-			.sort((a, b) => a.range - b.range); // 범위가 가장 작은 것부터 정렬
+			.sort((a, b) => a.range - b.range);
 
-		if (sortedResults.length > 0) {
-			const matchedResult = sortedResults[0].result;
-			return matchedResult;
-		}
-
-		return null;
+		return sortedResults.length > 0 ? sortedResults[0].result : null;
 	},
 
-	/**
-	 * 사용자 테스트 응답 저장
-	 */
 	async saveUserTestResponse(result: TestCompletionResult): Promise<void> {
 		try {
 			const {
@@ -464,7 +456,6 @@ export const testService = {
 			} = await supabase.auth.getUser();
 			const sessionId = user?.id || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-			// 응답 저장
 			const { error } = await supabase.from('user_test_responses').insert([
 				{
 					test_id: result.test_id,
@@ -488,14 +479,10 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 테스트 응답수 증가
-	 */
 	async incrementTestResponse(testId: string): Promise<void> {
 		try {
 			await supabase.rpc('increment_test_response', { test_uuid: testId });
 		} catch (error) {
-			// RPC 실패는 무시 (로그만 남김)
 			console.warn('Failed to increment test response count:', error);
 		}
 	},

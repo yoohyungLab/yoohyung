@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Category } from '@pickid/supabase';
 
@@ -17,8 +17,15 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
 	const hasMoreCategories = categories.length > 7;
 
 	// 카테고리 클릭 핸들러
-	const handleCategoryClick = (slug: string) => {
-		router.push(`/category?category=${slug}`);
+	const handleCategoryClick = useCallback(
+		(slug: string) => {
+			router.push(`/category?category=${slug}`);
+		},
+		[router]
+	);
+
+	const handleToggleShowAll = () => {
+		setShowAll(!showAll);
 	};
 
 	return (
@@ -41,7 +48,7 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
 			{hasMoreCategories && (
 				<div className="text-center">
 					<button
-						onClick={() => setShowAll(!showAll)}
+						onClick={handleToggleShowAll}
 						className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-medium text-gray-600 hover:text-gray-900 transition-colors"
 					>
 						<span>{showAll ? '접기' : `${categories.length - 7}개 더보기`}</span>

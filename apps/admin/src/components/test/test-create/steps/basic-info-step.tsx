@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { DefaultInput, DefaultSelect, DefaultTextarea, IconButton, Switch, Button } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import { X, RefreshCw } from 'lucide-react';
@@ -19,6 +19,74 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 
 	const { categories, loading, error, fetchCategories } = useCategories();
 
+	const handleTitleChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			onUpdateTitle(e.target.value);
+		},
+		[onUpdateTitle]
+	);
+
+	const handleShortCodeChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			onUpdateTestData({ ...testData, short_code: e.target.value });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const handleDescriptionChange = useCallback(
+		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			onUpdateTestData({ ...testData, description: e.target.value || null });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const handleIntroChange = useCallback(
+		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
+			onUpdateTestData({ ...testData, intro_text: e.target.value || null });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const handleEstimatedTimeChange = useCallback(
+		(value: string) => {
+			onUpdateTestData({ ...testData, estimated_time: parseInt(value) });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const handleMaxScoreChange = useCallback(
+		(e: React.ChangeEvent<HTMLInputElement>) => {
+			onUpdateTestData({ ...testData, max_score: parseInt(e.target.value) || 100 });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const handleRequiresGenderChange = useCallback(
+		(checked: boolean) => {
+			onUpdateTestData({ requires_gender: checked });
+		},
+		[onUpdateTestData]
+	);
+
+	const handlePublishToggle = useCallback(
+		(checked: boolean) => {
+			onUpdateTestData({ ...testData, status: checked ? 'published' : 'draft' });
+		},
+		[onUpdateTestData, testData]
+	);
+
+	const categoryIdSet = useMemo(() => new Set(testData.category_ids), [testData.category_ids]);
+
+	const handleCategoryToggle = useCallback(
+		(categoryId: string) => {
+			const newIds = categoryIdSet.has(categoryId)
+				? testData.category_ids.filter((id: string) => id !== categoryId)
+				: [...testData.category_ids, categoryId];
+			onUpdateTestData({ ...testData, category_ids: newIds });
+		},
+		[categoryIdSet, onUpdateTestData, testData]
+	);
+
 	return (
 		<div className="space-y-8">
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -28,7 +96,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 						label="테스트 제목"
 						required
 						value={testData.title}
-						onChange={(e) => onUpdateTitle(e.target.value)}
+						onChange={handleTitleChange}
 						placeholder="예: 나는 어떤 MBTI 유형일까?"
 					/>
 
@@ -37,7 +105,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 						<div className="flex gap-2">
 							<DefaultInput
 								value={testData.short_code}
-								onChange={(e) => onUpdateTestData({ ...testData, short_code: e.target.value })}
+								onChange={handleShortCodeChange}
 								placeholder="예: ABC123"
 								className="flex-1"
 							/>
@@ -59,7 +127,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 					<DefaultTextarea
 						label="테스트 설명"
 						value={testData.description || ''}
-						onChange={(e) => onUpdateTestData({ ...testData, description: e.target.value || null })}
+						onChange={handleDescriptionChange}
 						placeholder="테스트에 대한 간단한 설명을 입력하세요 (SNS 공유시 표시됩니다)"
 						rows={3}
 					/>
@@ -67,7 +135,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 					<DefaultTextarea
 						label="시작 문구"
 						value={testData.intro_text || ''}
-						onChange={(e) => onUpdateTestData({ ...testData, intro_text: e.target.value || null })}
+						onChange={handleIntroChange}
 						placeholder="테스트 시작 전 사용자에게 보여줄 문구를 입력하세요"
 						rows={3}
 					/>
@@ -76,12 +144,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 						<DefaultSelect
 							label="예상 소요 시간"
 							value={testData.estimated_time?.toString()}
-							onValueChange={(value: string) =>
-								onUpdateTestData({
-									...testData,
-									estimated_time: parseInt(value),
-								})
-							}
+							onValueChange={handleEstimatedTimeChange}
 							options={[
 								{ value: '1', label: '1분 (초단편)' },
 								{ value: '3', label: '3분 (빠른 테스트)' },
@@ -97,12 +160,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 								label="최대 점수"
 								type="number"
 								value={testData.max_score}
-								onChange={(e) =>
-									onUpdateTestData({
-										...testData,
-										max_score: parseInt(e.target.value) || 100,
-									})
-								}
+								onChange={handleMaxScoreChange}
 								min="10"
 								max="1000"
 							/>
@@ -140,14 +198,9 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 									{categories.map((category) => (
 										<button
 											key={category.id}
-											onClick={() => {
-												const newIds = testData.category_ids.includes(category.id)
-													? testData.category_ids.filter((id: string) => id !== category.id)
-													: [...testData.category_ids, category.id];
-												onUpdateTestData({ ...testData, category_ids: newIds });
-											}}
+											onClick={() => handleCategoryToggle(category.id)}
 											className={`p-3 border rounded-lg text-left transition-all ${
-												testData.category_ids.includes(category.id)
+												categoryIdSet.has(category.id)
 													? 'border-blue-500 bg-blue-50 text-blue-800'
 													: 'border-gray-200 hover:border-gray-300'
 											}`}
@@ -162,38 +215,28 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 						</div>
 					</div>
 				</div>
-			</div>
 
-			{/* 성별 필드 설정 */}
-			<div className="space-y-4">
-				<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-					<div>
-						<div className="text-base font-medium">성별 정보 수집</div>
-					</div>
-					<div className="flex items-center gap-2">
-						<Switch
-							checked={Boolean(testData.requires_gender)}
-							onCheckedChange={(checked) => {
-								onUpdateTestData({ requires_gender: checked });
-							}}
-						/>
+				{/* 성별 필드 설정 */}
+				<div className="space-y-4">
+					<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+						<div>
+							<div className="text-base font-medium">성별 정보 수집</div>
+						</div>
+						<div className="flex items-center gap-2">
+							<Switch checked={Boolean(testData.requires_gender)} onCheckedChange={handleRequiresGenderChange} />
+						</div>
 					</div>
 				</div>
-			</div>
 
-			{/* 발행 설정 */}
-			<div className="space-y-4">
-				<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-					<div className="text-base font-medium">즉시발행</div>
-					<Switch
-						checked={testData.status === 'published' || testData.status === undefined}
-						onCheckedChange={(checked) =>
-							onUpdateTestData({
-								...testData,
-								status: checked ? 'published' : 'draft',
-							})
-						}
-					/>
+				{/* 발행 설정 */}
+				<div className="space-y-4">
+					<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+						<div className="text-base font-medium">즉시발행</div>
+						<Switch
+							checked={testData.status === 'published' || testData.status === undefined}
+							onCheckedChange={handlePublishToggle}
+						/>
+					</div>
 				</div>
 			</div>
 		</div>

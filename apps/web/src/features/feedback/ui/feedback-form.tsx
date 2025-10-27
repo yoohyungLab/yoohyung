@@ -53,6 +53,18 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 		}
 	};
 
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		handleInputChange('title', e.target.value);
+	};
+
+	const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		handleInputChange('content', e.target.value);
+	};
+
+	const handleCategoryChange = (category: string) => {
+		handleInputChange('category', category);
+	};
+
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 		if (!validateForm()) return;
@@ -85,7 +97,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 				<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
 					<FeedbackCategorySelector
 						selectedCategory={formData.category}
-						onCategoryChange={(category) => handleInputChange('category', category)}
+						onCategoryChange={handleCategoryChange}
 						error={errors.category}
 					/>
 
@@ -94,7 +106,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 						required
 						placeholder="제목을 입력해주세요"
 						value={formData.title}
-						onChange={(e) => handleInputChange('title', e.target.value)}
+						onChange={handleTitleChange}
 						error={errors.title}
 					/>
 
@@ -103,7 +115,7 @@ export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
 						required
 						placeholder="내용을 입력해주세요"
 						value={formData.content}
-						onChange={(e) => handleInputChange('content', e.target.value)}
+						onChange={handleContentChange}
 						error={errors.content}
 						rows={10}
 					/>

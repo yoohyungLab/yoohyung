@@ -6,7 +6,6 @@ import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 import { useFeedbackDetail } from '@/features/feedback';
 import { getCategoryInfo, getStatusInfo, formatDateTime, getStatusClassName } from '@/features/feedback';
-// import { useErrorHandling } from '@/shared/hooks/use-error-handling';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();

@@ -62,13 +62,10 @@ export const useAnalytics = (filters: AnalyticsFilters = {}) => {
 	};
 
 	// 액션들
-	const handleBulkAction = useCallback(
-		(action: string) => {
-			console.log(`Bulk action: ${action}`, selectedTests);
-			setSelectedTests([]);
-		},
-		[selectedTests]
-	);
+	const handleBulkAction = useCallback(() => {
+		// no-op: 향후 Bulk 액션 연결 시 구현
+		setSelectedTests([]);
+	}, []);
 
 	// 캐시 무효화
 	const invalidateCache = {

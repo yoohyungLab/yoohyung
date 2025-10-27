@@ -1,75 +1,97 @@
 import { supabase } from '@pickid/supabase';
 import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@pickid/supabase';
 
-// Re-export types for convenience
 export type { AdminFeedbackResponse, FeedbackStats };
 
-// 피드백 서비스 - 실제 사용되는 함수들만 포함
+const handleSupabaseError = (error: unknown, context: string) => {
+	console.error(`Error in ${context}:`, error);
+	throw error;
+};
+
 export const feedbackService = {
-	// 피드백 목록 조회
 	async getFeedbacks(): Promise<Feedback[]> {
-		const { data, error } = await supabase.from('feedbacks').select('*').order('created_at', { ascending: false });
+		try {
+			const { data, error } = await supabase.from('feedbacks').select('*').order('created_at', { ascending: false });
 
-		if (error) throw error;
-		return data || [];
+			if (error) throw error;
+			return data || [];
+		} catch (error) {
+			handleSupabaseError(error, 'getFeedbacks');
+			throw error;
+		}
 	},
 
-	// 피드백 상태 업데이트
-	async updateFeedbackStatus(id: string, status: string) {
-		const { data, error } = await supabase
-			.from('feedbacks')
-			.update({
-				status,
-				updated_at: new Date().toISOString(),
-			})
-			.eq('id', id)
-			.select()
-			.single();
+	async updateFeedbackStatus(id: string, status: string): Promise<Feedback> {
+		try {
+			const { data, error } = await supabase
+				.from('feedbacks')
+				.update({
+					status,
+					updated_at: new Date().toISOString(),
+				})
+				.eq('id', id)
+				.select()
+				.single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'updateFeedbackStatus');
+			throw error;
+		}
 	},
 
-	// 관리자 답변 추가
-	async addAdminReply(id: string, reply: string) {
-		const { data, error } = await supabase
-			.from('feedbacks')
-			.update({
-				admin_reply: reply,
-				admin_reply_at: new Date().toISOString(),
-				status: 'replied',
-				updated_at: new Date().toISOString(),
-			})
-			.eq('id', id)
-			.select()
-			.single();
+	async addAdminReply(id: string, reply: string): Promise<Feedback> {
+		try {
+			const { data, error } = await supabase
+				.from('feedbacks')
+				.update({
+					admin_reply: reply,
+					admin_reply_at: new Date().toISOString(),
+					status: 'replied',
+					updated_at: new Date().toISOString(),
+				})
+				.eq('id', id)
+				.select()
+				.single();
 
-		if (error) throw error;
-		return data;
+			if (error) throw error;
+			return data;
+		} catch (error) {
+			handleSupabaseError(error, 'addAdminReply');
+			throw error;
+		}
 	},
 
-	// 피드백 삭제
-	async deleteFeedback(id: string) {
-		const { error } = await supabase.from('feedbacks').delete().eq('id', id);
-		if (error) throw error;
+	async deleteFeedback(id: string): Promise<void> {
+		try {
+			const { error } = await supabase.from('feedbacks').delete().eq('id', id);
+			if (error) throw error;
+		} catch (error) {
+			handleSupabaseError(error, 'deleteFeedback');
+			throw error;
+		}
 	},
 
-	// 여러 피드백 상태 일괄 업데이트
 	async bulkUpdateStatus(feedbackIds: string[], status: string): Promise<number> {
-		const { data, error } = await supabase
-			.from('feedbacks')
-			.update({
-				status,
-				updated_at: new Date().toISOString(),
-			})
-			.in('id', feedbackIds)
-			.select();
+		try {
+			const { data, error } = await supabase
+				.from('feedbacks')
+				.update({
+					status,
+					updated_at: new Date().toISOString(),
+				})
+				.in('id', feedbackIds)
+				.select();
 
-		if (error) throw error;
-		return data?.length || 0;
+			if (error) throw error;
+			return data?.length || 0;
+		} catch (error) {
+			handleSupabaseError(error, 'bulkUpdateStatus');
+			throw error;
+		}
 	},
 
-	// 피드백 통계 조회 (상태별, 기간별)
 	async getFeedbackStats() {
 		try {
 			const { data, error } = await supabase.from('feedbacks').select('status, created_at');
@@ -94,18 +116,8 @@ export const feedbackService = {
 				thisMonth: feedbacks.filter((f: Feedback) => new Date(f.created_at) >= thisMonth).length,
 			};
 		} catch (error) {
-			console.error('통계 조회 중 에러 발생:', error);
-			return {
-				total: 0,
-				pending: 0,
-				in_progress: 0,
-				completed: 0,
-				replied: 0,
-				rejected: 0,
-				today: 0,
-				thisWeek: 0,
-				thisMonth: 0,
-			};
+			handleSupabaseError(error, 'getFeedbackStats');
+			throw error;
 		}
 	},
 };

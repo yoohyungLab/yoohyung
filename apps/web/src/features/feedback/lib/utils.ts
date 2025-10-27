@@ -34,26 +34,6 @@ export const getStatusInfo = (status: string) => {
 	};
 };
 
-export const formatDate = (dateString: string) => {
-	const date = new Date(dateString);
-	return date.toLocaleDateString('ko-KR', {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric',
-	});
-};
-
-export const formatDateTime = (dateString: string) => {
-	const date = new Date(dateString);
-	return date.toLocaleString('ko-KR', {
-		year: 'numeric',
-		month: 'short',
-		day: 'numeric',
-		hour: '2-digit',
-		minute: '2-digit',
-	});
-};
-
 export const getStatusClassName = (color: string) => {
 	const colorMap: Record<string, string> = {
 		yellow: 'bg-yellow-100 text-yellow-800',

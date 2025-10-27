@@ -1,8 +1,8 @@
 'use client';
 
-import { TestCTAButtons } from '../test-cta-buttons';
-import { FunStatsSection } from './components/fun-stats-section';
-import { PopularTestsSection } from './components/popular-tests-section';
+import { TestCTAButtons } from '../shared/test-cta-buttons';
+import { FunStatsSection } from './sections/fun-stats-section';
+import { PopularTestsSection } from './sections/popular-tests-section';
 import type { IControversialChoice, IOverwhelmingChoice, IPopularTest } from '@/shared/types';
 
 interface IBalanceGameResultProps {
@@ -30,22 +30,17 @@ interface IBalanceGameResultProps {
 	testId?: string;
 }
 
-export function BalanceGameResultContent({
-	balanceGameResult,
-	funStats,
-	hotTestsData,
-	onShare,
-	userName,
-	testId,
-}: IBalanceGameResultProps) {
+export function BalanceGameResultContent(props: IBalanceGameResultProps) {
+	const { balanceGameResult, funStats, hotTestsData, onShare, userName, testId } = props;
+
 	return (
 		<div className="max-w-lg mx-auto px-5">
-			<div className="space-y-3">
+			<div className="space-y-6">
 				<FunStatsSection
 					controversialChoice={funStats.controversialChoice}
 					overwhelmingChoice={funStats.overwhelmingChoice}
 				/>
-
+				<div className="my-2 border-t border-rose-100" />
 				<PopularTestsSection hotTests={hotTestsData} error={null} />
 			</div>
 

@@ -1,4 +1,4 @@
-import { Loading } from '@/shared/components/loading';
+import { Loading } from '@/shared/ui/loading';
 
 export default function LoadingPage() {
 	return <Loading variant="default" />;

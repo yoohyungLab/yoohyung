@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Read(//Users/leemina/side-project/**)",
+      "Bash(pnpm types-local:*)",
+      "Bash(pnpm types:*)",
+      "Bash(pnpm type-check:*)",
+      "Bash(pnpm build:*)",
+      "Bash(tree:*)",
+      "Bash(tee:*)",
+      "Read(//private/tmp/**)",
+      "Bash(cat:*)",
+      "Bash(while read file)",
+      "Bash(do echo \"=== $file ===\")",
+      "Bash(done)",
+      "Bash(git rm:*)",
+      "Bash(npx tsc:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

@@ -1,9 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-	optimizedBalanceGameStatsService,
-	IOptimizedQuestionStats,
-} from '@/shared/api/services/optimized-balance-game-stats.service';
+import { optimizedBalanceGameStatsService } from '@/shared/api/services/optimized-balance-game-stats.service';
 import { queryKeys } from '@/shared/lib/query-keys';
+import type { OptimizedQuestionStats } from '@pickid/supabase';
 
 // ============================================================================
 // 최적화된 밸런스게임 통계 훅

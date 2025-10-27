@@ -5,7 +5,7 @@ import { categoryService } from '@/shared/api/services/category.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
 import { SITE_CONFIG } from '@/shared/config/metadata';
 import { mapTestWithDetailsToNested } from '@/shared/lib/test-mappers';
-import { TestPageClient } from '@/features/test';
+import { TestPage } from '@/features/test';
 
 interface IPageProps {
 	params: Promise<{ id: string }>;
@@ -23,18 +23,18 @@ export async function generateMetadata({ params }: IPageProps): Promise<Metadata
 
 		if (!testData) return DEFAULT_METADATA;
 
-		const testTitle = testData.title || '테스트';
-		const testDescription = testData.description || '심리테스트를 진행해보세요.';
-		const ogImage = testData.thumbnail_url || SITE_CONFIG.ogImage;
+		const testTitle = testData.test?.title || '테스트';
+		const testDescription = testData.test?.description || '심리테스트를 진행해보세요.';
+		const ogImage = testData.test?.thumbnail_url || SITE_CONFIG.ogImage;
 
 		return {
 			...generatePageMetadata({
 				title: testTitle,
 				description: testDescription,
-				path: `/tests/${testData.id}`,
+				path: `/tests/${testData.test?.id}`,
 				ogImage,
 			}),
-			keywords: [...SITE_CONFIG.keywords, testTitle, testData.type === 'balance' ? '밸런스게임' : '심리테스트'],
+			keywords: [...SITE_CONFIG.keywords, testTitle, testData.test?.type === 'balance' ? '밸런스게임' : '심리테스트'],
 		};
 	} catch (error) {
 		console.error('메타데이터 생성 실패:', error);
@@ -61,7 +61,7 @@ export default async function TestDetailPage({ params }: IPageProps) {
 
 		const test = mapTestWithDetailsToNested(testData);
 
-		return <TestPageClient test={test} categories={categories} />;
+		return <TestPage test={test} categories={categories} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);
 		notFound();

@@ -1,12 +1,18 @@
 'use client';
 
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { FeedbackList } from '@/features/feedback';
 import { useFeedbackList } from '@/features/feedback';
 import { Button } from '@pickid/ui';
 
 export function FeedbackContainer() {
+	const router = useRouter();
 	const { feedbacks, isLoading, error } = useFeedbackList();
+
+	const handleRetry = () => {
+		router.refresh();
+	};
 
 	return (
 		<main className="min-h-screen bg-gray-50">
@@ -36,7 +42,7 @@ export function FeedbackContainer() {
 						</div>
 						<h2 className="text-base font-semibold text-gray-900 mb-1">오류가 발생했습니다</h2>
 						<p className="text-sm text-gray-500 mb-4">{error}</p>
-						<Button onClick={() => window.location.reload()} variant="outline" className="text-sm">
+						<Button onClick={handleRetry} variant="outline" className="text-sm">
 							다시 시도
 						</Button>
 					</div>
