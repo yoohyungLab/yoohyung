@@ -1,0 +1,36 @@
+version: 2
+updates:
+  # npm 패키지 의존성 업데이트
+  - package-ecosystem: 'github-actions'
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    labels:
+      - 'dependencies'
+    commit-message:
+      prefix: 'chore'
+      prefix-development: 'chore'
+      include: 'scope'
+    # 버전 업데이트 제한 설정
+    versioning-strategy: increase
+    # 보안 업데이트는 즉시 처리
+    allow:
+      - dependency-type: 'production'
+      - dependency-type: 'development'
+
+  # GitHub Actions 의존성 업데이트
+  - package-ecosystem: npm
+    directory: '/'
+    schedule:
+      interval: 'weekly'
+      day: 'monday'
+      time: '09:00'
+    open-pull-requests-limit: 5
+    labels:
+      - 'dependencies'
+      - 'npm'
+    commit-message:
+      prefix: 'chore'
+      include: 'scope'
