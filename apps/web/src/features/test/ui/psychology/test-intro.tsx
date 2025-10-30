@@ -15,13 +15,13 @@ interface TestIntroProps {
 }
 
 export function TestIntro({ test, onStart, theme }: TestIntroProps) {
-	const startCount = test?.test?.start_count || 0;
+	const startCount = (test?.test?.start_count as number) || 0;
 	const { count: animatedCount, isAnimating } = useCountAnimation(startCount, 800);
 
 	const { showGenderModal, handleStartTest, handleGenderSelect } = useTestStart({
-		testId: test?.test?.id,
-		testTitle: test?.test?.title,
-		requiresGender: test?.test?.requires_gender ?? undefined,
+		testId: test?.test?.id as string,
+		testTitle: test?.test?.title as string,
+		requiresGender: (test?.test?.requires_gender as boolean) ?? undefined,
 	});
 
 	const handleStart = () => handleStartTest(onStart);
@@ -44,8 +44,8 @@ export function TestIntro({ test, onStart, theme }: TestIntroProps) {
 				{(test?.test?.thumbnail_url || '/images/placeholder.svg') && (
 					<figure className="relative w-full aspect-square mb-6 rounded-3xl overflow-hidden shadow-xl">
 						<Image
-							src={test.test.thumbnail_url || '/images/placeholder.svg'}
-							alt={test?.test?.title || '테스트'}
+							src={(test.test.thumbnail_url as string) || '/images/placeholder.svg'}
+							alt={(test?.test?.title as string) || '테스트'}
 							fill
 							className="object-cover"
 							sizes="(max-width: 768px) 100vw, 420px"
@@ -55,9 +55,9 @@ export function TestIntro({ test, onStart, theme }: TestIntroProps) {
 				)}
 
 				<header className="text-center mb-6">
-					<h1 className="text-2xl font-black mb-4 text-gray-800 leading-tight">{test?.test?.title || '테스트'}</h1>
+					<h1 className="text-2xl font-black mb-4 text-gray-800 leading-tight">{(test?.test?.title as string) || '테스트'}</h1>
 					{test?.test?.description && (
-						<p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{test.test.description}</p>
+						<p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">{test.test.description as string}</p>
 					)}
 				</header>
 

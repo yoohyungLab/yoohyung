@@ -89,8 +89,7 @@ export const authService = {
 
 	async syncUserToPublic(user: User) {
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { error } = await (supabase.from as any)('users').upsert({
+			const { error } = await supabase.from('users').upsert({
 				id: user.id,
 				email: user.email,
 				name: user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown',

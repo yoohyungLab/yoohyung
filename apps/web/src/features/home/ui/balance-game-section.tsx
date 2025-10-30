@@ -71,7 +71,7 @@ export default function BalanceGameSection() {
 
 	return (
 		<section className="py-8">
-			<h2 className="text-2xl font-black text-gray-900 mb-4">{game.title}</h2>
+			<h2 className="text-2xl font-black text-gray-900 mb-4">{game.title as string}</h2>
 
 			<div className="bg-white rounded-2xl p-5 relative overflow-hidden border border-gray-200 shadow-sm">
 				{!showResult ? (

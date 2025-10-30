@@ -30,14 +30,12 @@ export const balanceGameStatsService = {
 
 			if (questionError) throw questionError;
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const questionData = question as any;
+			const questionData= question ;
 
 			const choiceCounts = new Map<string, number>();
 			let totalResponses = 0;
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			responses.forEach((response: any) => {
+			responses.forEach((response: { responses: unknown }) => {
 				if (response.responses && Array.isArray(response.responses)) {
 					(response.responses as Array<{ questionId: string; choiceId: string }>).forEach((answer) => {
 						if (answer.questionId === questionId) {
@@ -59,8 +57,7 @@ export const balanceGameStatsService = {
 			if (choicesError) throw choicesError;
 
 			const choiceStats =
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(choices as any[])?.map((choice: any) => {
+				choices?.map((choice: { id: string; choice_text: string }) => {
 					const count = choiceCounts.get(choice.id) || 0;
 					const percentage = totalResponses > 0 ? Math.round((count / totalResponses) * 100) : 0;
 
@@ -96,8 +93,7 @@ export const balanceGameStatsService = {
 			if (questionsError) throw questionsError;
 			if (!questions || questions.length === 0) return [];
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const questionStatsPromises = (questions as any[]).map(async (question: any) => {
+			const questionStatsPromises = questions.map(async (question: { id: string; question_text: string }) => {
 				const stats = await this.getQuestionStats(testId, question.id);
 				return stats;
 			});

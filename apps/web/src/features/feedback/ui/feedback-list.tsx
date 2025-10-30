@@ -24,14 +24,14 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 	return (
 		<div className="space-y-2">
 			{feedbacks.map((feedback) => {
-				const categoryInfo = getCategoryInfo(feedback.category);
-				const statusInfo = getStatusInfo(feedback.status);
-				const hasAdminReply = feedback.admin_reply?.trim();
+				const categoryInfo = getCategoryInfo(feedback.category as string);
+				const statusInfo = getStatusInfo(feedback.status as string);
+				const hasAdminReply = (feedback.admin_reply as string)?.trim();
 
 				return (
 					<Link
-						key={feedback.id}
-						href={`/feedback/${feedback.id}`}
+						key={feedback.id as string}
+						href={`/feedback/${feedback.id as string}`}
 						className="block bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all"
 					>
 						<div className="flex gap-3">
@@ -43,7 +43,7 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 								<div className="flex items-start justify-between gap-2 mb-2">
 									<div className="flex items-center gap-2 min-w-0">
 										<span className="text-sm">{categoryInfo.emoji}</span>
-										<h3 className="text-sm font-bold text-gray-900 truncate">{feedback.title}</h3>
+										<h3 className="text-sm font-bold text-gray-900 truncate">{feedback.title as string}</h3>
 									</div>
 									<span
 										className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded ${getStatusClassName(
@@ -54,17 +54,17 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 									</span>
 								</div>
 
-								<p className="text-xs text-gray-600 line-clamp-2 mb-2">{feedback.content}</p>
+								<p className="text-xs text-gray-600 line-clamp-2 mb-2">{feedback.content as string}</p>
 
 								{hasAdminReply && (
 									<div className="bg-blue-50 rounded-md p-2 mb-2">
 										<p className="text-xs text-blue-900 font-medium mb-0.5">관리자 답변</p>
-										<p className="text-xs text-gray-700 line-clamp-1">{feedback.admin_reply}</p>
+										<p className="text-xs text-gray-700 line-clamp-1">{feedback.admin_reply as string}</p>
 									</div>
 								)}
 
 								<div className="text-xs text-gray-500">
-									{feedback.author_name || '익명'} · {formatDate(feedback.created_at)}
+									{(feedback.author_name as string) || '익명'} · {formatDate(feedback.created_at as string)}
 								</div>
 							</div>
 						</div>

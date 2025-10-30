@@ -21,18 +21,14 @@ export function useTestDetail(id: string) {
 		}
 
 		try {
-			console.log('Starting test fetch for id:', id);
 			setIsLoading(true);
 			setError(null);
 
 			// 병렬로 테스트 데이터와 카테고리 데이터 조회
-			console.log('Fetching test data and categories...');
 			const [testData, categoryData] = await Promise.all([
 				testService.getTestWithDetails(id),
 				categoryService.getAllCategories(),
 			]);
-
-			console.log('Test data result:', { testData: !!testData, categories: categoryData.length });
 
 			if (!testData) {
 				throw new Error('테스트를 찾을 수 없습니다.');
@@ -44,19 +40,12 @@ export function useTestDetail(id: string) {
 			// TestWithDetails를 TestWithNestedDetails로 변환
 			const formattedTest = mapTestWithDetailsToNested(testData);
 
-			console.log('Test fetch successful:', {
-				title: formattedTest.test?.title,
-				requires_gender: formattedTest.test?.requires_gender,
-				category_ids: formattedTest.test?.category_ids,
-			});
 			setTest(formattedTest);
 		} catch (err) {
-			console.log('Test fetch failed:', err);
 			const errorMessage = err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.';
 			setError(errorMessage);
 			setTest(null);
 		} finally {
-			console.log('Test fetch completed, setting isLoading to false');
 			setIsLoading(false);
 		}
 	}, [id]);

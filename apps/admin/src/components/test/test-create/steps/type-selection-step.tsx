@@ -3,8 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle, Badge } from '@pickid/ui';
 import { TEST_TYPES } from '@/constants/test.constants';
 
 interface TypeSelectionStepProps {
-	selectedType: any;
-	onSelectType: (type: any) => void;
+	selectedType: string | null;
+	onSelectType: (type: string) => void;
 }
 
 export const TypeSelectionStep = ({ selectedType, onSelectType }: TypeSelectionStepProps) => {

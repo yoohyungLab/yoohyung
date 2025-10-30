@@ -22,6 +22,18 @@ import type { EditTestPageState, QuestionWithChoices, ResultWithDetails } from '
 import type { Test } from '@pickid/supabase';
 import { convertQuestionsData, convertResultsData } from '@/utils/test.utils';
 
+// 타입 가드 함수들
+type TestStatus = 'draft' | 'published' | 'archived';
+type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
+
+function isValidStatus(status: string | null): status is TestStatus {
+	return status === 'draft' || status === 'published' || status === 'archived';
+}
+
+function isValidType(type: string | null): type is TestType {
+	return type === 'psychology' || type === 'balance' || type === 'character' || type === 'quiz' || type === 'meme' || type === 'lifestyle';
+}
+
 // ============================================================================
 // 메인 컴포넌트
 // ============================================================================
@@ -94,13 +106,16 @@ export function EditTestPage() {
 				setState((prev) => ({ ...prev, initialTest: test }));
 
 				// 테스트 데이터로 폼 초기화
-				setType(test.type || 'psychology');
+				const validType = isValidType(test.type) ? test.type : 'psychology';
+				const validStatus = isValidStatus(test.status) ? test.status : 'draft';
+
+				setType(validType);
 				updateBasicInfo({
 					id: test.id,
 					title: test.title,
 					description: test.description || '',
 					slug: test.slug || '',
-					status: (test.status as 'draft' | 'published' | 'archived') || 'draft',
+					status: validStatus,
 					category_ids: test.category_ids || [],
 					thumbnail_url: test.thumbnail_url,
 					estimated_time: test.estimated_time || 5,
@@ -108,12 +123,12 @@ export function EditTestPage() {
 					intro_text: test.intro_text || '',
 					requires_gender: Boolean(test.requires_gender),
 					short_code: test.short_code || '',
-					type: (test.type as 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle') || 'psychology',
+					type: validType,
 				});
 
 				// 질문 및 결과 데이터 변환 및 설정
-				setQuestions(convertQuestionsData(questionsData as QuestionWithChoices[]));
-				setResults(convertResultsData(resultsData as unknown as ResultWithDetails[]) as any);
+				setQuestions(convertQuestionsData(questionsData));
+				setResults(convertResultsData(resultsData));
 			} catch (error) {
 				console.error('테스트 로딩 실패:', error);
 				const errorMessage = error instanceof Error ? error.message : '테스트를 불러오는데 실패했습니다.';
@@ -157,18 +172,18 @@ export function EditTestPage() {
 				return (
 					<ResultStep
 						selectedType={type || ''}
-						results={results as any}
+						results={results}
 						onAddResult={addResult}
 						onRemoveResult={removeResult}
-						onUpdateResult={updateResult as any}
+						onUpdateResult={updateResult}
 					/>
 				);
 			case 5:
 				return (
 					<PreviewStep
 						testData={basicInfo}
-						questions={questions as any}
-						results={results as any}
+						questions={questions}
+						results={results}
 						selectedType={type || ''}
 					/>
 				);
@@ -228,7 +243,7 @@ export function EditTestPage() {
 					)}
 				</div>
 
-				<StepIndicator steps={TEST_CREATION_STEPS as any} currentStep={step} onStepClick={setStep} disabled={!type} />
+				<StepIndicator steps={TEST_CREATION_STEPS} currentStep={step} onStepClick={setStep} disabled={!type} />
 
 				<AdminCard variant="step" padding="lg">
 					<AdminCardHeader

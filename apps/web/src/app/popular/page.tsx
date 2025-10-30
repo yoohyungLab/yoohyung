@@ -1,4 +1,5 @@
 import { Metadata } from 'next';
+import { notFound } from 'next/navigation';
 import { popularService } from '@/shared/api/services/popular.service';
 import { CategoryContainer } from '@/features/category/ui/category-container';
 import { generatePageMetadata } from '@/shared/lib/metadata';
@@ -11,6 +12,11 @@ export const metadata: Metadata = generatePageMetadata({
 });
 
 export default async function PopularPage() {
-	const { tests, categories } = await popularService.getPopularPageData();
-	return <CategoryContainer allTests={tests} allCategories={categories as Category[]} />;
+	try {
+		const { tests, categories } = await popularService.getPopularPageData();
+		return <CategoryContainer allTests={tests} allCategories={categories as Category[]} />;
+	} catch (error) {
+		console.error('인기 페이지 데이터 로드 실패:', error);
+		notFound();
+	}
 }

@@ -23,7 +23,6 @@ export function AdminLayout() {
 	// 인증 체크 로직
 	useEffect(() => {
 		if (!loading && !adminUser) {
-			console.log('인증되지 않은 사용자, /auth로 리다이렉트');
 			navigate('/auth');
 		}
 	}, [adminUser, loading, navigate]);

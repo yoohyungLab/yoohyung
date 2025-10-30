@@ -1,4 +1,11 @@
 import type { Test, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
+import type { TEST_TYPES } from '@/constants/test.constants';
+
+// ============================================================================
+// 상수 기반 타입 추론
+// ============================================================================
+
+export type TestType = (typeof TEST_TYPES)[number];
 
 // ============================================================================
 // 기본 타입 정의 (Supabase Database 타입 기반)
@@ -9,23 +16,40 @@ export type TestInsert = Database['public']['Tables']['tests']['Insert'];
 export type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
 export type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
+// Match conditions 타입 정의
+export interface MatchConditions {
+	type: 'score' | 'choice';
+	min?: number;
+	max?: number;
+	choices?: string[];
+}
+
+// Features 타입 정의
+export interface ResultFeatures {
+	[key: string]: string | number | boolean | null;
+}
+
 // ============================================================================
 // 테스트 생성 관련 타입 (Supabase 기본 타입 기반)
 // ============================================================================
 
 // 질문 데이터 (Supabase TestQuestion 기반)
 export interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
+	question_type?: string | null;
+	correct_answers?: string[] | null;
+	explanation?: string | null;
 	choices: ChoiceData[];
 }
 
 // 선택지 데이터 (Supabase TestChoice 기반)
 export interface ChoiceData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at'> {
 	id?: string;
+	is_correct?: boolean | null;
 }
 
 // 결과 데이터 (Supabase TestResult 기반)
 export interface ResultData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	match_conditions: { type: 'score'; min: number; max: number };
+	match_conditions: MatchConditions | null;
 	target_gender: string | null;
 }
 
@@ -39,6 +63,9 @@ export interface QuestionWithChoices {
 	question_text: string;
 	question_order: number;
 	image_url: string | null;
+	question_type?: string | null;
+	correct_answers?: string[] | null;
+	explanation?: string | null;
 	test_choices?: Array<{
 		id: string;
 		choice_text: string;
@@ -54,10 +81,10 @@ export interface ResultWithDetails {
 	result_name: string;
 	result_order: number;
 	description: string | null;
-	match_conditions: unknown;
+	match_conditions: MatchConditions | null;
 	background_image_url: string | null;
 	theme_color: string | null;
-	features: unknown;
+	features: ResultFeatures | null;
 	target_gender: string | null;
 	created_at: string | null;
 	updated_at: string | null;
@@ -73,10 +100,10 @@ export interface BasicInfo {
 	title: string;
 	description: string | null;
 	slug: string;
-	thumbnail_url: string;
+	thumbnail_url: string | null;
 	category_ids: string[];
 	short_code: string;
-	intro_text: string;
+	intro_text: string | null;
 	status: 'draft' | 'published' | 'archived';
 	estimated_time: number;
 	scheduled_at: string | null;
@@ -224,4 +251,21 @@ export interface EditTestPageState {
 	initialTest: Test | null;
 	loadingTest: boolean;
 	error: string | null;
+}
+
+// ============================================================================
+// ResultStep 컴포넌트 관련 타입
+// ============================================================================
+
+export interface ResultStepProps {
+	results: ResultData[];
+	selectedType: string;
+	onAddResult: () => void;
+	onRemoveResult: (resultIndex: number) => void;
+	onUpdateResult: (resultIndex: number, updates: Partial<ResultData>) => void;
+}
+
+export interface FeatureInput {
+	key: string;
+	value: string;
 }

@@ -20,7 +20,6 @@ export { BalanceGameResultContent } from './ui/balance-game/balance-game-result-
 export { BalanceGameResultHeader } from './ui/balance-game/balance-game-result-header';
 
 // UI Components - Shared
-export { TestPage } from './ui/shared/test-page';
 export { TestCTAButtons } from './ui/shared/test-cta-buttons';
 
 // Sections - Balance Game

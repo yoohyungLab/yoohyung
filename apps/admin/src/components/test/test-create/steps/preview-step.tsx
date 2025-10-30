@@ -35,7 +35,7 @@ interface PreviewStepProps {
 }
 
 export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, results, selectedType }) => {
-	const getTypeConfig = () => TEST_TYPES.find((t: any) => t.id === selectedType);
+	const getTypeConfig = () => TEST_TYPES.find((t) => t.id === selectedType);
 
 	const checklistItems = [
 		{ check: testData.title?.trim(), text: '테스트 제목이 입력되었나요?' },

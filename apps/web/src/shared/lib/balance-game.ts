@@ -105,8 +105,9 @@ export function findControversialChoice(
 	if (!questionStats || questionStats.length === 0) return null;
 
 	let mostControversial: IControversialChoice | null = null;
+	let smallestDifference = Infinity;
 
-	questionStats.forEach((question) => {
+	questionStats.forEach((question, index) => {
 		if (question.choiceStats.length < 2) return;
 
 		const [choiceA, choiceB] = question.choiceStats;
@@ -115,12 +116,8 @@ export function findControversialChoice(
 
 		const difference = Math.abs(aPercentage - bPercentage);
 
-		if (
-			difference <
-			(mostControversial
-				? Math.abs(mostControversial.choiceA.percentage - mostControversial.choiceB.percentage)
-				: Infinity)
-		) {
+		if (difference < smallestDifference) {
+			smallestDifference = difference;
 			mostControversial = {
 				id: question.questionId,
 				question_text: question.questionText,

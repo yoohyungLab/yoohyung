@@ -189,22 +189,14 @@ export const useTestCreation = (): UseTestCreationReturn => {
 				} as TestInsert;
 
 				// 질문 데이터 준비
-				console.log('질문 데이터 준비 중:', questions);
 				const questionsData: TestQuestionInsert[] = questions.map((q, index) => {
-					console.log(`질문 ${index + 1} 변환:`, {
-						question_text: q.question_text,
-						choicesCount: q.choices.length,
-						choices: q.choices.map((c) => ({
-							choice_text: c.choice_text,
-							score: c.score,
-							is_correct: c.is_correct,
-						})),
-					});
-
 					return {
 						question_text: q.question_text,
 						question_order: index,
 						image_url: q.image_url,
+						question_type: q.question_type || 'multiple_choice',
+						correct_answers: q.correct_answers || null,
+						explanation: q.explanation || null,
 						choices: q.choices.map((c, choiceIndex) => ({
 							choice_text: c.choice_text,
 							choice_order: choiceIndex,
@@ -213,7 +205,6 @@ export const useTestCreation = (): UseTestCreationReturn => {
 						})),
 					};
 				});
-				console.log('최종 질문 데이터:', questionsData);
 
 				// 결과 데이터 준비
 				const resultsData: TestResultInsert[] = results.map((r, index) => ({

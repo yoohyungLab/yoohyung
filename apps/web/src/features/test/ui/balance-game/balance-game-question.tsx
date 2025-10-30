@@ -17,12 +17,12 @@ export function BalanceGameQuestion({
 	const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
 	const [showResult, setShowResult] = useState(false);
 
-	const { data: stats, isLoading, error } = useBalanceGameQuestionStats(testId || '', question.id);
+	const { data: stats, isLoading, error } = useBalanceGameQuestionStats(testId || '', question.id as string);
 	const {
 		stats: choiceStats,
 		incrementChoiceCount,
 		isLoading: isOptimizedLoading,
-	} = useOptimizedBalanceGameChoiceCount(question.id);
+	} = useOptimizedBalanceGameChoiceCount(question.id as string);
 
 	const progressPercentage = calculateProgress(questionNumber, totalQuestions);
 	const handleChoiceSelect = useCallback(
@@ -35,7 +35,7 @@ export function BalanceGameQuestion({
 	);
 
 	const handleNext = useCallback(() => {
-		if (selectedChoice) onAnswer(question.id, selectedChoice);
+		if (selectedChoice) onAnswer(question.id as string, selectedChoice);
 	}, [selectedChoice, onAnswer, question.id]);
 
 	if (!showResult) {
@@ -58,12 +58,12 @@ export function BalanceGameQuestion({
 
 					<section className="relative mb-8 text-center">
 						<h2 className="text-lg font-bold text-gray-800 leading-relaxed break-words whitespace-pre-wrap">
-							{question.question_text}
+							{question.question_text as string}
 						</h2>
 						{question.image_url && (
 							<div className="mb-4 relative w-full max-w-[360px] mx-auto aspect-video">
 								<Image
-									src={question.image_url}
+									src={question.image_url as string}
 									alt="질문 이미지"
 									fill
 									sizes="(max-width: 768px) 100vw, 360px"
@@ -77,8 +77,8 @@ export function BalanceGameQuestion({
 					<div className="grid grid-cols-2 gap-4">
 						{question.choices?.map((choice, index) => (
 							<Button
-								key={choice.id}
-								onClick={() => handleChoiceSelect(choice.id)}
+								key={choice.id as string}
+								onClick={() => handleChoiceSelect(choice.id as string)}
 								variant="outline"
 								className="h-full p-6 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 hover:border-gray-900 rounded-3xl transition-all hover:shadow-lg"
 							>
@@ -92,7 +92,9 @@ export function BalanceGameQuestion({
 											{index === 0 ? 'A' : 'B'}
 										</span>
 									</div>
-									<p className="text-sm font-semibold text-gray-800 leading-snug break-words">{choice.choice_text}</p>
+									<p className="text-sm font-semibold text-gray-800 leading-snug break-words">
+										{choice.choice_text as string}
+									</p>
 								</div>
 							</Button>
 						))}
@@ -121,7 +123,7 @@ export function BalanceGameQuestion({
 
 				<section className="relative mb-8 text-center">
 					<h2 className="text-lg font-bold text-gray-800 leading-relaxed break-words whitespace-pre-wrap">
-						{question.question_text}
+						{question.question_text as string}
 					</h2>
 				</section>
 
@@ -169,11 +171,11 @@ export function BalanceGameQuestion({
 
 						return question.choices?.map((choice, index) => {
 							const isSelected = selectedChoice === choice.id;
-							const { percentage, count } = getDisplay(choice.id);
+							const { percentage, count } = getDisplay(choice.id as string);
 
 							return (
 								<div
-									key={choice.id}
+									key={choice.id as string}
 									className={
 										'relative rounded-2xl p-4 transition-all ' +
 										(isSelected
@@ -188,7 +190,9 @@ export function BalanceGameQuestion({
 											<span className="text-xs font-bold flex-shrink-0 mt-0.5 text-gray-700">
 												{index === 0 ? 'A' : 'B'}
 											</span>
-											<span className="text-sm font-semibold break-words text-gray-900">{choice.choice_text}</span>
+											<span className="text-sm font-semibold break-words text-gray-900">
+												{choice.choice_text as string}
+											</span>
 											{isSelected && (
 												<span
 													className={

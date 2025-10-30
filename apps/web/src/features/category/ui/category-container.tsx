@@ -18,7 +18,7 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 	const [sortBy, setSortBy] = useState<'recent' | 'starts'>('recent');
 
 	// URL에서 현재 카테고리 가져오기 (기본값: 첫 번째 카테고리)
-	const currentSlug = searchParams.get('category') || allCategories?.[0]?.slug || '';
+	const currentSlug = (searchParams.get('category') as string) || (allCategories?.[0]?.slug as string) || '';
 
 	// 현재 카테고리에 해당하는 테스트 필터링
 	const filteredTests = useMemo(() => {
@@ -42,7 +42,7 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 				categoryIds = test.category_ids;
 			}
 
-			return categoryIds.includes(currentCategory.id);
+			return categoryIds.includes(currentCategory.id as string);
 		});
 	}, [allTests, allCategories, currentSlug]);
 
@@ -72,7 +72,7 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 	useEffect(() => {
 		if (!currentSlug && allCategories && allCategories.length > 0) {
 			const params = new URLSearchParams(searchParams);
-			params.set('category', allCategories[0].slug);
+			params.set('category', allCategories[0].slug as string);
 			router.replace(`/category?${params.toString()}`, { scroll: false });
 		}
 	}, [currentSlug, allCategories, router, searchParams]);

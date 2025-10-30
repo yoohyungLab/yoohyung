@@ -30,11 +30,11 @@ export function SharedResultLanding(props: SharedResultLandingProps) {
 							<div
 								className="inline-block px-4 py-2 rounded-2xl text-white font-black text-sm leading-tight mb-3 max-w-full break-words"
 								style={{
-									background: `linear-gradient(135deg, ${themeColor} 0%, ${adjustColor(themeColor, -0.2)} 100%)`,
-									boxShadow: `0 4px 12px ${themeColor}40`,
+									background: `linear-gradient(135deg, ${themeColor as string} 0%, ${adjustColor(themeColor as string, -0.2)} 100%)`,
+									boxShadow: `0 4px 12px ${themeColor as string}40`,
 								}}
 							>
-								{testResult.result_name}
+								{testResult.result_name as string}
 							</div>
 							<h2 className="text-lg font-black text-gray-900 leading-relaxed">이에요!</h2>
 							<p className="text-gray-600 text-sm font-medium mt-3">당신은 어떤 유형일까요? 🎯</p>

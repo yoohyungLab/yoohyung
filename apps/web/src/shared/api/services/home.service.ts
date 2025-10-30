@@ -48,16 +48,15 @@ export const homeService = {
 			if (testsData.error) throw testsData.error;
 			if (categoriesData.error) throw categoriesData.error;
 
-			const tests = testsData.data || [];
-			const categories = categoriesData.data || [];
+			const tests = (testsData.data as Test[]) || [];
+			const categories = (categoriesData.data as Category[]) || [];
 			const testsAsCards: TestCard[] = tests.map((test) => transformToTestCard(test, categories));
 
 			const popularTests = [...testsAsCards].sort((a, b) => (b.completions || 0) - (a.completions || 0)).slice(0, 6);
 
 			const twoWeeksAgo = new Date();
 			twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const recentTests = (tests as any[]).filter((test: any) => new Date(test.created_at) >= twoWeeksAgo);
+			const recentTests = tests.filter((test) => new Date(test.created_at) >= twoWeeksAgo);
 
 			const recommendedTests =
 				recentTests.length > 0

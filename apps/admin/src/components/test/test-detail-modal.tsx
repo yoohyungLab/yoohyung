@@ -95,7 +95,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 
 	const handleDuplicate = () => {
 		// 복제 로직 구현
-		console.log('테스트 복제:', test.id);
 	};
 
 	return (

@@ -1,10 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { TestResultContainer } from '@/features/test/ui/psychology';
-import { BalanceGameResultContainer } from '@/features/test';
 import { testService } from '@/shared/api/services/test.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
 import { SITE_CONFIG } from '@/shared/config/metadata';
+import { TestResultPageClient } from '@/features/test/ui/test-result-page-client';
 
 interface IPageProps {
 	params: Promise<{ id: string }>;
@@ -25,13 +24,13 @@ export async function generateMetadata({ params, searchParams }: IPageProps): Pr
 		const test = await testService.getTestById(id);
 		if (!test) return DEFAULT_METADATA;
 
-		const testName = test.title || '테스트';
-		const testDescription = test.description || '심리테스트 결과를 확인해보세요.';
+		const testName = (test.title as string) || '테스트';
+		const testDescription = (test.description as string) || '심리테스트 결과를 확인해보세요.';
 		const title = isSharedLink ? `${testName} 친구 결과` : `${testName} 결과`;
 		const description = isSharedLink
 			? `친구가 ${testName} 결과를 공유했어요! 나도 테스트해보세요.`
 			: `${testDescription} 나도 테스트하기 →`;
-		const ogImage = test.thumbnail_url || SITE_CONFIG.ogImage;
+		const ogImage = (test.thumbnail_url as string) || SITE_CONFIG.ogImage;
 
 		return {
 			...generatePageMetadata({
@@ -53,10 +52,17 @@ export default async function TestResultPage({ params }: IPageProps) {
 	const { id } = await params;
 
 	try {
+		// ==================== SSR: Data Fetching Only ====================
 		const test = await testService.getTestById(id);
-		if (!test) notFound();
 
-		return test.type === 'balance' ? <BalanceGameResultContainer /> : <TestResultContainer />;
+		if (!test) {
+			notFound();
+		}
+
+		const testType = (test.type as string) || 'psychology';
+
+		// ==================== Delegate to Client Component ====================
+		return <TestResultPageClient testType={testType} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);
 		notFound();

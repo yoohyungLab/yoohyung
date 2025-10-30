@@ -30,6 +30,9 @@ export const DEFAULT_QUESTION = {
 	question_text: '',
 	question_order: 0,
 	image_url: null,
+	question_type: 'multiple_choice' as const,
+	correct_answers: null,
+	explanation: null,
 	choices: [
 		{ choice_text: '', choice_order: 0, score: 0, is_correct: false },
 		{ choice_text: '', choice_order: 1, score: 1, is_correct: false },

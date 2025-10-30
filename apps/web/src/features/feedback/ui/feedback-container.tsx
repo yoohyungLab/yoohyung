@@ -1,10 +1,9 @@
 'use client';
 
+import { FeedbackList, useFeedbackList } from '@/features/feedback';
+import { Button } from '@pickid/ui';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FeedbackList } from '@/features/feedback';
-import { useFeedbackList } from '@/features/feedback';
-import { Button } from '@pickid/ui';
 
 export function FeedbackContainer() {
 	const router = useRouter();

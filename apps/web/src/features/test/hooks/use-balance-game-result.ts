@@ -108,7 +108,7 @@ export function useBalanceGameResult({ testId }: IUseBalanceGameResultProps): IU
 				}
 
 				const totalQuestions = testData?.questions?.length || 7;
-				const testTitle = testData?.test?.title || '밸런스 게임';
+				const testTitle = (testData?.test?.title as string) || '밸런스 게임';
 
 				const result: BalanceGameResult = {
 					userChoiceSummary: {
@@ -219,17 +219,17 @@ export function useBalanceGameResult({ testId }: IUseBalanceGameResultProps): IU
 
 		return allTests
 			.filter((test) => test.type === 'balance' && test.id !== testId)
-			.sort((a, b) => (b.response_count || 0) - (a.response_count || 0))
+			.sort((a, b) => ((b.response_count as number) || 0) - ((a.response_count as number) || 0))
 			.slice(0, 3)
 			.map((test) => ({
-				id: test.id,
-				testId: test.id,
-				title: test.title,
-				description: test.description || '밸런스게임 테스트',
+				id: test.id as string,
+				testId: test.id as string,
+				title: test.title as string,
+				description: (test.description as string) || '밸런스게임 테스트',
 				category: '밸런스게임',
-				thumbnail_url: test.thumbnail_url || '',
-				thumbnailUrl: test.thumbnail_url || '',
-				participantCount: test.start_count || 0,
+				thumbnail_url: (test.thumbnail_url as string) || '',
+				thumbnailUrl: (test.thumbnail_url as string) || '',
+				participantCount: (test.start_count as number) || 0,
 			}));
 	}, [allTests, testId]);
 

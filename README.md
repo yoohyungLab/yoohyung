@@ -107,6 +107,61 @@ View → Business Logic → Data Access → Infrastructure
 - `idx_tests_status`
 - `idx_user_test_responses_completed_at`
 
+---
+
+## 안티패턴 (피하기)
+
+### 1. 컨테이너(CSR)에서 서버 데이터 직접 fetch
+
+**문제점**: 보안/SEO/깜박임 문제 발생
+
+**해결책**: 서버에서 패칭해 직렬화 전달
+
+- ✅ 서버 컴포넌트(page.tsx)에서 데이터 fetch
+- ✅ 클라이언트 컴포넌트에 props로 전달
+- ❌ 클라이언트 컴포넌트에서 직접 API 호출
+
+### 2. page에서 거대한 상태 관리
+
+**문제점**: 서버 경계 역할과 책임 혼재
+
+**해결책**: 컨테이너에 위임. page는 "서버 경계 + 데이터 전달자"
+
+- ✅ page: 서버 데이터 패칭 및 전달만
+- ✅ 클라이언트 컨테이너: 상태 관리 및 비즈니스 로직
+- ❌ page에서 useState, useEffect 등 클라이언트 상태 관리
+
+### 3. Server Action 로직을 컴포넌트에 혼합
+
+**문제점**: 검증/권한/리디렉션 로직이 클라이언트에 노출
+
+**해결책**: 역할 분리
+- ✅ 검증/권한/리디렉션: Server Action에서 처리
+- ✅ 비즈니스 로직: Service 레이어에서 처리
+- ❌ 클라이언트 컴포넌트에서 직접 권한 체크 및 리디렉션
+
+### 4. server-only 모듈을 클라에서 import
+
+**문제점**: 번들 실패/보안 이슈
+
+**해결책**: server-only 모듈은 서버 컴포넌트에서만 사용
+
+- ✅ 서버 컴포넌트에서만 `createServerClient` 등 사용
+- ✅ 클라이언트는 `packages/supabase/src/index.ts`의 `supabase` 사용
+- ❌ 클라이언트에서 서버 전용 모듈 import
+
+### 5. 에러/로딩 UI를 서버와 클라 양쪽에 중복 구현
+
+**문제점**: 중복 코드 및 역할 혼란
+
+**해결책**: 서버(진입) vs 클라(상호작용)로 역할 확실히 분리
+
+- ✅ 서버: `error.tsx`, `loading.tsx` - 초기 진입 시 에러/로딩 (404, 500 등)
+- ✅ 클라이언트: 인터랙션 중 에러/로딩만 처리
+- ❌ 동일한 패턴의 로딩/에러 UI를 양쪽에 모두 구현
+
+---
+
 # 데이터베이스 스키마 정보 & 테이블 구조
 
 ### admin_users 테이블
@@ -190,15 +245,18 @@ View → Business Logic → Data Access → Infrastructure
 
 ### test_questions 테이블
 
-| 필드명         | 타입                        | 제약조건 | 설명            |
-| -------------- | --------------------------- | -------- | --------------- |
-| id             | uuid                        | NOT NULL | 고유 식별자     |
-| test_id        | uuid                        | -        | 테스트 참조     |
-| question_text  | text                        | NOT NULL | 질문 내용       |
-| question_order | integer                     | NOT NULL | 질문 순서       |
-| image_url      | text                        | -        | 질문 이미지 URL |
-| created_at     | timestamp without time zone | -        | 생성일시        |
-| updated_at     | timestamp without time zone | -        | 수정일시        |
+| 필드명          | 타입                        | 제약조건 | 설명                                    |
+| --------------- | --------------------------- | -------- | --------------------------------------- |
+| id              | uuid                        | NOT NULL | 고유 식별자                             |
+| test_id         | uuid                        | -        | 테스트 참조                             |
+| question_text   | text                        | NOT NULL | 질문 내용                               |
+| question_order  | integer                     | NOT NULL | 질문 순서                               |
+| image_url       | text                        | -        | 질문 이미지 URL                         |
+| question_type   | character varying           | -        | 질문 타입 (multiple_choice/short_answer) |
+| correct_answers | jsonb                       | -        | 정답 배열 (퀴즈용)                      |
+| explanation     | text                        | -        | 해설 (퀴즈용)                           |
+| created_at      | timestamp without time zone | -        | 생성일시                                |
+| updated_at      | timestamp without time zone | -        | 수정일시                                |
 
 ### test_results 테이블
 
@@ -219,27 +277,28 @@ View → Business Logic → Data Access → Infrastructure
 
 ### tests 테이블
 
-| 필드명          | 타입                     | 제약조건 | 설명                                |
-| --------------- | ------------------------ | -------- | ----------------------------------- |
-| id              | uuid                     | NOT NULL | 고유 식별자                         |
-| title           | character varying        | NOT NULL | 테스트 제목                         |
-| description     | text                     | -        | 테스트 설명                         |
-| slug            | character varying        | NOT NULL | URL 슬러그                          |
-| thumbnail_url   | text                     | -        | 썸네일 이미지 URL                   |
-| response_count  | integer                  | -        | 완료 횟수 (기본값: 0)               |
-| start_count     | integer                  | -        | 시작 횟수 (기본값: 0)               |
-| category_ids    | ARRAY                    | -        | 카테고리 ID 배열                    |
-| short_code      | character varying        | -        | 짧은 코드                           |
-| intro_text      | text                     | -        | 테스트 시작 문구                    |
-| status          | character varying        | -        | 발행 상태 (기본값: draft)           |
-| estimated_time  | integer                  | -        | 예상 소요 시간 (분)                 |
-| scheduled_at    | timestamp with time zone | -        | 예약 발행 시간                      |
-| max_score       | integer                  | -        | 최대 점수 (심리 테스트용)           |
-| type            | character varying        | -        | 테스트 타입 (기본값: psychology)    |
-| published_at    | timestamp with time zone | -        | 발행일시                            |
-| requires_gender | boolean                  | NOT NULL | 성별 정보 수집 여부 (기본값: false) |
-| created_at      | timestamp with time zone | NOT NULL | 생성일시                            |
-| updated_at      | timestamp with time zone | NOT NULL | 수정일시                            |
+| 필드명          | 타입                     | 제약조건 | 설명                                                         |
+| --------------- | ------------------------ | -------- | ------------------------------------------------------------ |
+| id              | uuid                     | NOT NULL | 고유 식별자                                                  |
+| title           | character varying        | NOT NULL | 테스트 제목                                                  |
+| description     | text                     | -        | 테스트 설명                                                  |
+| slug            | character varying        | NOT NULL | URL 슬러그                                                   |
+| thumbnail_url   | text                     | -        | 썸네일 이미지 URL                                            |
+| response_count  | integer                  | -        | 완료 횟수 (기본값: 0)                                        |
+| start_count     | integer                  | -        | 시작 횟수 (기본값: 0)                                        |
+| category_ids    | ARRAY                    | -        | 카테고리 ID 배열                                             |
+| short_code      | character varying        | -        | 짧은 코드                                                    |
+| intro_text      | text                     | -        | 테스트 시작 문구                                             |
+| status          | character varying        | -        | 발행 상태 (기본값: draft)                                    |
+| estimated_time  | integer                  | -        | 예상 소요 시간 (분)                                          |
+| scheduled_at    | timestamp with time zone | -        | 예약 발행 시간                                               |
+| max_score       | integer                  | -        | 최대 점수 (심리 테스트용)                                    |
+| type            | character varying        | -        | 테스트 타입 (psychology/balance/character/quiz/meme/lifestyle) |
+| published_at    | timestamp with time zone | -        | 발행일시                                                     |
+| requires_gender | boolean                  | NOT NULL | 성별 정보 수집 여부 (기본값: false)                          |
+| features        | jsonb                    | -        | 테스트 기능 설정 (채점 모드, 결과 변형 규칙 등)              |
+| created_at      | timestamp with time zone | NOT NULL | 생성일시                                                     |
+| updated_at      | timestamp with time zone | NOT NULL | 수정일시                                                     |
 
 ### uploads 테이블
 

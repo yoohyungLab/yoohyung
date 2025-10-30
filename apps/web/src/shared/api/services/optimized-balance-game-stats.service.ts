@@ -14,8 +14,10 @@ export const optimizedBalanceGameStatsService = {
 	async incrementChoiceCount(choiceId: string): Promise<void> {
 		try {
 			const client = this.getClient();
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { error } = await (client.rpc as any)('increment_choice_response_count', {
+
+			const { error } = await (
+				client.rpc as unknown as { (fn: string, args: { choice_uuid: string }): Promise<{ error: Error | null }> }
+			)('increment_choice_response_count', {
 				choice_uuid: choiceId,
 			});
 
@@ -45,13 +47,16 @@ export const optimizedBalanceGameStatsService = {
 				};
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const totalResponses = (choices as any[]).reduce(
-				(sum: number, choice: any) => sum + (choice.response_count || 0),
-				0
-			);
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const choiceStats: OptimizedChoiceStats[] = (choices as any[]).map((choice: any) => ({
+			interface ChoiceData {
+				id: string;
+				choice_text: string;
+				response_count: number;
+			}
+
+			const typedChoices = choices as ChoiceData[];
+
+			const totalResponses = typedChoices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
+			const choiceStats: OptimizedChoiceStats[] = typedChoices.map((choice) => ({
 				choiceId: choice.id,
 				choiceText: choice.choice_text,
 				responseCount: choice.response_count || 0,
@@ -93,32 +98,33 @@ export const optimizedBalanceGameStatsService = {
 			if (error) throw error;
 			if (!questions || questions.length === 0) return [];
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return (questions as any[]).map((question: any) => {
-				const choices = question.test_choices || [];
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const totalResponses = (choices as any[]).reduce(
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(sum: number, choice: any) => sum + (choice.response_count || 0),
-					0
-				);
+			interface QuestionData {
+				id: string;
+				question_text: string;
+				test_choices: Array<{
+					id: string;
+					choice_text: string;
+					response_count: number;
+					choice_order: number;
+				}>;
+			}
 
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				const choiceStats: OptimizedChoiceStats[] = (choices as any[]).map(
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					(choice: any) => ({
-						choiceId: choice.id,
-						choiceText: choice.choice_text,
-						responseCount: choice.response_count || 0,
-						percentage: totalResponses > 0 ? Math.round(((choice.response_count || 0) / totalResponses) * 100) : 0,
-					})
-				);
+			const typedQuestions = questions as QuestionData[];
+
+			return typedQuestions.map((question) => {
+				const choices = question.test_choices || [];
+				const totalResponses = choices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
+
+				const choiceStats: OptimizedChoiceStats[] = choices.map((choice) => ({
+					choiceId: choice.id,
+					choiceText: choice.choice_text,
+					responseCount: choice.response_count || 0,
+					percentage: totalResponses > 0 ? Math.round(((choice.response_count || 0) / totalResponses) * 100) : 0,
+				}));
 
 				return {
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					questionId: (question as any).id,
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-					questionText: (question as any).question_text,
+					questionId: question.id,
+					questionText: question.question_text,
 					choiceStats,
 					totalResponses,
 				};
@@ -148,8 +154,13 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return ((choices || []) as any[]).map((choice: any) => ({
+			interface ChoiceData {
+				id: string;
+				choice_text: string;
+				response_count: number;
+			}
+
+			return ((choices || []) as ChoiceData[]).map((choice) => ({
 				choiceId: choice.id,
 				choiceText: choice.choice_text,
 				responseCount: choice.response_count || 0,

@@ -1,13 +1,20 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
-import type { TestTakingInterfaceProps, TestCompletionResult } from '@/shared/types';
+import { useRouter } from 'next/navigation';
+import type { TestWithNestedDetails } from '@pickid/supabase';
+import type { TestCompletionResult } from '@/shared/types';
 import { colorThemes } from '@/features/test/lib/themes';
 import { TestIntro } from '../psychology/test-intro';
 import { BalanceGameQuestion } from './balance-game-question';
 import { Loading } from '@/shared/ui/loading';
 
-export function BalanceGameContainer({ test, onComplete }: TestTakingInterfaceProps) {
+interface BalanceGameContainerProps {
+	test: TestWithNestedDetails;
+}
+
+export function BalanceGameContainer({ test }: BalanceGameContainerProps) {
+	const router = useRouter();
 	const [isStarting, setIsStarting] = useState(true);
 	const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
 	const [answers, setAnswers] = useState<Array<{ questionId: string; choiceId: string }>>([]);
@@ -17,10 +24,10 @@ export function BalanceGameContainer({ test, onComplete }: TestTakingInterfacePr
 	const completeTest = useCallback(
 		(answers: string[]) => {
 			const testResult: TestCompletionResult = {
-				test_id: test?.test?.id || '',
+				test_id: (test?.test?.id as string) || '',
 				resultId: '',
 				answers: answers.map((answer, index) => ({
-					questionId: test?.questions?.[index]?.id || '',
+					questionId: (test?.questions?.[index]?.id as string) || '',
 					choiceId: answer,
 					score: 1,
 					answeredAt: Date.now(),
@@ -32,9 +39,9 @@ export function BalanceGameContainer({ test, onComplete }: TestTakingInterfacePr
 				created_at: new Date().toISOString(),
 			};
 
-			onComplete?.(testResult);
+			router.push(`/tests/${test.test?.id}/result`);
 		},
-		[test?.test?.id, test?.questions, onComplete]
+		[test?.test?.id, test?.questions, router]
 	);
 
 	const handleStart = useCallback(() => setIsStarting(false), []);
@@ -55,7 +62,7 @@ export function BalanceGameContainer({ test, onComplete }: TestTakingInterfacePr
 				try {
 					if (typeof window !== 'undefined') {
 						const payload = {
-							testId: test?.test?.id || '',
+							testId: (test?.test?.id as string) || '',
 							answers: [...answers, { questionId, choiceId }],
 							resultId: 'temp',
 						};
@@ -74,17 +81,33 @@ export function BalanceGameContainer({ test, onComplete }: TestTakingInterfacePr
 		setCurrentQuestionIndex((prev) => Math.max(0, prev - 1));
 	}, []);
 
+	const currentQuestion = useMemo(() => {
+		if (!test?.questions?.length || currentQuestionIndex >= test.questions.length) {
+			return null;
+		}
+		const q = test.questions[currentQuestionIndex];
+
+		return {
+			id: q.id as string,
+			question_text: q.question_text as string,
+			image_url: q.image_url as string | null,
+			choices: (q.choices || []).map((c) => ({
+				id: (c as Record<string, unknown>).id as string,
+				choice_text: (c as Record<string, unknown>).choice_text as string,
+				choice_order: (c as Record<string, unknown>).choice_order as number,
+			})),
+		};
+	}, [test?.questions, currentQuestionIndex]);
+
 	if (!test?.questions?.length) return <div>테스트를 찾을 수 없습니다.</div>;
 
 	if (isStarting) {
 		return <TestIntro test={test} theme={theme} onStart={handleStart} />;
 	}
 
-	if (currentQuestionIndex >= test.questions.length) {
+	if (currentQuestionIndex >= test.questions.length || !currentQuestion) {
 		return <Loading variant="result" />;
 	}
-
-	const currentQuestion = test.questions[currentQuestionIndex];
 
 	return (
 		<BalanceGameQuestion
@@ -94,7 +117,7 @@ export function BalanceGameContainer({ test, onComplete }: TestTakingInterfacePr
 			questionNumber={currentQuestionIndex + 1}
 			totalQuestions={test.questions.length}
 			onPrevious={currentQuestionIndex > 0 ? handlePrevious : undefined}
-			testId={test?.test?.id}
+			testId={test?.test?.id as string}
 		/>
 	);
 }

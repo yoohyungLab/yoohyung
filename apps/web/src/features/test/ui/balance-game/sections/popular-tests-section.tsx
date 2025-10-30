@@ -34,8 +34,8 @@ export const PopularTestsSection = memo(function PopularTestsSection({ hotTests,
 			<div className="space-y-3">
 				{hotTests.map((test, index) => (
 					<div
-						key={test.id}
-						onClick={() => handleTestClick(test.id)}
+						key={test.id as string}
+						onClick={() => handleTestClick(test.id as string)}
 						className="flex items-center gap-3 p-3 rounded-xl bg-gradient-to-r from-orange-50 to-red-50 border border-orange-200 hover:from-orange-100 hover:to-red-100 cursor-pointer transition-all duration-200 hover:shadow-md"
 					>
 						{/* 순위 배지 */}
@@ -45,8 +45,8 @@ export const PopularTestsSection = memo(function PopularTestsSection({ hotTests,
 
 						{/* 테스트 정보 */}
 						<div className="flex-1 min-w-0">
-							<h3 className="text-sm font-semibold text-gray-900 truncate mb-1">{test.title}</h3>
-							<p className="text-xs text-gray-600 truncate">{test.description || test.category}</p>
+							<h3 className="text-sm font-semibold text-gray-900 truncate mb-1">{test.title as string}</h3>
+							<p className="text-xs text-gray-600 truncate">{(test.description as string) || (test.category as string)}</p>
 						</div>
 
 						{/* 참여자 수 */}

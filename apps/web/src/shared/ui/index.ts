@@ -15,6 +15,5 @@ export type { CardVariant, CardSize, CardAspectRatio } from './cards/base-card';
 export { PopularIcon, NewIcon, RecommendedIcon, TrendingIcon, TestIcon } from './icons/section-icons';
 
 // Other UI Components
-export { ErrorFallback } from './error-fallback';
 export { GoogleAnalytics } from './google-analytics';
 export { Loading } from './loading';

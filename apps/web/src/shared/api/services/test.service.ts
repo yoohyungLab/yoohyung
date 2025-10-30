@@ -1,5 +1,16 @@
 import { supabase, createServerClient } from '@pickid/supabase';
-import type { Json, Test, TestChoice, TestResult, TestWithNestedDetails, UserTestResponse } from '@pickid/supabase';
+import type {
+	Json,
+	Test,
+	TestChoice,
+	TestResult,
+	TestWithNestedDetails,
+	UserTestResponse,
+	Database,
+} from '@pickid/supabase';
+
+type UserTestResponseInsert = Database['public']['Tables']['user_test_responses']['Insert'];
+type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 import type { TestCompletionResult } from '@/shared/types';
 
@@ -10,6 +21,9 @@ const TEST_DETAILS_QUERY = `
 		question_text,
 		question_order,
 		image_url,
+		question_type,
+		correct_answers,
+		explanation,
 		created_at,
 		updated_at,
 		test_choices:test_choices(
@@ -118,6 +132,9 @@ export const testService = {
 					question_text: string;
 					question_order: number;
 					image_url: string | null;
+					question_type: string;
+					correct_answers: string[] | null;
+					explanation: string | null;
 					created_at: string;
 					updated_at: string;
 					test_choices?: unknown[];
@@ -127,6 +144,8 @@ export const testService = {
 
 			// 일부 환경에서 nested join으로 choices가 비어오는 경우가 있어 보정
 			if (testData?.test_questions && Array.isArray(testData.test_questions)) {
+				// 디버깅: 초기 데이터 확인
+
 				const questionIds = testData.test_questions.map((q) => q.id);
 				if (questionIds.length > 0) {
 					const { data: rawChoices } = await client
@@ -167,20 +186,29 @@ export const testService = {
 			}
 
 			// TestWithNestedDetails 형식으로 변환
-			return {
+			const result = {
 				test: testData as Test,
 				questions:
-					testData?.test_questions?.map((q) => ({
-						id: q.id,
-						question_text: q.question_text,
-						question_order: q.question_order,
-						image_url: q.image_url,
-						created_at: q.created_at,
-						updated_at: q.updated_at,
-						choices: (q.test_choices as TestChoice[]) || [],
-					})) || [],
+					testData?.test_questions?.map((q) => {
+						const mappedQuestion = {
+							id: q.id,
+							question_text: q.question_text,
+							question_order: q.question_order,
+							image_url: q.image_url,
+							question_type: q.question_type,
+							correct_answers: q.correct_answers,
+							explanation: q.explanation,
+							created_at: q.created_at,
+							updated_at: q.updated_at,
+							choices: (q.test_choices as TestChoice[]) || [],
+						};
+
+						return mappedQuestion;
+					}) || [],
 				results: (testData?.test_results as TestResult[]) || [],
 			};
+
+			return result;
 		} catch (error) {
 			handleSupabaseError(error, 'getTestWithDetails');
 			return null;
@@ -190,33 +218,30 @@ export const testService = {
 	async saveUserResponse(params: {
 		testId: string;
 		userId: string | null;
-		responses: UserTestResponse['responses'];
-		result_id: UserTestResponse['result_id'];
+		responses: Json;
+		result_id: string | null;
 		startedAt?: string;
 		completedAt?: string;
 		score?: number;
 	}): Promise<UserTestResponse> {
 		try {
 			const client = this.getClient();
-			const { data, error } = await client
-				.from('user_test_responses')
-				.insert([
-					{
-						test_id: params.testId,
-						user_id: params.userId,
-						session_id: params.userId || `session_${Date.now()}`,
-						responses: params.responses,
-						result_id: params.result_id,
-						total_score: params.score || 0,
-						started_at: params.startedAt,
-						completed_at: params.completedAt,
-					},
-				])
-				.select()
-				.single();
+
+			const insertData: UserTestResponseInsert = {
+				test_id: params.testId,
+				user_id: params.userId,
+				session_id: params.userId || `session_${Date.now()}`,
+				responses: params.responses,
+				result_id: params.result_id,
+				total_score: params.score || 0,
+				started_at: params.startedAt,
+				completed_at: params.completedAt,
+			};
+
+			const { data, error } = await client.from('user_test_responses').insert(insertData).select().single();
 
 			if (error) throw error;
-			return data;
+			return data as UserTestResponse;
 		} catch (error) {
 			handleSupabaseError(error, 'saveUserResponse');
 			throw error;
@@ -265,23 +290,13 @@ export const testService = {
 		}
 	},
 
-	async saveTestResult(insertData: {
-		test_id?: string;
-		result_name: string;
-		result_order: number;
-		description?: string | null;
-		match_conditions?: Json;
-		background_image_url?: string | null;
-		theme_color?: string | null;
-		features?: Json;
-		target_gender?: string | null;
-	}): Promise<TestResult> {
+	async saveTestResult(insertData: TestResultInsert): Promise<TestResult> {
 		try {
 			const client = this.getClient();
-			const { data: result, error } = await client.from('test_results').insert([insertData]).select().single();
+			const { data: result, error } = await client.from('test_results').insert(insertData).select().single();
 
 			if (error) throw error;
-			return result;
+			return result as TestResult;
 		} catch (error) {
 			handleSupabaseError(error, 'saveTestResult');
 			throw error;
@@ -306,28 +321,13 @@ export const testService = {
 			const client = this.getClient();
 			const { data: results, error: resultsError } = await client
 				.from('test_results')
-				.select(
-					`
-					id,
-					test_id,
-					result_name,
-					result_order,
-					description,
-					match_conditions,
-					background_image_url,
-					theme_color,
-					features,
-					target_gender,
-					created_at,
-					updated_at
-				`
-				)
+				.select('*')
 				.eq('test_id', testId)
 				.order('result_order');
 
 			if (resultsError) throw resultsError;
 
-			return results || [];
+			return (results as TestResult[]) || [];
 		} catch (error) {
 			handleSupabaseError(error, 'getTestResultsByTestId');
 			return [];
@@ -401,7 +401,7 @@ export const testService = {
 		}
 
 		const genderFilteredResults = userGender
-			? results.filter((result: { target_gender: string | null }) => {
+			? results.filter((result) => {
 					return !result.target_gender || result.target_gender === userGender;
 			  })
 			: results;
@@ -456,21 +456,21 @@ export const testService = {
 			} = await supabase.auth.getUser();
 			const sessionId = user?.id || `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
-			const { error } = await supabase.from('user_test_responses').insert([
-				{
-					test_id: result.test_id,
-					user_id: user?.id || null,
-					session_id: sessionId,
-					result_id: result.resultId,
-					total_score: result.totalScore,
-					responses: result.answers as unknown as import('@pickid/supabase').Json,
-					gender: result.gender || null,
-					started_at: new Date(new Date(result.completedAt).getTime() - result.duration * 1000).toISOString(),
-					completed_at: result.completedAt,
-					completion_time_seconds: result.duration,
-					created_date: new Date().toISOString().split('T')[0],
-				},
-			]);
+			const insertData: UserTestResponseInsert = {
+				test_id: result.test_id,
+				user_id: user?.id || null,
+				session_id: sessionId,
+				result_id: result.resultId,
+				total_score: result.totalScore,
+				responses: result.answers as unknown as Json,
+				gender: result.gender || null,
+				started_at: new Date(new Date(result.completedAt).getTime() - result.duration * 1000).toISOString(),
+				completed_at: result.completedAt,
+				completion_time_seconds: result.duration,
+				created_date: new Date().toISOString().split('T')[0],
+			};
+
+			const { error } = await supabase.from('user_test_responses').insert(insertData);
 
 			if (error) throw error;
 		} catch (error) {

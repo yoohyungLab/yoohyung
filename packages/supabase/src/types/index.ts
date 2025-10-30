@@ -46,6 +46,9 @@ export interface QuestionWithChoices {
 	question_text: string;
 	question_order: number;
 	image_url: string | null;
+	question_type: string;
+	correct_answers: string[] | null;
+	explanation: string | null;
 	created_at: string;
 	updated_at: string;
 	choices: TestChoice[];

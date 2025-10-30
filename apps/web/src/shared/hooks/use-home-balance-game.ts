@@ -16,9 +16,6 @@ export function useCurrentWeekBalanceGame() {
 		staleTime: 5 * 60 * 1000, // 5분
 		refetchOnWindowFocus: false,
 		retry: false, // RPC 함수가 없으면 재시도하지 않음
-		onError: (error) => {
-			console.error('Failed to fetch current week balance game:', error);
-		},
 	});
 }
 
@@ -35,9 +32,6 @@ export function useVoteBalanceGame() {
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.homeBalanceGame.current(),
 			});
-		},
-		onError: (error) => {
-			console.error('Failed to vote:', error);
 		},
 	});
 }
@@ -81,7 +75,7 @@ export function useHomeBalanceGame(): UseHomeBalanceGameReturn {
 	};
 
 	return {
-		game,
+		game: game ?? null,
 		isLoading: isGameLoading,
 		error: gameError,
 		vote: handleVote,

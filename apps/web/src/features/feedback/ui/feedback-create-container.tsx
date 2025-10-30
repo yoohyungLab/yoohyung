@@ -1,25 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@pickid/supabase';
 import { FeedbackForm } from '@/features/feedback/ui/feedback-form';
 import { Button } from '@pickid/ui';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 export function FeedbackCreateContainer() {
 	const [showSuccess, setShowSuccess] = useState(false);
 	const router = useRouter();
-
-	// 간단한 클라이언트 가드: 로그인 사용자만 접근
-	useEffect(() => {
-		const checkAuth = async () => {
-			const {
-				data: { session },
-			} = await supabase.auth.getSession();
-			if (!session) router.replace('/auth/login?next=/feedback/create');
-		};
-		checkAuth();
-	}, [router]);
 
 	const handleSuccess = () => {
 		setShowSuccess(true);

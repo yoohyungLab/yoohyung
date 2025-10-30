@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
+import type { Resolver } from 'react-hook-form';
 import { Button, DefaultInput, InputPassword, IconButton } from '@pickid/ui';
 import { useAuth } from '@/features/auth';
 import { mapAuthError } from '@/shared/lib/error-mapper';
@@ -25,15 +26,15 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 
 	// React Hook Form 설정 - 조건부로 생성
 	const loginForm = useForm<LoginFormData>({
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		resolver: zodResolver(loginSchema as any),
+		// @ts-expect-error - zodResolver 타입 호환성 이슈
+		resolver: zodResolver(loginSchema),
 		defaultValues: { email: '', password: '' },
 		mode: 'onChange',
 	});
 
 	const registerForm = useForm<RegisterFormData>({
-		// eslint-disable-next-line @typescript-eslint/no-explicit-any
-		resolver: zodResolver(registerSchema as any),
+		// @ts-expect-error - zodResolver 타입 호환성 이슈
+		resolver: zodResolver(registerSchema),
 		defaultValues: { name: '', email: '', password: '', confirmPassword: '' },
 		mode: 'onChange',
 	});

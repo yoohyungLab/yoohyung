@@ -28,5 +28,11 @@
 		"embla-carousel-autoplay": "^8.6.0",
 		"embla-carousel-react": "^8.6.0",
 		"lucide-react": "^0.522.0"
+	},
+	"pnpm": {
+		"overrides": {
+			"tar-fs": ">=2.1.2",
+			"ws": ">=8.17.1"
+		}
 	}
 }

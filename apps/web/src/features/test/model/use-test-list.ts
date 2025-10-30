@@ -25,19 +25,19 @@ export function useTestList() {
 			]);
 
 			// TestCard 변환 (supabase 테스트는 이미 서비스에서 published만 조회되므로 안전)
-			const mappedTests = (tests || []).map((test) => ({
-				id: test.id,
-				title: test.title,
-				description: test.description || '',
-				image: test.thumbnail_url || '/images/placeholder.svg',
-				tags: test.category_ids?.map(() => '미분류') || ['미분류'],
-				type: test.type,
-				status: test.status,
-				slug: test.slug,
-				category_ids: test.category_ids || null,
-				thumbnail_url: test.thumbnail_url,
-				starts: test.start_count,
-				completions: test.response_count,
+			const mappedTests: TestCard[] = (tests || []).map((test) => ({
+				id: test.id as string,
+				title: test.title as string,
+				description: (test.description as string) || '',
+				image: (test.thumbnail_url as string) || '/images/placeholder.svg',
+				tags: (test.category_ids as string[] | null)?.map(() => '미분류') || ['미분류'],
+				type: test.type as string,
+				status: test.status as string,
+				slug: test.slug as string,
+				category_ids: (test.category_ids as string[] | null) || null,
+				thumbnail_url: (test.thumbnail_url as string | null),
+				starts: (test.start_count as number | null),
+				completions: (test.response_count as number | null),
 			}));
 
 			setRawTests(mappedTests);
@@ -76,7 +76,7 @@ export function useTestList() {
 			const categoryNames = processedCategoryIds
 				.map((categoryId) => {
 					const category = categories.find((cat) => cat.id === categoryId);
-					return category?.name || '알 수 없음';
+					return (category?.name as string) || '알 수 없음';
 				})
 				.filter((name) => name !== '알 수 없음');
 
@@ -91,7 +91,7 @@ export function useTestList() {
 
 		return rawTests.map((test) => ({
 			...test,
-			tags: getCategoryNames(test.category_ids),
+			tags: getCategoryNames((test.category_ids as string[] | null) || null),
 		}));
 	}, [rawTests, isLoading, error, getCategoryNames]);
 

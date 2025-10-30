@@ -2,26 +2,31 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const config = {
 	matcher: [
-		'/((?!api|_next/static|_next/image|images|assets|favicon.ico|sitemap.xml|robots.txt|icons|.*\\.svg|.*\\.png|.*\\.jpg|.*\\.jpeg|.*\\.gif|.*\\.ico).*)',
+		'/((?!api|_next/static|_next/image|images|assets|favicon.ico|sitemap.xml|robots.txt|icons|.*.svg|.*.png|.*.jpg|.*.jpeg|.*.gif|.*.ico).*)',
 	],
 };
 
 // 로그인이 필요한 페이지들
-const PROTECTED_ROUTES = ['/feedback/create', '/mypage'];
+const PROTECTED_ROUTES = ['/feedback/create', '/feedback/:id', '/feedback'];
 
 export default async function middleware(req: NextRequest) {
 	const pathname = req.nextUrl.pathname;
+	const search = req.nextUrl.search;
 
 	// 로그인이 필요한 페이지인지 확인
 	const isProtected = PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 
-	// 로그인이 필요한 페이지가 아니면 통과
 	if (!isProtected) {
 		return NextResponse.next();
 	}
 
-	// Supabase 쿠키는 브라우저 도메인별로 자동 관리되며, 클라이언트에서 처리합니다.
-	// 미들웨어 단계에서는 NextResponse.next()로 통과시키고, 각 페이지/컴포넌트에서 가드를 적용합니다.
+	// 클라이언트에서 설정하는 인증 플래그 쿠키 검사
+	const isAuthenticated = req.cookies.get('pickid_auth')?.value === '1';
+	if (isAuthenticated) {
+		return NextResponse.next();
+	}
 
-	return NextResponse.next();
+	// 미인증 사용자는 로그인 페이지로 즉시 리다이렉트 (클라이언트에서 세션 확인 후 복귀)
+	const loginUrl = new URL(`/auth/login?redirectTo=${encodeURIComponent(pathname + search)}`, req.url);
+	return NextResponse.redirect(loginUrl);
 }

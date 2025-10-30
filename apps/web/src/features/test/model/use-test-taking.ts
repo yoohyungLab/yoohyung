@@ -53,7 +53,7 @@ const saveTestResult = async (result: TestCompletionResult) => {
 	try {
 		await testService.saveUserTestResponse(result);
 		if (result.test_id) {
-			await testService.incrementTestResponse(result.test_id);
+			await testService.incrementTestResponse(result.test_id as string);
 		}
 	} catch (error) {
 		console.error('Error saving test result:', error);
@@ -87,9 +87,9 @@ export function useTestTaking({ test, config = {}, onComplete, onExit }: ITestTa
 
 			const filteredAnswers = progress.answers.filter((answer) => answer.questionId !== currentQuestion.id);
 			const newAnswer: TestAnswer = {
-				questionId: currentQuestion.id,
-				choiceId: choice.id,
-				score: choice.score || 0,
+				questionId: currentQuestion.id as string,
+				choiceId: choice.id as string,
+				score: (choice.score as number) || 0,
 				answeredAt: Date.now(),
 			};
 
@@ -98,8 +98,8 @@ export function useTestTaking({ test, config = {}, onComplete, onExit }: ITestTa
 
 			if (isLastQuestion) {
 				const result: TestCompletionResult = {
-					test_id: test.test.id,
-					resultId: test.results?.[0]?.id || '',
+					test_id: test.test.id as string,
+					resultId: (test.results?.[0]?.id as string) || '',
 					totalScore: calculateTotalScore(newAnswers),
 					score: calculateTotalScore(newAnswers),
 					answers: newAnswers,

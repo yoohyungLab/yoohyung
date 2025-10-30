@@ -1,11 +1,10 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { testService } from '@/shared/api/services/test.service';
-import { categoryService } from '@/shared/api/services/category.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
 import { SITE_CONFIG } from '@/shared/config/metadata';
 import { mapTestWithDetailsToNested } from '@/shared/lib/test-mappers';
-import { TestPage } from '@/features/test';
+import { TestPageClient } from '@/features/test/ui/test-page-client';
 
 interface IPageProps {
 	params: Promise<{ id: string }>;
@@ -23,9 +22,9 @@ export async function generateMetadata({ params }: IPageProps): Promise<Metadata
 
 		if (!testData) return DEFAULT_METADATA;
 
-		const testTitle = testData.test?.title || '테스트';
-		const testDescription = testData.test?.description || '심리테스트를 진행해보세요.';
-		const ogImage = testData.test?.thumbnail_url || SITE_CONFIG.ogImage;
+		const testTitle = (testData.test?.title as string) || '테스트';
+		const testDescription = (testData.test?.description as string) || '심리테스트를 진행해보세요.';
+		const ogImage = (testData.test?.thumbnail_url as string) || SITE_CONFIG.ogImage;
 
 		return {
 			...generatePageMetadata({
@@ -45,23 +44,16 @@ export async function generateMetadata({ params }: IPageProps): Promise<Metadata
 export default async function TestDetailPage({ params }: IPageProps) {
 	const { id } = await params;
 
-	if (!id) {
-		notFound();
-	}
+	if (!id) notFound();
 
 	try {
-		const [testData, categories] = await Promise.all([
-			testService.getTestWithDetails(id),
-			categoryService.getAllCategories(),
-		]);
+		const testData = await testService.getTestWithDetails(id);
 
-		if (!testData) {
-			notFound();
-		}
+		if (!testData) notFound();
 
 		const test = mapTestWithDetailsToNested(testData);
 
-		return <TestPage test={test} categories={categories} />;
+		return <TestPageClient test={test} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);
 		notFound();

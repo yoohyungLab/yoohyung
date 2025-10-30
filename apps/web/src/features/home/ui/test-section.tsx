@@ -36,8 +36,14 @@ export function TestSection({ tests, title, sectionType, className = '' }: TestS
 			<Carousel className="w-full">
 				<CarouselContent className="pl-3 -ml-3 gap-4">
 					{tests.map((test) => (
-						<CarouselItem key={test.id} className="pl-3 -ml-3 basis-[180px] sm:basis-[200px]">
-							<CarouselCard {...test} description={test.description || ''} />
+						<CarouselItem key={test.id as string} className="pl-3 -ml-3 basis-[180px] sm:basis-[200px]">
+							<CarouselCard
+								id={test.id as string}
+								title={test.title as string}
+								description={(test.description as string) || ''}
+								image={test.image as string}
+								tags={test.tags as string[]}
+							/>
 						</CarouselItem>
 					))}
 				</CarouselContent>

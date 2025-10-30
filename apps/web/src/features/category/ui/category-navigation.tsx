@@ -76,11 +76,11 @@ export function CategoryNavigation({ categories, currentSlug, onCategoryChange }
 				onMouseLeave={handleMouseUp}
 			>
 				{categories.map((cat) => {
-					const isActive = cat.slug === currentSlug;
+					const isActive = (cat.slug as string) === currentSlug;
 					return (
 						<button
-							key={cat.id}
-							onClick={() => handleCategoryClick(cat.slug)}
+							key={cat.id as string}
+							onClick={() => handleCategoryClick(cat.slug as string)}
 							className={`
 								flex-shrink-0 px-3 py-1.5 rounded-lg transition-all duration-200 ease-in-out
 								whitespace-nowrap text-xs font-semibold
@@ -91,7 +91,7 @@ export function CategoryNavigation({ categories, currentSlug, onCategoryChange }
 								}
 							`}
 						>
-							{cat.name}
+							{cat.name as string}
 						</button>
 					);
 				})}

@@ -18,8 +18,7 @@ export function useTestStart({ testId, testTitle, requiresGender }: IUseTestStar
 	// 시작 횟수 증가
 	const incrementStartCount = useCallback(async () => {
 		try {
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			await (supabase.rpc as any)('increment_test_start', { test_uuid: testId });
+			await supabase.rpc('increment_test_start', { test_uuid: testId });
 		} catch (err) {
 			console.warn('Failed to increment start count:', err);
 		}
@@ -38,14 +37,10 @@ export function useTestStart({ testId, testTitle, requiresGender }: IUseTestStar
 			if (isIncrementingRef.current) return;
 			isIncrementingRef.current = true;
 			try {
-				console.log('handleStartTest called:', { requiresGender, testId, testTitle });
-
 				// UI 전환을 먼저 처리하여 체감 지연 제거
 				if (requiresGender) {
-					console.log('Showing gender modal');
 					setShowGenderModal(true);
 				} else {
-					console.log('Starting test without gender');
 					onStart();
 				}
 

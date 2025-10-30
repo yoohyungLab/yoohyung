@@ -20,7 +20,6 @@ module.exports = {
 		try {
 			// 동적 경로는 빌드 시점에 생성하지 않고 정적 경로만 사용
 			// 실제 동적 경로는 런타임에 생성됨
-			console.log('Sitemap: Using static paths only');
 		} catch (error) {
 			console.error('Error generating additional sitemap paths:', error);
 		}

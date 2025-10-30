@@ -9,48 +9,45 @@ import { DEFAULT_BASIC_INFO } from '../constants/test.constants';
  * 질문 데이터를 UI용으로 변환
  */
 export const convertQuestionsData = (questionsData: QuestionWithChoices[]): QuestionData[] => {
-	console.log('convertQuestionsData 입력:', questionsData);
-
 	if (!questionsData || questionsData.length === 0) {
-		console.log('질문 데이터가 없어서 기본값 반환');
 		return [
 			{
 				question_text: '',
 				question_order: 0,
 				image_url: null,
+				question_type: 'multiple_choice',
+				correct_answers: null,
+				explanation: null,
 				choices: [
-					{ choice_text: '', choice_order: 0, score: 0, is_correct: false },
-					{ choice_text: '', choice_order: 1, score: 1, is_correct: false },
+					{ choice_text: '', choice_order: 0, score: 0, is_correct: false, response_count: 0, updated_at: '' },
+					{ choice_text: '', choice_order: 1, score: 1, is_correct: false, response_count: 0, updated_at: '' },
 				],
 			},
 		];
 	}
 
 	const converted = questionsData.map((q) => {
-		console.log('질문 변환 중:', {
-			id: q.id,
-			question_text: q.question_text,
-			choices: q.test_choices,
-			choicesLength: q.test_choices?.length || 0,
-		});
-
 		return {
 			id: q.id,
 			question_text: q.question_text || '',
 			question_order: q.question_order || 0,
 			image_url: q.image_url,
+			question_type: q.question_type || 'multiple_choice',
+			correct_answers: q.correct_answers || null,
+			explanation: q.explanation || null,
 			choices:
 				q.test_choices?.map((c) => ({
 					id: c.id,
 					choice_text: c.choice_text || '',
 					choice_order: c.choice_order || 0,
-					score: c.score,
-					is_correct: c.is_correct,
+					score: c.score || 0,
+					is_correct: c.is_correct || false,
+					response_count: 0,
+					updated_at: '',
 				})) || [],
 		};
 	});
 
-	console.log('convertQuestionsData 결과:', converted);
 	return converted;
 };
 
@@ -73,21 +70,12 @@ export const convertResultsData = (resultsData: ResultWithDetails[]): ResultData
 		];
 	}
 
-	console.log(
-		'어드민 결과 데이터 로딩:',
-		resultsData.map((r) => ({
-			name: r.result_name,
-			target_gender: r.target_gender,
-			raw: r,
-		}))
-	);
-
 	return resultsData.map((r) => ({
 		result_name: r.result_name || '',
 		result_order: r.result_order || 0,
 		description: r.description,
-		match_conditions: (r.match_conditions as { type: 'score'; min: number; max: number }) || {
-			type: 'score',
+		match_conditions: r.match_conditions || {
+			type: 'score' as const,
 			min: 0,
 			max: 30,
 		},
@@ -250,21 +238,16 @@ export const getCategoryNames = (
 /**
  * 테스트 통계 계산
  */
-export const calculateTestStats = (questions: unknown[], results: unknown[]) => {
+export const calculateTestStats = (questions: QuestionData[], results: ResultData[]) => {
 	return {
 		totalQuestions: questions?.length || 0,
 		totalResults: results?.length || 0,
 		avgChoicesPerQuestion: questions?.length
-			? Math.round(
-					(questions.reduce((sum: number, q) => sum + ((q as QuestionWithChoices).test_choices?.length || 0), 0) /
-						questions.length) *
-						10
-			  ) / 10
+			? Math.round((questions.reduce((sum, q) => sum + (q.choices?.length || 0), 0) / questions.length) * 10) / 10
 			: 0,
-		questionsWithImages: questions?.filter((q) => (q as { image_url?: string }).image_url).length || 0,
-		resultsWithTheme: results?.filter((r) => (r as { theme_color?: string }).theme_color).length || 0,
-		resultsWithImages:
-			results?.filter((r) => (r as { background_image_url?: string }).background_image_url).length || 0,
+		questionsWithImages: questions?.filter((q) => q.image_url).length || 0,
+		resultsWithTheme: results?.filter((r) => r.theme_color).length || 0,
+		resultsWithImages: results?.filter((r) => r.background_image_url).length || 0,
 		completionRate: 0,
 	};
 };

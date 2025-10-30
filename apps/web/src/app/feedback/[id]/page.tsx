@@ -1,11 +1,15 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import Link from 'next/link';
+import {
+	formatDateTime,
+	getCategoryInfo,
+	getStatusClassName,
+	getStatusInfo,
+	useFeedbackDetail,
+} from '@/features/feedback';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
-import { useFeedbackDetail } from '@/features/feedback';
-import { getCategoryInfo, getStatusInfo, formatDateTime, getStatusClassName } from '@/features/feedback';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();
@@ -38,8 +42,8 @@ export default function FeedbackDetailPage() {
 		);
 	}
 
-	const categoryInfo = getCategoryInfo(feedback.category);
-	const statusInfo = getStatusInfo(feedback.status);
+	const categoryInfo = getCategoryInfo(feedback.category as string);
+	const statusInfo = getStatusInfo(feedback.status as string);
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -69,19 +73,21 @@ export default function FeedbackDetailPage() {
 										{statusInfo.label}
 									</span>
 								</div>
-								<h1 className="text-xl font-bold text-gray-900 mb-2">{feedback.title}</h1>
+								<h1 className="text-xl font-bold text-gray-900 mb-2">{feedback.title as string}</h1>
 								<div className="text-xs text-gray-500">
-									{feedback.author_name || '익명'} · {formatDateTime(feedback.created_at)}
+									{(feedback.author_name as string) || '익명'} · {formatDateTime(feedback.created_at as string)}
 								</div>
 							</div>
 						</div>
 					</div>
 
 					<div className="p-6">
-						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{feedback.content}</div>
+						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+							{feedback.content as string}
+						</div>
 					</div>
 
-					{feedback.admin_reply?.trim() && (
+					{(feedback.admin_reply as string)?.trim() && (
 						<div className="mx-6 mb-6 bg-blue-50 border border-blue-200 rounded-lg overflow-hidden">
 							<div className="bg-blue-100 px-4 py-2 border-b border-blue-200">
 								<div className="flex items-center gap-2">
@@ -90,23 +96,19 @@ export default function FeedbackDetailPage() {
 									</div>
 									<span className="text-xs font-bold text-blue-900">관리자 답변</span>
 									{feedback.admin_reply_at && (
-										<span className="text-[10px] text-blue-600 ml-auto">{formatDateTime(feedback.admin_reply_at)}</span>
+										<span className="text-[10px] text-blue-600 ml-auto">
+											{formatDateTime(feedback.admin_reply_at as string)}
+										</span>
 									)}
 								</div>
 							</div>
 							<div className="p-4">
-								<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{feedback.admin_reply}</div>
+								<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+									{feedback.admin_reply as string}
+								</div>
 							</div>
 						</div>
 					)}
-				</div>
-
-				<div className="mt-6 text-center">
-					<Link href="/feedback">
-						<Button variant="outline" className="text-sm">
-							목록으로
-						</Button>
-					</Link>
 				</div>
 			</div>
 		</div>

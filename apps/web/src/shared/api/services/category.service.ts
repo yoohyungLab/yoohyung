@@ -58,18 +58,16 @@ export const categoryService = {
 
 			const categoryCounts = new Map<string, number>();
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			tests.forEach((test: any) => {
+			tests.forEach((test) => {
 				if (test.category_ids && Array.isArray(test.category_ids)) {
-					test.category_ids.forEach((categoryId: string) => {
+					test.category_ids.forEach((categoryId) => {
 						const currentCount = categoryCounts.get(categoryId) || 0;
 						categoryCounts.set(categoryId, currentCount + 1);
 					});
 				}
 			});
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return categories.map((category: any) => ({
+			return categories.map((category) => ({
 				...category,
 				test_count: categoryCounts.get(category.id) || 0,
 			}));
@@ -115,10 +113,8 @@ export const categoryService = {
 			const supabase = createServerClient();
 
 			const [categoryResult, allCategoriesResult] = await Promise.all([
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(supabase.from as any)('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				(supabase.from as any)('categories')
+				supabase.from('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
+				supabase.from('categories')
 					.select('*')
 					.eq('status', 'active')
 					.order('sort_order', { ascending: true }),
@@ -128,18 +124,15 @@ export const categoryService = {
 				return null;
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const category = categoryResult.data as any;
+			const category = categoryResult.data as Category;
 
 			const { data: tests } = await supabase
 				.from('tests')
 				.select('*')
 				.eq('status', 'published')
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				.contains('category_ids', [category.id] as any);
+				.contains('category_ids', [category.id]);
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			return { category, allCategories: (allCategoriesResult.data as any[]) || [], tests: (tests as Test[]) || [] };
+			return { category, allCategories: (allCategoriesResult.data as Category[]) || [], tests: (tests as Test[]) || [] };
 		} catch (error) {
 			handleSupabaseError(error, 'getCategoryPageDataSSR');
 			return null;
@@ -172,15 +165,15 @@ export const categoryService = {
 
 	transformTestData(tests: Test[]) {
 		return tests.map((test) => ({
-			id: test.id,
-			title: test.title,
-			description: test.description || '',
-			thumbnail_url: test.thumbnail_url || '/images/placeholder.svg',
-			thumbnailUrl: test.thumbnail_url || '/images/placeholder.svg',
-			created_at: test.created_at,
-			completions: test.response_count || 0,
-			starts: test.start_count || 0,
-			category_ids: test.category_ids || undefined,
+			id: test.id as string,
+			title: test.title as string,
+			description: (test.description as string) || '',
+			thumbnail_url: (test.thumbnail_url as string) || '/images/placeholder.svg',
+			thumbnailUrl: (test.thumbnail_url as string) || '/images/placeholder.svg',
+			created_at: test.created_at as string,
+			completions: (test.response_count as number) || 0,
+			starts: (test.start_count as number) || 0,
+			category_ids: (test.category_ids as string[] | null) || undefined,
 		}));
 	},
 };

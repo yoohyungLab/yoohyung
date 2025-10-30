@@ -41,7 +41,18 @@ export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 
 // ============================================================================
 
 const handleSupabaseError = (error: unknown, context: string): never => {
-	const message = error instanceof Error ? error.message : String(error);
+	let message: string;
+
+	if (error instanceof Error) {
+		message = error.message;
+	} else if (typeof error === 'object' && error !== null) {
+		// Supabase 에러 객체 처리
+		message = JSON.stringify(error, null, 2);
+	} else {
+		message = String(error);
+	}
+
+	console.error(`${context} error:`, error);
 	throw new Error(`${context}: ${message}`);
 };
 
@@ -91,6 +102,9 @@ export const testService = {
 					question_text,
 					question_order,
 					image_url,
+					question_type,
+					correct_answers,
+					explanation,
 					created_at,
 					updated_at,
 					test_choices:test_choices(
@@ -136,6 +150,9 @@ export const testService = {
 				question_text: string;
 				question_order: number;
 				image_url: string | null;
+				question_type: string;
+				correct_answers: string[] | null;
+				explanation: string | null;
 				created_at: string;
 				updated_at: string;
 				test_choices: Array<{
@@ -151,17 +168,19 @@ export const testService = {
 			const questionRows: QueryQuestionRow[] = (questionsData as unknown as QueryQuestionRow[]) || [];
 			const questions: QuestionWithChoices[] = questionRows.map((q) => {
 				const mappedChoices = q.test_choices as unknown as TestChoice[];
-				const mapped: QuestionWithChoices & { test_choices: TestChoice[] } = {
+				const mapped = {
 					id: q.id,
 					question_text: q.question_text,
 					question_order: q.question_order,
 					image_url: q.image_url,
+					question_type: q.question_type,
+					correct_answers: q.correct_answers,
+					explanation: q.explanation,
 					created_at: q.created_at,
 					updated_at: q.updated_at,
 					choices: mappedChoices,
-					test_choices: mappedChoices,
 				};
-				return mapped as unknown as QuestionWithChoices;
+				return mapped as QuestionWithChoices;
 			});
 
 			const results: TestResult[] = (resultsData as unknown as TestResult[]) || [];
@@ -171,7 +190,7 @@ export const testService = {
 				const ids = questions.map((q) => q.id);
 				const { data: rawChoices } = await supabase
 					.from('test_choices')
-					.select('id, choice_text, choice_order, score, is_correct, created_at, question_id')
+					.select('id, choice_text, choice_order, score, is_correct, created_at, question_id, choice_order')
 					.in('question_id', ids)
 					.order('choice_order');
 
@@ -254,22 +273,24 @@ export const testService = {
 			const isUpdate = !!testData.id;
 
 			if (isUpdate) {
-				// 업데이트 모드: 직접 테이블 업데이트
-				return await this.updateTestDirectly(
-					testData,
-					questionsData as Array<
-						TestQuestionInsert & {
-							choices?: Array<Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number }>;
-						}
-					>,
-					resultsData
-				);
-			} else {
-				// 생성 모드: RPC 함수 사용
-				const { data: result, error } = await supabase.rpc('create_test_complete', {
-					test_data: testData,
+				// 수정 모드: update_test_complete RPC 함수 사용
+				const { data: result, error } = await supabase.rpc('update_test_complete', {
 					questions_data: questionsData,
 					results_data: resultsData,
+					test_data: testData,
+					test_id: testData.id,
+				});
+
+				if (error) throw error;
+
+				// 업데이트된 테스트 데이터 반환
+				return await this.getTestWithDetails(testData.id);
+			} else {
+				// 생성 모드: create_test_complete RPC 함수 사용
+				const { data: result, error } = await supabase.rpc('create_test_complete', {
+					questions_data: questionsData,
+					results_data: resultsData,
+					test_data: testData,
 				});
 
 				if (error) throw error;
@@ -335,6 +356,9 @@ export const testService = {
 					question_text: questionData.question_text,
 					question_order: i,
 					image_url: questionData.image_url,
+					question_type: questionData.question_type || 'multiple_choice',
+					correct_answers: questionData.correct_answers || null,
+					explanation: questionData.explanation || null,
 				})
 				.select('id')
 				.single();

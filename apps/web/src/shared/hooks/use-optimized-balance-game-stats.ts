@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { optimizedBalanceGameStatsService } from '@/shared/api/services/optimized-balance-game-stats.service';
 import { queryKeys } from '@/shared/lib/query-keys';
-import type { OptimizedQuestionStats } from '@pickid/supabase';
+import type { OptimizedQuestionStats, OptimizedChoiceStats } from '@pickid/supabase';
 
 // ============================================================================
 // 최적화된 밸런스게임 통계 훅
@@ -47,9 +47,6 @@ export function useIncrementOptimizedChoiceCount() {
 				queryKey: queryKeys.optimizedBalanceGameStats.all,
 			});
 		},
-		onError: (error) => {
-			console.error('Failed to increment choice count:', error);
-		},
 	});
 }
 
@@ -70,9 +67,6 @@ export function useOptimizedBalanceGameChoiceCount(questionId: string) {
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.optimizedBalanceGameStats.question(questionId),
 			});
-		},
-		onError: (error) => {
-			console.error('Failed to increment choice count:', error);
 		},
 	});
 
@@ -97,10 +91,10 @@ export function useOptimizedBalanceGameCumulativeStats(testId: string) {
 	const { data: allStats, isLoading, error } = useOptimizedBalanceGameAllQuestionStats(testId);
 
 	// 누적 통계 계산
-	const cumulativeStats =
+	const cumulativeStats: OptimizedChoiceStats[] =
 		allStats?.reduce((acc, questionStats) => {
 			questionStats.choiceStats.forEach((choiceStat) => {
-				const existing = acc.find((item) => item.choiceId === choiceStat.choiceId);
+				const existing = acc.find((item: OptimizedChoiceStats) => item.choiceId === choiceStat.choiceId);
 				if (existing) {
 					existing.responseCount += choiceStat.responseCount;
 				} else {
@@ -108,13 +102,13 @@ export function useOptimizedBalanceGameCumulativeStats(testId: string) {
 				}
 			});
 			return acc;
-		}, [] as IOptimizedQuestionStats['choiceStats']) || [];
+		}, [] as OptimizedChoiceStats[]) || [];
 
 	// 총 응답 수 계산
 	const totalResponses = allStats?.reduce((sum, questionStats) => sum + questionStats.totalResponses, 0) || 0;
 
 	// 퍼센티지 재계산
-	const normalizedStats = cumulativeStats.map((stat) => ({
+	const normalizedStats = cumulativeStats.map((stat: OptimizedChoiceStats) => ({
 		...stat,
 		percentage: totalResponses > 0 ? Math.round((stat.responseCount / totalResponses) * 100) : 0,
 	}));

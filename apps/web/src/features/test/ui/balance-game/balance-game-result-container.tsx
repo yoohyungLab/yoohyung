@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { TestResultShareModal } from '../psychology/test-result-share-modal';
 import { trackResultViewed } from '@/shared/lib/analytics';
@@ -10,19 +10,16 @@ import { useTestResultShare } from '@/features/test/hooks/use-test-result-share'
 import { BalanceGameResultHeader } from './balance-game-result-header';
 import { BalanceGameResultContent } from './balance-game-result-content';
 
-const MIN_LOADING_TIME = 3200;
-
 export function BalanceGameResultContainer() {
 	const params = useParams();
 	const testId = params?.id as string;
-	const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false);
 
 	const {
 		balanceGameResult,
 		comparisonStats,
 		funStats,
 		hotTestsData,
-		isLoading: baseLoading,
+		isLoading,
 		error,
 		isLoggedIn,
 		userName,
@@ -34,17 +31,10 @@ export function BalanceGameResultContainer() {
 	});
 
 	useEffect(() => {
-		const timer = setTimeout(() => setIsMinLoadingComplete(true), MIN_LOADING_TIME);
-		return () => clearTimeout(timer);
-	}, []);
-
-	useEffect(() => {
-		if (balanceGameResult && isMinLoadingComplete) {
+		if (balanceGameResult) {
 			trackResultViewed(testId, balanceGameResult.testMetadata?.testTitle || '', isLoggedIn);
 		}
-	}, [balanceGameResult, testId, isLoggedIn, isMinLoadingComplete]);
-
-	const isLoading = baseLoading || !isMinLoadingComplete;
+	}, [balanceGameResult, testId, isLoggedIn]);
 
 	if (isLoading) return <Loading variant="result" />;
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
 import { TestResultShareModal } from './test-result-share-modal';
 import { TestResultStructuredData } from './test-result-structured-data';
@@ -12,41 +12,23 @@ import { TestResultHeader } from './test-result-header';
 import { TestResultContent } from './test-result-content';
 import { SharedResultLanding } from './shared-result-landing';
 
-const MIN_LOADING_TIME = 3200;
-
 export function TestResultContainer() {
 	const params = useParams();
 	const searchParams = useSearchParams();
 	const testId = params?.id as string;
 	const isSharedLink = searchParams.get('ref') === 'share';
-	const [isMinLoadingComplete, setIsMinLoadingComplete] = useState(false);
 
-	const {
-		testResult,
-		totalScore,
-		userGender,
-		isLoading: baseLoading,
-		error,
-		isLoggedIn,
-		userName,
-	} = useTestResult({ testId });
+	const { testResult, totalScore, userGender, isLoading, error, isLoggedIn, userName } = useTestResult({ testId });
 	const { isShareModalOpen, setIsShareModalOpen, handleShare } = useTestResultShare({
 		testId,
 		resultName: testResult?.result_name || '',
 	});
 
 	useEffect(() => {
-		const timer = setTimeout(() => setIsMinLoadingComplete(true), MIN_LOADING_TIME);
-		return () => clearTimeout(timer);
-	}, []);
-
-	useEffect(() => {
-		if (testResult && isMinLoadingComplete) {
+		if (testResult) {
 			trackResultViewed(testId, testResult.result_name, isLoggedIn);
 		}
-	}, [testResult, testId, isLoggedIn, isMinLoadingComplete]);
-
-	const isLoading = baseLoading || !isMinLoadingComplete;
+	}, [testResult, testId, isLoggedIn]);
 
 	if (isLoading) return <Loading variant="result" />;
 

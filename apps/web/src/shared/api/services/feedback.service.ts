@@ -14,16 +14,23 @@ export const feedbackService = {
 	async submitFeedback(feedbackData: ISubmitFeedbackParams): Promise<Feedback> {
 		try {
 			const {
-				data: { user },
-			} = await supabase.auth.getUser();
+				data: { session },
+			} = await supabase.auth.getSession();
 
-			// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			const { data, error } = await (supabase.from as any)('feedbacks')
+			if (!session || !session.user?.email) {
+				throw new Error('로그인이 필요합니다.');
+			}
+
+			const { data, error } = await supabase
+				.from('feedbacks')
 				.insert([
 					{
 						...feedbackData,
-						author_name: user?.user_metadata?.name || user?.email?.split('@')[0] || '익명',
-						author_email: user?.email,
+						author_name:
+							(session.user.user_metadata as { name?: string } | null)?.name ||
+							session.user.email.split('@')[0] ||
+							'user',
+						author_email: session.user.email,
 						status: 'pending',
 						created_at: new Date().toISOString(),
 					},
@@ -41,7 +48,19 @@ export const feedbackService = {
 
 	async getFeedbacks(): Promise<Feedback[]> {
 		try {
-			const { data, error } = await supabase.from('feedbacks').select('*').order('created_at', { ascending: false });
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (!session || !session.user?.email) {
+				throw new Error('로그인이 필요합니다.');
+			}
+
+			const { data, error } = await supabase
+				.from('feedbacks')
+				.select('*')
+				.eq('author_email', session.user.email)
+				.order('created_at', { ascending: false });
 
 			if (error) throw error;
 			return data || [];
@@ -53,7 +72,20 @@ export const feedbackService = {
 
 	async getFeedbackById(id: string): Promise<Feedback | null> {
 		try {
-			const { data, error } = await supabase.from('feedbacks').select('*').eq('id', id).single();
+			const {
+				data: { session },
+			} = await supabase.auth.getSession();
+
+			if (!session || !session.user?.email) {
+				throw new Error('로그인이 필요합니다.');
+			}
+
+			const { data, error } = await supabase
+				.from('feedbacks')
+				.select('*')
+				.eq('id', id)
+				.eq('author_email', session.user.email)
+				.single();
 
 			if (error) throw error;
 			return data;

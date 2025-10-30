@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import { useTestTaking, colorThemes } from '@/features/test';
 import { TestIntro } from './test-intro';
@@ -9,11 +10,17 @@ import { Loading } from '@/shared/ui/loading';
 
 interface TestContainerProps {
 	test: TestWithNestedDetails;
-	onComplete: () => void;
-	onExit: () => void;
 }
 
-export function TestContainer({ test, onComplete, onExit }: TestContainerProps) {
+export function TestContainer({ test }: TestContainerProps) {
+	const router = useRouter();
+	const onComplete = useCallback(() => {
+		router.push(`/tests/${test.test?.id}/result`);
+	}, [router, test.test?.id]);
+
+	const onExit = useCallback(() => {
+		router.push('/');
+	}, [router]);
 	const [isStarting, setIsStarting] = useState(true);
 
 	const theme = useMemo(() => {
@@ -51,8 +58,9 @@ export function TestContainer({ test, onComplete, onExit }: TestContainerProps) 
 
 	return (
 		<TestQuestion
-			progress={progress}
-			currentQuestion={currentQuestion}
+			question={currentQuestion}
+			currentIndex={progress.currentQuestionIndex}
+			totalQuestions={progress.totalQuestions}
 			onAnswer={handleAnswer}
 			onPrevious={handlePrevious}
 			theme={theme}

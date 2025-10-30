@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { CategoryContainer } from '@/features/category/ui/category-container';
 import { categoryService } from '@/shared/api/services/category.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
+import type { ITestItem } from '@/features/category/ui/category-card';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '카테고리별 테스트',
@@ -16,7 +17,7 @@ export default async function CategoryPage() {
 		if (!allCategoryData) notFound();
 
 		const { allCategories, allTests } = allCategoryData;
-		const transformedTests = categoryService.transformTestData(allTests);
+		const transformedTests = categoryService.transformTestData(allTests) as ITestItem[];
 
 		return <CategoryContainer allTests={transformedTests} allCategories={allCategories} />;
 	} catch (error) {
