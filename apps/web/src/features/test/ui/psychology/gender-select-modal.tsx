@@ -6,17 +6,7 @@ interface GenderSelectModalProps {
 	onSelect: (gender: 'male' | 'female') => void;
 }
 
-export function GenderSelectModal(props: GenderSelectModalProps) {
-	const { onSelect } = props;
-
-	const handleSelectMale = () => {
-		onSelect('male');
-	};
-
-	const handleSelectFemale = () => {
-		onSelect('female');
-	};
-
+export function GenderSelectModal({ onSelect }: GenderSelectModalProps) {
 	return (
 		<div className="absolute inset-0 bg-black/50 backdrop-blur-sm rounded-[2.5rem] z-50 flex items-center justify-center p-4 animate-fadeIn">
 			<section className="bg-white rounded-3xl p-8 w-full max-w-xs shadow-2xl animate-slideUp">
@@ -26,7 +16,7 @@ export function GenderSelectModal(props: GenderSelectModalProps) {
 
 				<div className="flex gap-3">
 					<button
-						onClick={handleSelectMale}
+						onClick={() => onSelect('male')}
 						className="flex-1 group relative overflow-hidden py-6 px-6 rounded-2xl border-2 border-gray-200 hover:border-blue-400 transition-all duration-300 hover:shadow-lg active:scale-95"
 					>
 						<div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-cyan-50 opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -39,7 +29,7 @@ export function GenderSelectModal(props: GenderSelectModalProps) {
 					</button>
 
 					<button
-						onClick={handleSelectFemale}
+						onClick={() => onSelect('female')}
 						className="flex-1 group relative overflow-hidden px-6 rounded-2xl border-2 border-gray-200 hover:border-pink-400 transition-all duration-300 hover:shadow-lg active:scale-95"
 					>
 						<div className="absolute inset-0 bg-gradient-to-br from-pink-50 to-rose-50 opacity-0 group-hover:opacity-100 transition-opacity" />

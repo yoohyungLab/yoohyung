@@ -2,19 +2,20 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-// 호환 타입: Supabase 원본 질문 또는 IQuizQuestion 형태를 모두 수용
+import { useProgress } from '../../hooks';
+import type { ColorTheme } from '../../lib/themes';
+import { QuestionLayout } from '../shared';
+
 type QuizChoice = { id: string; choice_text: string; choice_order: number; is_correct?: boolean | null };
+
 interface IQuestionForQuiz {
 	id: string;
 	question_text: string;
 	image_url: string | null;
 	choices?: QuizChoice[];
 }
-import type { ColorTheme } from '../../lib/themes';
-import { useProgress } from '../../hooks';
-import { QuestionLayout } from '../shared';
 
-interface QuizQuestionProps {
+interface QuizQuestionContainerProps {
 	question: IQuestionForQuiz;
 	currentIndex: number;
 	totalQuestions: number;
@@ -24,13 +25,13 @@ interface QuizQuestionProps {
 	theme: ColorTheme;
 }
 
-export function QuizQuestion(props: QuizQuestionProps) {
-	const { question, currentIndex, totalQuestions, onAnswer, previousAnswer, theme } = props;
-	const progress = useProgress(currentIndex, totalQuestions);
+export function QuizQuestionContainer(props: QuizQuestionContainerProps) {
+	const { question, currentIndex, totalQuestions, onAnswer, previousAnswer, onPrevious, theme } = props;
 
 	const [selectedChoice, setSelectedChoice] = useState<string>(previousAnswer || '');
 	const [shortAnswer, setShortAnswer] = useState<string>(previousAnswer || '');
 
+	const progress = useProgress(currentIndex, totalQuestions);
 	const choices = (question.choices || []) as QuizChoice[];
 	const isMultipleChoice = choices.length > 0;
 	const canSubmit = isMultipleChoice ? selectedChoice !== '' : shortAnswer.trim() !== '';
@@ -39,7 +40,7 @@ export function QuizQuestion(props: QuizQuestionProps) {
 	const handleChoiceSelect = (choiceId: string) => {
 		setSelectedChoice(choiceId);
 		if (!progress.isLast) {
-			setTimeout(() => onAnswer(choiceId), 300); // 선택 애니메이션 후 넘김
+			onAnswer(choiceId);
 		}
 	};
 
@@ -54,7 +55,13 @@ export function QuizQuestion(props: QuizQuestionProps) {
 	};
 
 	return (
-		<QuestionLayout current={progress.current} total={progress.total} percentage={progress.percentage} theme={theme}>
+		<QuestionLayout
+			current={progress.current}
+			total={progress.total}
+			percentage={progress.percentage}
+			onPrevious={onPrevious}
+			theme={theme}
+		>
 			{/* 질문 */}
 			<section className={`bg-gradient-to-br ${theme.question} rounded-xl p-6 mb-8`}>
 				<h2 className="text-lg font-bold text-center text-gray-800 leading-relaxed">{question.question_text}</h2>

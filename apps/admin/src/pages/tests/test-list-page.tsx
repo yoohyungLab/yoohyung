@@ -7,15 +7,13 @@ import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
 import { getTestStatusStyle } from '@/shared/lib/utils';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
-import type { TestWithDetails } from '@/types/test.types';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
-import { useCallback, useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export function TestListPage() {
 	const navigate = useNavigate();
 	const renderers = useColumnRenderers();
-
 	const { tests, loading, error, filters, stats, togglePublishStatus, deleteTest, updateFilters } = useTests();
 	const [modalTest, setModalTest] = useState<Test | null>(null);
 	const [selectedTests, setSelectedTests] = useState<string[]>([]);
@@ -25,112 +23,94 @@ export function TestListPage() {
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 개별 테스트 상태 변경
-	const handleTogglePublish = useCallback(
-		async (testId: string, newStatus: string) => {
-			const isPublished = newStatus === 'published';
-			await togglePublishStatus(testId, isPublished);
-		},
-		[togglePublishStatus]
-	);
+	const handleTogglePublish = async (testId: string, newStatus: string) => {
+		await togglePublishStatus(testId, newStatus === 'published');
+	};
 
-	// 테스트 삭제 처리
-	const handleDelete = useCallback(
-		async (testId: string) => {
-			if (!confirm('정말로 이 테스트를 삭제하시겠습니까?')) return;
-			await deleteTest(testId);
-		},
-		[deleteTest]
-	);
+	const handleDelete = async (testId: string) => {
+		if (!confirm('정말로 이 테스트를 삭제하시겠습니까?')) return;
+		await deleteTest(testId);
+	};
 
-	// 대량 상태 변경
-	const handleBulkPublish = useCallback(
-		async (isPublished: boolean) => {
-			if (selectedTests.length === 0) return;
-			await Promise.all(selectedTests.map((testId) => togglePublishStatus(testId, isPublished)));
-			setSelectedTests([]);
-		},
-		[selectedTests, togglePublishStatus]
-	);
+	const handleBulkPublish = async (isPublished: boolean) => {
+		if (selectedTests.length === 0) return;
+		await Promise.all(selectedTests.map((testId) => togglePublishStatus(testId, isPublished)));
+		setSelectedTests([]);
+	};
 
-	// 대량 삭제
-	const handleBulkDelete = useCallback(async () => {
+	const handleBulkDelete = async () => {
 		if (selectedTests.length === 0) return;
 		if (!confirm(`선택한 ${selectedTests.length}개의 테스트를 삭제하시겠습니까?`)) return;
 		await Promise.all(selectedTests.map((testId) => deleteTest(testId)));
 		setSelectedTests([]);
-	}, [selectedTests, deleteTest]);
+	};
 
-	// Table columns definition (memoized for performance)
-	const columns: Column<Test>[] = useMemo(
-		() => [
-			{
-				id: 'title',
-				header: '테스트',
-				cell: ({ row }) => (
-					<div className="min-w-0">
-						<div className="font-medium text-gray-900 truncate">{row.original.title}</div>
-					</div>
-				),
+	const columns: Column<Test>[] = [
+		{
+			id: 'title',
+			header: '테스트',
+			cell: ({ row }) => (
+				<div className="min-w-0">
+					<div className="font-medium text-gray-900 truncate">{row.original.title}</div>
+				</div>
+			),
+		},
+		{
+			id: 'type',
+			header: '유형',
+			cell: ({ row }) => {
+				const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
+				return (
+					<Badge variant="outline" className="text-xs">
+						{typeInfo.name}
+					</Badge>
+				);
 			},
-			{
-				id: 'type',
-				header: '유형',
-				cell: ({ row }) => {
-					const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
-					return (
-						<Badge variant="outline" className="text-xs">
-							{typeInfo.name}
-						</Badge>
-					);
-				},
+		},
+		{
+			id: 'status',
+			header: '상태',
+			cell: ({ row }) => {
+				const status = row.original.status || 'draft';
+				const statusInfo = getTestStatusInfo(status);
+				return (
+					<Badge variant="outline" className={`h-6 border text-xs ${getTestStatusStyle(status)}`}>
+						{statusInfo.name}
+					</Badge>
+				);
 			},
-			{
-				id: 'status',
-				header: '상태',
-				cell: ({ row }) => {
-					const status = row.original.status || 'draft';
-					const statusInfo = getTestStatusInfo(status);
-					return (
-						<Badge variant="outline" className={`h-6 border text-xs ${getTestStatusStyle(status)}`}>
-							{statusInfo.name}
-						</Badge>
-					);
-				},
-			},
-			{
-				id: 'responses',
-				header: '참여수',
-				cell: ({ row }) => renderers.renderNumber(row.original.response_count || 0),
-			},
-			{
-				id: 'created_at',
-				header: '생성일',
-				cell: ({ row }) => renderers.renderDate(row.original.created_at),
-			},
-			{
-				id: 'actions',
-				header: '액션',
-				cell: ({ row }) =>
-					renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
-						{
-							type: 'edit',
-							onClick: () => navigate(`/tests/${row.original.id}/edit`),
-						},
-						{
-							type: 'status',
-							onClick: (id, data) => handleTogglePublish(id, data?.status as string),
-							statusOptions: [...TEST_STATUS_OPTIONS],
-						},
-						{
-							type: 'delete',
-							onClick: (id) => handleDelete(id),
-						},
-					]),
-			},
-		],
-		[renderers, handleTogglePublish, handleDelete, navigate]
-	);
+		},
+		{
+			id: 'responses',
+			header: '참여수',
+			cell: ({ row }) => renderers.renderNumber(row.original.response_count || 0),
+		},
+		{
+			id: 'created_at',
+			header: '생성일',
+			cell: ({ row }) => renderers.renderDate(row.original.created_at),
+		},
+		{
+			id: 'actions',
+			header: '액션',
+			cell: ({ row }) =>
+				renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
+					{
+						type: 'edit',
+						onClick: () => navigate(`/tests/${row.original.id}/edit`),
+					},
+					{
+						type: 'status',
+						onClick: (id, data) => handleTogglePublish(id, data?.status as string),
+						statusOptions: [...TEST_STATUS_OPTIONS],
+					},
+					{
+						type: 'delete',
+						onClick: (id) => handleDelete(id),
+					},
+				]),
+		},
+	];
 
 	return (
 		<div className="space-y-6 p-5">

@@ -32,6 +32,7 @@ const TEST_DETAILS_QUERY = `
 			choice_order,
 			score,
 			is_correct,
+			code,
 			created_at
 		)
 	),
@@ -338,16 +339,30 @@ export const testService = {
 		let responseData: UserTestResponse | null = null;
 		let totalScore = 0;
 		let userGender: string | null = null;
+		let codes: string[] = [];
 
 		if (typeof window !== 'undefined') {
 			const storedData = sessionStorage.getItem('testResult');
 			if (storedData) {
 				try {
 					const parsedData = JSON.parse(storedData);
-					if (parsedData.testId === testId && parsedData.resultId !== 'temp') {
+					if (parsedData.testId === testId) {
 						responseData = parsedData;
-						totalScore = parsedData.totalScore || 0;
+						totalScore = parsedData.totalScore || parsedData.score || 0;
 						userGender = parsedData.gender || null;
+						// codes가 있으면 사용, 없으면 answers에서 추출
+						codes = parsedData.codes || [];
+						if (codes.length === 0 && parsedData.answers) {
+							codes = parsedData.answers
+								.map((a: { code?: string }) => a.code)
+								.filter((c: string | undefined): c is string => Boolean(c));
+						}
+						console.log('[getResponseData] sessionStorage에서 추출:', {
+							testId,
+							codes,
+							hasCodes: parsedData.codes ? parsedData.codes.length : 0,
+							answersCount: parsedData.answers ? parsedData.answers.length : 0,
+						});
 					}
 				} catch (err) {
 					console.warn('Failed to parse stored result data:', err);
@@ -368,18 +383,25 @@ export const testService = {
 				responseData = userResponses[0];
 				totalScore = userResponses[0].total_score || 0;
 				userGender = (userResponses[0] as { gender?: string })?.gender || null;
+				// DB에서 가져올 경우 responses에서 codes 추출
+				const responses = userResponses[0].responses as { code?: string }[];
+				if (Array.isArray(responses)) {
+					codes = responses.map((r) => r.code).filter((c): c is string => Boolean(c));
+				}
 			}
 		}
 
-		return { responseData, totalScore, userGender };
+		return { responseData, totalScore, userGender, codes };
 	},
 
 	findMatchingResult(
 		responseData: UserTestResponse | null,
 		results: TestResult[],
 		totalScore: number,
-		userGender: string | null
+		userGender: string | null,
+		codes?: string[]
 	): TestResult | null {
+		// 이미 저장된 결과가 있고, resultName이 있으면 그대로 사용 (재조회 시)
 		if (responseData && 'resultName' in responseData && responseData.resultName && responseData.result_id !== 'temp') {
 			const sessionData = responseData as UserTestResponse & {
 				resultName: string;
@@ -400,26 +422,55 @@ export const testService = {
 			} as TestResult;
 		}
 
+		// 1단계: 성별로 필터링 (target_gender가 null이거나 userGender와 일치하는 결과)
 		const genderFilteredResults = userGender
 			? results.filter((result) => {
 					return !result.target_gender || result.target_gender === userGender;
 			  })
 			: results;
 
-		let matchingResult = this.findResultByScore(genderFilteredResults, totalScore);
+		let matchingResult: TestResult | null = null;
 
-		if (!matchingResult && userGender && genderFilteredResults.length > 0) {
+		// 2단계: 코드 기반 매칭 시도 (코드가 있는 경우)
+		if (codes && codes.length > 0) {
+			console.log('[findMatchingResult] 코드 매칭 시작:', {
+				userCodes: codes,
+				genderFilteredCount: genderFilteredResults.length,
+				totalResultsCount: results.length,
+			});
+			matchingResult = this.findResultByCode(genderFilteredResults, codes);
+
+			// 성별 필터링된 결과에서 못 찾으면, 성별 무시하고 코드로만 매칭
+			if (!matchingResult) {
+				console.log('[findMatchingResult] 성별 필터링에서 매칭 실패, 전체 결과에서 검색');
+				matchingResult = this.findResultByCode(results, codes);
+			}
+
+			if (matchingResult) {
+				console.log('[findMatchingResult] 코드 매칭 성공:', matchingResult.result_name);
+			} else {
+				console.log('[findMatchingResult] 코드 매칭 실패, 점수 기반 매칭으로 진행');
+			}
+		} else {
+			console.log('[findMatchingResult] 코드가 없음, 점수 기반 매칭으로 진행');
+		}
+
+		// 3단계: 코드 매칭 실패 시 점수 기반 매칭 시도
+		if (!matchingResult) {
+			matchingResult = this.findResultByScore(genderFilteredResults, totalScore);
+		}
+
+		// 4단계: 성별 필터링된 결과에서 못 찾으면, 성별 무시하고 점수로만 매칭
+		if (!matchingResult) {
 			matchingResult = this.findResultByScore(results, totalScore);
 		}
 
+		// 5단계: 그래도 없으면 fallback (성별 우선)
 		if (!matchingResult && results.length > 0) {
 			if (userGender) {
+				// 성별에 맞는 첫 번째 결과
 				const genderSpecificResult = results.find((r) => r.target_gender === userGender);
-				if (genderSpecificResult) {
-					matchingResult = genderSpecificResult;
-				} else {
-					matchingResult = results[0];
-				}
+				matchingResult = genderSpecificResult || results[0];
 			} else {
 				matchingResult = results[0];
 			}
@@ -447,6 +498,132 @@ export const testService = {
 			.sort((a, b) => a.range - b.range);
 
 		return sortedResults.length > 0 ? sortedResults[0].result : null;
+	},
+
+	/**
+	 * 코드 기반 결과 매칭
+	 * 1. 사용자 답변 코드의 빈도 계산 및 정렬 (가장 많이 선택된 성향 우선)
+	 * 2. 매칭 전략을 순차적으로 시도:
+	 *    - 전략 1: 단일 코드 정확 매칭 (예: "P" → "P")
+	 *    - 전략 2: 조합 코드 포함 여부 (예: "E" → "P+E" 또는 "E+S")
+	 *    - 전략 3: 상위 2개 코드 조합 (예: P+E, E+P)
+	 */
+	findResultByCode(results: TestResult[], codes: string[]): TestResult | null {
+		if (!codes || codes.length === 0) {
+			console.log('[findResultByCode] codes가 없습니다:', codes);
+			return null;
+		}
+
+		console.log('[findResultByCode] 사용자 선택 코드:', codes);
+		console.log('[findResultByCode] 검색 대상 결과 개수:', results.length);
+
+		// 헬퍼: 코드 기반 매칭 조건 확인
+		const hasCodeConditions = (result: TestResult): boolean => {
+			if (!result.match_conditions) return false;
+			const conditions = result.match_conditions as { type?: string; codes?: string[] };
+			return conditions.type === 'code' && Array.isArray(conditions.codes);
+		};
+
+		// 헬퍼: 결과의 코드 목록 가져오기
+		const getResultCodes = (result: TestResult): string[] => {
+			const conditions = result.match_conditions as { type?: string; codes?: string[] };
+			return conditions.codes || [];
+		};
+
+		// 헬퍼: 특정 코드로 결과 찾기
+		const findByCode = (code: string): TestResult | undefined => {
+			return results.find((result) => {
+				if (!hasCodeConditions(result)) return false;
+				return getResultCodes(result).includes(code);
+			});
+		};
+
+		// 헬퍼: 조합 코드에 특정 코드가 포함되는지 확인 (예: "E"가 "P+E"에 포함)
+		const findByCombinationInclusion = (code: string): TestResult | undefined => {
+			return results.find((result) => {
+				if (!hasCodeConditions(result)) return false;
+				return getResultCodes(result).some((resultCode) => {
+					if (!resultCode.includes('+')) return false;
+					return resultCode.split('+').includes(code);
+				});
+			});
+		};
+
+		// 1. 코드 빈도 계산 및 정렬
+		const codeCounts: Record<string, number> = {};
+		codes.forEach((code) => {
+			if (code) {
+				codeCounts[code] = (codeCounts[code] || 0) + 1;
+			}
+		});
+
+		const sortedCodes = Object.entries(codeCounts)
+			.sort((a, b) => b[1] - a[1])
+			.map(([code]) => code);
+
+		if (sortedCodes.length === 0) return null;
+
+		console.log('[findResultByCode] 정렬된 코드 (빈도순):', sortedCodes);
+
+		// 결과별 match_conditions 확인 (디버깅)
+		results.forEach((result, idx) => {
+			const conditions = result.match_conditions as { type?: string; codes?: string[] } | null;
+			console.log(`[findResultByCode] 결과 ${idx} (${result.result_name}):`, {
+				type: conditions?.type,
+				codes: conditions?.codes,
+			});
+		});
+
+		// 2. 매칭 전략 순차 시도
+		const dominantCode = sortedCodes[0];
+		console.log('[findResultByCode] 가장 많이 선택된 코드:', dominantCode);
+
+		// 전략 1: 단일 코드 정확 매칭
+		let matchingResult = findByCode(dominantCode);
+		if (matchingResult) {
+			console.log(`[findResultByCode] ✓ 단일 코드 매칭 성공: ${matchingResult.result_name}`, {
+				userCode: dominantCode,
+				resultCodes: getResultCodes(matchingResult),
+			});
+			return matchingResult;
+		}
+
+		// 전략 2: 조합 코드에 포함 여부 (예: "E" → "P+E")
+		matchingResult = findByCombinationInclusion(dominantCode);
+		if (matchingResult) {
+			console.log(`[findResultByCode] ✓ 조합 코드 포함 매칭 성공: ${matchingResult.result_name}`, {
+				userCode: dominantCode,
+				resultCodes: getResultCodes(matchingResult),
+			});
+			return matchingResult;
+		}
+
+		// 전략 3: 상위 2개 코드 조합 (P+E, E+P)
+		if (sortedCodes.length >= 2) {
+			const combinedCode = `${sortedCodes[0]}+${sortedCodes[1]}`;
+			matchingResult = findByCode(combinedCode);
+			if (matchingResult) {
+				console.log(`[findResultByCode] ✓ 조합 코드 매칭 성공: ${matchingResult.result_name}`, {
+					combinedCode,
+					resultCodes: getResultCodes(matchingResult),
+				});
+				return matchingResult;
+			}
+
+			// 역순 조합 시도
+			const reverseCombinedCode = `${sortedCodes[1]}+${sortedCodes[0]}`;
+			matchingResult = findByCode(reverseCombinedCode);
+			if (matchingResult) {
+				console.log(`[findResultByCode] ✓ 역순 조합 코드 매칭 성공: ${matchingResult.result_name}`, {
+					reverseCombinedCode,
+					resultCodes: getResultCodes(matchingResult),
+				});
+				return matchingResult;
+			}
+		}
+
+		console.log('[findResultByCode] ✗ 매칭 실패: 모든 전략 시도 완료');
+		return null;
 	},
 
 	async saveUserTestResponse(result: TestCompletionResult): Promise<void> {

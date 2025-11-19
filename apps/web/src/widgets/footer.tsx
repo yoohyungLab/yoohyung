@@ -4,7 +4,7 @@ import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { useTestList } from '@/features/test';
+import { useTestList } from '@/features/test/model';
 
 const PopularTestsSection = () => {
 	const { popularTests } = useTestList();

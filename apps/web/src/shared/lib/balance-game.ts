@@ -1,8 +1,82 @@
 import type { IBalanceGameStats, IControversialChoice, IOverwhelmingChoice } from '@/shared/types';
+import type { OptimizedChoiceStats } from '@pickid/supabase';
 
-// Fixed theme: use a single consistent theme across tests
-// Removed fixed theme helper; themes are now chosen globally in containers
+// 통계 계산 유틸리티
 
+/**
+ * 선택지별 응답 수를 기반으로 퍼센티지 계산
+ */
+export function calculatePercentages(
+	choices: Array<{ choiceId: string; responseCount: number }>
+): Array<{ choiceId: string; responseCount: number; percentage: number }> {
+	const totalResponses = choices.reduce((sum, choice) => sum + choice.responseCount, 0);
+
+	return choices.map((choice) => ({
+		...choice,
+		percentage: totalResponses > 0 ? Math.round((choice.responseCount / totalResponses) * 100) : 0,
+	}));
+}
+
+/**
+ * 단일 선택지의 퍼센티지 계산
+ */
+export function calculateSinglePercentage(responseCount: number, totalResponses: number): number {
+	return totalResponses > 0 ? Math.round((responseCount / totalResponses) * 100) : 0;
+}
+
+/**
+ * A/B 두 선택지의 퍼센티지 계산
+ */
+export function calculateABPercentages(votesA: number, votesB: number) {
+	const totalVotes = votesA + votesB;
+
+	if (totalVotes === 0) {
+		return { percentageA: 50, percentageB: 50 };
+	}
+
+	return {
+		percentageA: Math.round((votesA / totalVotes) * 100),
+		percentageB: Math.round((votesB / totalVotes) * 100),
+	};
+}
+
+/**
+ * 누적 통계 정규화 (퍼센티지 재계산)
+ */
+export function normalizeAccumulatedStats(stats: OptimizedChoiceStats[]): OptimizedChoiceStats[] {
+	const totalResponses = stats.reduce((sum, stat) => sum + stat.responseCount, 0);
+
+	return stats.map((stat) => ({
+		...stat,
+		percentage: calculateSinglePercentage(stat.responseCount, totalResponses),
+	}));
+}
+
+/**
+ * 낙관적 업데이트: 선택한 항목에 +1 적용
+ */
+export function applyOptimisticUpdate(
+	choices: Array<{ choiceId: string; responseCount: number }>,
+	selectedChoiceId: string
+): Array<{ choiceId: string; responseCount: number }> {
+	return choices.map((choice) => ({
+		...choice,
+		responseCount: choice.choiceId === selectedChoiceId ? choice.responseCount + 1 : choice.responseCount,
+	}));
+}
+
+/**
+ * 진행률 계산
+ */
+export function calculateProgress(current: number, total: number): number {
+	return Math.round((current / total) * 100);
+}
+
+// 밸런스게임 비즈니스 로직
+
+/**
+ * 사용자 답변 통계 계산 (A/B 선택 비율)
+ */
 export function calculateUserStats(userAnswers: string[]) {
 	const aCount = userAnswers.filter((_, index) => index % 2 === 0).length;
 	const bCount = userAnswers.length - aCount;
@@ -12,17 +86,23 @@ export function calculateUserStats(userAnswers: string[]) {
 		aCount,
 		bCount,
 		total,
-		aPercentage: total > 0 ? Math.round((aCount / total) * 100) : 0,
-		bPercentage: total > 0 ? Math.round((bCount / total) * 100) : 0,
+		aPercentage: calculateSinglePercentage(aCount, total),
+		bPercentage: calculateSinglePercentage(bCount, total),
 	};
 }
 
+/**
+ * 가장 인기 있는 선택지 찾기
+ */
 export function findMostPopularChoice(stats: IBalanceGameStats[]) {
 	if (!stats || stats.length === 0) return null;
 
 	return stats.reduce((max, current) => ((current.responseCount || 0) > (max.responseCount || 0) ? current : max));
 }
 
+/**
+ * A/B 선택지 통계 계산 (전체 누적)
+ */
 export function calculateABStats(cumulativeStats: IBalanceGameStats[]) {
 	const totalAChoices = cumulativeStats.reduce((sum, stat) => {
 		return sum + (stat.responseCount || 0);
@@ -33,18 +113,21 @@ export function calculateABStats(cumulativeStats: IBalanceGameStats[]) {
 	}, 0);
 
 	const totalChoices = totalAChoices + totalBChoices;
-	const globalAPercentage = totalChoices > 0 ? Math.round((totalAChoices / totalChoices) * 100) : 50;
-	const globalBPercentage = totalChoices > 0 ? Math.round((totalBChoices / totalChoices) * 100) : 50;
+	const globalAPercentage = calculateSinglePercentage(totalAChoices, totalChoices);
+	const globalBPercentage = calculateSinglePercentage(totalBChoices, totalChoices);
 
 	return {
 		totalAChoices,
 		totalBChoices,
 		totalChoices,
-		globalAPercentage,
-		globalBPercentage,
+		globalAPercentage: globalAPercentage || 50,
+		globalBPercentage: globalBPercentage || 50,
 	};
 }
 
+/**
+ * 사용자 선택과 전체 통계 비교
+ */
 export function calculateComparisonStats(
 	userAnswers: string[],
 	cumulativeStats: IBalanceGameStats[]
@@ -76,10 +159,9 @@ export function calculateComparisonStats(
 	};
 }
 
-export function calculateProgress(current: number, total: number): number {
-	return Math.round((current / total) * 100);
-}
-
+/**
+ * 선택지 통계 찾기
+ */
 export function findChoiceStat(
 	choiceId: string,
 	choiceStats?: IBalanceGameStats[],
@@ -94,6 +176,9 @@ export function findChoiceStat(
 	};
 }
 
+/**
+ * 가장 논란이 많은 질문 찾기 (선택지 비율이 가장 비슷한 질문)
+ */
 export function findControversialChoice(
 	questionStats: Array<{
 		questionId: string;
@@ -107,7 +192,7 @@ export function findControversialChoice(
 	let mostControversial: IControversialChoice | null = null;
 	let smallestDifference = Infinity;
 
-	questionStats.forEach((question, index) => {
+	questionStats.forEach((question) => {
 		if (question.choiceStats.length < 2) return;
 
 		const [choiceA, choiceB] = question.choiceStats;
@@ -141,6 +226,9 @@ export function findControversialChoice(
 	return mostControversial;
 }
 
+/**
+ * 가장 압도적인 선택이 있는 질문 찾기 (한쪽 선택지가 월등히 많은 질문)
+ */
 export function findOverwhelmingChoice(
 	questionStats: Array<{
 		questionId: string;

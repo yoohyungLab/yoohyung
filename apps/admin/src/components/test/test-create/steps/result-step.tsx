@@ -4,11 +4,9 @@ import { Plus, Trash2, X } from 'lucide-react';
 import { TEST_TYPES } from '@/constants/test.constants';
 import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
-import type { ResultStepProps, FeatureInput, ResultData, MatchConditions } from '@/types/test.types';
+import type { ResultStepProps, FeatureInput, ResultData } from '@/types/test.types';
 
-// ============================================================================
 // 상수
-// ============================================================================
 
 const GENDER_OPTIONS = [
 	{ value: 'all', label: '전체 (성별 무관)' },
@@ -18,9 +16,7 @@ const GENDER_OPTIONS = [
 
 const DEFAULT_THEME_COLOR = '#3B82F6';
 
-// ============================================================================
 // 유틸리티 함수
-// ============================================================================
 
 const parseValues = (value: string): string[] => {
 	if (!value.trim()) return [];
@@ -52,9 +48,7 @@ const getGenderLabel = (gender: string) => {
 	}
 };
 
-// ============================================================================
 // 컴포넌트
-// ============================================================================
 
 export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	const { results, selectedType, onAddResult, onRemoveResult, onUpdateResult } = props;
@@ -62,9 +56,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 
 	const typeConfig = TEST_TYPES.find((t) => t.id === selectedType);
 
-	// ============================================================================
 	// 기능 관리 함수들
-	// ============================================================================
 
 	const updateFeatureInput = (resultIndex: number, field: 'key' | 'value', value: string) => {
 		setFeatureInputs((prev) => ({
@@ -77,11 +69,11 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 		const input = featureInputs[resultIndex];
 		if (!input?.key?.trim() || !input?.value?.trim()) return;
 
-		const currentFeatures = results[resultIndex]?.features || {};
+		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		const values = parseValues(input.value);
 
 		onUpdateResult(resultIndex, {
-			features: { ...currentFeatures, [input.key]: values },
+			features: { ...currentFeatures, [input.key]: values } as unknown as ResultData['features'],
 		});
 
 		setFeatureInputs((prev) => ({
@@ -91,77 +83,131 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	};
 
 	const removeFeature = (resultIndex: number, featureKey: string) => {
-		const currentFeatures = results[resultIndex]?.features || {};
+		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		const newFeatures = { ...currentFeatures };
 		delete newFeatures[featureKey];
-		onUpdateResult(resultIndex, { features: newFeatures });
+		onUpdateResult(resultIndex, { features: newFeatures as unknown as ResultData['features'] });
 	};
 
 	const updateFeatureValue = (resultIndex: number, featureKey: string, newValue: string) => {
-		const currentFeatures = results[resultIndex]?.features || {};
+		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		onUpdateResult(resultIndex, {
-			features: { ...currentFeatures, [featureKey]: newValue },
+			features: { ...currentFeatures, [featureKey]: newValue } as unknown as ResultData['features'],
 		});
 	};
 
 	const removeFeatureValue = (resultIndex: number, featureKey: string, valueToRemove: string) => {
-		const currentFeatures = results[resultIndex]?.features || {};
+		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		const currentValue = currentFeatures[featureKey];
 
 		if (Array.isArray(currentValue)) {
 			const newValues = currentValue.filter((v) => v !== valueToRemove);
 			onUpdateResult(resultIndex, {
-				features: { ...currentFeatures, [featureKey]: newValues },
+				features: { ...currentFeatures, [featureKey]: newValues } as unknown as ResultData['features'],
 			});
 		} else if (typeof currentValue === 'string') {
 			const values = parseValues(currentValue);
 			const newValues = values.filter((v) => v !== valueToRemove);
 			onUpdateResult(resultIndex, {
-				features: { ...currentFeatures, [featureKey]: newValues.join(', ') },
+				features: { ...currentFeatures, [featureKey]: newValues.join(', ') } as unknown as ResultData['features'],
 			});
 		}
 	};
 
-	// ============================================================================
 	// 렌더링 함수들
-	// ============================================================================
 
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
 		if (selectedType !== 'psychology') return null;
-		const conditions = result.match_conditions;
+		const conditions = result.match_conditions as {
+			type?: string;
+			min?: number;
+			max?: number;
+			codes?: string[];
+		};
+		const matchingType = conditions?.type || 'score';
 
 		return (
-			<div>
-				<Label className="text-base font-medium">점수 구간</Label>
-				<div className="grid grid-cols-2 gap-2 mt-2">
-					<DefaultInput
-						type="number"
-						value={conditions?.min || 0}
-						onChange={(e) =>
-							onUpdateResult(resultIndex, {
-								match_conditions: {
-									...conditions,
-									min: parseInt(e.target.value) || 0,
-								},
-							})
-						}
-						placeholder="최소점수"
-					/>
-					<DefaultInput
-						type="number"
-						value={conditions?.max || 10}
-						onChange={(e) =>
-							onUpdateResult(resultIndex, {
-								match_conditions: {
-									...conditions,
-									max: parseInt(e.target.value) || 10,
-								},
-							})
-						}
-						placeholder="최대점수"
+			<div className="space-y-4">
+				{/* 매칭 방식 선택 */}
+				<div>
+					<Label className="text-base font-medium mb-2">매칭 방식</Label>
+					<DefaultSelect
+						value={matchingType}
+						onValueChange={(value) => {
+							if (value === 'code') {
+								onUpdateResult(resultIndex, {
+									match_conditions: { type: 'code', codes: [] },
+								});
+							} else {
+								onUpdateResult(resultIndex, {
+									match_conditions: { type: 'score', min: 0, max: 10 },
+								});
+							}
+						}}
+						options={[
+							{ value: 'score', label: '📊 점수형 (점수 범위로 매칭)' },
+							{ value: 'code', label: '🎭 코드형 (성향 코드로 매칭)' },
+						]}
 					/>
 				</div>
 
+				{/* 점수형 입력 */}
+				{matchingType === 'score' ? (
+					<div>
+						<Label className="text-sm font-medium">점수 구간</Label>
+						<div className="grid grid-cols-2 gap-2 mt-2">
+							<DefaultInput
+								type="number"
+								value={conditions?.min || 0}
+								onChange={(e) =>
+									onUpdateResult(resultIndex, {
+										match_conditions: {
+											type: 'score',
+											...conditions,
+											min: parseInt(e.target.value) || 0,
+										},
+									})
+								}
+								placeholder="최소점수"
+							/>
+							<DefaultInput
+								type="number"
+								value={conditions?.max || 10}
+								onChange={(e) =>
+									onUpdateResult(resultIndex, {
+										match_conditions: {
+											type: 'score',
+											...conditions,
+											max: parseInt(e.target.value) || 10,
+										},
+									})
+								}
+								placeholder="최대점수"
+							/>
+						</div>
+					</div>
+				) : (
+					/* 코드형 입력 */
+					<div>
+						<Label className="text-sm font-medium mb-2">매칭 코드</Label>
+						<DefaultInput
+							value={(conditions?.codes || []).join(', ')}
+							onChange={(e) => {
+								const codes = e.target.value
+									.split(',')
+									.map((c) => c.trim().toUpperCase())
+									.filter((c) => c.length > 0);
+								onUpdateResult(resultIndex, {
+									match_conditions: { type: 'code', codes },
+								});
+							}}
+							placeholder="H, H+P, E+S (쉼표로 구분)"
+						/>
+						<p className="text-xs text-gray-500 mt-1">이 결과에 매칭될 코드를 입력하세요. 예: H (단일), H+P (조합)</p>
+					</div>
+				)}
+
+				{/* 성별 타겟 */}
 				<div className="mt-3">
 					<Label className="text-sm font-medium text-gray-700">성별 타겟</Label>
 					<DefaultSelect
@@ -182,14 +228,26 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 
 	const renderScoreBadge = (result: ResultData) => {
 		if (selectedType !== 'psychology') return null;
-		const conditions = result.match_conditions;
+		const conditions = result.match_conditions as {
+			type?: string;
+			min?: number;
+			max?: number;
+			codes?: string[];
+		};
 		const gender = result.target_gender;
+		const matchingType = conditions?.type || 'score';
 
 		return (
 			<div className="flex items-center gap-2">
-				<Badge variant="outline" className="bg-blue-50">
-					{conditions?.min || 0}-{conditions?.max || 10}점
-				</Badge>
+				{matchingType === 'code' ? (
+					<Badge variant="outline" className="bg-purple-50 text-purple-700">
+						🎭 {(conditions?.codes || []).join(', ') || '미설정'}
+					</Badge>
+				) : (
+					<Badge variant="outline" className="bg-blue-50">
+						📊 {conditions?.min || 0}-{conditions?.max || 10}점
+					</Badge>
+				)}
 				{gender && (
 					<Badge variant="outline" className={getGenderBadgeClass(gender)}>
 						{getGenderLabel(gender)}
@@ -273,9 +331,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 		);
 	};
 
-	// ============================================================================
 	// 메인 렌더링
-	// ============================================================================
 
 	// 밸런스 게임 타입일 때는 특별한 안내 메시지 표시
 	if (selectedType === 'balance') {
@@ -326,9 +382,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 					<div className="text-center py-12">
 						<div className="text-6xl mb-4">🎯</div>
 						<h3 className="text-2xl font-bold text-gray-900 mb-4">퀴즈형 결과 설정</h3>
-						<p className="text-lg text-gray-600 mb-4">
-							점수 구간별로 다른 메시지를 표시할 수 있습니다.
-						</p>
+						<p className="text-lg text-gray-600 mb-4">점수 구간별로 다른 메시지를 표시할 수 있습니다.</p>
 
 						<div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-2xl mx-auto mb-6">
 							<p className="text-sm text-blue-900">
@@ -341,11 +395,21 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 						<div className="bg-indigo-50 border border-indigo-200 rounded-lg p-6 max-w-2xl mx-auto mb-6">
 							<h4 className="font-semibold text-indigo-900 mb-3">점수 구간별 결과 예시</h4>
 							<div className="text-left space-y-2 text-sm text-indigo-800">
-								<div>🏆 <strong>95-100점 (S등급):</strong> "완벽합니다! 당신은 이 분야의 전문가예요!"</div>
-								<div>🥇 <strong>85-94점 (A등급):</strong> "우수해요! 거의 완벽한 점수입니다!"</div>
-								<div>🥈 <strong>70-84점 (B등급):</strong> "잘했어요! 조금만 더 노력하면 완벽!"</div>
-								<div>🥉 <strong>50-69점 (C등급):</strong> "괜찮아요! 다시 도전해보세요!"</div>
-								<div>📝 <strong>0-49점 (D등급):</strong> "조금 더 공부가 필요해요!"</div>
+								<div>
+									🏆 <strong>95-100점 (S등급):</strong> "완벽합니다! 당신은 이 분야의 전문가예요!"
+								</div>
+								<div>
+									🥇 <strong>85-94점 (A등급):</strong> "우수해요! 거의 완벽한 점수입니다!"
+								</div>
+								<div>
+									🥈 <strong>70-84점 (B등급):</strong> "잘했어요! 조금만 더 노력하면 완벽!"
+								</div>
+								<div>
+									🥉 <strong>50-69점 (C등급):</strong> "괜찮아요! 다시 도전해보세요!"
+								</div>
+								<div>
+									📝 <strong>0-49점 (D등급):</strong> "조금 더 공부가 필요해요!"
+								</div>
 							</div>
 						</div>
 						<Button
@@ -395,7 +459,8 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 									{
 										result_name: 'D등급 - 노력 필요',
 										result_order: 4,
-										description: '조금 더 공부가 필요해요. 포기하지 말고 다시 도전해보세요! 연습하면 분명 나아질 거예요.',
+										description:
+											'조금 더 공부가 필요해요. 포기하지 말고 다시 도전해보세요! 연습하면 분명 나아질 거예요.',
 										match_conditions: { type: 'score' as const, min: 0, max: 49 },
 										background_image_url: null,
 										theme_color: '#6B7280',
@@ -404,22 +469,18 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 									},
 								];
 
-								defaultResults.forEach(() => onAddResult());
-								// 결과가 추가되면 기본 값으로 업데이트
-								setTimeout(() => {
-									defaultResults.forEach((result, index) => {
-										onUpdateResult(index, result);
-									});
-								}, 100);
+								defaultResults.forEach((result, index) => {
+									onAddResult();
+									// 결과 추가 후 즉시 기본값으로 업데이트
+									onUpdateResult(index, result);
+								});
 							}}
 							className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-base"
 						>
 							<Plus className="w-5 h-5 mr-2" />
 							기본 템플릿으로 시작하기 (5개 등급)
 						</Button>
-						<p className="text-sm text-gray-500 mt-4">
-							또는 직접 결과를 추가하여 커스터마이징할 수 있습니다.
-						</p>
+						<p className="text-sm text-gray-500 mt-4">또는 직접 결과를 추가하여 커스터마이징할 수 있습니다.</p>
 						<Button onClick={onAddResult} variant="outline" className="mt-3">
 							<Plus className="w-4 h-4 mr-2" />
 							직접 결과 추가하기
@@ -446,14 +507,14 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								• 10문제 중 8개 정답 = 80점
 								<br />
 								• 5문제 중 5개 정답 = 100점
-								<br />
-								각 문제는 동일한 배점(1점)으로 계산되며, 100점 만점으로 환산됩니다.
+								<br />각 문제는 동일한 배점(1점)으로 계산되며, 100점 만점으로 환산됩니다.
 							</p>
 						</div>
 
 						<div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
 							<p className="text-sm text-indigo-800">
-								<strong>💡 팁:</strong> 점수 구간이 겹치지 않도록 설정하세요. 사용자의 점수에 맞는 첫 번째 결과가 표시됩니다.
+								<strong>💡 팁:</strong> 점수 구간이 겹치지 않도록 설정하세요. 사용자의 점수에 맞는 첫 번째 결과가
+								표시됩니다.
 							</p>
 						</div>
 
@@ -515,6 +576,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																onChange={(e) =>
 																	onUpdateResult(resultIndex, {
 																		match_conditions: {
+																			type: 'score',
 																			...conditions,
 																			min: parseInt(e.target.value) || 0,
 																		},
@@ -530,6 +592,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																onChange={(e) =>
 																	onUpdateResult(resultIndex, {
 																		match_conditions: {
+																			type: 'score',
 																			...conditions,
 																			max: parseInt(e.target.value) || 100,
 																		},
@@ -539,9 +602,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																max="100"
 															/>
 														</div>
-														<p className="text-xs text-gray-500 mt-1">
-															이 점수 범위에 해당하는 사용자에게 표시됩니다
-														</p>
+														<p className="text-xs text-gray-500 mt-1">이 점수 범위에 해당하는 사용자에게 표시됩니다</p>
 													</div>
 
 													<div>

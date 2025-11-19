@@ -2,13 +2,13 @@
 
 import { useEffect } from 'react';
 
-interface ITestResultStructuredDataProps {
+export interface ITestResultStructuredDataProps {
 	testId: string;
 	testTitle: string;
 	resultName: string;
 	resultDescription: string;
 	resultImage?: string;
-	totalScore: number;
+	totalScore?: number;
 	userGender?: string;
 }
 
@@ -130,4 +130,3 @@ export function TestResultStructuredData(props: ITestResultStructuredDataProps) 
 
 	return null;
 }
-

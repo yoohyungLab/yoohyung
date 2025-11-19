@@ -1,30 +1,28 @@
 import { createServerClient, supabase } from '@pickid/supabase';
-import type { VoteResult, HomeBalanceGameResponse } from '@pickid/supabase';
+import type { HomeBalanceGameResponse, VoteResult } from '@pickid/supabase';
+import { calculateABPercentages } from '@/shared/lib/balance-game';
 
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
+// 헬퍼
+
+function getClient() {
+	return typeof window === 'undefined' ? createServerClient() : supabase;
+}
+
+function handleError(error: unknown, context: string): never {
+	console.error(`[${context}] Error:`, error);
 	throw error;
-};
+}
 
-const calculatePercentages = (votesA: number, votesB: number, totalVotes: number) => {
-	if (totalVotes === 0) return { percentageA: 50, percentageB: 50 };
-
-	return {
-		percentageA: Math.round((votesA / totalVotes) * 100),
-		percentageB: Math.round((votesB / totalVotes) * 100),
-	};
-};
+// 홈 밸런스게임 서비스
 
 export const homeBalanceGameService = {
-	getClient() {
-		return typeof window === 'undefined' ? createServerClient() : supabase;
-	},
-
+	/**
+	 * 현재 주의 활성 게임 조회
+	 */
 	async getCurrentWeekGame(): Promise<HomeBalanceGameResponse | null> {
 		try {
-			const client = this.getClient();
+			const client = getClient();
 
-			// RPC 함수가 없으므로 직접 쿼리로 가져오기
 			const { data, error } = await client
 				.from('home_balance_games')
 				.select('*')
@@ -38,11 +36,8 @@ export const homeBalanceGameService = {
 				return null;
 			}
 
-			if (!data) {
-				return null;
-			}
+			if (!data) return null;
 
-			// HomeBalanceGameResponse 형식으로 변환
 			return {
 				id: data.id,
 				title: data.title,
@@ -69,9 +64,11 @@ export const homeBalanceGameService = {
 		}
 	},
 
+	/**
+	 * 투표 실행 및 업데이트된 통계 반환
+	 */
 	async vote(gameId: string, choice: 'A' | 'B'): Promise<VoteResult> {
 		try {
-			// 클라이언트에서만 사용
 			const client = supabase;
 
 			// 1. 현재 게임 데이터 조회
@@ -83,7 +80,7 @@ export const homeBalanceGameService = {
 
 			if (fetchError) throw fetchError;
 
-			// 2. 낙관적 업데이트 계산
+			// 2. 새로운 값 계산
 			const newVotesA = choice === 'A' ? (gameData.votes_a || 0) + 1 : gameData.votes_a || 0;
 			const newVotesB = choice === 'B' ? (gameData.votes_b || 0) + 1 : gameData.votes_b || 0;
 			const newTotalVotes = (gameData.total_votes || 0) + 1;
@@ -100,7 +97,8 @@ export const homeBalanceGameService = {
 
 			if (updateError) throw updateError;
 
-			const { percentageA, percentageB } = calculatePercentages(newVotesA, newVotesB, newTotalVotes);
+			// 4. 퍼센티지 계산
+			const { percentageA, percentageB } = calculateABPercentages(newVotesA, newVotesB);
 
 			return {
 				success: true,
@@ -115,8 +113,7 @@ export const homeBalanceGameService = {
 				},
 			};
 		} catch (error) {
-			console.error('Error in vote:', error);
-			throw error;
+			handleError(error, 'vote');
 		}
 	},
 };

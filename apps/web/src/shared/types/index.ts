@@ -1,13 +1,16 @@
-// ============================================================================
+/**
+ * Shared Types - Public API
+ *
+ * FSD 구조: Supabase 타입 기반 확장 타입 정의
+ * 클라이언트 전용 타입과 UI/비즈니스 로직용 타입들
+ */
+
 // Supabase 타입 기반 확장 타입 정의
-// ============================================================================
 
 import type { Test, TestWithNestedDetails, TestResult, TestQuestion, TestChoice } from '@pickid/supabase';
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
-// ============================================================================
 // 테스트 관련 확장 타입 (UI/클라이언트 전용)
-// ============================================================================
 
 // 테스트 타입 정의 (DB에 Enum이 없어서 수동 정의)
 export type TTestType = 'balance' | 'psychology' | 'personality';
@@ -34,6 +37,7 @@ export interface TestAnswer {
 	questionId: string;
 	choiceId: string;
 	score: number;
+	code?: string; // 심리형 코드 기반 매칭용
 	answeredAt: number;
 }
 
@@ -80,9 +84,7 @@ export interface TestConfig {
 	};
 }
 
-// ============================================================================
 // 홈페이지 관련 타입
-// ============================================================================
 
 // 배너 (클라이언트 전용)
 export interface Banner {
@@ -151,9 +153,7 @@ export interface BalanceGameResult {
 	}>;
 }
 
-// ============================================================================
 // 인증 관련 타입 (Supabase Auth 확장)
-// ============================================================================
 
 // 인증 상태 - Supabase User 타입 기반
 export interface AuthState {
@@ -183,9 +183,7 @@ export interface AuthFormData {
 	confirmPassword?: string;
 }
 
-// ============================================================================
 // 밸런스 게임 관련 타입 (Supabase 기본 타입 기반)
-// ============================================================================
 
 // 밸런스 게임 질문 Props (TestQuestion, TestChoice 기반)
 export interface IBalanceGameQuestionProps {

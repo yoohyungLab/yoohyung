@@ -44,6 +44,9 @@ export function HomeContainer(props: HomeContainerProps) {
 
 					{tests.length > 0 && <TestSection tests={tests} title="새로 추가된 테스트" sectionType="new" />}
 
+					{/* 중간 영역 광고 배너 */}
+					{/* <AdBannerInline  /> */}
+
 					<TestSection tests={recommendedTests} title="추천 테스트" sectionType="recommended" />
 
 					<TestSection tests={topByType} title="명예의 전당" sectionType="trending" className="pb-12" />

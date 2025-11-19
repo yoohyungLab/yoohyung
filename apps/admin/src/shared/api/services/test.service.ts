@@ -10,9 +10,7 @@ import type {
 	TestWithNestedDetails,
 } from '@pickid/supabase';
 
-// ============================================================================
 // 타입 정의
-// ============================================================================
 
 type TestInsert = Database['public']['Tables']['tests']['Insert'];
 type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
@@ -36,9 +34,7 @@ export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 
 	order_index?: number; // result_order의 별칭
 }
 
-// ============================================================================
 // 유틸리티 함수
-// ============================================================================
 
 const handleSupabaseError = (error: unknown, context: string): never => {
 	let message: string;
@@ -64,9 +60,7 @@ const validateRpcResult = (result: unknown, errorMessage: string) => {
 	return r;
 };
 
-// ============================================================================
 // 테스트 서비스
-// ============================================================================
 
 export const testService = {
 	/**
@@ -113,6 +107,7 @@ export const testService = {
 						choice_order,
 						score,
 						is_correct,
+						code,
 						created_at
 					)
 				`
@@ -161,13 +156,25 @@ export const testService = {
 					choice_order: number;
 					score: number | null;
 					is_correct: boolean | null;
+					code: string | null;
 					created_at: string | null;
 				}>;
 			};
 
 			const questionRows: QueryQuestionRow[] = (questionsData as unknown as QueryQuestionRow[]) || [];
 			const questions: QuestionWithChoices[] = questionRows.map((q) => {
-				const mappedChoices = q.test_choices as unknown as TestChoice[];
+				const mappedChoices = (q.test_choices || []).map((choice) => ({
+					id: choice.id,
+					choice_text: choice.choice_text,
+					choice_order: choice.choice_order,
+					score: choice.score ?? 0,
+					is_correct: choice.is_correct ?? false,
+					code: choice.code ?? null,
+					created_at: choice.created_at,
+					last_updated: null,
+					response_count: 0,
+					question_id: null,
+				}));
 				const mapped = {
 					id: q.id,
 					question_text: q.question_text,
@@ -178,9 +185,16 @@ export const testService = {
 					explanation: q.explanation,
 					created_at: q.created_at,
 					updated_at: q.updated_at,
-					choices: mappedChoices,
+					choices: mappedChoices.map((ch) => ({
+						id: ch.id,
+						choice_text: ch.choice_text,
+						choice_order: ch.choice_order,
+						score: ch.score,
+						is_correct: ch.is_correct,
+						code: ch.code,
+					})),
 				};
-				return mapped as QuestionWithChoices;
+				return mapped as unknown as QuestionWithChoices;
 			});
 
 			const results: TestResult[] = (resultsData as unknown as TestResult[]) || [];
@@ -190,20 +204,44 @@ export const testService = {
 				const ids = questions.map((q) => q.id);
 				const { data: rawChoices } = await supabase
 					.from('test_choices')
-					.select('id, choice_text, choice_order, score, is_correct, created_at, question_id, choice_order')
+					.select('id, choice_text, choice_order, score, is_correct, code, created_at, question_id, choice_order')
 					.in('question_id', ids)
 					.order('choice_order');
 
-				const byQ: Record<string, TestChoice[]> = {} as Record<string, TestChoice[]>;
-				for (const ch of (rawChoices as unknown as (TestChoice & { question_id: string })[]) || []) {
-					if (!byQ[ch.question_id]) byQ[ch.question_id] = [] as TestChoice[];
-					const { question_id, ...rest } = ch as unknown as { question_id: string } & TestChoice;
-					(byQ[question_id] as TestChoice[]).push(rest as TestChoice);
+				const byQ: Record<
+					string,
+					Array<{
+						id: string;
+						choice_text: string;
+						choice_order: number;
+						score: number;
+						is_correct: boolean;
+						code: string | null;
+					}>
+				> = {};
+				for (const ch of (rawChoices as unknown as (TestChoice & { question_id: string; code?: string | null })[]) ||
+					[]) {
+					if (!byQ[ch.question_id]) byQ[ch.question_id] = [];
+					byQ[ch.question_id].push({
+						id: ch.id,
+						choice_text: ch.choice_text,
+						choice_order: ch.choice_order,
+						score: ch.score ?? 0,
+						is_correct: ch.is_correct ?? false,
+						code: ch.code ?? null,
+					});
 				}
 
 				for (const q of questions) {
 					if (!q.choices || q.choices.length === 0) {
-						q.choices = byQ[q.id] || [];
+						q.choices = (byQ[q.id] || []).map((ch) => ({
+							id: ch.id,
+							choice_text: ch.choice_text,
+							choice_order: ch.choice_order,
+							score: ch.score,
+							is_correct: ch.is_correct,
+							code: ch.code,
+						})) as unknown as QuestionWithChoices['choices'];
 					}
 				}
 			}
@@ -273,28 +311,37 @@ export const testService = {
 			const isUpdate = !!testData.id;
 
 			if (isUpdate) {
-				// 수정 모드: update_test_complete RPC 함수 사용
-				const { data: result, error } = await supabase.rpc('update_test_complete', {
-					questions_data: questionsData,
-					results_data: resultsData,
-					test_data: testData,
-					test_id: testData.id,
-				});
-
-				if (error) throw error;
-
-				// 업데이트된 테스트 데이터 반환
-				return await this.getTestWithDetails(testData.id);
+				// 수정 모드: updateTestDirectly 사용 (code 필드 지원)
+				return await this.updateTestDirectly(
+					testData,
+					questionsData as Array<
+						TestQuestionInsert & {
+							choices?: Array<
+								Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+									score_value?: number;
+									code?: string | null;
+								}
+							>;
+						}
+					>,
+					resultsData
+				);
 			} else {
-				// 생성 모드: create_test_complete RPC 함수 사용
-				const { data: result, error } = await supabase.rpc('create_test_complete', {
-					questions_data: questionsData,
-					results_data: resultsData,
-					test_data: testData,
-				});
-
-				if (error) throw error;
-				return result as unknown as TestWithNestedDetails;
+				// 생성 모드: createTestDirectly 사용 (code 필드 지원)
+				return await this.createTestDirectly(
+					testData,
+					questionsData as Array<
+						TestQuestionInsert & {
+							choices?: Array<
+								Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+									score_value?: number;
+									code?: string | null;
+								}
+							>;
+						}
+					>,
+					resultsData
+				);
 			}
 		} catch (error) {
 			return handleSupabaseError(error, 'saveCompleteTest');
@@ -308,7 +355,12 @@ export const testService = {
 		testData: TestInsert,
 		questionsData: Array<
 			TestQuestionInsert & {
-				choices?: Array<Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number }>;
+				choices?: Array<
+					Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+						score_value?: number;
+						code?: string | null;
+					}
+				>;
 			}
 		>,
 		resultsData: TestResultInsert[]
@@ -344,7 +396,138 @@ export const testService = {
 
 		if (deleteQuestionsError) throw deleteQuestionsError;
 
-		// 3. 새 질문과 선택지 삽입
+		// 3. 모든 질문을 배치로 삽입
+		if (questionsData.length > 0) {
+			const questionsToInsert = questionsData.map((questionData, i) => ({
+				test_id: testId,
+				question_text: questionData.question_text,
+				question_order: i,
+				image_url: questionData.image_url,
+				question_type: questionData.question_type || 'multiple_choice',
+				correct_answers: questionData.correct_answers || null,
+				explanation: questionData.explanation || null,
+			}));
+
+			const { data: insertedQuestions, error: questionsError } = await supabase
+				.from('test_questions')
+				.insert(questionsToInsert)
+				.select('id');
+
+			if (questionsError) throw questionsError;
+			if (!insertedQuestions || insertedQuestions.length !== questionsData.length) {
+				throw new Error('질문 삽입 실패: 예상한 수만큼 삽입되지 않았습니다.');
+			}
+
+			// 4. 모든 선택지를 배치로 삽입
+			const allChoicesToInsert = questionsData.flatMap((questionData, questionIndex) => {
+				if (!questionData.choices || questionData.choices.length === 0) return [];
+				return questionData.choices.map(
+					(
+						choice: Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+							score_value?: number;
+							code?: string | null;
+						},
+						choiceIndex: number
+					) => ({
+						question_id: insertedQuestions[questionIndex].id,
+						choice_text: choice.choice_text,
+						choice_order: choiceIndex,
+						score: choice.score ?? choice.score_value ?? null,
+						is_correct: choice.is_correct ?? null,
+						code: (choice as { code?: string | null }).code || null,
+					})
+				);
+			});
+
+			if (allChoicesToInsert.length > 0) {
+				const { error: choicesError } = await supabase.from('test_choices').insert(allChoicesToInsert);
+
+				if (choicesError) throw choicesError;
+			}
+		}
+
+		// 5. 기존 결과 삭제
+		const { error: deleteResultsError } = await supabase.from('test_results').delete().eq('test_id', testId);
+
+		if (deleteResultsError) throw deleteResultsError;
+
+		// 6. 새 결과 삽입
+		if (resultsData.length > 0) {
+			const resultsToInsert = resultsData.map((result, index) => {
+				const matchConditions = result.match_conditions;
+				// 디버깅: match_conditions 확인
+				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
+					console.log(`[updateTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
+						type: (matchConditions as { type?: string }).type,
+						codes: (matchConditions as { codes?: string[] }).codes,
+						match_conditions: matchConditions,
+					});
+				}
+				return {
+					test_id: testId,
+					result_name: result.result_name,
+					description: result.description,
+					result_order: index,
+					background_image_url: result.background_image_url,
+					theme_color: result.theme_color,
+					match_conditions: matchConditions,
+					features: result.features,
+					target_gender: result.target_gender,
+				};
+			});
+
+			const { error: resultsError } = await supabase.from('test_results').insert(resultsToInsert);
+
+			if (resultsError) throw resultsError;
+		}
+
+		// 7. 업데이트된 테스트 데이터 반환
+		return await this.getTestWithDetails(testId);
+	},
+
+	/**
+	 * 테스트 직접 생성 (RPC 함수 대신, code 필드 지원)
+	 */
+	async createTestDirectly(
+		testData: TestInsert,
+		questionsData: Array<
+			TestQuestionInsert & {
+				choices?: Array<
+					Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+						score_value?: number;
+						code?: string | null;
+					}
+				>;
+			}
+		>,
+		resultsData: TestResultInsert[]
+	): Promise<TestWithNestedDetails> {
+		// 1. 테스트 기본 정보 생성
+		const { data: testResult, error: testError } = await supabase
+			.from('tests')
+			.insert({
+				title: testData.title,
+				description: testData.description,
+				slug: testData.slug,
+				thumbnail_url: testData.thumbnail_url,
+				category_ids: testData.category_ids,
+				short_code: testData.short_code,
+				intro_text: testData.intro_text,
+				status: testData.status,
+				published_at: testData.published_at,
+				requires_gender: testData.requires_gender,
+				estimated_time: testData.estimated_time,
+				max_score: testData.max_score,
+				type: testData.type,
+			})
+			.select('id')
+			.single();
+
+		if (testError) throw testError;
+
+		const testId = testResult.id;
+
+		// 2. 질문과 선택지 삽입
 		for (let i = 0; i < questionsData.length; i++) {
 			const questionData = questionsData[i];
 
@@ -369,7 +552,10 @@ export const testService = {
 			if (questionData.choices && questionData.choices.length > 0) {
 				const choicesToInsert = questionData.choices.map(
 					(
-						choice: Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & { score_value?: number },
+						choice: Pick<TestChoice, 'choice_text' | 'score' | 'is_correct'> & {
+							score_value?: number;
+							code?: string | null;
+						},
 						choiceIndex: number
 					) => ({
 						question_id: questionResult.id,
@@ -377,6 +563,7 @@ export const testService = {
 						choice_order: choiceIndex,
 						score: choice.score ?? choice.score_value ?? null,
 						is_correct: choice.is_correct ?? null,
+						code: (choice as { code?: string | null }).code || null,
 					})
 				);
 
@@ -386,31 +573,37 @@ export const testService = {
 			}
 		}
 
-		// 4. 기존 결과 삭제
-		const { error: deleteResultsError } = await supabase.from('test_results').delete().eq('test_id', testId);
-
-		if (deleteResultsError) throw deleteResultsError;
-
-		// 5. 새 결과 삽입
+		// 3. 결과 삽입
 		if (resultsData.length > 0) {
-			const resultsToInsert = resultsData.map((result, index) => ({
-				test_id: testId,
-				result_name: result.result_name,
-				description: result.description,
-				result_order: index,
-				background_image_url: result.background_image_url,
-				theme_color: result.theme_color,
-				match_conditions: result.match_conditions,
-				features: result.features,
-				target_gender: result.target_gender,
-			}));
+			const resultsToInsert = resultsData.map((result, index) => {
+				const matchConditions = result.match_conditions;
+				// 디버깅: match_conditions 확인
+				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
+					console.log(`[createTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
+						type: (matchConditions as { type?: string }).type,
+						codes: (matchConditions as { codes?: string[] }).codes,
+						match_conditions: matchConditions,
+					});
+				}
+				return {
+					test_id: testId,
+					result_name: result.result_name,
+					description: result.description,
+					result_order: index,
+					background_image_url: result.background_image_url,
+					theme_color: result.theme_color,
+					match_conditions: matchConditions,
+					features: result.features,
+					target_gender: result.target_gender,
+				};
+			});
 
 			const { error: resultsError } = await supabase.from('test_results').insert(resultsToInsert);
 
 			if (resultsError) throw resultsError;
 		}
 
-		// 6. 업데이트된 테스트 데이터 반환
+		// 4. 생성된 테스트 데이터 반환
 		return await this.getTestWithDetails(testId);
 	},
 };

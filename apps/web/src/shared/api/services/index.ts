@@ -1,9 +1,6 @@
-// ============================================================================
 // Shared API Services - Public API
-// ============================================================================
 
 export { authService } from './auth.service';
-export { balanceGameStatsService } from './balance-game-stats.service';
 export { categoryService } from './category.service';
 export { feedbackService } from './feedback.service';
 export { homeService } from './home.service';

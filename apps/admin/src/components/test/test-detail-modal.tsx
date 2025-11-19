@@ -404,7 +404,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																</div>
 															)}
 															<div>
-																{(question as QuestionWithChoices).test_choices?.map((choice, choiceIndex: number) => (
+																{question.choices?.map((choice, choiceIndex: number) => (
 																	<div
 																		key={choice.id}
 																		className={`flex items-center gap-2 text-sm ${choiceIndex > 0 ? 'mt-2' : ''}`}

@@ -1,20 +1,15 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import {
-	formatDateTime,
-	getCategoryInfo,
-	getStatusClassName,
-	getStatusInfo,
-	useFeedbackDetail,
-} from '@/features/feedback';
+import { useFeedbackDetail } from '@/features/feedback/model/use-feedback';
+import { formatDateTime, getCategoryInfo, getStatusInfo, getStatusClassName } from '@/features/feedback';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 
 export default function FeedbackDetailPage() {
 	const params = useParams();
 	const router = useRouter();
-	const { feedback, isLoading, error } = useFeedbackDetail(params?.id as string);
+	const { data: feedback, isLoading, error } = useFeedbackDetail(params?.id as string);
 
 	if (isLoading) {
 		return (
@@ -82,9 +77,7 @@ export default function FeedbackDetailPage() {
 					</div>
 
 					<div className="p-6">
-						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
-							{feedback.content as string}
-						</div>
+						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{feedback.content as string}</div>
 					</div>
 
 					{(feedback.admin_reply as string)?.trim() && (

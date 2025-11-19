@@ -1,15 +1,11 @@
 import type { Test, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
 import type { TEST_TYPES } from '@/constants/test.constants';
 
-// ============================================================================
 // 상수 기반 타입 추론
-// ============================================================================
 
 export type TestType = (typeof TEST_TYPES)[number];
 
-// ============================================================================
 // 기본 타입 정의 (Supabase Database 타입 기반)
-// ============================================================================
 
 // Supabase Insert 타입들
 export type TestInsert = Database['public']['Tables']['tests']['Insert'];
@@ -18,10 +14,11 @@ export type TestResultInsert = Database['public']['Tables']['test_results']['Ins
 
 // Match conditions 타입 정의
 export interface MatchConditions {
-	type: 'score' | 'choice';
+	type: 'score' | 'choice' | 'code';
 	min?: number;
 	max?: number;
 	choices?: string[];
+	codes?: string[];
 }
 
 // Features 타입 정의
@@ -29,9 +26,7 @@ export interface ResultFeatures {
 	[key: string]: string | number | boolean | null;
 }
 
-// ============================================================================
 // 테스트 생성 관련 타입 (Supabase 기본 타입 기반)
-// ============================================================================
 
 // 질문 데이터 (Supabase TestQuestion 기반)
 export interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
@@ -45,6 +40,7 @@ export interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'cre
 export interface ChoiceData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at'> {
 	id?: string;
 	is_correct?: boolean | null;
+	code?: string | null;
 }
 
 // 결과 데이터 (Supabase TestResult 기반)
@@ -53,9 +49,7 @@ export interface ResultData extends Omit<TestResult, 'id' | 'test_id' | 'created
 	target_gender: string | null;
 }
 
-// ============================================================================
 // 데이터 변환 관련 타입 (Supabase 기본 타입 기반)
-// ============================================================================
 
 // 선택지 포함 질문 (TestQuestion + TestChoice 조합)
 export interface QuestionWithChoices {
@@ -66,12 +60,13 @@ export interface QuestionWithChoices {
 	question_type?: string | null;
 	correct_answers?: string[] | null;
 	explanation?: string | null;
-	test_choices?: Array<{
+	choices?: Array<{
 		id: string;
 		choice_text: string;
 		choice_order: number;
 		score: number;
 		is_correct: boolean;
+		code?: string | null;
 	}>;
 }
 
@@ -91,9 +86,7 @@ export interface ResultWithDetails {
 	test_id: string | null;
 }
 
-// ============================================================================
 // 기본 정보 타입 (Supabase Test 타입 기반)
-// ============================================================================
 
 export interface BasicInfo {
 	id?: string;
@@ -126,9 +119,7 @@ export interface ResultVariantRules {
 	[key: string]: unknown;
 }
 
-// ============================================================================
 // 테스트 생성 훅 타입
-// ============================================================================
 
 export interface UseTestCreationReturn {
 	// 상태
@@ -174,9 +165,7 @@ export interface UseTestCreationReturn {
 	generateShortCode: () => string;
 }
 
-// ============================================================================
 // 테스트 목록 관련 타입 (Supabase Test 타입 기반)
-// ============================================================================
 
 // 필터 타입
 export interface TestFilters {
@@ -218,9 +207,7 @@ export interface TestWithDetails extends Test {
 	results: unknown[];
 }
 
-// ============================================================================
 // 모달 관련 타입 (UI 컴포넌트용)
-// ============================================================================
 
 export type TabType = 'basic' | 'questions' | 'results' | 'stats' | 'preview';
 
@@ -232,9 +219,7 @@ export interface TestDetailModalProps {
 	onDelete: (testId: string) => void;
 }
 
-// ============================================================================
 // 컴포넌트 Props 타입 (UI 컴포넌트용)
-// ============================================================================
 
 export interface QuestionStepProps {
 	questions: QuestionData[];
@@ -253,9 +238,7 @@ export interface EditTestPageState {
 	error: string | null;
 }
 
-// ============================================================================
 // ResultStep 컴포넌트 관련 타입
-// ============================================================================
 
 export interface ResultStepProps {
 	results: ResultData[];

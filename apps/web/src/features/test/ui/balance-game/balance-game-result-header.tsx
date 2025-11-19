@@ -3,16 +3,11 @@
 import { Check } from 'lucide-react';
 
 interface IBalanceGameResultHeaderProps {
-	balanceGameResult: {
-		testMetadata: {
-			testTitle: string;
-		};
-	};
+	testTitle: string;
 	userName?: string;
 }
 
-export function BalanceGameResultHeader({ balanceGameResult, userName }: IBalanceGameResultHeaderProps) {
-	const testTitle = balanceGameResult.testMetadata?.testTitle || '밸런스 게임';
+export function BalanceGameResultHeader({ testTitle, userName }: IBalanceGameResultHeaderProps) {
 	const displayName = userName ? `${userName}님` : '당신';
 
 	return (

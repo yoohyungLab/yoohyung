@@ -1,6 +1,5 @@
 'use client';
 
-import { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@pickid/ui';
 import { Flame, Scale } from 'lucide-react';
 import type { IControversialChoice, IOverwhelmingChoice } from '@/shared/types';
@@ -10,10 +9,7 @@ interface IFunStatsSectionProps {
 	overwhelmingChoice: IOverwhelmingChoice | null;
 }
 
-export const FunStatsSection = memo(function FunStatsSection({
-	controversialChoice,
-	overwhelmingChoice,
-}: IFunStatsSectionProps) {
+export function FunStatsSection({ controversialChoice, overwhelmingChoice }: IFunStatsSectionProps) {
 	return (
 		<div className="space-y-6">
 			{/* 가장 팽팽했던 대결 - 보라/핑크 톤 */}
@@ -155,4 +151,4 @@ export const FunStatsSection = memo(function FunStatsSection({
 			)}
 		</div>
 	);
-});
+}

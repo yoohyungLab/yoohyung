@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { Suspense } from 'react';
 import { popularService } from '@/shared/api/services/popular.service';
 import { CategoryContainer } from '@/features/category/ui/category-container';
 import { generatePageMetadata } from '@/shared/lib/metadata';
@@ -14,7 +15,11 @@ export const metadata: Metadata = generatePageMetadata({
 export default async function PopularPage() {
 	try {
 		const { tests, categories } = await popularService.getPopularPageData();
-		return <CategoryContainer allTests={tests} allCategories={categories as Category[]} />;
+		return (
+			<Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
+				<CategoryContainer allTests={tests} allCategories={categories as Category[]} />
+			</Suspense>
+		);
 	} catch (error) {
 		console.error('인기 페이지 데이터 로드 실패:', error);
 		notFound();

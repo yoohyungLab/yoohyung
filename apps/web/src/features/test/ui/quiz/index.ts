@@ -1,3 +1,4 @@
-export { QuizContainer } from './quiz-container';
-export { QuizQuestion } from './quiz-question';
 export { QuizResultContainer } from './quiz-result-container';
+export { QuizResultHeader } from './quiz-result-header';
+export { QuizResultContent } from './quiz-result-content';
+export { QuizQuestionContainer } from './quiz-question-container';

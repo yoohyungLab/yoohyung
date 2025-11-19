@@ -8,7 +8,6 @@ import { GoogleAnalytics } from '@/shared/ui/google-analytics';
 import { SITE_CONFIG, VERIFICATION } from '@/shared/config/metadata';
 import { Toaster } from '@pickid/ui';
 import App from '@/App';
-
 import './globals.css';
 
 // 전체 사이트 공통 메타데이터 (모든 페이지에 적용)
@@ -67,14 +66,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			</head>
 			<body className="flex min-h-screen" suppressHydrationWarning>
 				{gaId && <GoogleAnalytics gaId={gaId} />}
-
 				<QueryProvider>
 					<SessionProvider>
 						<App>{children}</App>
 					</SessionProvider>
 				</QueryProvider>
-
 				<Toaster />
+				{/* <AdBannerSticky /> */}
 			</body>
 		</html>
 	);

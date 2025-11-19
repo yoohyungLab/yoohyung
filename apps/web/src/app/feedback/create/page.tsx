@@ -1,7 +1,7 @@
 'use client';
 
-import { FeedbackCreateContainer } from '@/features/feedback/ui/feedback-create-container';
+import { FeedbackForm } from '@/features/feedback/ui/feedback-form';
 
 export default function FeedbackCreatePage() {
-	return <FeedbackCreateContainer />;
+	return <FeedbackForm />;
 }

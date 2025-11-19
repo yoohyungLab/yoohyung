@@ -32,6 +32,7 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 				priority={index === 0}
 				draggable={false}
 				sizes="100vw"
+				quality={95}
 			/>
 		</div>
 	));

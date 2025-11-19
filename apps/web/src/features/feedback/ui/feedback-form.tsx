@@ -3,146 +3,119 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DefaultInput, DefaultTextarea, Button } from '@pickid/ui';
-import { useFeedback } from '@/features/feedback';
+import { useFeedbackSubmit } from '../model/use-feedback';
 import { FeedbackCategorySelector } from './feedback-category-selector';
 
-interface FeedbackFormProps {
-	onSuccess?: () => void;
-	onCancel?: () => void;
-}
-
-export function FeedbackForm({ onSuccess, onCancel }: FeedbackFormProps) {
+export function FeedbackForm() {
 	const router = useRouter();
-	const { submitFeedback, isLoading, error } = useFeedback();
+	const { mutate: submitFeedback, isPending } = useFeedbackSubmit();
 
-	const [formData, setFormData] = useState({
-		title: '',
-		content: '',
-		category: '',
-	});
-
+	const [title, setTitle] = useState('');
+	const [content, setContent] = useState('');
+	const [category, setCategory] = useState('');
 	const [errors, setErrors] = useState<Record<string, string>>({});
 
-	const validateForm = (): boolean => {
-		const newErrors: Record<string, string> = {};
-
-		if (!formData.title.trim()) {
-			newErrors.title = '제목을 입력해주세요.';
-		} else if (formData.title.length < 2) {
-			newErrors.title = '제목은 2자 이상 입력해주세요.';
-		}
-
-		if (!formData.content.trim()) {
-			newErrors.content = '내용을 입력해주세요.';
-		} else if (formData.content.length < 10) {
-			newErrors.content = '내용은 10자 이상 입력해주세요.';
-		}
-
-		if (!formData.category) {
-			newErrors.category = '카테고리를 선택해주세요.';
-		}
-
-		setErrors(newErrors);
-		return Object.keys(newErrors).length === 0;
-	};
-
-	const handleInputChange = (field: string, value: string) => {
-		setFormData((prev) => ({ ...prev, [field]: value }));
-		if (errors[field]) {
-			setErrors((prev) => ({ ...prev, [field]: '' }));
-		}
-	};
-
-	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		handleInputChange('title', e.target.value);
-	};
-
-	const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-		handleInputChange('content', e.target.value);
-	};
-
-	const handleCategoryChange = (category: string) => {
-		handleInputChange('category', category);
-	};
-
-	const handleSubmit = async (e: React.FormEvent) => {
+	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		if (!validateForm()) return;
 
-		try {
-			await submitFeedback({
-				title: formData.title.trim(),
-				content: formData.content.trim(),
-				category: formData.category,
-			});
+		// Validation
+		const newErrors: Record<string, string> = {};
+		if (!title.trim()) newErrors.title = '제목을 입력해주세요.';
+		else if (title.length < 2) newErrors.title = '제목은 2자 이상 입력해주세요.';
+		if (!content.trim()) newErrors.content = '내용을 입력해주세요.';
+		else if (content.length < 10) newErrors.content = '내용은 10자 이상 입력해주세요.';
+		if (!category) newErrors.category = '카테고리를 선택해주세요.';
 
-			if (onSuccess) {
-				onSuccess();
-			} else {
-				router.push('/feedback');
-			}
-		} catch (err) {
-			console.error('피드백 제출 실패:', err);
+		if (Object.keys(newErrors).length > 0) {
+			setErrors(newErrors);
+			return;
 		}
+
+		submitFeedback(
+			{ title: title.trim(), content: content.trim(), category },
+			{
+				onSuccess: () => {
+					router.push('/feedback');
+				},
+				onError: (error) => {
+					setErrors({ submit: error instanceof Error ? error.message : '피드백 제출에 실패했습니다.' });
+				},
+			}
+		);
 	};
 
 	return (
-		<div className="max-w-3xl mx-auto">
-			<div className="mb-6">
-				<h1 className="text-2xl font-bold text-gray-900 mb-1">피드백 보내기</h1>
-				<p className="text-sm text-gray-600">의견을 들려주세요</p>
-			</div>
-
-			<form onSubmit={handleSubmit} className="space-y-5">
-				<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
-					<FeedbackCategorySelector
-						selectedCategory={formData.category}
-						onCategoryChange={handleCategoryChange}
-						error={errors.category}
-					/>
-
-					<DefaultInput
-						label="제목"
-						required
-						placeholder="제목을 입력해주세요"
-						value={formData.title}
-						onChange={handleTitleChange}
-						error={errors.title}
-					/>
-
-					<DefaultTextarea
-						label="내용"
-						required
-						placeholder="내용을 입력해주세요"
-						value={formData.content}
-						onChange={handleContentChange}
-						error={errors.content}
-						rows={10}
-					/>
+		<div className="min-h-screen bg-gray-50 py-8">
+			<div className="max-w-3xl mx-auto px-4">
+				<div className="mb-6">
+					<h1 className="text-2xl font-bold text-gray-900 mb-1">피드백 보내기</h1>
+					<p className="text-sm text-gray-600">의견을 들려주세요</p>
 				</div>
 
-				{error && (
-					<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-						<p className="text-sm text-red-600">{error}</p>
-					</div>
-				)}
+				<form onSubmit={handleSubmit} className="space-y-5">
+					<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-5">
+						<FeedbackCategorySelector
+							selectedCategory={category}
+							onCategoryChange={(cat) => {
+								setCategory(cat);
+								setErrors((prev) => ({ ...prev, category: '' }));
+							}}
+							error={errors.category}
+						/>
 
-				<div className="flex gap-2">
-					{onCancel && (
-						<Button type="button" variant="outline" onClick={onCancel} className="flex-1" disabled={isLoading}>
+						<DefaultInput
+							label="제목"
+							required
+							placeholder="제목을 입력해주세요"
+							value={title}
+							onChange={(e) => {
+								setTitle(e.target.value);
+								setErrors((prev) => ({ ...prev, title: '' }));
+							}}
+							error={errors.title}
+						/>
+
+						<DefaultTextarea
+							label="내용"
+							required
+							placeholder="내용을 입력해주세요"
+							value={content}
+							onChange={(e) => {
+								setContent(e.target.value);
+								setErrors((prev) => ({ ...prev, content: '' }));
+							}}
+							error={errors.content}
+							rows={10}
+						/>
+					</div>
+
+					{errors.submit && (
+						<div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+							<p className="text-sm text-red-600">{errors.submit}</p>
+						</div>
+					)}
+
+					<div className="flex gap-2">
+						<Button
+							type="button"
+							variant="outline"
+							onClick={() => router.back()}
+							className="flex-1"
+							disabled={isPending}
+						>
 							취소
 						</Button>
-					)}
-					<Button
-						type="submit"
-						className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold"
-						loading={isLoading}
-						loadingText="제출 중..."
-					>
-						제출하기
-					</Button>
-				</div>
-			</form>
+						<Button
+							type="submit"
+							className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold"
+							loading={isPending}
+							loadingText="제출 중..."
+						>
+							제출하기
+						</Button>
+					</div>
+				</form>
+			</div>
 		</div>
 	);
 }

@@ -1,11 +1,67 @@
 import { useState, useCallback } from 'react';
 import type { TestWithNestedDetails } from '@pickid/supabase';
-import type { IQuizQuestion, IQuizResult, TQuestionType } from '../model/types/quiz';
-import { useQuizGrading } from './use-quiz-grading';
+import { saveTestResult } from '../lib/session-storage';
+import { checkShortAnswer, getGrade, calculateQuizScore } from '../lib/quiz-utils';
+import type { IQuizQuestion, IQuizResult, TQuestionType, IQuizAnswer } from '../model/types/quiz';
 
 interface UseQuizTakingProps {
 	test: TestWithNestedDetails;
 	onComplete: (result: IQuizResult) => void;
+}
+
+function convertToQuizQuestion(q: TestWithNestedDetails['questions'][0]): IQuizQuestion {
+	let questionType: TQuestionType = 'multiple_choice';
+	const rawType = q.question_type as string | null;
+
+	if (rawType === 'short_answer' || rawType === 'subjective') {
+		questionType = 'short_answer';
+	} else if (rawType === 'multiple_choice') {
+		questionType = 'multiple_choice';
+	}
+
+	return {
+		id: q.id as string,
+		question_text: q.question_text as string,
+		image_url: q.image_url as string | null,
+		question_type: questionType,
+		correct_answers: (q.correct_answers as string[] | null) || null,
+		explanation: (q.explanation as string | null) || null,
+		choices: (q.choices || []).map((c) => ({
+			id: c.id as string,
+			choice_text: c.choice_text as string,
+			choice_order: c.choice_order as number,
+			is_correct: (c.is_correct as boolean) || false,
+		})),
+	};
+}
+
+/**
+ * 퀴즈 답변 채점 (순수 함수)
+ */
+function gradeQuizAnswers(questions: IQuizQuestion[], userAnswers: Map<string, string>): IQuizAnswer[] {
+	return questions.map((question) => {
+		const userAnswer = userAnswers.get(question.id) || '';
+		let isCorrect = false;
+		let correctAnswer = '';
+
+		if (question.question_type === 'short_answer') {
+			isCorrect = checkShortAnswer(userAnswer, question.correct_answers || []);
+			correctAnswer = question.correct_answers?.[0] || '';
+		} else {
+			const selectedChoice = question.choices.find((c) => c.id === userAnswer);
+			isCorrect = selectedChoice?.is_correct || false;
+			const correctChoice = question.choices.find((c) => c.is_correct);
+			correctAnswer = correctChoice?.choice_text || '';
+		}
+
+		return {
+			questionId: question.id,
+			questionType: question.question_type,
+			userAnswer,
+			isCorrect,
+			correctAnswer,
+		};
+	});
 }
 
 export function useQuizTaking({ test, onComplete }: UseQuizTakingProps) {
@@ -13,57 +69,26 @@ export function useQuizTaking({ test, onComplete }: UseQuizTakingProps) {
 	const [userAnswers, setUserAnswers] = useState<Map<string, string>>(new Map());
 	const [startTime] = useState(Date.now());
 
-	// 질문을 IQuizQuestion 타입으로 변환
-	const questions: IQuizQuestion[] = (test?.questions || []).map((q) => {
-		// question_type 변환: 'subjective' -> 'short_answer', 기본값은 'multiple_choice'
-		let questionType: TQuestionType = 'multiple_choice';
-		const rawType = q.question_type as string | null;
-
-		if (rawType === 'short_answer' || rawType === 'subjective') {
-			questionType = 'short_answer';
-		} else if (rawType === 'multiple_choice') {
-			questionType = 'multiple_choice';
-		}
-
-		const question: IQuizQuestion = {
-			id: q.id as string,
-			question_text: q.question_text as string,
-			image_url: q.image_url as string | null,
-			question_type: questionType,
-			correct_answers: (q.correct_answers as string[] | null) || null,
-			explanation: (q.explanation as string | null) || null,
-			choices: (q.choices || []).map((c) => ({
-				id: c.id as string,
-				choice_text: c.choice_text as string,
-				choice_order: c.choice_order as number,
-				is_correct: (c.is_correct as boolean) || false,
-			})),
-		};
-
-		return question;
-	});
-
+	const questions: IQuizQuestion[] = (test?.questions || []).map(convertToQuizQuestion);
 	const currentQuestion = questions[currentQuestionIndex];
 	const totalQuestions = questions.length;
 	const isLastQuestion = currentQuestionIndex === totalQuestions - 1;
 
-	const { gradedAnswers, correctCount, score, grade } = useQuizGrading({
-		questions,
-		userAnswers,
-	});
-
 	const handleAnswer = useCallback(
 		(answer: string) => {
-			// 답변 저장
 			const newAnswers = new Map(userAnswers);
 			newAnswers.set(currentQuestion.id, answer);
 			setUserAnswers(newAnswers);
 
-			// 마지막 질문이면 완료 처리
 			if (isLastQuestion) {
 				const completionTime = Math.floor((Date.now() - startTime) / 1000);
 
-				// 채점 결과 생성
+				// 채점
+				const gradedAnswers = gradeQuizAnswers(questions, newAnswers);
+				const correctCount = gradedAnswers.filter((a) => a.isCorrect).length;
+				const score = calculateQuizScore(correctCount, totalQuestions);
+				const grade = getGrade(score);
+
 				const result: IQuizResult = {
 					test_id: (test?.test?.id as string) || '',
 					test_title: (test?.test?.title as string) || '',
@@ -75,34 +100,13 @@ export function useQuizTaking({ test, onComplete }: UseQuizTakingProps) {
 					completion_time: completionTime,
 				};
 
-				// 세션 스토리지에 저장
-				try {
-					if (typeof window !== 'undefined') {
-						sessionStorage.setItem('quizResult', JSON.stringify(result));
-					}
-				} catch (e) {
-					console.error('Failed to save quiz result:', e);
-				}
-
+				saveTestResult(result);
 				onComplete(result);
 			} else {
-				// 다음 질문으로
 				setCurrentQuestionIndex((prev) => prev + 1);
 			}
 		},
-		[
-			currentQuestion,
-			isLastQuestion,
-			userAnswers,
-			test,
-			totalQuestions,
-			correctCount,
-			score,
-			grade,
-			gradedAnswers,
-			startTime,
-			onComplete,
-		]
+		[currentQuestion, isLastQuestion, userAnswers, test, questions, totalQuestions, startTime, onComplete]
 	);
 
 	const handlePrevious = useCallback(() => {

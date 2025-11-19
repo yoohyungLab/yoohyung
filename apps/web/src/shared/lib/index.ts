@@ -1,9 +1,16 @@
-// ============================================================================
-// Shared Lib - Public API
-// ============================================================================
+/**
+ * Shared Lib - Public API
+ *
+ * FSD 구조: 기능별로 그룹화된 유틸리티 함수들
+ */
 
+// ============ Analytics ============
 export { trackResultViewed, trackResultShared, trackTestStart } from './analytics';
-export { calculateProgress, findChoiceStat } from './balance-game';
+
+// ============ Balance Game ============
+export { calculateProgress } from './balance-game';
+
+// ============ Color Utils ============
 export {
 	hexToRgba,
 	adjustColor,
@@ -12,9 +19,19 @@ export {
 	createCardStyles,
 	createDecorationStyle,
 } from './color-utils';
-export { formatDate, formatDateTime, parseStringOrArray, parseDescription } from './format-utils';
+
+// ============ Format Utils ============
+export { formatDate, formatDateTime, parseDescription } from './format-utils';
+
+// ============ Error Handling ============
 export { mapAuthError } from './error-mapper';
+
+// ============ Query Client ============
 export { queryClient } from './query-client';
-export { getHomeButtonText, getTestTypeName, isMobileDevice } from './test-utils';
+
+// ============ Test Utils ============
+export { isMobileDevice } from './test-utils';
 export { mapTestWithDetailsToNested } from './test-mappers';
+
+// ============ Common Utils ============
 export { cn } from './utils';

@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useCallback } from 'react';
-import { useHomeBalanceGame } from '@/shared/hooks/use-home-balance-game';
+import { useHomeBalanceGame } from '@/features/home/model';
 
 export default function BalanceGameSection() {
 	const { game, isLoading, vote, isVoting, voteResult, resetVote, error } = useHomeBalanceGame();

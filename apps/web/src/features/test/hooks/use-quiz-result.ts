@@ -1,53 +1,66 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@pickid/supabase';
+import { trackResultViewed } from '@/shared/lib/analytics';
+import { loadTestResult } from '../lib/session-storage';
 import type { IQuizResult } from '../model/types/quiz';
 
-interface QuizResultMessage {
+interface IQuizResultMessage {
 	result_name: string;
 	description: string;
 	theme_color: string;
 }
 
-interface TestResultRow {
+interface ITestResultRow {
 	result_name: string;
 	description: string | null;
 	theme_color: string | null;
 	match_conditions: { min?: number; max?: number } | null;
 }
 
-export function useQuizResult(testId: string) {
-	const [resultMessage, setResultMessage] = useState<QuizResultMessage | null>(null);
+interface IUseQuizResultParams {
+	testId: string;
+}
+
+/**
+ * 퀴즈 결과 로드 훅
+ * - 세션 스토리지에서 결과 로드
+ * - 점수에 맞는 결과 메시지 조회
+ *
+ * Note: popularTests는 컴포넌트에서 usePopularTests 직접 호출
+ */
+export function useQuizResult({ testId }: IUseQuizResultParams) {
+	const [quizResult, setQuizResult] = useState<IQuizResult | null>(null);
+	const [resultMessage, setResultMessage] = useState<IQuizResultMessage | null>(null);
 	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<Error | null>(null);
 
 	useEffect(() => {
 		const loadResult = async () => {
 			try {
-				// 세션 스토리지에서 퀴즈 결과 가져오기
-				const savedResult = sessionStorage.getItem('quizResult');
+				const savedResult = loadTestResult<IQuizResult>();
 				if (!savedResult) {
+					setError(new Error('RESULT_NOT_FOUND'));
 					setIsLoading(false);
 					return;
 				}
 
-				const quizResult: IQuizResult = JSON.parse(savedResult);
+				setQuizResult(savedResult);
+				trackResultViewed(testId, savedResult.test_title, false);
 
-				// DB에서 점수 구간별 결과 메시지 가져오기
-				const { data, error } = await supabase
+				// 점수 구간별 결과 메시지 조회
+				const { data, error: dbError } = await supabase
 					.from('test_results')
 					.select('result_name, description, theme_color, match_conditions')
 					.eq('test_id', testId);
 
-				if (error) throw error;
+				if (dbError) throw dbError;
 
-				const results = data as TestResultRow[] | null;
-
-				if (results && results.length > 0) {
-					// 점수에 맞는 결과 찾기
+				const results = data as ITestResultRow[] | null;
+				if (results?.length) {
 					const matchedResult = results.find((result) => {
-						const conditions = result.match_conditions;
-						const minScore = conditions?.min || 0;
-						const maxScore = conditions?.max || 100;
-						return quizResult.score >= minScore && quizResult.score <= maxScore;
+						const minScore = result.match_conditions?.min || 0;
+						const maxScore = result.match_conditions?.max || 100;
+						return savedResult.score >= minScore && savedResult.score <= maxScore;
 					});
 
 					if (matchedResult) {
@@ -58,8 +71,9 @@ export function useQuizResult(testId: string) {
 						});
 					}
 				}
-			} catch (error) {
-				console.error('Failed to load quiz result message:', error);
+			} catch (err) {
+				console.error('Failed to load quiz result:', err);
+				setError(err instanceof Error ? err : new Error('Unknown error'));
 			} finally {
 				setIsLoading(false);
 			}
@@ -68,8 +82,5 @@ export function useQuizResult(testId: string) {
 		loadResult();
 	}, [testId]);
 
-	return {
-		resultMessage,
-		isLoading,
-	};
+	return { quizResult, resultMessage, isLoading, error };
 }

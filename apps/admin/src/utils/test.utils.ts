@@ -1,9 +1,7 @@
-import type { QuestionWithChoices, ResultWithDetails, QuestionData, ResultData } from '../types/test.types';
+import type { QuestionWithChoices, ResultWithDetails, QuestionData, ResultData, ChoiceData } from '../types/test.types';
 import { DEFAULT_BASIC_INFO } from '../constants/test.constants';
 
-// ============================================================================
 // 데이터 변환 유틸리티
-// ============================================================================
 
 /**
  * 질문 데이터를 UI용으로 변환
@@ -19,8 +17,24 @@ export const convertQuestionsData = (questionsData: QuestionWithChoices[]): Ques
 				correct_answers: null,
 				explanation: null,
 				choices: [
-					{ choice_text: '', choice_order: 0, score: 0, is_correct: false, response_count: 0, updated_at: '' },
-					{ choice_text: '', choice_order: 1, score: 1, is_correct: false, response_count: 0, updated_at: '' },
+					{
+						choice_text: '',
+						choice_order: 0,
+						score: 0,
+						is_correct: false,
+						response_count: 0,
+						last_updated: null,
+						code: null,
+					},
+					{
+						choice_text: '',
+						choice_order: 1,
+						score: 1,
+						is_correct: false,
+						response_count: 0,
+						last_updated: null,
+						code: null,
+					},
 				],
 			},
 		];
@@ -36,15 +50,19 @@ export const convertQuestionsData = (questionsData: QuestionWithChoices[]): Ques
 			correct_answers: q.correct_answers || null,
 			explanation: q.explanation || null,
 			choices:
-				q.test_choices?.map((c) => ({
-					id: c.id,
-					choice_text: c.choice_text || '',
-					choice_order: c.choice_order || 0,
-					score: c.score || 0,
-					is_correct: c.is_correct || false,
-					response_count: 0,
-					updated_at: '',
-				})) || [],
+				q.choices?.map((c) => {
+					const choiceData: ChoiceData = {
+						id: c.id,
+						choice_text: c.choice_text || '',
+						choice_order: c.choice_order || 0,
+						score: c.score ?? 0,
+						is_correct: c.is_correct ?? false,
+						code: (c as { code?: string | null }).code ?? null,
+						response_count: (c as { response_count?: number | null }).response_count ?? 0,
+						last_updated: (c as { last_updated?: string | null }).last_updated ?? null,
+					};
+					return choiceData;
+				}) || [],
 		};
 	});
 
@@ -86,9 +104,7 @@ export const convertResultsData = (resultsData: ResultWithDetails[]): ResultData
 	}));
 };
 
-// ============================================================================
 // 코드 생성 유틸리티
-// ============================================================================
 
 /**
  * 짧은 코드 생성
@@ -146,9 +162,7 @@ export const createBasicInfoWithShortCode = () => ({
 	short_code: generateShortCode(),
 });
 
-// ============================================================================
 // 데이터 검증 유틸리티
-// ============================================================================
 
 /**
  * 질문 데이터 유효성 검사
@@ -210,9 +224,7 @@ export const validateBasicInfo = (basicInfo: Record<string, unknown>): string[] 
 	return errors;
 };
 
-// ============================================================================
 // 데이터 포맷팅 유틸리티
-// ============================================================================
 
 /**
  * 점수 범위 포맷팅
@@ -252,9 +264,7 @@ export const calculateTestStats = (questions: QuestionData[], results: ResultDat
 	};
 };
 
-// ============================================================================
 // URL 및 링크 유틸리티
-// ============================================================================
 
 /**
  * 테스트 공유 URL 생성
@@ -270,9 +280,7 @@ export const generateTestEditUrl = (testId: string): string => {
 	return `/tests/${testId}/edit`;
 };
 
-// ============================================================================
 // 로컬 스토리지 유틸리티
-// ============================================================================
 
 /**
  * 테스트 초안 저장

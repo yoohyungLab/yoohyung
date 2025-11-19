@@ -212,6 +212,7 @@ export type Database = {
         Row: {
           choice_order: number
           choice_text: string
+          code: string | null
           created_at: string | null
           id: string
           is_correct: boolean | null
@@ -223,6 +224,7 @@ export type Database = {
         Insert: {
           choice_order: number
           choice_text: string
+          code?: string | null
           created_at?: string | null
           id?: string
           is_correct?: boolean | null
@@ -234,6 +236,7 @@ export type Database = {
         Update: {
           choice_order?: number
           choice_text?: string
+          code?: string | null
           created_at?: string | null
           id?: string
           is_correct?: boolean | null

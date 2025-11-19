@@ -21,7 +21,14 @@
       "Bash(npx supabase:*)",
       "Bash(for file in web/src/features/test/model/use-test-start.ts web/src/features/auth/ui/auth-form.tsx web/src/shared/api/services/category.service.ts web/src/shared/api/services/auth.service.ts web/src/shared/api/services/feedback.service.ts web/src/shared/api/services/home-balance-game.service.ts web/src/shared/api/services/balance-game-stats.service.ts)",
       "Bash(for file in src/shared/api/services/auth.service.ts src/shared/api/services/feedback.service.ts src/shared/api/services/home-balance-game.service.ts src/shared/api/services/balance-game-stats.service.ts)",
-      "Bash(do sed -i '' '/eslint-disable-next-line @typescript-eslint\\/no-explicit-any/d' \"$file\")"
+      "Bash(do sed -i '' '/eslint-disable-next-line @typescript-eslint\\/no-explicit-any/d' \"$file\")",
+      "WebFetch(domain:feature-sliced.design)",
+      "Bash(lsof:*)",
+      "Bash(curl:*)",
+      "Bash(kill:*)",
+      "Bash(pnpm dev)",
+      "Bash(pnpm --filter web build:*)",
+      "Bash(mkdir:*)"
     ],
     "deny": [],
     "ask": []

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
-
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { feedbackService } from '@/shared/api/services/feedback.service';
 import type { Feedback } from '@pickid/supabase';
 
@@ -9,77 +8,39 @@ interface ISubmitFeedbackData {
 	category: string;
 }
 
-export function useFeedback() {
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+// Query Keys
+const feedbackKeys = {
+	all: ['feedbacks'] as const,
+	detail: (id: string) => ['feedback', id] as const,
+};
 
-	const submitFeedback = useCallback(async (feedbackData: ISubmitFeedbackData) => {
-		try {
-			setIsLoading(true);
-			setError(null);
-			return await feedbackService.submitFeedback(feedbackData);
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백 제출에 실패했습니다.';
-			setError(errorMessage);
-			throw err;
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	return { isLoading, error, submitFeedback };
-}
-
+// 피드백 목록 조회
 export function useFeedbackList() {
-	const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-
-	const loadFeedbacks = useCallback(async () => {
-		try {
-			setIsLoading(true);
-			setError(null);
-			const data = await feedbackService.getFeedbacks();
-			setFeedbacks(data);
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백을 불러오는데 실패했습니다.';
-			setError(errorMessage);
-		} finally {
-			setIsLoading(false);
-		}
-	}, []);
-
-	useEffect(() => {
-		loadFeedbacks();
-	}, [loadFeedbacks]);
-
-	return { feedbacks, isLoading, error, refresh: loadFeedbacks };
+	return useQuery({
+		queryKey: feedbackKeys.all,
+		queryFn: () => feedbackService.getFeedbacks(),
+		staleTime: 5 * 60 * 1000,
+	});
 }
 
+// 피드백 상세 조회
 export function useFeedbackDetail(id: string) {
-	const [feedback, setFeedback] = useState<Feedback | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	return useQuery({
+		queryKey: feedbackKeys.detail(id),
+		queryFn: () => feedbackService.getFeedbackById(id),
+		enabled: !!id,
+		staleTime: 5 * 60 * 1000,
+	});
+}
 
-	const loadFeedback = useCallback(async () => {
-		if (!id) return;
+// 피드백 제출
+export function useFeedbackSubmit() {
+	const queryClient = useQueryClient();
 
-		try {
-			setIsLoading(true);
-			setError(null);
-			const data = await feedbackService.getFeedbackById(id);
-			setFeedback(data);
-		} catch (err) {
-			const errorMessage = err instanceof Error ? err.message : '피드백을 불러오는데 실패했습니다.';
-			setError(errorMessage);
-		} finally {
-			setIsLoading(false);
-		}
-	}, [id]);
-
-	useEffect(() => {
-		loadFeedback();
-	}, [loadFeedback]);
-
-	return { feedback, isLoading, error, refresh: loadFeedback };
+	return useMutation({
+		mutationFn: (data: ISubmitFeedbackData) => feedbackService.submitFeedback(data),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: feedbackKeys.all });
+		},
+	});
 }

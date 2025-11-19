@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo, useCallback, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import type { Category } from '@pickid/supabase';
+import { DefaultSelect } from '@pickid/ui';
 import { CategoryNavigation } from './category-navigation';
-import { TestFilter } from './test-filter';
 import { CategoryCard, type ITestItem } from './category-card';
 
 interface CategoryContainerProps {
@@ -17,80 +17,69 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 	const searchParams = useSearchParams();
 	const [sortBy, setSortBy] = useState<'recent' | 'starts'>('recent');
 
-	// URL에서 현재 카테고리 가져오기 (기본값: 첫 번째 카테고리)
-	const currentSlug = (searchParams.get('category') as string) || (allCategories?.[0]?.slug as string) || '';
+	// 현재 선택된 카테고리 (URL에서 가져오기, 기본값: 첫 번째)
+	const currentSlug = searchParams.get('category') || allCategories[0]?.slug || '';
+	const currentCategory = allCategories.find((cat) => cat.slug === currentSlug);
 
-	// 현재 카테고리에 해당하는 테스트 필터링
+	// 카테고리별 테스트 필터링
 	const filteredTests = useMemo(() => {
-		if (!allCategories || !allTests) return [];
-
-		const currentCategory = allCategories.find((cat) => cat.slug === currentSlug);
 		if (!currentCategory) return [];
 
 		return allTests.filter((test) => {
 			if (!test.category_ids) return false;
 
-			// category_ids가 배열인지 문자열인지 확인
-			let categoryIds: string[] = [];
-			if (typeof test.category_ids === 'string') {
-				try {
-					categoryIds = JSON.parse(test.category_ids);
-				} catch {
-					categoryIds = [test.category_ids];
-				}
-			} else if (Array.isArray(test.category_ids)) {
-				categoryIds = test.category_ids;
-			}
+			// category_ids를 배열로 변환
+			const categoryIds = Array.isArray(test.category_ids)
+				? test.category_ids
+				: typeof test.category_ids === 'string'
+					? [test.category_ids]
+					: [];
 
 			return categoryIds.includes(currentCategory.id as string);
 		});
-	}, [allTests, allCategories, currentSlug]);
+	}, [allTests, currentCategory]);
 
-	// 정렬된 테스트
+	// 정렬
 	const sortedTests = useMemo(() => {
 		return [...filteredTests].sort((a, b) => {
-			if (sortBy === 'recent') return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
-			if (sortBy === 'starts') return (b.starts || 0) - (a.starts || 0);
-			return 0;
+			if (sortBy === 'recent') {
+				return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+			}
+			return (b.starts || 0) - (a.starts || 0);
 		});
 	}, [filteredTests, sortBy]);
 
-	// 카테고리 네비게이션 핸들러 (쿼리스트링 방식)
-	const handleCategoryChange = useCallback(
-		(targetSlug: string) => {
-			if (targetSlug !== currentSlug) {
-				// 쿼리스트링으로 카테고리 변경
-				const params = new URLSearchParams(searchParams);
-				params.set('category', targetSlug);
-				router.replace(`/category?${params.toString()}`, { scroll: false });
-			}
-		},
-		[router, currentSlug, searchParams]
-	);
-
-	// 첫 로드 시 기본 카테고리 설정
-	useEffect(() => {
-		if (!currentSlug && allCategories && allCategories.length > 0) {
-			const params = new URLSearchParams(searchParams);
-			params.set('category', allCategories[0].slug as string);
-			router.replace(`/category?${params.toString()}`, { scroll: false });
-		}
-	}, [currentSlug, allCategories, router, searchParams]);
+	// 카테고리 변경 핸들러
+	const handleCategoryChange = (targetSlug: string) => {
+		const params = new URLSearchParams(searchParams);
+		params.set('category', targetSlug);
+		router.replace(`/category?${params.toString()}`, { scroll: false });
+	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-b from-gray-50 to-white">
-			{/* 헤더 */}
-			<header className="bg-white border-b border-gray-200 sticky top-0 z-40 overflow-hidden">
-				<CategoryNavigation
-					categories={allCategories}
-					currentSlug={currentSlug}
-					onCategoryChange={handleCategoryChange}
-				/>
+			<header className="bg-white border-b border-gray-200 sticky top-0 z-40">
+				<CategoryNavigation categories={allCategories} currentSlug={currentSlug} onCategoryChange={handleCategoryChange} />
 			</header>
 
-			{/* 메인 콘텐츠 */}
 			<main className="max-w-7xl mx-auto px-4 py-8">
-				<TestFilter sortBy={sortBy} onSortChange={setSortBy} totalCount={sortedTests.length} />
+				{/* 필터 */}
+				<div className="flex items-center justify-between mb-6">
+					<div className="text-sm text-gray-600">총 {sortedTests.length.toLocaleString()}개</div>
+					<div className="w-40">
+						<DefaultSelect
+							value={sortBy}
+							onValueChange={(v) => setSortBy(v as 'recent' | 'starts')}
+							options={[
+								{ value: 'recent', label: '최신순' },
+								{ value: 'starts', label: '조회순' },
+							]}
+							placeholder="정렬 선택"
+							size="sm"
+							variant="default"
+						/>
+					</div>
+				</div>
 
 				{/* 테스트 그리드 */}
 				{sortedTests.length > 0 ? (
@@ -109,5 +98,3 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 		</div>
 	);
 }
-
-export default CategoryContainer;

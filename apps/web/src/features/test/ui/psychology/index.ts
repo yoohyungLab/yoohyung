@@ -1,11 +1,7 @@
-export { TestContainer } from './test-container';
-export { TestIntro } from './test-intro';
-export { TestQuestion } from './test-question';
+export { PsychologyQuestionContainer } from './psychology-question-container';
 export { TestResultContainer } from './test-result-container';
 export { TestResultContent } from './test-result-content';
 export { TestResultHeader } from './test-result-header';
 export { SharedResultLanding } from './shared-result-landing';
 export { GenderSelectModal } from './gender-select-modal';
-export { TestResultShareModal } from './test-result-share-modal';
-export { TestResultStructuredData } from './test-result-structured-data';
 export * from './sections';

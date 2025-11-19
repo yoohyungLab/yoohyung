@@ -1,19 +1,23 @@
-// ============================================================================
-// Shared UI Components - Public API
-// ============================================================================
+/**
+ * Shared UI Components - Public API
+ *
+ * FSD 권장사항: 컴포넌트 타입별로 그룹화
+ */
 
-// Badge Components
+// ============ External UI Library ============
 export { Badge } from '@pickid/ui';
 
-// Card Components
-export { BaseCard, CardImage, CardTags, CardContent } from './cards/base-card';
-export { HomeCard } from './cards/home-card';
-export { CarouselCard } from './cards/carousel-card';
-export type { CardVariant, CardSize, CardAspectRatio } from './cards/base-card';
+// ============ Cards ============
+export { BaseCard, CardImage, CardTags, CardContent, HomeCard, CarouselCard } from './cards';
+export type { CardVariant, CardSize, CardAspectRatio } from './cards';
 
-// Icon Components
-export { PopularIcon, NewIcon, RecommendedIcon, TrendingIcon, TestIcon } from './icons/section-icons';
+// ============ Icons ============
+export { PopularIcon, NewIcon, RecommendedIcon, TrendingIcon, TestIcon } from './icons';
 
-// Other UI Components
+// ============ Common Components ============
 export { GoogleAnalytics } from './google-analytics';
 export { Loading } from './loading';
+
+// ============ SEO Components ============
+export { TestResultStructuredData } from './seo';
+export type { ITestResultStructuredDataProps } from './seo';

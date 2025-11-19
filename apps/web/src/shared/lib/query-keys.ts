@@ -7,9 +7,7 @@
  * @see https://tkdodo.eu/blog/effective-react-query-keys
  */
 
-// ============================================================================
 // 홈 밸런스 게임
-// ============================================================================
 
 export const homeBalanceGameKeys = {
 	all: ['home-balance-game'] as const,
@@ -17,9 +15,7 @@ export const homeBalanceGameKeys = {
 	userVote: (gameId: string) => [...homeBalanceGameKeys.all, 'user-vote', gameId] as const,
 } as const;
 
-// ============================================================================
 // 밸런스 게임 통계
-// ============================================================================
 
 export const balanceGameStatsKeys = {
 	all: ['balance-game-stats'] as const,
@@ -27,9 +23,7 @@ export const balanceGameStatsKeys = {
 	question: (testId: string, questionId: string) => [...balanceGameStatsKeys.test(testId), questionId] as const,
 } as const;
 
-// ============================================================================
 // 최적화된 밸런스 게임 통계
-// ============================================================================
 
 export const optimizedBalanceGameStatsKeys = {
 	all: ['optimized-balance-game-stats'] as const,
@@ -37,9 +31,7 @@ export const optimizedBalanceGameStatsKeys = {
 	testQuestions: (testId: string) => [...optimizedBalanceGameStatsKeys.all, 'test', testId] as const,
 } as const;
 
-// ============================================================================
 // 전체 Query Keys 내보내기
-// ============================================================================
 
 export const queryKeys = {
 	homeBalanceGame: homeBalanceGameKeys,

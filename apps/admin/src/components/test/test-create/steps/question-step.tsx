@@ -81,9 +81,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 											{ value: 'short_answer', label: '✏️ 주관식 (Short Answer)' },
 										]}
 									/>
-									<p className="text-xs text-gray-500 mt-1">
-										객관식: 선택지 중 정답 선택 | 주관식: 텍스트로 답변 입력
-									</p>
+									<p className="text-xs text-gray-500 mt-1">객관식: 선택지 중 정답 선택 | 주관식: 텍스트로 답변 입력</p>
 								</div>
 							)}
 
@@ -154,11 +152,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 										</div>
 										<div className="flex flex-wrap gap-2">
 											{(question.correct_answers || []).map((answer: string, answerIndex: number) => (
-												<Badge
-													key={answerIndex}
-													variant="secondary"
-													className="flex items-center gap-1 px-3 py-1"
-												>
+												<Badge key={answerIndex} variant="secondary" className="flex items-center gap-1 px-3 py-1">
 													{answer}
 													<button
 														onClick={() => {
@@ -200,67 +194,98 @@ export const QuestionStep = (props: QuestionStepProps) => {
 
 									<div className="space-y-3">
 										{question.choices.map((choice, choiceIndex: number) => (
-										<div key={choiceIndex} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
-											<div className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
-												{String.fromCharCode(65 + choiceIndex)}
-											</div>
-
-											<div className="flex-1">
-												<DefaultInput
-													value={choice.choice_text}
-													onChange={(e) =>
-														onUpdateChoice(questionIndex, choiceIndex, {
-															choice_text: e.target.value,
-														})
-													}
-													placeholder={`선택지 ${choiceIndex + 1}`}
-												/>
-											</div>
-
-											{selectedType === 'quiz' ? (
-												<div className="flex items-center gap-2">
-													<Label className="text-sm">정답</Label>
-													<Switch
-														checked={choice.is_correct}
-														onCheckedChange={(checked) =>
-															onUpdateChoice(questionIndex, choiceIndex, {
-																is_correct: checked,
-																score: 0, // 퀴즈는 점수 사용 안 함
-															})
-														}
-													/>
+											<div key={choiceIndex} className="flex items-center gap-3 p-4 bg-gray-50 rounded-lg">
+												<div className="w-8 h-8 bg-blue-100 text-blue-800 rounded-full flex items-center justify-center text-sm font-medium flex-shrink-0">
+													{String.fromCharCode(65 + choiceIndex)}
 												</div>
-											) : (
-												<div className="flex items-center gap-2">
-													<Label className="text-sm">점수</Label>
+
+												<div className="flex-1">
 													<DefaultInput
-														type="number"
-														value={choice.score}
+														value={choice.choice_text}
 														onChange={(e) =>
 															onUpdateChoice(questionIndex, choiceIndex, {
-																score: parseInt(e.target.value) || 0,
+																choice_text: e.target.value,
 															})
 														}
-														className="w-20"
-														min="0"
+														placeholder={`선택지 ${choiceIndex + 1}`}
 													/>
 												</div>
-											)}
 
-											{question.choices.length > 2 && (
-												<IconButton
-													onClick={() => onRemoveChoice(questionIndex, choiceIndex)}
-													icon={<Trash2 className="w-4 h-4" />}
-													variant="outline"
-													size="sm"
-													className="text-red-600 hover:text-red-700"
-													aria-label="선택지 삭제"
-												/>
-											)}
-										</div>
-									))}
+												{selectedType === 'quiz' ? (
+													<div className="flex items-center gap-2">
+														<Label className="text-sm">정답</Label>
+														<Switch
+															checked={choice.is_correct}
+															onCheckedChange={(checked) =>
+																onUpdateChoice(questionIndex, choiceIndex, {
+																	is_correct: checked,
+																	score: 0, // 퀴즈는 점수 사용 안 함
+																})
+															}
+														/>
+													</div>
+												) : selectedType === 'psychology' ? (
+													<>
+														<div className="flex items-center gap-2">
+															<Label className="text-sm">점수</Label>
+															<DefaultInput
+																type="number"
+																value={choice.score}
+																onChange={(e) =>
+																	onUpdateChoice(questionIndex, choiceIndex, {
+																		score: parseInt(e.target.value) || 0,
+																	})
+																}
+																className="w-20"
+																min="0"
+															/>
+														</div>
+														<div className="flex items-center gap-2">
+															<Label className="text-sm">코드</Label>
+															<DefaultInput
+																value={(choice as { code?: string }).code || ''}
+																onChange={(e) =>
+																	onUpdateChoice(questionIndex, choiceIndex, {
+																		code: e.target.value.toUpperCase(),
+																	} as Partial<typeof choice>)
+																}
+																placeholder="E, I, S..."
+																className="w-16"
+																maxLength={2}
+															/>
+														</div>
+													</>
+												) : (
+													<div className="flex items-center gap-2">
+														<Label className="text-sm">점수</Label>
+														<DefaultInput
+															type="number"
+															value={choice.score}
+															onChange={(e) =>
+																onUpdateChoice(questionIndex, choiceIndex, {
+																	score: parseInt(e.target.value) || 0,
+																})
+															}
+															className="w-20"
+															min="0"
+														/>
+													</div>
+												)}
+
+												{question.choices.length > 2 && (
+													<IconButton
+														onClick={() => onRemoveChoice(questionIndex, choiceIndex)}
+														icon={<Trash2 className="w-4 h-4" />}
+														variant="outline"
+														size="sm"
+														className="text-red-600 hover:text-red-700"
+														aria-label="선택지 삭제"
+													/>
+												)}
+											</div>
+										))}
+									</div>
 								</div>
-							</div>
 							)}
 						</AdminCardContent>
 					</AdminCard>

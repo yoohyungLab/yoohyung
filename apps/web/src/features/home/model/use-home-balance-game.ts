@@ -1,10 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { homeBalanceGameService } from '@/shared/api/services/home-balance-game.service';
 import { queryKeys } from '@/shared/lib/query-keys';
 import type { HomeBalanceGameResponse, VoteResult } from '@pickid/supabase';
+
+// 홈 밸런스게임 훅 (Home 도메인 전용)
 
 /**
  * 현재 주차의 밸런스 게임 조회
@@ -13,9 +15,9 @@ export function useCurrentWeekBalanceGame() {
 	return useQuery<HomeBalanceGameResponse | null>({
 		queryKey: queryKeys.homeBalanceGame.current(),
 		queryFn: () => homeBalanceGameService.getCurrentWeekGame(),
-		staleTime: 5 * 60 * 1000, // 5분
+		staleTime: 5 * 60 * 1000,
 		refetchOnWindowFocus: false,
-		retry: false, // RPC 함수가 없으면 재시도하지 않음
+		retry: false,
 	});
 }
 
@@ -28,7 +30,6 @@ export function useVoteBalanceGame() {
 	return useMutation<VoteResult, Error, { gameId: string; choice: 'A' | 'B' }>({
 		mutationFn: ({ gameId, choice }) => homeBalanceGameService.vote(gameId, choice),
 		onSuccess: () => {
-			// 게임 데이터 갱신
 			queryClient.invalidateQueries({
 				queryKey: queryKeys.homeBalanceGame.current(),
 			});
@@ -53,34 +54,21 @@ export function useHomeBalanceGame(): UseHomeBalanceGameReturn {
 	const { data: game, isLoading: isGameLoading, error: gameError } = useCurrentWeekBalanceGame();
 	const voteMutation = useVoteBalanceGame();
 
-	// 로컬 상태로 투표 결과 관리 (결과 화면 표시용)
 	const [localVoteResult, setLocalVoteResult] = useState<VoteResult | null>(null);
-
-	const handleVote = (choice: 'A' | 'B') => {
-		if (!game) return;
-		voteMutation.mutate(
-			{ gameId: game.id, choice },
-			{
-				onSuccess: (data) => {
-					setLocalVoteResult(data);
-				},
-			}
-		);
-	};
-
-	const handleResetVote = () => {
-		// 로컬 상태만 초기화 (다시 투표 가능)
-		setLocalVoteResult(null);
-		voteMutation.reset();
-	};
 
 	return {
 		game: game ?? null,
 		isLoading: isGameLoading,
 		error: gameError,
-		vote: handleVote,
+		vote: (choice: 'A' | 'B') => {
+			if (!game) return;
+			voteMutation.mutate({ gameId: game.id, choice }, { onSuccess: setLocalVoteResult });
+		},
 		isVoting: voteMutation.isPending,
 		voteResult: localVoteResult,
-		resetVote: handleResetVote,
+		resetVote: () => {
+			setLocalVoteResult(null);
+			voteMutation.reset();
+		},
 	};
 }

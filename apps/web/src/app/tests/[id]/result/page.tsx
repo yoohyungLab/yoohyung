@@ -62,7 +62,7 @@ export default async function TestResultPage({ params }: IPageProps) {
 		const testType = (test.type as string) || 'psychology';
 
 		// ==================== Delegate to Client Component ====================
-		return <TestResultPageClient testType={testType} />;
+		return <TestResultPageClient testId={id} testType={testType} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);
 		notFound();

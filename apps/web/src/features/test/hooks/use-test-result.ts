@@ -1,8 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-
-import { useAuth } from '@/features/auth';
 import { testService } from '@/shared/api/services/test.service';
 import type { TestResult } from '@pickid/supabase';
 
@@ -10,26 +8,19 @@ interface IUseTestResultProps {
 	testId: string;
 }
 
-interface IUseTestResultReturn {
-	testResult: TestResult | null;
-	totalScore: number;
-	userGender: string | null;
-	isLoading: boolean;
-	error: string | null;
-	isLoggedIn: boolean;
-	userName: string | null;
-}
-
-export function useTestResult({ testId }: IUseTestResultProps): IUseTestResultReturn {
+/**
+ * 심리테스트 결과 로드 훅
+ * - 세션 스토리지에서 응답 데이터 조회
+ * - 결과 매칭 및 로드
+ *
+ * Note: 사용자 정보는 컴포넌트에서 useAuth 직접 호출
+ */
+export function useTestResult({ testId }: IUseTestResultProps) {
 	const [isLoading, setIsLoading] = useState(true);
 	const [testResult, setTestResult] = useState<TestResult | null>(null);
 	const [totalScore, setTotalScore] = useState<number>(0);
 	const [userGender, setUserGender] = useState<string | null>(null);
 	const [error, setError] = useState<string | null>(null);
-	const { isAuthenticated, user } = useAuth();
-
-	const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || null;
-	const isLoggedIn = isAuthenticated;
 
 	const loadResultData = useCallback(async () => {
 		if (!testId) {
@@ -47,8 +38,8 @@ export function useTestResult({ testId }: IUseTestResultProps): IUseTestResultRe
 				testService.getTestResultsByTestId(testId),
 			]);
 
-			const { responseData: userResponseData, totalScore, userGender } = responseData;
-			const matchingResult = testService.findMatchingResult(userResponseData, results, totalScore, userGender);
+			const { responseData: userResponseData, totalScore, userGender, codes } = responseData;
+			const matchingResult = testService.findMatchingResult(userResponseData, results, totalScore, userGender, codes);
 
 			if (!matchingResult) {
 				setError('테스트 결과를 찾을 수 없습니다.');
@@ -69,5 +60,5 @@ export function useTestResult({ testId }: IUseTestResultProps): IUseTestResultRe
 		loadResultData();
 	}, [loadResultData]);
 
-	return { testResult, totalScore, userGender, isLoading, error, isLoggedIn, userName };
+	return { testResult, totalScore, userGender, isLoading, error };
 }
