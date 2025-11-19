@@ -2,13 +2,13 @@
 
 import { useState, useMemo } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import type { Category } from '@pickid/supabase';
 import { DefaultSelect } from '@pickid/ui';
+import type { Category, Test } from '@pickid/supabase';
 import { CategoryNavigation } from './category-navigation';
-import { CategoryCard, type ITestItem } from './category-card';
+import { CategoryCard } from './category-card';
 
 interface CategoryContainerProps {
-	allTests: ITestItem[];
+	allTests: Test[];
 	allCategories: Category[];
 }
 
@@ -17,25 +17,19 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 	const searchParams = useSearchParams();
 	const [sortBy, setSortBy] = useState<'recent' | 'starts'>('recent');
 
-	// 현재 선택된 카테고리 (URL에서 가져오기, 기본값: 첫 번째)
 	const currentSlug = searchParams.get('category') || allCategories[0]?.slug || '';
 	const currentCategory = allCategories.find((cat) => cat.slug === currentSlug);
 
-	// 카테고리별 테스트 필터링
+	// 필터링
 	const filteredTests = useMemo(() => {
 		if (!currentCategory) return [];
 
 		return allTests.filter((test) => {
-			if (!test.category_ids) return false;
+			const categoryIds = test.category_ids;
+			if (!categoryIds) return false;
 
-			// category_ids를 배열로 변환
-			const categoryIds = Array.isArray(test.category_ids)
-				? test.category_ids
-				: typeof test.category_ids === 'string'
-					? [test.category_ids]
-					: [];
-
-			return categoryIds.includes(currentCategory.id as string);
+			const ids = Array.isArray(categoryIds) ? categoryIds : [categoryIds];
+			return ids.includes(currentCategory.id);
 		});
 	}, [allTests, currentCategory]);
 
@@ -45,11 +39,10 @@ export function CategoryContainer({ allTests, allCategories }: CategoryContainer
 			if (sortBy === 'recent') {
 				return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
 			}
-			return (b.starts || 0) - (a.starts || 0);
+			return (b.start_count || 0) - (a.start_count || 0);
 		});
 	}, [filteredTests, sortBy]);
 
-	// 카테고리 변경 핸들러
 	const handleCategoryChange = (targetSlug: string) => {
 		const params = new URLSearchParams(searchParams);
 		params.set('category', targetSlug);

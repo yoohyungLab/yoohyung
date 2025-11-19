@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import { useDashboard } from '@/hooks/useDashboard';
 import { KPICard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
 
+
 export function SimplifiedDashboard() {
 	const { stats, topTests, loading, error, lastUpdated } = useDashboard();
 

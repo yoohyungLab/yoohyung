@@ -1,4 +1,5 @@
 import { createServerClient, supabase } from '@pickid/supabase';
+import { handleSupabaseError } from '@/shared/lib';
 
 // 타입 정의
 
@@ -38,11 +39,6 @@ function getClient() {
 	return typeof window === 'undefined' ? createServerClient() : supabase;
 }
 
-function handleError(error: unknown, context: string): never {
-	console.error(`[${context}] Error:`, error);
-	throw error;
-}
-
 // 밸런스게임 통계 서비스 (순수 데이터 접근만)
 
 export const optimizedBalanceGameStatsService = {
@@ -60,7 +56,7 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 		} catch (error) {
-			handleError(error, 'incrementChoiceCount');
+			handleSupabaseError(error, 'incrementChoiceCount');
 		}
 	},
 
@@ -97,7 +93,7 @@ export const optimizedBalanceGameStatsService = {
 			console.log('[batchIncrementChoices] All increments completed successfully:', results);
 		} catch (error) {
 			console.error('[batchIncrementChoices] Fatal error:', error);
-			handleError(error, 'batchIncrementChoices');
+			handleSupabaseError(error, 'batchIncrementChoices');
 		}
 	},
 
@@ -129,7 +125,7 @@ export const optimizedBalanceGameStatsService = {
 				totalResponses,
 			};
 		} catch (error) {
-			handleError(error, 'getQuestionStatsRaw');
+			handleSupabaseError(error, 'getQuestionStatsRaw');
 		}
 	},
 
@@ -177,7 +173,7 @@ export const optimizedBalanceGameStatsService = {
 				};
 			});
 		} catch (error) {
-			handleError(error, 'getAllQuestionStatsRaw');
+			handleSupabaseError(error, 'getAllQuestionStatsRaw');
 		}
 	},
 
@@ -209,7 +205,7 @@ export const optimizedBalanceGameStatsService = {
 				responseCount: choice.response_count || 0,
 			}));
 		} catch (error) {
-			handleError(error, 'getPopularChoicesRaw');
+			handleSupabaseError(error, 'getPopularChoicesRaw');
 		}
 	},
 };

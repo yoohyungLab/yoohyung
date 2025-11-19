@@ -1,10 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCategoriesData } from '@pickid/supabase';
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
+import { handleSupabaseError } from '@/shared/lib';
 
 export const categoryService = {
 	getClient() {

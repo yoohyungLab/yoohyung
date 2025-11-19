@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import { useTestBalanceGameQuestionStats } from '@/features/test/model';
-import { applyOptimisticUpdate, calculatePercentages } from '@/shared/lib/balance-game';
+import { calculatePercentages } from '@/shared/lib/balance-game';
+import { getBalanceGameAnswers } from '../../lib/session-storage';
 import { Button } from '@pickid/ui';
 import Image from 'next/image';
 import type { ColorTheme } from '../../lib/themes';
@@ -14,12 +15,13 @@ interface BalanceGameQuestionContainerProps {
 	question: TestWithNestedDetails['questions'][0];
 	currentIndex: number;
 	totalQuestions: number;
+	testId: string;
 	onAnswer: (questionId: string, choiceId: string) => void;
 	theme: ColorTheme;
 }
 
 export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainerProps) {
-	const { question, currentIndex, totalQuestions, onAnswer, theme } = props;
+	const { question, currentIndex, totalQuestions, testId, onAnswer, theme } = props;
 
 	const progress = useProgress(currentIndex, totalQuestions);
 	const [selectedChoice, setSelectedChoice] = useState<string | null>(null);
@@ -91,7 +93,35 @@ export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainer
 		);
 	}
 
-	// 중간 결과 화면 (낙관적 업데이트만 사용)
+	// 중간 결과 화면 (API 데이터 + 누적된 로컬 선택값 적용)
+	const accumulatedStats = useMemo(() => {
+		// 1. 기존 API 통계 데이터
+		const baseChoices =
+			stats?.choiceStats?.map((cs) => ({
+				choiceId: cs.choiceId,
+				responseCount: cs.responseCount,
+			})) ||
+			question.choices.map((c) => ({
+				choiceId: c.id as string,
+				responseCount: 0,
+			}));
+
+		// 2. 현재까지 누적된 로컬 선택값들 가져오기
+		const localAnswers = getBalanceGameAnswers(testId);
+
+		// 3. 로컬 선택값들을 모두 적용 (누적)
+		const updatedChoices = baseChoices.map((choice) => {
+			const localCount = localAnswers.filter((a) => a.choiceId === choice.choiceId).length;
+			return {
+				choiceId: choice.choiceId,
+				responseCount: choice.responseCount + localCount,
+			};
+		});
+
+		// 4. 퍼센티지 계산
+		return calculatePercentages(updatedChoices);
+	}, [stats, testId, question.choices, selectedChoice]); // selectedChoice 변경시 재계산
+
 	return (
 		<QuestionLayout current={progress.current} total={progress.total} percentage={progress.percentage} theme={theme}>
 			{/* 질문 */}
@@ -119,22 +149,7 @@ export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainer
 			{/* 통계 결과 */}
 			<div className="space-y-3 mb-6">
 				{(() => {
-					// 기존 통계 데이터 준비
-					const baseChoices =
-						stats?.choiceStats?.map((cs) => ({
-							choiceId: cs.choiceId,
-							responseCount: cs.responseCount,
-						})) ||
-						question.choices.map((c) => ({
-							choiceId: c.id as string,
-							responseCount: 0,
-						}));
-
-					// 낙관적 업데이트 적용 (+1)
-					const optimisticChoices = selectedChoice ? applyOptimisticUpdate(baseChoices, selectedChoice) : baseChoices;
-
-					// 퍼센티지 계산
-					const choicesWithPercentage = calculatePercentages(optimisticChoices);
+					const choicesWithPercentage = accumulatedStats;
 
 					return question.choices?.map((choice, index) => {
 						const isSelected = selectedChoice === choice.id;

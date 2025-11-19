@@ -1,12 +1,8 @@
 import { supabase } from '@pickid/supabase';
 import type { Feedback, FeedbackStats, AdminFeedbackResponse } from '@pickid/supabase';
+import { handleSupabaseError } from '@/shared/lib';
 
 export type { AdminFeedbackResponse, FeedbackStats };
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
 
 export const feedbackService = {
 	async getFeedbacks(): Promise<Feedback[]> {

@@ -4,11 +4,12 @@ import { categoryService } from '@/shared/api';
 import { queryKeys } from '@/shared/lib/query-client';
 import type { Category, CategoryFilters } from '@pickid/supabase';
 
-interface CategoryStats {
+interface ICategoryStats {
 	total: number;
 	active: number;
 	inactive: number;
 }
+
 
 export const useCategories = () => {
 	const queryClient = useQueryClient();
@@ -28,7 +29,7 @@ export const useCategories = () => {
 	});
 
 	// 통계 계산
-	const stats = useMemo((): CategoryStats => {
+	const stats = useMemo((): ICategoryStats => {
 		if (categories.length === 0) {
 			return {
 				total: 0,

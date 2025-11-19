@@ -13,6 +13,7 @@ type UserTestResponseInsert = Database['public']['Tables']['user_test_responses'
 type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 import type { TestCompletionResult } from '@/shared/types';
+import { handleSupabaseError, isNotFoundError } from '@/shared/lib';
 
 const TEST_DETAILS_QUERY = `
 	*,
@@ -55,15 +56,6 @@ const USER_RESPONSE_QUERY = `
 	*,
 	test_results:result_id(*)
 `;
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
-
-const isNotFoundError = (error: unknown) => {
-	return (error as { code?: string })?.code === 'PGRST116';
-};
 
 export const testService = {
 	// 클라이언트 팩토리: 공식 가이드에 맞춰 SSR/CSR 분기
@@ -505,8 +497,9 @@ export const testService = {
 	 * 1. 사용자 답변 코드의 빈도 계산 및 정렬 (가장 많이 선택된 성향 우선)
 	 * 2. 매칭 전략을 순차적으로 시도:
 	 *    - 전략 1: 단일 코드 정확 매칭 (예: "P" → "P")
-	 *    - 전략 2: 조합 코드 포함 여부 (예: "E" → "P+E" 또는 "E+S")
-	 *    - 전략 3: 상위 2개 코드 조합 (예: P+E, E+P)
+	 *    - 전략 2: 동일 코드 조합 매칭 (예: H 압도적 → "H+H")
+	 *    - 전략 3: 상위 2개 코드 조합 (예: H+S, S+H)
+	 *    - 전략 4: 조합 코드 포함 여부 (예: "E" → "P+E" 또는 "E+S")
 	 */
 	findResultByCode(results: TestResult[], codes: string[]): TestResult | null {
 		if (!codes || codes.length === 0) {
@@ -557,12 +550,12 @@ export const testService = {
 			}
 		});
 
-		const sortedCodes = Object.entries(codeCounts)
-			.sort((a, b) => b[1] - a[1])
-			.map(([code]) => code);
+		const sortedEntries = Object.entries(codeCounts).sort((a, b) => b[1] - a[1]);
+		const sortedCodes = sortedEntries.map(([code]) => code);
 
 		if (sortedCodes.length === 0) return null;
 
+		console.log('[findResultByCode] 코드 빈도:', codeCounts);
 		console.log('[findResultByCode] 정렬된 코드 (빈도순):', sortedCodes);
 
 		// 결과별 match_conditions 확인 (디버깅)
@@ -576,7 +569,8 @@ export const testService = {
 
 		// 2. 매칭 전략 순차 시도
 		const dominantCode = sortedCodes[0];
-		console.log('[findResultByCode] 가장 많이 선택된 코드:', dominantCode);
+		const dominantCount = codeCounts[dominantCode];
+		console.log('[findResultByCode] 가장 많이 선택된 코드:', dominantCode, '빈도:', dominantCount);
 
 		// 전략 1: 단일 코드 정확 매칭
 		let matchingResult = findByCode(dominantCode);
@@ -588,23 +582,37 @@ export const testService = {
 			return matchingResult;
 		}
 
-		// 전략 2: 조합 코드에 포함 여부 (예: "E" → "P+E")
-		matchingResult = findByCombinationInclusion(dominantCode);
-		if (matchingResult) {
-			console.log(`[findResultByCode] ✓ 조합 코드 포함 매칭 성공: ${matchingResult.result_name}`, {
-				userCode: dominantCode,
-				resultCodes: getResultCodes(matchingResult),
-			});
-			return matchingResult;
+		// 전략 2: 동일 코드 조합 매칭 (H+H)
+		// 조건: 가장 많이 선택된 코드가 압도적일 때 (전체의 60% 이상 또는 2위와 차이가 2배 이상)
+		if (sortedCodes.length >= 1) {
+			const totalCodes = codes.length;
+			const secondCount = sortedCodes.length >= 2 ? codeCounts[sortedCodes[1]] : 0;
+			const isDominant = dominantCount / totalCodes >= 0.6 || dominantCount >= secondCount * 2;
+
+			if (isDominant) {
+				const sameCodeCombination = `${dominantCode}+${dominantCode}`;
+				matchingResult = findByCode(sameCodeCombination);
+				if (matchingResult) {
+					console.log(`[findResultByCode] ✓ 동일 코드 조합 매칭 성공: ${matchingResult.result_name}`, {
+						sameCodeCombination,
+						dominantCount,
+						totalCodes,
+						ratio: (dominantCount / totalCodes * 100).toFixed(1) + '%',
+						resultCodes: getResultCodes(matchingResult),
+					});
+					return matchingResult;
+				}
+			}
 		}
 
-		// 전략 3: 상위 2개 코드 조합 (P+E, E+P)
+		// 전략 3: 상위 2개 코드 조합 (H+S, S+H)
 		if (sortedCodes.length >= 2) {
 			const combinedCode = `${sortedCodes[0]}+${sortedCodes[1]}`;
 			matchingResult = findByCode(combinedCode);
 			if (matchingResult) {
 				console.log(`[findResultByCode] ✓ 조합 코드 매칭 성공: ${matchingResult.result_name}`, {
 					combinedCode,
+					counts: [codeCounts[sortedCodes[0]], codeCounts[sortedCodes[1]]],
 					resultCodes: getResultCodes(matchingResult),
 				});
 				return matchingResult;
@@ -616,10 +624,21 @@ export const testService = {
 			if (matchingResult) {
 				console.log(`[findResultByCode] ✓ 역순 조합 코드 매칭 성공: ${matchingResult.result_name}`, {
 					reverseCombinedCode,
+					counts: [codeCounts[sortedCodes[1]], codeCounts[sortedCodes[0]]],
 					resultCodes: getResultCodes(matchingResult),
 				});
 				return matchingResult;
 			}
+		}
+
+		// 전략 4: 조합 코드에 포함 여부 (예: "E" → "P+E")
+		matchingResult = findByCombinationInclusion(dominantCode);
+		if (matchingResult) {
+			console.log(`[findResultByCode] ✓ 조합 코드 포함 매칭 성공: ${matchingResult.result_name}`, {
+				userCode: dominantCode,
+				resultCodes: getResultCodes(matchingResult),
+			});
+			return matchingResult;
 		}
 
 		console.log('[findResultByCode] ✗ 매칭 실패: 모든 전략 시도 완료');
@@ -664,3 +683,5 @@ export const testService = {
 		}
 	},
 };
+
+

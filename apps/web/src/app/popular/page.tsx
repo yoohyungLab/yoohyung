@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { popularService } from '@/shared/api/services/popular.service';
 import { CategoryContainer } from '@/features/category/ui/category-container';
 import { generatePageMetadata } from '@/shared/lib/metadata';
-import type { Category } from '@pickid/supabase';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '인기 테스트',
@@ -17,7 +16,7 @@ export default async function PopularPage() {
 		const { tests, categories } = await popularService.getPopularPageData();
 		return (
 			<Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
-				<CategoryContainer allTests={tests} allCategories={categories as Category[]} />
+				<CategoryContainer allTests={tests} allCategories={categories} />
 			</Suspense>
 		);
 	} catch (error) {

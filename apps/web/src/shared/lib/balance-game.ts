@@ -178,6 +178,7 @@ export function findChoiceStat(
 
 /**
  * 가장 논란이 많은 질문 찾기 (선택지 비율이 가장 비슷한 질문)
+ * @param questionStats 질문별 통계 배열
  */
 export function findControversialChoice(
 	questionStats: Array<{
@@ -193,6 +194,8 @@ export function findControversialChoice(
 	let smallestDifference = Infinity;
 
 	questionStats.forEach((question) => {
+		// 응답이 하나도 없는 질문은 제외
+		if (question.totalResponses === 0) return;
 		if (question.choiceStats.length < 2) return;
 
 		const [choiceA, choiceB] = question.choiceStats;
@@ -228,6 +231,7 @@ export function findControversialChoice(
 
 /**
  * 가장 압도적인 선택이 있는 질문 찾기 (한쪽 선택지가 월등히 많은 질문)
+ * @param questionStats 질문별 통계 배열
  */
 export function findOverwhelmingChoice(
 	questionStats: Array<{
@@ -243,6 +247,8 @@ export function findOverwhelmingChoice(
 	let bestDominanceScore = 0;
 
 	questionStats.forEach((question) => {
+		// 응답이 하나도 없는 질문은 제외
+		if (question.totalResponses === 0) return;
 		if (question.choiceStats.length < 2) return;
 
 		const [choiceA, choiceB] = question.choiceStats;

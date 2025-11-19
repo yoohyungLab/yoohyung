@@ -4,7 +4,6 @@ import { Suspense } from 'react';
 import { CategoryContainer } from '@/features/category/ui/category-container';
 import { categoryService } from '@/shared/api/services/category.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
-import type { ITestItem } from '@/features/category/ui/category-card';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '카테고리별 테스트',
@@ -18,11 +17,10 @@ export default async function CategoryPage() {
 		if (!allCategoryData) notFound();
 
 		const { allCategories, allTests } = allCategoryData;
-		const transformedTests = categoryService.transformTestData(allTests) as ITestItem[];
 
 		return (
 			<Suspense fallback={<div className="min-h-screen flex items-center justify-center">로딩 중...</div>}>
-				<CategoryContainer allTests={transformedTests} allCategories={allCategories} />
+				<CategoryContainer allTests={allTests} allCategories={allCategories} />
 			</Suspense>
 		);
 	} catch (error) {

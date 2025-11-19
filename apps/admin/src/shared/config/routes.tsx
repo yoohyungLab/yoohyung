@@ -1,6 +1,6 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AdminLoginPage } from '@/pages/auth/admin-login-page';
-import { AdminLayout } from '@/widgets/layout/admin-layout';
+import { AdminLayout } from '@/components/layout';
 import { SimplifiedDashboard } from '@/pages/dashboard-page';
 import { TestListPage } from '@/pages/tests/test-list-page';
 import CategoryListPage from '@/pages/categories/category-list-page';

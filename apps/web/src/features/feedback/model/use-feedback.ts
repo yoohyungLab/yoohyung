@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { feedbackService } from '@/shared/api/services/feedback.service';
-import type { Feedback } from '@pickid/supabase';
 
 interface ISubmitFeedbackData {
 	title: string;

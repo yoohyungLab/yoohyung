@@ -1,5 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { Category, Test, TestCard, HomePageData } from '@pickid/supabase';
+import { handleSupabaseError } from '@/shared/lib';
 
 const getCategoryNames = (categoryIds: string[] | null, categories: Category[]): string[] => {
 	if (!categoryIds || categoryIds.length === 0) return ['미분류'];
@@ -25,11 +26,6 @@ const transformToTestCard = (test: Test, categories: Category[]): TestCard => ({
 	starts: test.start_count,
 	completions: test.response_count,
 });
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
 
 export const homeService = {
 	getClient() {

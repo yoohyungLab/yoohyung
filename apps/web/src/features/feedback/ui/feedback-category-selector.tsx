@@ -1,6 +1,5 @@
 'use client';
 
-import { useCallback } from 'react';
 import { FEEDBACK_CATEGORIES } from '@/shared/constants';
 
 interface FeedbackCategorySelectorProps {
@@ -9,14 +8,15 @@ interface FeedbackCategorySelectorProps {
 	error?: string;
 }
 
-export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, error }: FeedbackCategorySelectorProps) {
-	const handleCategoryClick = useCallback(
-		(key: string) => {
-			onCategoryChange(key);
-		},
-		[onCategoryChange]
-	);
+const CATEGORY_CONFIG = {
+	bug: { emoji: '🐛', description: '오류나 문제점을 신고해주세요' },
+	feature: { emoji: '💡', description: '새로운 기능을 제안해주세요' },
+	ui: { emoji: '🎨', description: '디자인 개선사항을 알려주세요' },
+	content: { emoji: '📝', description: '콘텐츠 관련 의견을 주세요' },
+	other: { emoji: '💭', description: '기타 의견을 남겨주세요' },
+} as const;
 
+export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, error }: FeedbackCategorySelectorProps) {
 	return (
 		<div className="space-y-2">
 			<label className="text-sm font-semibold text-gray-900">
@@ -25,25 +25,13 @@ export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, e
 			<div className="grid grid-cols-2 gap-2">
 				{Object.entries(FEEDBACK_CATEGORIES).map(([key, label]) => {
 					const isSelected = selectedCategory === key;
-					const emojis: Record<string, string> = {
-						bug: '🐛',
-						feature: '💡',
-						ui: '🎨',
-						content: '📝',
-						other: '💭',
-					};
-					const descriptions: Record<string, string> = {
-						bug: '오류나 문제점을 신고해주세요',
-						feature: '새로운 기능을 제안해주세요',
-						ui: '디자인 개선사항을 알려주세요',
-						content: '콘텐츠 관련 의견을 주세요',
-						other: '기타 의견을 남겨주세요',
-					};
+					const config = CATEGORY_CONFIG[key as keyof typeof CATEGORY_CONFIG];
+
 					return (
 						<button
 							key={key}
 							type="button"
-							onClick={() => handleCategoryClick(key)}
+							onClick={() => onCategoryChange(key)}
 							className={`
 								text-left p-3 border rounded-lg transition-all
 								${isSelected ? 'border-gray-900 bg-gray-50' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'}
@@ -51,10 +39,10 @@ export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, e
 							`}
 						>
 							<div className="flex items-start gap-2">
-								<span className="text-lg flex-shrink-0">{emojis[key]}</span>
+								<span className="text-lg flex-shrink-0">{config.emoji}</span>
 								<div className="flex-1 min-w-0">
 									<div className="text-xs font-bold text-gray-900 mb-0.5">{label}</div>
-									<div className="text-[10px] text-gray-500 line-clamp-1">{descriptions[key]}</div>
+									<div className="text-[10px] text-gray-500 line-clamp-1">{config.description}</div>
 								</div>
 								{isSelected && (
 									<div className="w-4 h-4 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">

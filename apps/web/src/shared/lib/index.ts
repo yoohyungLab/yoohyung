@@ -1,8 +1,4 @@
-/**
- * Shared Lib - Public API
- *
- * FSD 구조: 기능별로 그룹화된 유틸리티 함수들
- */
+
 
 // ============ Analytics ============
 export { trackResultViewed, trackResultShared, trackTestStart } from './analytics';
@@ -21,17 +17,39 @@ export {
 } from './color-utils';
 
 // ============ Format Utils ============
-export { formatDate, formatDateTime, parseDescription } from './format-utils';
+export {
+	formatDate,
+	formatDateTime,
+	parseDescription,
+	parseStringOrArray,
+	parseGifts,
+	parseCompatibility,
+	parseJobs,
+} from './format-utils';
 
 // ============ Error Handling ============
-export { mapAuthError } from './error-mapper';
+export { mapAuthError, mapApiError } from './error-mapper';
+export { handleSupabaseError, isNotFoundError } from './supabase-error-handler';
 
 // ============ Query Client ============
 export { queryClient } from './query-client';
 
 // ============ Test Utils ============
-export { isMobileDevice } from './test-utils';
+export { isMobileDevice, getHomeButtonText, getTestTypeName } from './test-utils';
 export { mapTestWithDetailsToNested } from './test-mappers';
+
+// ============ Type Guards ============
+export {
+	isString,
+	isNumber,
+	isArray,
+	isStringArray,
+	isObject,
+	asString,
+	asNumber,
+	asStringArray,
+	asObject,
+} from './type-guards';
 
 // ============ Common Utils ============
 export { cn } from './utils';

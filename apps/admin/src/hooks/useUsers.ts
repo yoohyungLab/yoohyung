@@ -3,8 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { userService } from '@/shared/api';
 import { queryKeys } from '@/shared/lib/query-client';
 
-// 간단한 사용자 타입 정의
-interface User {
+interface IUser {
 	id: string;
 	email: string;
 	name?: string;
@@ -14,15 +13,16 @@ interface User {
 	created_at?: string;
 }
 
-interface UserFilters {
+interface IUserFilters {
 	search?: string;
 	status?: 'all' | 'active' | 'inactive' | 'deleted';
 	provider?: 'all' | 'email' | 'google' | 'kakao';
 }
 
-export const useUsers = (initialFilters: UserFilters = {}) => {
-	const [filters, setFilters] = useState<UserFilters>(initialFilters);
-	const [modalUser, setModalUser] = useState<User | null>(null);
+
+export const useUsers = (initialFilters: IUserFilters = {}) => {
+	const [filters, setFilters] = useState<IUserFilters>(initialFilters);
+	const [modalUser, setModalUser] = useState<IUser | null>(null);
 	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 	const queryClient = useQueryClient();
 
@@ -73,11 +73,11 @@ export const useUsers = (initialFilters: UserFilters = {}) => {
 	});
 
 	// 액션들
-	const updateFilters = useCallback((newFilters: Partial<UserFilters>) => {
+	const updateFilters = useCallback((newFilters: Partial<IUserFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	const openModal = useCallback((user: User) => setModalUser(user), []);
+	const openModal = useCallback((user: IUser) => setModalUser(user), []);
 	const closeModal = useCallback(() => setModalUser(null), []);
 	const clearSelection = useCallback(() => setSelectedUsers([]), []);
 
@@ -115,7 +115,6 @@ export const useUsers = (initialFilters: UserFilters = {}) => {
 		isSyncing: syncMutation.isPending,
 	};
 };
-
 
 
 

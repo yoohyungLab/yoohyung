@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { analyticsService, dashboardService } from '@/shared/api';
 import { queryKeys } from '@/shared/lib/query-client';
 
+
 export const useDashboard = () => {
 	const statsQuery = useQuery({
 		queryKey: queryKeys.analytics.dashboard(),

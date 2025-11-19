@@ -9,6 +9,8 @@ import { BalanceGameQuestionContainer } from './balance-game/balance-game-questi
 import { QuizQuestionContainer } from './quiz';
 import { PsychologyQuestionContainer } from './psychology';
 import { colorThemes, saveTestResult, getGrade } from '../lib';
+import { addBalanceGameAnswer, clearBalanceGameAnswers, getBalanceGameAnswers } from '../lib/session-storage';
+import { optimizedBalanceGameStatsService } from '@/shared/api/services';
 
 interface TestPageClientProps {
 	test: TestWithNestedDetails;
@@ -56,7 +58,7 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		setIsStarting(false);
 	};
 
-	const handleAnswer = (choiceId: string, questionId?: string) => {
+	const handleAnswer = async (choiceId: string, questionId?: string) => {
 		const qId = questionId || (currentQuestion.id as string);
 		const selectedChoice = currentQuestion.choices?.find((c) => c.id === choiceId);
 		const code = (selectedChoice as { code?: string })?.code;
@@ -79,9 +81,14 @@ export function TestPageClient({ test }: TestPageClientProps) {
 
 		setAnswers(newAnswers);
 
+		// 밸런스 게임인 경우 로컬에 누적 저장 (DB 저장은 마지막에 한번에)
+		if (testType === 'balance') {
+			addBalanceGameAnswer(test.test?.id as string, qId, choiceId);
+		}
+
 		if (isLastQuestion) {
 			console.log('[handleAnswer] 마지막 질문 - 저장할 답변:', newAnswers);
-			saveResult(newAnswers);
+			await saveResult(newAnswers);
 			router.push(`/tests/${test.test?.id}/result`);
 		} else {
 			setCurrentIndex(currentIndex + 1);
@@ -93,15 +100,50 @@ export function TestPageClient({ test }: TestPageClientProps) {
 
 	// Helper Functions
 
-	const saveResult = (finalAnswers: IAnswer[]) => {
+	const saveResult = async (finalAnswers: IAnswer[]) => {
 		try {
-			if (testType === 'quiz') {
+			if (testType === 'balance') {
+				await saveBalanceGameResult(finalAnswers);
+			} else if (testType === 'quiz') {
 				saveQuizResult(finalAnswers);
 			} else if (testType === 'psychology') {
 				savePsychologyResult(finalAnswers);
 			}
 		} catch (err) {
 			console.error('Error saving test result:', err);
+		}
+	};
+
+	const saveBalanceGameResult = async (finalAnswers: IAnswer[]) => {
+		try {
+			// 1. 로컬에 누적된 모든 선택값을 DB에 일괄 저장
+			const localAnswers = getBalanceGameAnswers(test.test?.id as string);
+			const choiceIds = localAnswers.map((a) => a.choiceId);
+
+			console.log('[saveBalanceGameResult] DB 일괄 저장 시작:', {
+				choiceIds,
+				localAnswers,
+			});
+
+			await optimizedBalanceGameStatsService.batchIncrementChoices(choiceIds);
+
+			// 2. 세션 스토리지에 답변 저장 (결과 페이지에서 사용)
+			saveTestResult({
+				testId: test.test?.id,
+				answers: finalAnswers,
+			});
+
+			// 3. 로컬 누적 답변 초기화
+			clearBalanceGameAnswers(test.test?.id as string);
+
+			console.log('[saveBalanceGameResult] 밸런스 게임 결과 저장 완료');
+		} catch (error) {
+			console.error('[saveBalanceGameResult] 저장 실패:', error);
+			// 에러가 발생해도 세션 스토리지에는 저장
+			saveTestResult({
+				testId: test.test?.id,
+				answers: finalAnswers,
+			});
 		}
 	};
 
@@ -187,6 +229,7 @@ export function TestPageClient({ test }: TestPageClientProps) {
 				question={currentQuestion}
 				currentIndex={currentIndex}
 				totalQuestions={totalQuestions}
+				testId={test.test?.id as string}
 				onAnswer={(choiceId: string) => handleAnswer(choiceId, currentQuestion.id as string)}
 				theme={theme}
 			/>

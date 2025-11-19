@@ -1,14 +1,32 @@
 // 에러 매핑 유틸리티
 
 /**
- * Supabase Auth 에러를 사용자 친화적인 메시지로 변환
+ * 에러를 에러 맵과 기본 메시지를 사용하여 사용자 친화적인 메시지로 변환하는 공통 함수
  */
-export function mapAuthError(error: unknown): string {
+function mapError(error: unknown, errorMap: Record<string, string>, defaultMessage: string): string {
 	if (!error) return '알 수 없는 오류가 발생했습니다.';
 
 	const errorMessage = typeof error === 'string' ? error : String(error);
 
-	// Supabase Auth 에러 메시지 매핑
+	// 정확한 매칭
+	if (errorMap[errorMessage]) {
+		return errorMap[errorMessage];
+	}
+
+	// 부분 매칭
+	for (const [key, value] of Object.entries(errorMap)) {
+		if (errorMessage.includes(key)) {
+			return value;
+		}
+	}
+
+	return defaultMessage;
+}
+
+/**
+ * Supabase Auth 에러를 사용자 친화적인 메시지로 변환
+ */
+export function mapAuthError(error: unknown): string {
 	const errorMap: Record<string, string> = {
 		'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
 		'Email not confirmed': '이메일 인증이 필요합니다. 이메일을 확인해주세요.',
@@ -23,31 +41,13 @@ export function mapAuthError(error: unknown): string {
 		'For security purposes, an email was sent to you for confirmation': '보안을 위해 확인 이메일이 전송되었습니다.',
 	};
 
-	// 정확한 매칭
-	if (errorMap[errorMessage]) {
-		return errorMap[errorMessage];
-	}
-
-	// 부분 매칭
-	for (const [key, value] of Object.entries(errorMap)) {
-		if (errorMessage.includes(key)) {
-			return value;
-		}
-	}
-
-	// 기본 에러 메시지
-	return '로그인 중 오류가 발생했습니다. 다시 시도해주세요.';
+	return mapError(error, errorMap, '로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
 }
 
 /**
  * 일반적인 API 에러를 사용자 친화적인 메시지로 변환
  */
 export function mapApiError(error: unknown): string {
-	if (!error) return '알 수 없는 오류가 발생했습니다.';
-
-	const errorMessage = typeof error === 'string' ? error : String(error);
-
-	// 일반적인 API 에러 매핑
 	const errorMap: Record<string, string> = {
 		'Network Error': '네트워크 연결을 확인해주세요.',
 		'Request failed with status code 404': '요청한 데이터를 찾을 수 없습니다.',
@@ -57,18 +57,5 @@ export function mapApiError(error: unknown): string {
 		Timeout: '요청 시간이 초과되었습니다. 다시 시도해주세요.',
 	};
 
-	// 정확한 매칭
-	if (errorMap[errorMessage]) {
-		return errorMap[errorMessage];
-	}
-
-	// 부분 매칭
-	for (const [key, value] of Object.entries(errorMap)) {
-		if (errorMessage.includes(key)) {
-			return value;
-		}
-	}
-
-	// 기본 에러 메시지
-	return '요청 처리 중 오류가 발생했습니다.';
+	return mapError(error, errorMap, '요청 처리 중 오류가 발생했습니다.');
 }

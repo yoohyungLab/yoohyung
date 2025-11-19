@@ -1,10 +1,6 @@
 import { supabase } from '@pickid/supabase';
 import type { Feedback } from '@pickid/supabase';
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
+import { handleSupabaseError } from '@/shared/lib';
 
 type ISubmitFeedbackParams = Pick<Feedback, 'title' | 'category'> & {
 	content: string;

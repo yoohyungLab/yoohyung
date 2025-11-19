@@ -1,10 +1,6 @@
 import { supabase } from '@pickid/supabase';
 import type { DashboardOverviewStats, Test, UserTestResponse } from '@pickid/supabase';
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
+import { handleSupabaseError } from '@/shared/lib';
 
 export const analyticsService = {
 	async getTestDetailedStats(testId: string) {

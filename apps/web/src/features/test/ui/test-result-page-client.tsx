@@ -27,12 +27,36 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 	const { isAuthenticated, user } = useAuth();
 	const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || null;
 
+	// 모든 hooks를 최상위에서 호출 (React rules of hooks 준수)
+	const balanceGameData = useBalanceGameResult({ testId });
+	const quizData = useQuizResult({ testId });
+	const psychologyData = useTestResult({ testId });
+
+	// 타입별 데이터 선택
+	const isLoading =
+		normalizedTestType === 'balance'
+			? balanceGameData.isLoading
+			: normalizedTestType === 'quiz'
+			? quizData.isLoading
+			: psychologyData.isLoading;
+	const popularTestsData = usePopularTests({ currentTestId: testId, enabled: !isLoading });
+
+	// 타입별 resultName 계산 (hooks 호출 전에 필요)
+	const resultName =
+		normalizedTestType === 'balance'
+			? balanceGameData.balanceGameResult?.testMetadata?.testTitle || ''
+			: normalizedTestType === 'quiz'
+			? quizData.resultMessage?.result_name || `${quizData.quizResult?.test_title || ''} - ${quizData.quizResult?.score || 0}점`
+			: psychologyData.testResult?.result_name || '';
+
+	// 공유 hook (모든 타입에서 사용)
+	const shareData = useTestResultShare({ testId, resultName });
+
 	// 밸런스게임 결과
 	if (normalizedTestType === 'balance') {
-		const { balanceGameResult, funStats, isLoading, error } = useBalanceGameResult({ testId });
-		const { popularTests } = usePopularTests({ currentTestId: testId, enabled: !isLoading });
-		const testTitle = balanceGameResult?.testMetadata?.testTitle || '';
-		const { handleShare } = useTestResultShare({ testId, resultName: testTitle });
+		const { balanceGameResult, funStats, error } = balanceGameData;
+		const { popularTests } = popularTestsData;
+		const { handleShare } = shareData;
 
 		if (isLoading) return <Loading variant="result" />;
 		if (error || !balanceGameResult) {
@@ -52,7 +76,7 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 						testId={testId}
 						mode="result"
 						onShare={handleShare}
-						resultName={testTitle}
+						resultName={resultName}
 						userName={userName || undefined}
 						isBalanceGame={true}
 						className="mt-6"
@@ -64,10 +88,9 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 
 	// 퀴즈 결과
 	if (normalizedTestType === 'quiz') {
-		const { quizResult, resultMessage, isLoading, error } = useQuizResult({ testId });
-		const { popularTests } = usePopularTests({ currentTestId: testId, enabled: !isLoading });
-		const resultName = resultMessage?.result_name || `${quizResult?.test_title || ''} - ${quizResult?.score || 0}점`;
-		const { handleShare } = useTestResultShare({ testId, resultName });
+		const { quizResult, resultMessage, error } = quizData;
+		const { popularTests } = popularTestsData;
+		const { handleShare } = shareData;
 
 		if (isLoading) return <Loading variant="result" />;
 		if (error || !quizResult) {
@@ -94,9 +117,8 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 	}
 
 	// 심리테스트 결과
-	const { testResult, totalScore, userGender, isLoading, error } = useTestResult({ testId });
-	const resultName = testResult?.result_name || '';
-	const { handleShare } = useTestResultShare({ testId, resultName });
+	const { testResult, totalScore, userGender, error } = psychologyData;
+	const { handleShare } = shareData;
 
 	if (isLoading) return <Loading variant="result" />;
 	if (error || !testResult) {

@@ -4,7 +4,7 @@ import { userResponsesService } from '@/shared/api/services/user-responses.servi
 import { queryKeys } from '@/shared/lib/query-client';
 import type { UserTestResponse } from '@pickid/supabase';
 
-interface UserResponseFilters {
+interface IUserResponseFilters {
 	search?: string;
 	testId?: string;
 	category?: string;
@@ -13,10 +13,11 @@ interface UserResponseFilters {
 	dateTo?: string;
 }
 
+
 export const useUserResponses = () => {
 	const queryClient = useQueryClient();
 	const [error, setError] = useState<string | null>(null);
-	const [filters, setFilters] = useState<UserResponseFilters>({
+	const [filters, setFilters] = useState<IUserResponseFilters>({
 		search: '',
 		testId: 'all',
 		category: 'all',
@@ -144,7 +145,7 @@ export const useUserResponses = () => {
 	});
 
 	// 필터 업데이트
-	const updateFilters = useCallback((newFilters: Partial<UserResponseFilters>) => {
+	const updateFilters = useCallback((newFilters: Partial<IUserResponseFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 

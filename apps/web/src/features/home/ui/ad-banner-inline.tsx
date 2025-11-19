@@ -2,16 +2,14 @@
 
 import Image from 'next/image';
 
-export function AdBannerInline() {
-	const handleClick = () => {
-		window.open('https://afterworkai.club/', '_blank', 'noopener,noreferrer');
-	};
+const AD_URL = 'https://afterworkai.club/';
 
+export function AdBannerInline() {
 	return (
 		<div className="w-full my-8">
 			<div className="relative w-full max-w-4xl mx-auto rounded-lg overflow-hidden shadow-md">
 				<button
-					onClick={handleClick}
+					onClick={() => window.open(AD_URL, '_blank', 'noopener,noreferrer')}
 					className="relative w-full cursor-pointer block"
 					style={{ aspectRatio: '900/450' }}
 					aria-label="광고 배너 클릭"

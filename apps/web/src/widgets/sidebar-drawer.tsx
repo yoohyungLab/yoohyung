@@ -11,11 +11,6 @@ interface SidebarDrawerProps {
 }
 
 export function SidebarDrawer({ isOpen, onOpenChange }: SidebarDrawerProps) {
-	const handleMenuClick = () => {
-		onOpenChange(false);
-		// 라우터 이동은 각 컴포넌트에서 처리
-	};
-
 	return (
 		<Drawer open={isOpen} onOpenChange={onOpenChange}>
 			<DrawerContent className="max-w-mobile mx-auto">
@@ -31,7 +26,7 @@ export function SidebarDrawer({ isOpen, onOpenChange }: SidebarDrawerProps) {
 				</DrawerHeader>
 				<div className="px-6 py-6">
 					<AuthSection onMenuClose={() => onOpenChange(false)} />
-					<MenuContent onMenuClick={handleMenuClick} />
+					<MenuContent onMenuClick={() => onOpenChange(false)} />
 				</div>
 			</DrawerContent>
 		</Drawer>

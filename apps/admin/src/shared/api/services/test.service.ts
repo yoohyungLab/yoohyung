@@ -9,6 +9,7 @@ import type {
 	TestStatus,
 	TestWithNestedDetails,
 } from '@pickid/supabase';
+import { handleSupabaseError, validateRpcResult } from '@/shared/lib';
 
 // 타입 정의
 
@@ -34,31 +35,7 @@ export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 
 	order_index?: number; // result_order의 별칭
 }
 
-// 유틸리티 함수
-
-const handleSupabaseError = (error: unknown, context: string): never => {
-	let message: string;
-
-	if (error instanceof Error) {
-		message = error.message;
-	} else if (typeof error === 'object' && error !== null) {
-		// Supabase 에러 객체 처리
-		message = JSON.stringify(error, null, 2);
-	} else {
-		message = String(error);
-	}
-
-	console.error(`${context} error:`, error);
-	throw new Error(`${context}: ${message}`);
-};
-
-const validateRpcResult = (result: unknown, errorMessage: string) => {
-	const r = result as { success?: boolean; error?: string } | null;
-	if (!r || r.success !== true) {
-		throw new Error(r?.error || errorMessage);
-	}
-	return r;
-};
+// 유틸리티 함수는 shared/lib로 이동되었습니다
 
 // 테스트 서비스
 

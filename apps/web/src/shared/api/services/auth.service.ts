@@ -1,11 +1,7 @@
 import { supabase } from '@pickid/supabase';
 import type { Session, User } from '@supabase/supabase-js';
 import type { AuthResponse, SignUpResponse, SignOutResponse, SessionResponse } from '@pickid/supabase';
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
+import { handleSupabaseError } from '@/shared/lib';
 
 export const authService = {
 	async signInWithPassword(email: string, password: string): Promise<AuthResponse> {

@@ -28,7 +28,8 @@
       "Bash(kill:*)",
       "Bash(pnpm dev)",
       "Bash(pnpm --filter web build:*)",
-      "Bash(mkdir:*)"
+      "Bash(mkdir:*)",
+      "Bash(git checkout:*)"
     ],
     "deny": [],
     "ask": []

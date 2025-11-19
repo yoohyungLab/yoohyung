@@ -1,16 +1,12 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { HomeBalanceGameResponse, VoteResult } from '@pickid/supabase';
 import { calculateABPercentages } from '@/shared/lib/balance-game';
+import { handleSupabaseError } from '@/shared/lib';
 
 // 헬퍼
 
 function getClient() {
 	return typeof window === 'undefined' ? createServerClient() : supabase;
-}
-
-function handleError(error: unknown, context: string): never {
-	console.error(`[${context}] Error:`, error);
-	throw error;
 }
 
 // 홈 밸런스게임 서비스
@@ -113,7 +109,7 @@ export const homeBalanceGameService = {
 				},
 			};
 		} catch (error) {
-			handleError(error, 'vote');
+			handleSupabaseError(error, 'vote');
 		}
 	},
 };

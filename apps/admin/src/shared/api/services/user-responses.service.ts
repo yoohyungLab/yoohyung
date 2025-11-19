@@ -1,5 +1,6 @@
 import { supabase } from '@pickid/supabase';
 import type { UserTestResponse } from '@pickid/supabase';
+import { handleSupabaseError } from '@/shared/lib';
 
 export interface UserResponse extends UserTestResponse {
 	test_title: string;
@@ -60,11 +61,6 @@ export interface ExportData {
 	device_type: UserTestResponse['device_type'];
 	responses_json: string;
 }
-
-const handleSupabaseError = (error: unknown, context: string) => {
-	console.error(`Error in ${context}:`, error);
-	throw error;
-};
 
 export const userResponsesService = {
 	async getResponses(): Promise<UserResponse[]> {

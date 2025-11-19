@@ -18,7 +18,9 @@ export function useCountAnimation(target: number, duration = 2000) {
 		setIsAnimating(true);
 		setCount(0);
 
+		let animationFrameId: number;
 		let startTime: number;
+
 		const animate = (currentTime: number) => {
 			if (!startTime) startTime = currentTime;
 			const progress = Math.min((currentTime - startTime) / duration, 1);
@@ -26,13 +28,19 @@ export function useCountAnimation(target: number, duration = 2000) {
 			setCount(Math.floor(target * easeOutCubic));
 
 			if (progress < 1) {
-				requestAnimationFrame(animate);
+				animationFrameId = requestAnimationFrame(animate);
 			} else {
 				setIsAnimating(false);
 			}
 		};
 
-		requestAnimationFrame(animate);
+		animationFrameId = requestAnimationFrame(animate);
+
+		return () => {
+			if (animationFrameId) {
+				cancelAnimationFrame(animationFrameId);
+			}
+		};
 	}, [target, duration]);
 
 	return { count, isAnimating };

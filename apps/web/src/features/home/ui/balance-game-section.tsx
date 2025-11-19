@@ -1,24 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback } from 'react';
 import { useHomeBalanceGame } from '@/features/home/model';
 
 export default function BalanceGameSection() {
 	const { game, isLoading, vote, isVoting, voteResult, resetVote, error } = useHomeBalanceGame();
 
-	const handleVote = useCallback(
-		(id: 'A' | 'B') => {
-			vote(id);
-		},
-		[vote]
-	);
-
-	if (error) {
-		console.error('Balance game error:', error);
-		// 에러가 발생해도 컴포넌트를 숨김
-		return null;
-	}
+	if (error || !game) return null;
 
 	if (isLoading) {
 		return (
@@ -31,47 +19,25 @@ export default function BalanceGameSection() {
 		);
 	}
 
-	if (!game) return null;
-
 	const showResult = voteResult !== null;
 	const selectedChoice = voteResult?.choice;
 
-	const optionAEmoji = game.optionAEmoji;
-	const optionALabel = game.optionALabel;
-	const optionBEmoji = game.optionBEmoji;
-	const optionBLabel = game.optionBLabel;
-	const totalVotes = game.totalVotes;
-	const votesA = game.votesA;
-	const votesB = game.votesB;
-
 	const stats = voteResult?.stats || {
-		totalVotes,
-		votesA,
-		votesB,
-		percentageA: totalVotes > 0 ? Math.round((votesA / totalVotes) * 100) : 50,
-		percentageB: totalVotes > 0 ? Math.round((votesB / totalVotes) * 100) : 50,
+		totalVotes: game.totalVotes,
+		votesA: game.votesA,
+		votesB: game.votesB,
+		percentageA: game.totalVotes > 0 ? Math.round((game.votesA / game.totalVotes) * 100) : 50,
+		percentageB: game.totalVotes > 0 ? Math.round((game.votesB / game.totalVotes) * 100) : 50,
 	};
 
 	const options = [
-		{
-			id: 'A' as const,
-			emoji: optionAEmoji,
-			label: optionALabel,
-			votes: stats.votesA,
-			percentage: stats.percentageA,
-		},
-		{
-			id: 'B' as const,
-			emoji: optionBEmoji,
-			label: optionBLabel,
-			votes: stats.votesB,
-			percentage: stats.percentageB,
-		},
+		{ id: 'A' as const, emoji: game.optionAEmoji, label: game.optionALabel, votes: stats.votesA, percentage: stats.percentageA },
+		{ id: 'B' as const, emoji: game.optionBEmoji, label: game.optionBLabel, votes: stats.votesB, percentage: stats.percentageB },
 	];
 
 	return (
 		<section className="py-8">
-			<h2 className="text-2xl font-black text-gray-900 mb-4">{game.title as string}</h2>
+			<h2 className="text-2xl font-black text-gray-900 mb-4">{game.title}</h2>
 
 			<div className="bg-white rounded-2xl p-5 relative overflow-hidden border border-gray-200 shadow-sm">
 				{!showResult ? (
@@ -80,9 +46,9 @@ export default function BalanceGameSection() {
 							{options.map(({ id, emoji, label }) => (
 								<button
 									key={id}
-									onClick={() => handleVote(id)}
+									onClick={() => vote(id)}
 									disabled={isVoting}
-									className="group bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 hover:border-gray-900 transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+									className="group bg-gradient-to-br from-gray-50 to-white rounded-xl p-5 border border-gray-200 hover:border-gray-900 transition-all hover:shadow-md active:scale-[0.98] disabled:opacity-50"
 									type="button"
 								>
 									<div className="text-center space-y-2">
@@ -146,11 +112,7 @@ export default function BalanceGameSection() {
 												<span className="text-xs text-gray-500 ml-1">({votes.toLocaleString()}명)</span>
 											</div>
 										</div>
-										<div
-											className={`h-1.5 rounded-full overflow-hidden ${
-												isSelected ? (isA ? 'bg-rose-100' : 'bg-pink-100') : 'bg-gray-200'
-											}`}
-										>
+										<div className={`h-1.5 rounded-full overflow-hidden ${isSelected ? (isA ? 'bg-rose-100' : 'bg-pink-100') : 'bg-gray-200'}`}>
 											<div
 												className={`h-full transition-all duration-1000 ${
 													isSelected
