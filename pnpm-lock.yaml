@@ -263,6 +263,10 @@ importers:
         version: 5.9.3
 
   packages/api:
+    dependencies:
+      '@pickid/supabase':
+        specifier: workspace:*
+        version: link:../supabase
     devDependencies:
       typescript:
         specifier: ^5.7.2

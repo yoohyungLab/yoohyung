@@ -29,7 +29,9 @@
       "Bash(pnpm dev)",
       "Bash(pnpm --filter web build:*)",
       "Bash(mkdir:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(pnpm install:*)",
+      "Bash(pnpm --filter admin build:*)"
     ],
     "deny": [],
     "ask": []
