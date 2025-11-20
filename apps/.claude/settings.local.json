@@ -31,7 +31,9 @@
       "Bash(mkdir:*)",
       "Bash(git checkout:*)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm --filter admin build:*)"
+      "Bash(pnpm --filter admin build:*)",
+      "Bash(git fetch:*)",
+      "Bash(git pull:*)"
     ],
     "deny": [],
     "ask": []
