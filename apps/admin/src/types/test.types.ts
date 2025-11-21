@@ -1,5 +1,5 @@
 import type { Test, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
-import type { TEST_TYPES } from '@/constants/test.constants';
+import type { TEST_TYPES } from '@/constants/test';
 
 // 상수 기반 타입 추론
 

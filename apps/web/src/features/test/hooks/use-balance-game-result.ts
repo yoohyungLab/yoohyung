@@ -3,7 +3,6 @@
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { calculateComparisonStats, findControversialChoice, findOverwhelmingChoice } from '@/shared/lib/balance-game';
-import { mapTestWithDetailsToNested } from '@/shared/lib/test-mappers';
 import { useTestBalanceGameAllQuestionStats } from '@/features/test/model';
 import { testService } from '@/shared/api/services/test.service';
 import { loadTestResult } from '../lib/session-storage';
@@ -47,7 +46,12 @@ function countChoices(userAnswers: IUserAnswer[]) {
 }
 
 // Helper: BalanceGameResult 생성
-function createBalanceGameResult(testId: string, testTitle: string, userAnswers: IUserAnswer[], totalQuestions: number): BalanceGameResult {
+function createBalanceGameResult(
+	testId: string,
+	testTitle: string,
+	userAnswers: IUserAnswer[],
+	totalQuestions: number
+): BalanceGameResult {
 	const { aChoices, bChoices } = countChoices(userAnswers);
 
 	return {
@@ -169,7 +173,7 @@ export function useBalanceGameResult({ testId }: IUseBalanceGameResultProps) {
 
 	return {
 		balanceGameResult,
-		testDetails: testData ? mapTestWithDetailsToNested(testData) : null,
+		testDetails: testData,
 		comparisonStats,
 		funStats,
 		isLoading: isLoadingTest || statsQuery.isLoading,

@@ -42,10 +42,16 @@
 ## State Management
 
 - 서버 상태: TanStack Query(useQuery/useMutation)
-  - queryKey: ['entity', subKey...] 일관화
-  - 기본 staleTime: 5m
+  - queryKey: queryKeys factory 사용 (중앙 집중 관리)
+  - 기본 staleTime: 5m, refetchOnWindowFocus: false, retry: false
 - 클라 상태: Zustand(최소화)
 - 로딩/에러 상태 항상 구현
+
+### QueryKey 관리
+- ❌ 하드코딩: `queryKey: ['test', testId]`
+- ✅ Factory: `queryKey: queryKeys.test.detail(testId)`
+- Option 1: `@lukemorales/query-key-factory` (추천)
+- Option 2: Simple factory pattern
 
 ## Supabase
 
@@ -88,16 +94,19 @@
 ## TypeScript
 
 - strict 모드, any 금지(unknown→좁히기)
-- Interface: `I` prefix
-  ```ts
-  interface IUserInfo {
-    role: TUserRole;
-  }
-  ```
-- Type: `T` prefix
-  ```ts
-  type TUserRole = 's' | 'ds' | 'd';
-  ```
+- Interface: `I` prefix (`IUserInfo`, `ITestCard`)
+- Type: `T` prefix (`TUserRole`, `TTestType`)
+- Enum: `E` prefix (`EUserStatus`)
+
+### Type 구조 (권장)
+```
+shared/types/
+├── index.ts           # Barrel export
+├── common.ts          # 공통 타입
+├── test.ts            # 테스트 타입
+├── user.ts            # 사용자 타입
+└── auth.ts            # 인증 타입
+```
 
 ## Naming Conventions
 
@@ -105,6 +114,26 @@
 - 함수/변수: camelCase
 - 상수: UPPER_SNAKE_CASE
 - 파일: kebab-case
+
+## Constants 구조 (권장)
+```
+shared/constants/
+├── routes.ts          # PATH + HREF 생성 함수
+├── test.ts            # 테스트 관련 상수
+├── categories.ts      # 카테고리 데이터
+└── theme.ts           # 테마/색상
+```
+- ❌ 하드코딩: `/tests/${testId}`
+- ✅ HREF 함수: `HREF.TEST_DETAIL(testId)`
+
+## Import 순서
+```ts
+// 1. React/외부 라이브러리
+// 2. Monorepo 패키지 (@pickid/*)
+// 3. 내부 API/Type/Constant
+// 4. 내부 Hooks/Utils
+// 5. 로컬 컴포넌트/파일
+```
 
 ## Event Handler Naming
 
@@ -246,6 +275,29 @@ if (isLoading) return <Spinner />;
 - 작은 함수/조합형 작성, 과도한 try/catch 금지(의미있는 처리만)
 - 주석은 비자명한 의도/경계만
 - 로딩/에러 상태 항상 구현
+
+---
+
+## 핵심 체크리스트 (코드 작성 전 확인)
+
+### 데이터 관리
+- [ ] QueryKey는 queryKeys factory를 사용하는가?
+- [ ] Type은 도메인별 파일에 정의되어 있는가?
+- [ ] Routes는 HREF 함수를 사용하는가?
+
+### 코드 품질
+- [ ] Props 4개 이상 시 props 변수 사용했는가?
+- [ ] 이벤트 핸들러는 handle prefix 사용했는가?
+- [ ] Import 순서가 올바른가? (외부→monorepo→내부)
+- [ ] any 타입 사용하지 않았는가?
+- [ ] 인라인 함수 사용하지 않았는가?
+
+### 성능/접근성
+- [ ] 불필요한 병렬 패칭 없는가?
+- [ ] Dialog/Drawer에 a11y 속성 있는가?
+- [ ] 이미지에 next/image 사용했는가?
+
+자세한 내용은 `/Users/leemina/side-project/apps/CLAUDE.md` 참고
 - Web(App Router): FSD + MVVM
   - features/\*/ui: View(프레젠테이션)
   - features/\*/hooks: ViewModel(로직/상태)
@@ -269,10 +321,16 @@ if (isLoading) return <Spinner />;
 ## State Management
 
 - 서버 상태: TanStack Query(useQuery/useMutation)
-  - queryKey: ['entity', subKey...] 일관화
-  - 기본 staleTime: 5m
+  - queryKey: queryKeys factory 사용 (중앙 집중 관리)
+  - 기본 staleTime: 5m, refetchOnWindowFocus: false, retry: false
 - 클라 상태: Zustand(최소화)
 - 로딩/에러 상태 항상 구현
+
+### QueryKey 관리
+- ❌ 하드코딩: `queryKey: ['test', testId]`
+- ✅ Factory: `queryKey: queryKeys.test.detail(testId)`
+- Option 1: `@lukemorales/query-key-factory` (추천)
+- Option 2: Simple factory pattern
 
 ## Supabase
 
@@ -315,16 +373,19 @@ if (isLoading) return <Spinner />;
 ## TypeScript
 
 - strict 모드, any 금지(unknown→좁히기)
-- Interface: `I` prefix
-  ```ts
-  interface IUserInfo {
-    role: TUserRole;
-  }
-  ```
-- Type: `T` prefix
-  ```ts
-  type TUserRole = 's' | 'ds' | 'd';
-  ```
+- Interface: `I` prefix (`IUserInfo`, `ITestCard`)
+- Type: `T` prefix (`TUserRole`, `TTestType`)
+- Enum: `E` prefix (`EUserStatus`)
+
+### Type 구조 (권장)
+```
+shared/types/
+├── index.ts           # Barrel export
+├── common.ts          # 공통 타입
+├── test.ts            # 테스트 타입
+├── user.ts            # 사용자 타입
+└── auth.ts            # 인증 타입
+```
 
 ## Naming Conventions
 
@@ -332,6 +393,26 @@ if (isLoading) return <Spinner />;
 - 함수/변수: camelCase
 - 상수: UPPER_SNAKE_CASE
 - 파일: kebab-case
+
+## Constants 구조 (권장)
+```
+shared/constants/
+├── routes.ts          # PATH + HREF 생성 함수
+├── test.ts            # 테스트 관련 상수
+├── categories.ts      # 카테고리 데이터
+└── theme.ts           # 테마/색상
+```
+- ❌ 하드코딩: `/tests/${testId}`
+- ✅ HREF 함수: `HREF.TEST_DETAIL(testId)`
+
+## Import 순서
+```ts
+// 1. React/외부 라이브러리
+// 2. Monorepo 패키지 (@pickid/*)
+// 3. 내부 API/Type/Constant
+// 4. 내부 Hooks/Utils
+// 5. 로컬 컴포넌트/파일
+```
 
 ## Event Handler Naming
 
@@ -473,3 +554,26 @@ if (isLoading) return <Spinner />;
 - 작은 함수/조합형 작성, 과도한 try/catch 금지(의미있는 처리만)
 - 주석은 비자명한 의도/경계만
 - 로딩/에러 상태 항상 구현
+
+---
+
+## 핵심 체크리스트 (코드 작성 전 확인)
+
+### 데이터 관리
+- [ ] QueryKey는 queryKeys factory를 사용하는가?
+- [ ] Type은 도메인별 파일에 정의되어 있는가?
+- [ ] Routes는 HREF 함수를 사용하는가?
+
+### 코드 품질
+- [ ] Props 4개 이상 시 props 변수 사용했는가?
+- [ ] 이벤트 핸들러는 handle prefix 사용했는가?
+- [ ] Import 순서가 올바른가? (외부→monorepo→내부)
+- [ ] any 타입 사용하지 않았는가?
+- [ ] 인라인 함수 사용하지 않았는가?
+
+### 성능/접근성
+- [ ] 불필요한 병렬 패칭 없는가?
+- [ ] Dialog/Drawer에 a11y 속성 있는가?
+- [ ] 이미지에 next/image 사용했는가?
+
+자세한 내용은 `/Users/leemina/side-project/apps/CLAUDE.md` 참고

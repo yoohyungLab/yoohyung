@@ -8,7 +8,12 @@ const nextConfig = {
 				hostname: '**.supabase.co',
 			},
 		],
-		formats: ['image/webp'],
+		formats: ['image/avif', 'image/webp'],
+		// 모바일 고해상도 디스플레이 최적화
+		deviceSizes: [390, 435, 640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+		imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+		// 이미지 품질 기본값 (1-100)
+		minimumCacheTTL: 60,
 	},
 	// 개발 환경에서 소스맵 활성화
 	productionBrowserSourceMaps: true,

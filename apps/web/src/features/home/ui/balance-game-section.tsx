@@ -23,16 +23,16 @@ export default function BalanceGameSection() {
 	const selectedChoice = voteResult?.choice;
 
 	const stats = voteResult?.stats || {
-		totalVotes: game.totalVotes,
-		votesA: game.votesA,
-		votesB: game.votesB,
+		totalVotes: game.totalVotes || 0,
+		votesA: game.votesA || 0,
+		votesB: game.votesB || 0,
 		percentageA: game.totalVotes > 0 ? Math.round((game.votesA / game.totalVotes) * 100) : 50,
 		percentageB: game.totalVotes > 0 ? Math.round((game.votesB / game.totalVotes) * 100) : 50,
 	};
 
 	const options = [
-		{ id: 'A' as const, emoji: game.optionAEmoji, label: game.optionALabel, votes: stats.votesA, percentage: stats.percentageA },
-		{ id: 'B' as const, emoji: game.optionBEmoji, label: game.optionBLabel, votes: stats.votesB, percentage: stats.percentageB },
+		{ id: 'A' as const, emoji: game.optionAEmoji, label: game.optionALabel, votes: stats.votesA || 0, percentage: stats.percentageA || 0 },
+		{ id: 'B' as const, emoji: game.optionBEmoji, label: game.optionBLabel, votes: stats.votesB || 0, percentage: stats.percentageB || 0 },
 	];
 
 	return (

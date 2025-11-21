@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { analyticsService, dashboardService } from '@/shared/api';
+import { analyticsService, dashboardService } from '@/services';
 import { queryKeys } from '@/shared/lib/query-client';
 
 

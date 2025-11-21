@@ -42,25 +42,32 @@ export const FILTER_USER_PROVIDER_OPTIONS = [
 ] as const;
 
 // ===== 카테고리 관련 =====
+// 카테고리 상태 값 상수
+export const CATEGORY_STATUS_VALUES = {
+	ACTIVE: 'active',
+	INACTIVE: 'inactive',
+	ALL: 'all',
+} as const;
+
 export const CATEGORY_STATUS_OPTIONS = [
-	{ value: 'active', label: '활성' },
-	{ value: 'inactive', label: '비활성' },
+	{ value: CATEGORY_STATUS_VALUES.ACTIVE, label: '활성' },
+	{ value: CATEGORY_STATUS_VALUES.INACTIVE, label: '비활성' },
 ] as const;
 
 // 카테고리 라벨과 색상
 export const CATEGORY_STATUS_LABELS = {
-	active: '활성',
-	inactive: '비활성',
+	[CATEGORY_STATUS_VALUES.ACTIVE]: '활성',
+	[CATEGORY_STATUS_VALUES.INACTIVE]: '비활성',
 } as const;
 
 export const CATEGORY_STATUS_COLORS = {
-	active: 'bg-emerald-500 text-white',
-	inactive: 'bg-amber-500 text-white',
+	[CATEGORY_STATUS_VALUES.ACTIVE]: 'bg-emerald-500 text-white',
+	[CATEGORY_STATUS_VALUES.INACTIVE]: 'bg-amber-500 text-white',
 } as const;
 
 // 카테고리 필터용 (전체 옵션 포함)
 export const FILTER_CATEGORY_STATUS_OPTIONS = [
-	{ value: 'all', label: '전체 상태' },
+	{ value: CATEGORY_STATUS_VALUES.ALL, label: '전체 상태' },
 	...CATEGORY_STATUS_OPTIONS,
 ] as const;
 

@@ -62,53 +62,72 @@ export const homeBalanceGameService = {
 
 	/**
 	 * 투표 실행 및 업데이트된 통계 반환
+	 * Supabase RPC 함수를 사용하여 원자적으로 투표를 처리합니다.
 	 */
 	async vote(gameId: string, choice: 'A' | 'B'): Promise<VoteResult> {
 		try {
 			const client = supabase;
 
-			// 1. 현재 게임 데이터 조회
-			const { data: gameData, error: fetchError } = await client
-				.from('home_balance_games')
-				.select('votes_a, votes_b, total_votes')
-				.eq('id', gameId)
-				.single();
+			console.log('[vote] ========== VOTE START ==========');
+			console.log('[vote] GameId:', gameId);
+			console.log('[vote] Choice:', choice);
+			console.log('[vote] Timestamp:', new Date().toISOString());
 
-			if (fetchError) throw fetchError;
+			// Supabase RPC 함수를 사용하여 원자적으로 투표 처리
+			const { data, error } = await client.rpc('increment_balance_game_vote', {
+				p_game_id: gameId,
+				p_choice: choice,
+			});
 
-			// 2. 새로운 값 계산
-			const newVotesA = choice === 'A' ? (gameData.votes_a || 0) + 1 : gameData.votes_a || 0;
-			const newVotesB = choice === 'B' ? (gameData.votes_b || 0) + 1 : gameData.votes_b || 0;
-			const newTotalVotes = (gameData.total_votes || 0) + 1;
+			if (error) {
+				console.error('[vote] ❌ RPC error:', error);
+				throw error;
+			}
 
-			// 3. 게임 통계 업데이트
-			const field = choice === 'A' ? 'votes_a' : 'votes_b';
-			const { error: updateError } = await client
-				.from('home_balance_games')
-				.update({
-					[field]: choice === 'A' ? newVotesA : newVotesB,
-					total_votes: newTotalVotes,
-				})
-				.eq('id', gameId);
+			console.log('[vote] ✅ RPC response:', data);
+			console.log('[vote] 🔍 Is array?:', Array.isArray(data));
+			console.log('[vote] 🔍 Data type:', typeof data);
+			console.log('[vote] 🔍 Data stringified:', JSON.stringify(data, null, 2));
 
-			if (updateError) throw updateError;
+			// RPC 함수는 배열로 게임 객체를 반환
+			const gameData = Array.isArray(data) ? data[0] : data;
 
-			// 4. 퍼센티지 계산
-			const { percentageA, percentageB } = calculateABPercentages(newVotesA, newVotesB);
+			console.log('[vote] 🔍 gameData:', gameData);
+			console.log('[vote] 🔍 gameData type:', typeof gameData);
+			console.log('[vote] 🔍 gameData stringified:', JSON.stringify(gameData, null, 2));
 
-			return {
+			if (!gameData) {
+				throw new Error('RPC 함수가 빈 응답을 반환했습니다');
+			}
+
+			console.log('[vote] 📊 Game data:', {
+				votes_a: gameData.votes_a,
+				votes_b: gameData.votes_b,
+				total_votes: gameData.total_votes,
+			});
+
+			// 퍼센티지 계산
+			const { percentageA, percentageB } = calculateABPercentages(gameData.votes_a, gameData.votes_b);
+
+			const result = {
 				success: true,
 				message: '투표가 완료되었습니다',
 				choice,
 				stats: {
-					totalVotes: newTotalVotes,
-					votesA: newVotesA,
-					votesB: newVotesB,
+					totalVotes: gameData.total_votes,
+					votesA: gameData.votes_a,
+					votesB: gameData.votes_b,
 					percentageA,
 					percentageB,
 				},
 			};
+
+			console.log('[vote] 🎉 Final result:', result);
+			console.log('[vote] ========== VOTE END ==========');
+
+			return result;
 		} catch (error) {
+			console.error('[vote] ❌❌❌ CRITICAL ERROR:', error);
 			handleSupabaseError(error, 'vote');
 		}
 	},

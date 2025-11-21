@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '@pickid/ui';
-import { TEST_TYPES } from '@/constants/test.constants';
+import { TEST_TYPES } from '@/constants/test';
 
 interface TypeSelectionStepProps {
 	selectedType: string | null;

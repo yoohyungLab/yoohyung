@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/leemina/side-project/**)",
+      "Read(//Users/leemina/boolti-web/**)",
+      "Bash(xargs ls:*)",
+      "Bash(tree:*)",
+      "Bash(awk:*)",
+      "Bash(find:*)",
+      "Bash(pnpm type-check)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

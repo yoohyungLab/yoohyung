@@ -29,10 +29,16 @@ export function useVoteBalanceGame() {
 
 	return useMutation<VoteResult, Error, { gameId: string; choice: 'A' | 'B' }>({
 		mutationFn: ({ gameId, choice }) => homeBalanceGameService.vote(gameId, choice),
-		onSuccess: () => {
-			queryClient.invalidateQueries({
+		onSuccess: async (data) => {
+			console.log('[useVoteBalanceGame] Vote successful, refetching data');
+			// 쿼리 무효화 및 즉시 다시 가져오기
+			await queryClient.invalidateQueries({
 				queryKey: queryKeys.homeBalanceGame.current(),
 			});
+			await queryClient.refetchQueries({
+				queryKey: queryKeys.homeBalanceGame.current(),
+			});
+			console.log('[useVoteBalanceGame] Refetch completed');
 		},
 	});
 }
@@ -62,11 +68,24 @@ export function useHomeBalanceGame(): UseHomeBalanceGameReturn {
 		error: gameError,
 		vote: (choice: 'A' | 'B') => {
 			if (!game) return;
-			voteMutation.mutate({ gameId: game.id, choice }, { onSuccess: setLocalVoteResult });
+			console.log('[useHomeBalanceGame] Voting:', choice);
+			voteMutation.mutate(
+				{ gameId: game.id, choice },
+				{
+					onSuccess: (data) => {
+						console.log('[useHomeBalanceGame] Vote success:', data);
+						setLocalVoteResult(data);
+					},
+					onError: (error) => {
+						console.error('[useHomeBalanceGame] Vote error:', error);
+					},
+				}
+			);
 		},
 		isVoting: voteMutation.isPending,
 		voteResult: localVoteResult,
 		resetVote: () => {
+			console.log('[useHomeBalanceGame] Resetting vote');
 			setLocalVoteResult(null);
 			voteMutation.reset();
 		},

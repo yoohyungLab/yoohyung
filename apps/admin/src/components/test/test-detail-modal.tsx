@@ -26,8 +26,8 @@ import {
 } from 'lucide-react';
 import type { TestWithNestedDetails, Category } from '@pickid/supabase';
 import { getTestTypeInfo, getTestStatusInfo } from '@/shared/lib/test-utils';
-import { testService } from '@/shared/api';
-import { categoryService } from '@/shared/api/services/category.service';
+import { testService } from '@/services';
+import { categoryService } from '@/services/category.service';
 import type { TestDetailModalProps, TabType, QuestionWithChoices } from '@/types/test.types';
 import { calculateTestStats, getCategoryNames } from '@/utils/test.utils';
 

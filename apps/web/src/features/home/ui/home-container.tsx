@@ -4,6 +4,7 @@ import { TestSection } from './test-section';
 import BalanceGameSection from './balance-game-section';
 import type { TestCard, Banner } from '@/shared/types';
 import type { Category } from '@pickid/supabase';
+import { AdBannerInline } from './ad-banner-inline';
 
 interface HomeContainerProps {
 	tests: TestCard[];
@@ -45,7 +46,7 @@ export function HomeContainer(props: HomeContainerProps) {
 					{tests.length > 0 && <TestSection tests={tests} title="새로 추가된 테스트" sectionType="new" />}
 
 					{/* 중간 영역 광고 배너 */}
-					{/* <AdBannerInline  /> */}
+					<AdBannerInline />
 
 					<TestSection tests={recommendedTests} title="추천 테스트" sectionType="recommended" />
 

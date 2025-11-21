@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Badge, IconBadge, IconButton } from '@pickid/ui';
-import { userService } from '@/shared/api';
+import { userService } from '@/services';
 import type { UserWithActivity, UserActivityItem, Feedback } from '@pickid/supabase';
 import { getStatusConfig, formatDate, getDaysSinceJoin, getLabelText } from '@/shared/lib';
 import { formatDuration } from '@pickid/shared';

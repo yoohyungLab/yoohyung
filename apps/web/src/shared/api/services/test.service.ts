@@ -143,7 +143,7 @@ export const testService = {
 				if (questionIds.length > 0) {
 					const { data: rawChoices } = await client
 						.from('test_choices')
-						.select('id, choice_text, choice_order, score, is_correct, created_at, question_id')
+						.select('id, choice_text, choice_order, score, is_correct, code, created_at, question_id')
 						.in('question_id', questionIds)
 						.order('choice_order');
 
@@ -157,6 +157,7 @@ export const testService = {
 								choice_order: number;
 								score: number;
 								is_correct: boolean;
+								code: string | null;
 								created_at: string;
 							};
 							if (!byQuestion[choiceData.question_id]) byQuestion[choiceData.question_id] = [];
@@ -166,6 +167,7 @@ export const testService = {
 								choice_order: choiceData.choice_order,
 								score: choiceData.score,
 								is_correct: choiceData.is_correct,
+								code: choiceData.code,
 								created_at: choiceData.created_at,
 							});
 						});
@@ -683,6 +685,7 @@ export const testService = {
 		}
 	},
 };
+
 
 
 

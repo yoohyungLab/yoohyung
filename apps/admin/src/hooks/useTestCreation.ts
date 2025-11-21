@@ -1,5 +1,14 @@
+/**
+ * @hook useTestCreation
+ * @description 테스트 생성/수정 폼 관리 훅 (React Query Mutation 사용)
+ *
+ * 개선 사항:
+ * - useSaveTest mutation 사용
+ * - isLoading은 mutation 상태로 처리
+ */
+
 import { useState } from 'react';
-import { testService } from '@/shared/api';
+import { useSaveTest } from './useSaveTest';
 import type { Database } from '@pickid/supabase';
 import type {
 	BasicInfo,
@@ -8,7 +17,7 @@ import type {
 	ResultVariantRules,
 	UseTestCreationReturn,
 } from '../types/test.types';
-import { DEFAULT_QUESTION, DEFAULT_RESULT } from '../constants/test.constants';
+import { DEFAULT_QUESTION, DEFAULT_RESULT } from '../constants/test';
 import { generateShortCode, generateSlug, createBasicInfoWithShortCode } from '../utils/test.utils';
 
 type TestInsert = Database['public']['Tables']['tests']['Insert'];
@@ -16,9 +25,12 @@ type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert
 type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 export const useTestCreation = (): UseTestCreationReturn => {
+	// React Query Mutation
+	const saveTestMutation = useSaveTest();
+
+	// Local Form State
 	const [step, setStep] = useState(1);
 	const [type, setType] = useState<string | null>(null);
-	const [isLoading, setIsLoading] = useState(false);
 	const [basicInfo, setBasicInfo] = useState<BasicInfo>(createBasicInfoWithShortCode());
 	const [questions, setQuestions] = useState<QuestionData[]>([DEFAULT_QUESTION]);
 	const [results, setResults] = useState<ResultData[]>([DEFAULT_RESULT]);
@@ -93,65 +105,58 @@ export const useTestCreation = (): UseTestCreationReturn => {
 		setResults((prev) => prev.map((r, i) => (i === index ? { ...r, ...updates } : r)));
 	};
 
+	// React Query Mutation 사용
 	const saveTest = async (testId?: string) => {
-		try {
-			setIsLoading(true);
+		const finalShortCode = basicInfo.short_code || generateShortCode();
+		const finalSlug = basicInfo.slug || generateSlug(basicInfo.title || '');
+		const finalStatus = basicInfo.status || 'published';
 
-			const finalShortCode = basicInfo.short_code || generateShortCode();
-			const finalSlug = basicInfo.slug || generateSlug(basicInfo.title || '');
-			const finalStatus = basicInfo.status || 'published';
+		const testData: TestInsert = {
+			...basicInfo,
+			short_code: finalShortCode,
+			slug: finalSlug,
+			id: testId,
+			type: type || 'psychology',
+			status: finalStatus,
+			published_at: finalStatus === 'published' ? new Date().toISOString() : null,
+			category_ids: basicInfo.category_ids || [],
+			requires_gender: Boolean(basicInfo.requires_gender),
+			estimated_time: basicInfo.estimated_time || 5,
+			max_score: basicInfo.max_score || 100,
+			intro_text: basicInfo.intro_text || null,
+			thumbnail_url: basicInfo.thumbnail_url || null,
+			description: basicInfo.description || null,
+		};
 
-			const testData: TestInsert = {
-				...basicInfo,
-				short_code: finalShortCode,
-				slug: finalSlug,
-				id: testId,
-				type: type || 'psychology',
-				status: finalStatus,
-				published_at: finalStatus === 'published' ? new Date().toISOString() : null,
-				category_ids: basicInfo.category_ids || [],
-				requires_gender: Boolean(basicInfo.requires_gender),
-				estimated_time: basicInfo.estimated_time || 5,
-				max_score: basicInfo.max_score || 100,
-				intro_text: basicInfo.intro_text || null,
-				thumbnail_url: basicInfo.thumbnail_url || null,
-				description: basicInfo.description || null,
-			} as TestInsert;
+		const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({
+			question_text: q.question_text,
+			question_order: index,
+			image_url: q.image_url,
+			question_type: q.question_type || 'multiple_choice',
+			correct_answers: q.correct_answers || null,
+			explanation: q.explanation || null,
+			choices: q.choices.map((c, choiceIndex) => ({
+				choice_text: c.choice_text,
+				choice_order: choiceIndex,
+				score: c.score,
+				is_correct: c.is_correct,
+				code: (c as { code?: string | null }).code || null,
+			})),
+		}));
 
-			const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({
-				question_text: q.question_text,
-				question_order: index,
-				image_url: q.image_url,
-				question_type: q.question_type || 'multiple_choice',
-				correct_answers: q.correct_answers || null,
-				explanation: q.explanation || null,
-				choices: q.choices.map((c, choiceIndex) => ({
-					choice_text: c.choice_text,
-					choice_order: choiceIndex,
-					score: c.score,
-					is_correct: c.is_correct,
-					code: (c as { code?: string | null }).code || null,
-				})),
-			}));
+		const resultsData: TestResultInsert[] = results.map((r, index) => ({
+			result_name: r.result_name,
+			description: r.description,
+			result_order: index,
+			background_image_url: r.background_image_url,
+			theme_color: r.theme_color,
+			match_conditions: r.match_conditions,
+			features: r.features,
+			target_gender: r.target_gender || null,
+		}));
 
-			const resultsData: TestResultInsert[] = results.map((r, index) => ({
-				result_name: r.result_name,
-				description: r.description,
-				result_order: index,
-				background_image_url: r.background_image_url,
-				theme_color: r.theme_color,
-				match_conditions: r.match_conditions,
-				features: r.features,
-				target_gender: r.target_gender || null,
-			}));
-
-			return await testService.saveCompleteTest(testData, questionsData, resultsData);
-		} catch (error) {
-			console.error('테스트 저장 실패:', error);
-			throw error;
-		} finally {
-			setIsLoading(false);
-		}
+		// React Query Mutation 호출
+		return saveTestMutation.mutateAsync({ testData, questionsData, resultsData });
 	};
 
 	const resetForm = () => {
@@ -168,7 +173,7 @@ export const useTestCreation = (): UseTestCreationReturn => {
 		basicInfo,
 		questions,
 		results,
-		isLoading,
+		isLoading: saveTestMutation.isPending,
 		setStep,
 		setType,
 		nextStep,
@@ -188,6 +193,5 @@ export const useTestCreation = (): UseTestCreationReturn => {
 		updateResult,
 		saveTest,
 		resetForm,
-		generateShortCode,
 	};
 };

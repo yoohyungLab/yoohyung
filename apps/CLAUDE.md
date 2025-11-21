@@ -258,6 +258,34 @@ import { getUser, getTests } from '@/shared/api/services';
 import * as utils from '@/shared/lib/utils';
 ```
 
+### Import 순서 규칙 (Boolti-web 참고)
+
+```tsx
+// 1. React 및 외부 라이브러리
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { useRouter } from 'next/navigation';
+
+// 2. Monorepo 패키지 (@pickid/*)
+import { Button, Dialog } from '@pickid/ui';
+import { supabase } from '@pickid/supabase';
+import type { Test, TestResult } from '@pickid/supabase';
+
+// 3. 내부 API/Type/Constant
+import { queryKeys } from '@/shared/api/query-keys';
+import { testService } from '@/shared/api/services/test.service';
+import type { ITestCard, TTestType } from '@/shared/types';
+import { HREF, TEST_TYPES } from '@/shared/constants';
+
+// 4. 내부 Hooks/Utils
+import { useAuth } from '@/features/auth/hooks/use-auth';
+import { formatDate, cn } from '@/shared/lib/utils';
+
+// 5. 로컬 컴포넌트/파일
+import { TestCard } from './test-card';
+import * as S from './style';
+```
+
 ### Styled Components
 
 ```tsx
@@ -306,6 +334,143 @@ const { data, isLoading } = useQuery({
 
 // 클라이언트 상태: Zustand (최소화)
 const { openDialog, closeDialog } = useDialogStore();
+```
+
+---
+
+## QueryKey 관리 (중요!)
+
+### 현재 패턴 (개선 대상)
+
+```ts
+// ❌ 각 hook에서 개별 정의
+const { data } = useQuery({
+	queryKey: ['test', testId],
+	queryFn: () => testService.getTest(testId),
+});
+
+const { data } = useQuery({
+	queryKey: ['published-tests'],
+	queryFn: () => testService.getPublishedTests(),
+});
+```
+
+**문제점:**
+
+- QueryKey가 여러 파일에 분산되어 중복/오타 위험
+- 타입 안전성 부족
+- Prefetch/Invalidate 시 키 관리 어려움
+
+### 권장 패턴 (도입 검토)
+
+**Option 1: Query Key Factory 패턴** (Boolti-web 참고)
+
+```ts
+// shared/api/query-keys.ts
+import { createQueryKeys, mergeQueryKeys } from '@lukemorales/query-key-factory';
+
+// 도메인별 queryKey 그룹 정의
+export const testQueryKeys = createQueryKeys('test', {
+	list: {
+		queryKey: null,
+		queryFn: () => testService.getPublishedTests(),
+	},
+	detail: (testId: string) => ({
+		queryKey: [testId],
+		queryFn: () => testService.getTestWithDetails(testId),
+	}),
+	results: (testId: string) => ({
+		queryKey: [testId],
+		queryFn: () => testService.getTestResults(testId),
+	}),
+});
+
+export const userQueryKeys = createQueryKeys('user', {
+	profile: {
+		queryKey: null,
+		queryFn: () => userService.getProfile(),
+	},
+	responses: (userId: string) => ({
+		queryKey: [userId],
+		queryFn: () => userService.getUserResponses(userId),
+	}),
+});
+
+// 중앙 집중화
+export const queryKeys = mergeQueryKeys(testQueryKeys, userQueryKeys);
+```
+
+**사용 예시:**
+
+```ts
+// Hook
+export function useTestDetail(testId: string) {
+	return useQuery(queryKeys.test.detail(testId));
+}
+
+// Prefetch
+queryClient.prefetchQuery(queryKeys.test.detail(testId));
+
+// Invalidate
+queryClient.invalidateQueries({ queryKey: queryKeys.test.list.queryKey });
+```
+
+**Option 2: Simple Factory 패턴** (가벼운 대안)
+
+```ts
+// shared/api/query-keys.ts
+export const queryKeys = {
+	test: {
+		all: ['test'] as const,
+		list: () => [...queryKeys.test.all, 'list'] as const,
+		detail: (id: string) => [...queryKeys.test.all, 'detail', id] as const,
+		results: (id: string) => [...queryKeys.test.all, 'results', id] as const,
+	},
+	user: {
+		all: ['user'] as const,
+		profile: () => [...queryKeys.user.all, 'profile'] as const,
+		responses: (id: string) => [...queryKeys.user.all, 'responses', id] as const,
+	},
+} as const;
+```
+
+**사용 예시:**
+
+```ts
+// Hook
+const { data } = useQuery({
+	queryKey: queryKeys.test.detail(testId),
+	queryFn: () => testService.getTestWithDetails(testId),
+});
+
+// Invalidate 패턴
+queryClient.invalidateQueries({ queryKey: queryKeys.test.all }); // 모든 test 쿼리
+queryClient.invalidateQueries({ queryKey: queryKeys.test.detail(testId) }); // 특정 detail만
+```
+
+### QueryKey 네이밍 규칙
+
+- **도메인 기반 그룹핑**: `test`, `user`, `category`, `feedback` 등
+- **계층 구조**: `all` → `list/detail` → `specific`
+- **일관성**: 모든 queryKey는 중앙에서 관리
+
+### TanStack Query 기본 설정
+
+```ts
+// app/providers.tsx 또는 QueryClientProvider
+const queryClient = new QueryClient({
+	defaultOptions: {
+		queries: {
+			staleTime: 5 * 60 * 1000, // 5분 (현재 유지)
+			refetchOnWindowFocus: false, // 추가 권장
+			retry: false, // 추가 권장 (또는 1-2회)
+			// useErrorBoundary: true, // Error Boundary 사용 시
+		},
+		mutations: {
+			retry: false,
+		},
+	},
+});
 ```
 
 ---
@@ -367,6 +532,164 @@ import { Button, Dialog, Drawer } from '@pickid/ui';
 
 ---
 
+## Constants 구조화
+
+### 현재 구조
+
+```
+apps/
+├── web/src/shared/constants/
+│   └── index.ts              # FEEDBACK_CATEGORIES, FEEDBACK_STATUS
+├── admin/src/constants/
+│   └── test.constants.ts     # TEST_TYPES, CATEGORIES, DEFAULT_*
+└── admin/src/shared/lib/constants/
+    ├── options.ts            # 옵션 데이터
+    └── filters.ts            # 필터 옵션
+```
+
+### 권장 구조 (Boolti-web 참고)
+
+```
+shared/constants/
+├── index.ts                  # Barrel export
+├── routes.ts                 # 라우트 경로 + HREF 생성 함수
+├── feedback.ts               # 피드백 관련 상수
+├── test.ts                   # 테스트 관련 상수
+├── categories.ts             # 카테고리 데이터
+└── theme.ts                  # 테마/색상 상수
+```
+
+### Routes 패턴 (추가 권장)
+
+```ts
+// shared/constants/routes.ts
+export const PATH = {
+	INDEX: '/',
+	HOME: '/home',
+	TEST_LIST: '/tests',
+	TEST_DETAIL: '/tests/:testId',
+	TEST_RESULT: '/tests/:testId/result',
+	ADMIN_DASHBOARD: '/admin',
+	ADMIN_TEST_CREATE: '/admin/test/create',
+	ADMIN_TEST_EDIT: '/admin/test/:testId/edit',
+} as const;
+
+// HREF 생성 함수
+export const HREF = {
+	TEST_DETAIL: (testId: string) => `/tests/${testId}`,
+	TEST_RESULT: (testId: string) => `/tests/${testId}/result`,
+	ADMIN_TEST_EDIT: (testId: string) => `/admin/test/${testId}/edit`,
+} as const;
+
+// 사용 예시
+import { HREF } from '@/shared/constants/routes';
+
+router.push(HREF.TEST_DETAIL(testId));
+// ✅ 타입 안전, 중복 방지, 리팩토링 용이
+```
+
+### Constants 네이밍 규칙
+
+- **객체 상수**: `UPPER_SNAKE_CASE` (예: `TEST_TYPE_VALUES`)
+- **함수**: `camelCase` (예: `createAppScheme`)
+- **as const 필수**: 타입 좁히기를 위해 항상 사용
+
+---
+
+## Type 관리 (개선 권장)
+
+### 현재 패턴
+
+```
+shared/types/
+└── index.ts                  # 모든 타입 (270+ 줄)
+```
+
+**문제점:**
+
+- 단일 파일에 모든 타입 집중 → 유지보수 어려움
+- 도메인 경계 불명확
+- Import 시 불필요한 타입까지 로드
+
+### 권장 구조 (Boolti-web 참고)
+
+```
+shared/types/
+├── index.ts                  # Barrel export
+├── common.ts                 # 공통 타입 (Status, PageResponse 등)
+├── test.ts                   # 테스트 관련 타입
+├── test-result.ts            # 결과 관련 타입
+├── user.ts                   # 사용자 관련 타입
+├── auth.ts                   # 인증 관련 타입
+├── balance-game.ts           # 밸런스 게임 타입
+└── feedback.ts               # 피드백 타입
+```
+
+### 도메인별 Type 분리 예시
+
+```ts
+// shared/types/common.ts
+export type TStatus = 'active' | 'inactive' | 'pending';
+
+export interface IPageResponse<T> {
+	data: T[];
+	total: number;
+	page: number;
+	pageSize: number;
+}
+
+// shared/types/test.ts
+import type { Test } from '@pickid/supabase';
+
+export type TTestType = 'balance' | 'psychology' | 'quiz';
+export type TTestStatus = 'draft' | 'published' | 'scheduled';
+
+export interface ITestCard extends Pick<Test, 'id' | 'title' | 'thumbnail_url'> {
+	category: string;
+	participantCount: number;
+}
+
+// shared/types/auth.ts
+import type { User, Session } from '@supabase/supabase-js';
+
+export interface IAuthState {
+	user: User | null;
+	session: Session | null;
+	loading: boolean;
+}
+
+// shared/types/index.ts - Barrel export
+export * from './common';
+export * from './test';
+export * from './test-result';
+export * from './user';
+export * from './auth';
+export * from './balance-game';
+export * from './feedback';
+```
+
+### Type 네이밍 규칙 (유지)
+
+- **Interface**: `I` prefix (`IUserInfo`, `ITestCard`)
+- **Type**: `T` prefix (`TUserRole`, `TTestType`)
+- **Enum**: `E` prefix (`EUserStatus`)
+
+### Type Import 규칙
+
+```ts
+// ✅ 명확한 import
+import type { ITestCard, TTestType } from '@/shared/types/test';
+
+// ✅ 여러 도메인 타입 사용 시
+import type { ITestCard } from '@/shared/types/test';
+import type { IUserProfile } from '@/shared/types/user';
+
+// ✅ Barrel export 사용 (편의성)
+import type { ITestCard, IUserProfile } from '@/shared/types';
+```
+
+---
+
 ## 서비스 레이어 규칙
 
 ### Services (shared/api/services/\*)
@@ -391,10 +714,15 @@ export async function getEntity(id: string) {
 - 컴포넌트는 훅만 사용
 
 ```ts
-// Hook
+// Hook (queryKey factory 사용 시)
+export function useEntity(id: string) {
+	return useQuery(queryKeys.entity.detail(id));
+}
+
+// Hook (simple factory 사용 시)
 export function useEntity(id: string) {
 	return useQuery({
-		queryKey: ['entity', id],
+		queryKey: queryKeys.entity.detail(id),
 		queryFn: () => getEntity(id),
 	});
 }
@@ -481,6 +809,8 @@ chore: 빌드/설정 변경
 8. **인라인 함수 사용 금지** - handle prefix 명시적 선언 필요
 9. **과도한 try/catch 금지** - 의미있는 에러 처리만
 10. **패키지 의존성 임의 추가 금지** - 먼저 공유 필요
+11. **QueryKey 하드코딩 금지** - queryKeys 중앙 관리 사용 필수
+12. **Type 파일 무분별한 확장 금지** - 도메인별 분리 원칙 준수
 
 ---
 
@@ -632,6 +962,133 @@ a11y 속성 준수
 1. RLS 정책 확인
 2. 컬럼명 명시 확인
 3. 클라이언트/서버 분리 확인
+
+---
+
+## 마이그레이션 가이드
+
+### 우선순위별 적용 순서
+
+#### Phase 1: 즉시 적용 (Breaking Changes 없음)
+
+1. **TanStack Query 설정 개선**
+
+   ```ts
+   // app/providers.tsx
+   const queryClient = new QueryClient({
+   	defaultOptions: {
+   		queries: {
+   			staleTime: 5 * 60 * 1000,
+   			refetchOnWindowFocus: false, // 추가
+   			retry: false, // 추가
+   		},
+   	},
+   });
+   ```
+
+2. **Import 순서 정리**
+   - 기존 코드 동작 변경 없음
+   - ESLint rule로 강제 가능
+
+#### Phase 2: 점진적 적용 (새 코드부터)
+
+1. **QueryKey Factory 도입**
+
+   ```bash
+   # Option 1: 라이브러리 사용
+   pnpm add @lukemorales/query-key-factory
+
+   # Option 2: Simple Factory (설치 불필요)
+   # shared/api/query-keys.ts 생성
+   ```
+
+   - 새로운 hook부터 queryKeys 사용
+   - 기존 hook은 점진적으로 마이그레이션
+
+2. **Routes Constants 추가**
+
+   ```ts
+   // shared/constants/routes.ts 생성
+   export const PATH = { ... };
+   export const HREF = { ... };
+   ```
+
+   - 새로운 navigation부터 HREF 사용
+   - 기존 하드코딩된 경로는 점진적 교체
+
+#### Phase 3: 리팩토링 (별도 작업)
+
+1. **Type 파일 분리**
+
+   - `shared/types/index.ts` → 도메인별 파일로 분리
+   - Breaking change 가능성 있음
+   - 별도 PR로 진행
+
+2. **Constants 재구조화**
+   - 기존 constants 파일들 정리
+   - 도메인별 분리
+   - 별도 PR로 진행
+
+### 예상 효과
+
+- ✅ **QueryKey 관리**: 중복/오타 방지, 타입 안전성 향상
+- ✅ **Type 분리**: 파일 크기 감소, 유지보수성 향상
+- ✅ **Constants 구조화**: 경로 관리 일관성, 리팩토링 용이성
+- ✅ **Import 순서**: 코드 가독성 향상
+
+---
+
+## 빠른 참조 (Cheat Sheet)
+
+### QueryKey 패턴
+
+```ts
+// ❌ Bad
+queryKey: ['test', testId];
+
+// ✅ Good (Simple Factory)
+queryKey: queryKeys.test.detail(testId);
+```
+
+### Routes 패턴
+
+```ts
+// ❌ Bad
+router.push(`/tests/${testId}`);
+
+// ✅ Good
+router.push(HREF.TEST_DETAIL(testId));
+```
+
+### Type Import 패턴
+
+```ts
+// ✅ Good
+import type { ITestCard, TTestType } from '@/shared/types/test';
+```
+
+### Import 순서
+
+```ts
+// 1. 외부 라이브러리
+// 2. Monorepo 패키지 (@pickid/*)
+// 3. 내부 API/Type/Constant
+// 4. 내부 Hooks/Utils
+// 5. 로컬 컴포넌트/파일
+```
+
+---
+
+## 주요 개선 사항 요약 (Boolti-web 참고)
+
+| 항목              | 현재                      | 개선 방향                    | 우선순위 |
+| ----------------- | ------------------------- | ---------------------------- | -------- |
+| **QueryKey 관리** | 각 hook에서 개별 정의     | queryKeys 중앙 집중화        | HIGH     |
+| **Routes**        | 하드코딩 경로             | HREF 생성 함수 패턴          | MEDIUM   |
+| **Type 구조**     | 단일 파일 (270+ 줄)       | 도메인별 파일 분리           | MEDIUM   |
+| **Constants**     | 일부 분리됨               | 체계적 도메인별 분리         | LOW      |
+| **Query 설정**    | staleTime만 설정          | refetchOnWindowFocus 등 추가 | HIGH     |
+| **Import 순서**   | 규칙 없음                 | 명확한 순서 규칙             | LOW      |
 
 ---
 

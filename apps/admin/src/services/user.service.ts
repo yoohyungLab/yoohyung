@@ -123,4 +123,100 @@ export const userService = {
 
 		return { synced, errors };
 	},
+
+	// 사용자 활동 조회
+	async getUserActivity(userId: string) {
+		const { data, error } = await supabase
+			.from('user_test_responses')
+			.select(
+				`
+				id,
+				test_id,
+				started_at,
+				completed_at,
+				completion_time_seconds,
+				total_score,
+				tests!inner(
+					id,
+					title,
+					emoji
+				),
+				test_results(
+					id,
+					result_name
+				)
+			`
+			)
+			.eq('user_id', userId)
+			.order('started_at', { ascending: false });
+
+		if (error) throw error;
+
+		return (data || []).map((item) => {
+			const test = (item.tests as { id: string; title: string; emoji?: string | null }) || {};
+			const result = (item.test_results as { id: string; result_name: string } | null) || null;
+
+			return {
+				id: item.id,
+				test_id: item.test_id,
+				test_title: test.title || '',
+				test_emoji: test.emoji || null,
+				started_at: item.started_at,
+				completed_at: item.completed_at,
+				status: item.completed_at ? 'completed' : 'pending',
+				duration_sec: item.completion_time_seconds || 0,
+				result_type: result?.result_name || null,
+				completion_time_seconds: item.completion_time_seconds || 0,
+				created_at: item.started_at || new Date().toISOString(),
+				created_date: item.started_at ? item.started_at.split('T')[0] : null,
+				device_type: null,
+				total_score: item.total_score || 0,
+				user_id: userId,
+				session_id: null,
+				responses: null,
+				ip_address: null,
+				user_agent: null,
+				referrer: null,
+			} as unknown as typeof item & {
+				test_title: string;
+				test_emoji: string | null;
+				status: string;
+				duration_sec: number;
+				result_type: string | null;
+			};
+		}) as unknown as Array<{
+			id: string;
+			test_id: string | null;
+			test_title: string;
+			test_emoji: string | null;
+			started_at: string | null;
+			completed_at: string | null;
+			status: string;
+			duration_sec: number;
+			result_type: string | null;
+			completion_time_seconds: number;
+			created_at: string;
+			created_date: string | null;
+			device_type: string | null;
+			total_score: number;
+			user_id: string;
+			session_id: string | null;
+			responses: unknown;
+			ip_address: string | null;
+			user_agent: string | null;
+			referrer: string | null;
+		}>;
+	},
+
+	// 사용자 피드백 조회
+	async getUserFeedbacks(userId: string) {
+		const { data, error } = await supabase
+			.from('feedbacks')
+			.select('*')
+			.eq('user_id', userId)
+			.order('created_at', { ascending: false });
+
+		if (error) throw error;
+		return data || [];
+	},
 };

@@ -1,7 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Button } from '@pickid/ui';
 import { Image, Upload, X } from 'lucide-react';
-import { storageService } from '@/shared/api/services/storage.service';
+import { storageService } from '@/services/storage.service';
 import { ImageUploadProps } from '../types';
 
 export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지' }: ImageUploadProps) {

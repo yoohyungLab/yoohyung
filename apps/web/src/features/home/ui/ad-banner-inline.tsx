@@ -15,7 +15,7 @@ export function AdBannerInline() {
 					aria-label="광고 배너 클릭"
 				>
 					<Image
-						src="/images/workai-banner.png"
+						src="/images/workai-banner.svg"
 						alt="광고 배너"
 						fill
 						className="object-cover"

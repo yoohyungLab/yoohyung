@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { categoryService } from '@/shared/api';
+import { categoryService } from '@/services';
 import { queryKeys } from '@/shared/lib/query-client';
+import { CATEGORY_STATUS_VALUES } from '@/shared/lib/constants/options';
 import type { Category, CategoryFilters } from '@pickid/supabase';
 
 interface ICategoryStats {
@@ -10,10 +11,8 @@ interface ICategoryStats {
 	inactive: number;
 }
 
-
 export const useCategories = () => {
 	const queryClient = useQueryClient();
-	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<CategoryFilters>({
 		search: '',
 		status: 'all',
@@ -22,11 +21,13 @@ export const useCategories = () => {
 	const {
 		data: categories = [],
 		isLoading,
-		refetch,
+		error: queryError,
 	} = useQuery({
 		queryKey: queryKeys.categories.all,
 		queryFn: () => categoryService.getCategories(),
 	});
+
+	const error = queryError ? (queryError instanceof Error ? queryError.message : '카테고리를 불러오는데 실패했습니다.') : null;
 
 	// 통계 계산
 	const stats = useMemo((): ICategoryStats => {
@@ -40,8 +41,8 @@ export const useCategories = () => {
 
 		return {
 			total: categories.length,
-			active: categories.filter((category) => category.status === 'active').length,
-			inactive: categories.filter((category) => category.status === 'inactive').length,
+			active: categories.filter((category) => category.status === CATEGORY_STATUS_VALUES.ACTIVE).length,
+			inactive: categories.filter((category) => category.status === CATEGORY_STATUS_VALUES.INACTIVE).length,
 		};
 	}, [categories]);
 
@@ -50,118 +51,57 @@ export const useCategories = () => {
 		return categories.filter((category) => {
 			const matchesSearch = !filters.search || category.name.toLowerCase().includes(filters.search.toLowerCase());
 			const matchesStatus =
-				filters.status === 'all' ||
-				(filters.status === 'active' && category.status === 'active') ||
-				(filters.status === 'inactive' && category.status === 'inactive');
+				filters.status === CATEGORY_STATUS_VALUES.ALL ||
+				(filters.status === CATEGORY_STATUS_VALUES.ACTIVE && category.status === CATEGORY_STATUS_VALUES.ACTIVE) ||
+				(filters.status === CATEGORY_STATUS_VALUES.INACTIVE && category.status === CATEGORY_STATUS_VALUES.INACTIVE);
 			return matchesSearch && matchesStatus;
 		});
 	}, [categories, filters]);
 
-	const loadCategories = useCallback(async () => {
-		setError(null);
-		await refetch();
-	}, [refetch]);
-
 	// 카테고리 생성
-	const { mutateAsync: createCategory } = useMutation({
-		mutationFn: async (categoryData: {
+	const createCategoryMutation = useMutation({
+		mutationFn: (categoryData: {
 			name: string;
 			slug: string;
 			sort_order?: number;
 			status?: 'active' | 'inactive';
-		}) => {
-			return categoryService.createCategory(categoryData);
-		},
-		onSuccess: (newCategory) => {
-			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) => [newCategory, ...prev]);
-		},
-		onError: (err: unknown) => {
-			let errorMessage = '카테고리 생성에 실패했습니다.';
-			if (err instanceof Error) {
-				if (err.message.includes('duplicate key value violates unique constraint')) {
-					if (err.message.includes('categories_slug_key')) {
-						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-					} else if (err.message.includes('categories_name_key')) {
-						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-					}
-				} else {
-					errorMessage = err.message;
-				}
-			}
-			setError(errorMessage);
+		}) => categoryService.createCategory(categoryData),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 		},
 	});
 
 	// 카테고리 수정
-	const { mutateAsync: updateCategory } = useMutation({
-		mutationFn: async ({ id, updates }: { id: string; updates: Partial<Category> }) => {
-			return categoryService.updateCategory(id, updates);
-		},
-		onSuccess: (updatedCategory) => {
-			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
-				prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
-			);
-		},
-		onError: (err: unknown) => {
-			let errorMessage = '카테고리 수정에 실패했습니다.';
-			if (err instanceof Error) {
-				if (err.message.includes('duplicate key value violates unique constraint')) {
-					if (err.message.includes('categories_slug_key')) {
-						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-					} else if (err.message.includes('categories_name_key')) {
-						errorMessage = '이미 사용 중인 카테고리명입니다. 다른 이름을 사용해주세요.';
-					}
-				} else {
-					errorMessage = err.message;
-				}
-			}
-			setError(errorMessage);
+	const updateCategoryMutation = useMutation({
+		mutationFn: ({ id, updates }: { id: string; updates: Partial<Category> }) =>
+			categoryService.updateCategory(id, updates),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 		},
 	});
 
 	// 상태 변경
-	const { mutateAsync: updateCategoryStatus } = useMutation({
-		mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
-			return categoryService.updateCategoryStatus(id, isActive);
-		},
-		onSuccess: (updatedCategory) => {
-			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
-				prev.map((cat) => (cat.id === updatedCategory.id ? updatedCategory : cat))
-			);
-		},
-		onError: (err: unknown) => {
-			setError(err instanceof Error ? err.message : '카테고리 상태 변경에 실패했습니다.');
+	const updateCategoryStatusMutation = useMutation({
+		mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
+			categoryService.updateCategoryStatus(id, isActive),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 		},
 	});
 
 	// 대량 상태 변경
-	const { mutateAsync: bulkUpdateStatus } = useMutation({
-		mutationFn: async ({ categoryIds, isActive }: { categoryIds: string[]; isActive: boolean }) => {
-			return categoryService.bulkUpdateStatus(categoryIds, isActive);
-		},
-		onSuccess: async () => {
-			await queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
-		},
-		onError: (err: unknown) => {
-			setError(err instanceof Error ? err.message : '카테고리 일괄 상태 변경에 실패했습니다.');
+	const bulkUpdateStatusMutation = useMutation({
+		mutationFn: ({ categoryIds, isActive }: { categoryIds: string[]; isActive: boolean }) =>
+			categoryService.bulkUpdateStatus(categoryIds, isActive),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 		},
 	});
 
 	// 삭제
-	const { mutateAsync: deleteCategory } = useMutation({
-		mutationFn: async (id: string) => categoryService.deleteCategory(id),
-		onMutate: async (id: string) => {
-			await queryClient.cancelQueries({ queryKey: queryKeys.categories.all });
-			const previous = queryClient.getQueryData<Category[]>(queryKeys.categories.all);
-			queryClient.setQueryData<Category[]>(queryKeys.categories.all, (prev = []) =>
-				prev.filter((cat) => cat.id !== id)
-			);
-			return { previous } as { previous?: Category[] };
-		},
-		onError: (_err, _id, context) => {
-			if (context?.previous) queryClient.setQueryData(queryKeys.categories.all, context.previous);
-		},
-		onSettled: () => {
+	const deleteCategoryMutation = useMutation({
+		mutationFn: (id: string) => categoryService.deleteCategory(id),
+		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
 		},
 	});
@@ -177,13 +117,11 @@ export const useCategories = () => {
 		error,
 		filters,
 		stats,
-		loadCategories,
-		fetchCategories: loadCategories,
-		createCategory,
-		updateCategory: (id: string, updates: Partial<Category>) => updateCategory({ id, updates }),
-		updateCategoryStatus: (id: string, isActive: boolean) => updateCategoryStatus({ id, isActive }),
-		bulkUpdateStatus: (categoryIds: string[], isActive: boolean) => bulkUpdateStatus({ categoryIds, isActive }),
-		deleteCategory,
+		createCategory: createCategoryMutation.mutateAsync,
+		updateCategory: updateCategoryMutation.mutateAsync,
+		updateCategoryStatus: updateCategoryStatusMutation.mutateAsync,
+		bulkUpdateStatus: bulkUpdateStatusMutation.mutateAsync,
+		deleteCategory: deleteCategoryMutation.mutateAsync,
 		updateFilters,
-	} as const;
+	};
 };

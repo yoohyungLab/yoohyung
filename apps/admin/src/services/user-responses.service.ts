@@ -66,9 +66,9 @@ export const userResponsesService = {
 	async getResponses(): Promise<UserResponse[]> {
 		try {
 			const { data, error } = await supabase
-			.from('user_test_responses')
-			.select(
-				`
+				.from('user_test_responses')
+				.select(
+					`
 				id,
 				test_id,
 				session_id,
@@ -92,7 +92,7 @@ export const userResponsesService = {
 					result_name
 				)
 			`
-			)
+				)
 				.order('completed_at', { ascending: false })
 				.limit(1000);
 
@@ -272,14 +272,14 @@ export const userResponsesService = {
 	async getResponseDetail(responseId: string): Promise<UserResponseDetail | null> {
 		try {
 			const { data, error } = await supabase
-			.from('user_test_responses')
-			.select(
-				`
+				.from('user_test_responses')
+				.select(
+					`
                 id, user_id, test_id, started_at, completed_at, completion_time_seconds, device_type, ip_address, user_agent, referrer,
                 tests:tests(id, title, slug, type),
                 test_results:result(id, result_name, description)
                 `
-			)
+				)
 				.eq('id', responseId)
 				.single();
 
@@ -287,23 +287,26 @@ export const userResponsesService = {
 
 			if (!data) return null;
 
-			const test = (data as any).tests;
-			const result = (data as any).test_results;
+			const responseData = data as Record<string, unknown>;
+			const test = responseData.tests as { id?: string; title?: string; slug?: string; type?: string } | undefined;
+			const result = responseData.test_results as
+				| { id?: string; result_name?: string; description?: string | null }
+				| undefined;
 
 			return {
-				...(data as any),
+				...responseData,
 				test: { id: test?.id, title: test?.title, slug: test?.slug, type: test?.type },
 				result: result ? { id: result.id, name: result.result_name, description: result.description } : null,
 				timing: {
-					started_at: (data as any).started_at,
-					completed_at: (data as any).completed_at,
-					duration_seconds: (data as any).completion_time_seconds,
+					started_at: responseData.started_at as string | null,
+					completed_at: responseData.completed_at as string | null,
+					duration_seconds: responseData.completion_time_seconds as number | null,
 				},
 				environment: {
-					ip_address: (data as any).ip_address,
-					user_agent: (data as any).user_agent,
-					device_type: (data as any).device_type,
-					referrer: (data as any).referrer,
+					ip_address: responseData.ip_address as string | null,
+					user_agent: responseData.user_agent as string | null,
+					device_type: responseData.device_type as string | null,
+					referrer: responseData.referrer as string | null,
 				},
 			} as unknown as UserResponseDetail;
 		} catch (error) {

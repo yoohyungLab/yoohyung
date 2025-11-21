@@ -1,8 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { userResponsesService } from '@/shared/api/services/user-responses.service';
+import { userResponsesService } from '@/services/user-responses.service';
 import { queryKeys } from '@/shared/lib/query-client';
-import type { UserTestResponse } from '@pickid/supabase';
 
 interface IUserResponseFilters {
 	search?: string;
@@ -13,10 +12,8 @@ interface IUserResponseFilters {
 	dateTo?: string;
 }
 
-
 export const useUserResponses = () => {
 	const queryClient = useQueryClient();
-	const [error, setError] = useState<string | null>(null);
 	const [filters, setFilters] = useState<IUserResponseFilters>({
 		search: '',
 		testId: 'all',
@@ -29,19 +26,14 @@ export const useUserResponses = () => {
 	const {
 		data: responses = [],
 		isLoading,
-		refetch,
+		error: queryError,
 	} = useQuery({
-		queryKey: queryKeys.responses.list({
-			search: filters.search,
-			testId: filters.testId,
-			category: filters.category,
-			device: filters.device,
-			dateFrom: filters.dateFrom,
-			dateTo: filters.dateTo,
-		}),
+		queryKey: queryKeys.responses.all,
 		queryFn: () => userResponsesService.getResponses(),
 		staleTime: 5 * 60 * 1000,
 	});
+
+	const error = queryError ? (queryError instanceof Error ? queryError.message : '응답을 불러오는데 실패했습니다.') : null;
 
 	// 통계 계산 (원본 데이터 기준)
 	const stats = useMemo(() => {
@@ -68,25 +60,8 @@ export const useUserResponses = () => {
 	// 필터링된 응답
 	const filteredResponses = useMemo(() => {
 		return responses.filter((response) => {
-			const extendedResponse = response as UserTestResponse & {
-				test_title?: string;
-				category_names?: string[];
-				result_name?: string;
-				category_ids?: string[];
-			};
-
-			const matchesSearch =
-				!filters.search ||
-				extendedResponse.test_title?.toLowerCase().includes(filters.search.toLowerCase()) ||
-				extendedResponse.category_names?.some((cat: string) =>
-					cat.toLowerCase().includes(filters.search?.toLowerCase() || '')
-				) ||
-				extendedResponse.result_name?.toLowerCase().includes((filters.search || '').toLowerCase());
-			const matchesTestId = filters.testId === 'all' || response.test_id === filters.testId;
-			const matchesCategory =
-				filters.category === 'all' ||
-				(filters.category ? extendedResponse.category_ids?.includes(filters.category) : true);
-			const matchesDevice = filters.device === 'all' || response.device_type === (filters.device as string);
+			const matchesTestId = !filters.testId || filters.testId === 'all' || response.test_id === filters.testId;
+			const matchesDevice = !filters.device || filters.device === 'all' || response.device_type === filters.device;
 
 			// 날짜 필터링
 			let matchesDate = true;
@@ -94,54 +69,29 @@ export const useUserResponses = () => {
 				matchesDate = matchesDate && new Date(response.completed_at) >= new Date(filters.dateFrom);
 			}
 			if (filters.dateTo && response.completed_at) {
-				const endOfDay = `${filters.dateTo as string}T23:59:59`;
+				const endOfDay = `${filters.dateTo}T23:59:59`;
 				matchesDate = matchesDate && new Date(response.completed_at) <= new Date(endOfDay);
 			}
 
-			return matchesSearch && matchesTestId && matchesCategory && matchesDevice && matchesDate;
+			return matchesTestId && matchesDevice && matchesDate;
 		});
 	}, [responses, filters]);
 
-	const loadResponses = useCallback(async () => {
-		setError(null);
-		await refetch();
-	}, [refetch]);
-
 	// 응답 삭제
-	const { mutateAsync: deleteResponse } = useMutation({
-		mutationFn: async (id: string) => userResponsesService.deleteResponse(id),
-		onMutate: async (id: string) => {
-			await queryClient.cancelQueries({ queryKey: queryKeys.responses.lists() });
-			const previous = queryClient.getQueryData<UserTestResponse[]>(queryKeys.responses.lists());
-			queryClient.setQueryData<UserTestResponse[]>(queryKeys.responses.lists(), (prev = []) =>
-				prev.filter((r) => r.id !== id)
-			);
-			return { previous } as { previous?: UserTestResponse[] };
+	const deleteResponseMutation = useMutation({
+		mutationFn: (id: string) => userResponsesService.deleteResponse(id),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.responses.all });
 		},
-		onError: (_err, _id, context) => {
-			if (context?.previous) queryClient.setQueryData(queryKeys.responses.lists(), context.previous);
-			setError('응답 삭제에 실패했습니다.');
-		},
-		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.responses.all }),
 	});
 
 	// 대량 삭제
-	const { mutateAsync: bulkDeleteResponses } = useMutation({
-		mutationFn: async (responseIds: string[]) =>
+	const bulkDeleteResponsesMutation = useMutation({
+		mutationFn: (responseIds: string[]) =>
 			Promise.all(responseIds.map((id) => userResponsesService.deleteResponse(id))),
-		onMutate: async (responseIds: string[]) => {
-			await queryClient.cancelQueries({ queryKey: queryKeys.responses.lists() });
-			const previous = queryClient.getQueryData<UserTestResponse[]>(queryKeys.responses.lists());
-			queryClient.setQueryData<UserTestResponse[]>(queryKeys.responses.lists(), (prev = []) =>
-				prev.filter((r) => !responseIds.includes(r.id))
-			);
-			return { previous } as { previous?: UserTestResponse[] };
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.responses.all });
 		},
-		onError: (_err, _vars, context) => {
-			if (context?.previous) queryClient.setQueryData(queryKeys.responses.lists(), context.previous);
-			setError('대량 삭제에 실패했습니다.');
-		},
-		onSettled: () => queryClient.invalidateQueries({ queryKey: queryKeys.responses.all }),
 	});
 
 	// 필터 업데이트
@@ -149,17 +99,14 @@ export const useUserResponses = () => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 초기 로딩은 useQuery가 담당. 필요시 수동 refetch 사용
-
 	return {
 		responses: filteredResponses,
 		loading: isLoading,
 		error,
 		filters,
 		stats,
-		loadResponses,
-		deleteResponse,
-		bulkDeleteResponses,
+		deleteResponse: deleteResponseMutation.mutateAsync,
+		bulkDeleteResponses: bulkDeleteResponsesMutation.mutateAsync,
 		updateFilters,
-	} as const;
+	};
 };

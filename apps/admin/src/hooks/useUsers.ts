@@ -1,17 +1,7 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { userService } from '@/shared/api';
+import { userService } from '@/services';
 import { queryKeys } from '@/shared/lib/query-client';
-
-interface IUser {
-	id: string;
-	email: string;
-	name?: string;
-	provider?: string;
-	status?: 'active' | 'inactive' | 'deleted';
-	avatar_url?: string;
-	created_at?: string;
-}
 
 interface IUserFilters {
 	search?: string;
@@ -19,29 +9,30 @@ interface IUserFilters {
 	provider?: 'all' | 'email' | 'google' | 'kakao';
 }
 
-
 export const useUsers = (initialFilters: IUserFilters = {}) => {
 	const [filters, setFilters] = useState<IUserFilters>(initialFilters);
-	const [modalUser, setModalUser] = useState<IUser | null>(null);
-	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
 	const queryClient = useQueryClient();
 
 	// 데이터 조회
 	const usersQuery = useQuery({
-		queryKey: queryKeys.users.list(filters as Record<string, unknown>),
+		queryKey: queryKeys.users.all,
 		queryFn: () => userService.getUsers(),
-		select: (data) =>
-			data.filter((user) => {
-				const matchesSearch =
-					!filters.search ||
-					user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
-					user.name?.toLowerCase().includes(filters.search.toLowerCase());
-				const matchesStatus = filters.status === 'all' || user.status === filters.status;
-				const matchesProvider = filters.provider === 'all' || user.provider === filters.provider;
-				return matchesSearch && matchesStatus && matchesProvider;
-			}),
 		staleTime: 2 * 60 * 1000,
 	});
+
+	// 필터링
+	const filteredUsers = useMemo(() => {
+		const users = usersQuery.data || [];
+		return users.filter((user) => {
+			const matchesSearch =
+				!filters.search ||
+				user.email?.toLowerCase().includes(filters.search.toLowerCase()) ||
+				user.name?.toLowerCase().includes(filters.search.toLowerCase());
+			const matchesStatus = !filters.status || filters.status === 'all' || user.status === filters.status;
+			const matchesProvider = !filters.provider || filters.provider === 'all' || user.provider === filters.provider;
+			return matchesSearch && matchesStatus && matchesProvider;
+		});
+	}, [usersQuery.data, filters]);
 
 	const statsQuery = useQuery({
 		queryKey: queryKeys.users.stats(),
@@ -77,13 +68,8 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	const openModal = useCallback((user: IUser) => setModalUser(user), []);
-	const closeModal = useCallback(() => setModalUser(null), []);
-	const clearSelection = useCallback(() => setSelectedUsers([]), []);
-
 	return {
-		// 데이터
-		users: usersQuery.data || [],
+		users: filteredUsers,
 		loading: usersQuery.isLoading || statsQuery.isLoading,
 		error: usersQuery.error?.message || statsQuery.error?.message || null,
 		stats: statsQuery.data || {
@@ -99,15 +85,7 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 			kakao_signups: 0,
 		},
 		filters,
-		modalUser,
-		selectedUsers,
-		setSelectedUsers,
-
-		// 액션들
 		updateFilters,
-		openModal,
-		closeModal,
-		clearSelection,
 		updateUserStatus: updateStatusMutation.mutateAsync,
 		bulkUpdateStatus: bulkUpdateMutation.mutateAsync,
 		deleteUser: deleteMutation.mutateAsync,
@@ -115,29 +93,3 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		isSyncing: syncMutation.isPending,
 	};
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

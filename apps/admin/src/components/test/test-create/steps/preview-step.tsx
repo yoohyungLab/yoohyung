@@ -2,7 +2,7 @@ import React from 'react';
 import { Badge } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
-import { TEST_TYPES } from '@/constants/test.constants';
+import { TEST_TYPES } from '@/constants/test';
 import type { BasicInfo } from '../types';
 // ResultData 타입 정의 (useTestCreation과 일치)
 interface ResultData {

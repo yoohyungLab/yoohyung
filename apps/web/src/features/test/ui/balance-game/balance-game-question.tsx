@@ -86,7 +86,8 @@ export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainer
 								fill
 								sizes="(max-width: 768px) 100vw, 360px"
 								className="object-contain rounded-2xl border border-gray-200 shadow-sm bg-white"
-								priority={false}
+								priority={currentIndex === 0}
+							loading={currentIndex === 0 ? 'eager' : 'lazy'}
 							/>
 						</div>
 					)}

@@ -48,46 +48,55 @@ export const DEFAULT_RESULT = {
 	target_gender: null,
 };
 
-// 테스트 유형 정의
+// 테스트 타입 값 상수
+export const TEST_TYPE_VALUES = {
+	PSYCHOLOGY: 'psychology',
+	BALANCE: 'balance',
+	CHARACTER: 'character',
+	QUIZ: 'quiz',
+	MEME: 'meme',
+	LIFESTYLE: 'lifestyle',
+} as const;
 
+// 테스트 유형 정의
 export const TEST_TYPES = [
 	{
-		id: 'psychology',
+		id: TEST_TYPE_VALUES.PSYCHOLOGY,
 		name: '심리형',
 		description: 'MBTI, 색상/동물 등 성향 분석',
 		features: ['점수 매핑', '성향 분석', '다차원 결과'],
 		examples: ['MBTI 테스트', '성격 유형 테스트', '색깔 심리 테스트'],
 	},
 	{
-		id: 'balance',
+		id: TEST_TYPE_VALUES.BALANCE,
 		name: '밸런스형',
 		description: '2지선다/다지선다 선택',
 		features: ['선택 비율', '통계 기반', '간단한 선택'],
 		examples: ['이상형 월드컵', '음식 vs 음식', '취향 밸런스 게임'],
 	},
 	{
-		id: 'character',
+		id: TEST_TYPE_VALUES.CHARACTER,
 		name: '캐릭터 매칭형',
 		description: '특정 IP/캐릭터와 매칭',
 		features: ['캐릭터 매칭', '이미지 중심', '팬덤 콘텐츠'],
 		examples: ['포켓몬 찾기', '디즈니 프린세스', '동물상 테스트'],
 	},
 	{
-		id: 'quiz',
+		id: TEST_TYPE_VALUES.QUIZ,
 		name: '퀴즈형',
 		description: '지식/정답 기반',
 		features: ['정답 체크', '점수 계산', '지식 테스트'],
 		examples: ['상식 퀴즈', '전문 지식 테스트', 'IQ 테스트'],
 	},
 	{
-		id: 'meme',
+		id: TEST_TYPE_VALUES.MEME,
 		name: '밈형',
 		description: '밈/이모지 매칭',
 		features: ['랜덤 결과', '재미 중심', '바이럴 콘텐츠'],
 		examples: ['짤방 테스트', '밈 성향', '인터넷 밈 매칭'],
 	},
 	{
-		id: 'lifestyle',
+		id: TEST_TYPE_VALUES.LIFESTYLE,
 		name: '라이프스타일형',
 		description: '취향 기반',
 		features: ['취향 분석', '라이프스타일', '추천 시스템'],

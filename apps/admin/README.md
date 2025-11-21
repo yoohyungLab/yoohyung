@@ -1,110 +1,93 @@
-# Admin 앱
+# Pickid Admin App 관리자
 
-관리자 대시보드 애플리케이션입니다. **레이어드 아키텍처(Layered Architecture)** 구조를 따릅니다.
+**테스트를 생성하고 관리하는 사용자들을 위한 관리자 대시보드입니다.**
+
+<br/>
+
+## 💻 기술 스택
+
+![React](https://img.shields.io/badge/React_18-61DAFB?logo=react&logoColor=black)
+![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white) ![Vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white) ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-06B6D4?logo=tailwindcss&logoColor=white) ![React Router](https://img.shields.io/badge/React_Router-CA4245?logo=reactrouter&logoColor=white) ![TanStack Query](https://img.shields.io/badge/TanStack_Query-FF4154?logo=reactquery&logoColor=white) ![React Hook Form](https://img.shields.io/badge/React_Hook_Form-EC5990?logo=reacthookform&logoColor=white) ![Zod](https://img.shields.io/badge/Zod-3E67B1?logo=zod&logoColor=white)
+
+<br/>
+
+# 🏗️ 아키텍처
+
+## 레이어드 아키텍처 (Layered Architecture)
+
+**구조**: Presentation → Business Logic → Data Access → Infrastructure
+
+### 계층별 책임
+
+- **Presentation Layer** (`pages/`, `components/`): UI 컴포넌트 및 페이지
+- **Business Logic Layer** (`hooks/`): 비즈니스 로직, React Query hooks, 상태 관리
+- **Data Access Layer** (`services/`): Supabase API 호출 및 데이터 접근
+- **Infrastructure Layer** (`lib/`, `types/`, `utils/`): 유틸리티 및 타입 정의
+
+### 주요 특징
+
+- 계층별 명확한 책임 분리
+- 단순한 관리자 도구에 최적화
+- 의존성 방향: 상위 계층 → 하위 계층
+
+<br/>
+
+### URL 구조
+
+| 기능                 | URL                                 |
+| :------------------- | :---------------------------------- |
+| **대시보드**         | `/`                                 |
+| **테스트 관리**      | `/tests`                            |
+| **테스트 생성/수정** | `/tests/create` / `/tests/:id/edit` |
+| **카테고리 관리**    | `/categories`                       |
+| **사용자 관리**      | `/users`                            |
+| **성과 분석**        | `/analytics`                        |
+| **성장 분석**        | `/growth`                           |
+| **인증**             | `/auth`                             |
+
+### 주요 디렉토리
+
+```
+src/
+├── pages/           # (Presentation) URL 경로 매핑된 페이지
+├── components/      # (Presentation) 재사용 가능한 UI 컴포넌트
+├── hooks/           # (Business Logic) React Query hooks, 비즈니스 로직
+│   ├── query-keys.ts      # QueryKey 중앙 관리
+│   ├── useTests.ts        # 테스트 목록 + mutations
+│   ├── useTestList.ts     # 테스트 목록 조회
+│   └── ...
+├── services/        # (Data Access) Supabase API 호출
+│   ├── test.service.ts
+│   └── ...
+├── types/           # (Infrastructure) 타입 정의
+├── utils/           # (Infrastructure) 유틸리티 함수
+└── lib/             # (Infrastructure) 공통 로직
+```
+
+### QueryKey 관리
+
+모든 React Query의 queryKey는 `hooks/query-keys.ts`에서 중앙 관리합니다.
+
+```ts
+// hooks/query-keys.ts
+export const queryKeys = {
+  test: {
+    all: ['test'] as const,
+    list: () => [...queryKeys.test.all, 'list'] as const,
+    detail: (id: string) => [...queryKeys.test.all, 'detail', id] as const,
+  },
+  // ...
+};
+```
 
 ---
 
-## 📁 디렉토리 구조
+<br/>
 
-```
-apps/admin/src/
-├── pages/                     # Presentation Layer - 페이지 컴포넌트
-│   ├── auth/                  # 인증 페이지
-│   ├── categories/            # 카테고리 관리 페이지
-│   ├── feedback/              # 피드백 관리 페이지
-│   ├── tests/                 # 테스트 관리 페이지
-│   └── users/                 # 사용자 관리 페이지
-├── components/                # Presentation Layer - 재사용 가능한 UI 컴포넌트
-│   ├── category/              # 카테고리 관련 컴포넌트
-│   ├── feedback/              # 피드백 관련 컴포넌트
-│   ├── layout/                # 레이아웃 컴포넌트
-│   ├── test/                  # 테스트 관련 컴포넌트
-│   ├── ui/                    # 기본 UI 컴포넌트
-│   └── user/                  # 사용자 관련 컴포넌트
-├── widgets/                   # Presentation Layer - 복잡한 UI 조합
-│   ├── header/                # 헤더 위젯
-│   ├── layout/                # 레이아웃 위젯
-│   └── sidebar/               # 사이드바 위젯
-├── hooks/                     # Business Logic Layer - 상태 관리 & 비즈니스 로직
-│   ├── useAdminAuth.ts        # 관리자 인증
-│   ├── useCategories.ts       # 카테고리 관리
-│   ├── useFeedbacks.ts        # 피드백 관리
-│   ├── useTests.ts            # 테스트 관리
-│   ├── useTestSteps.ts        # 테스트 단계 관리
-│   └── useUsers.ts            # 사용자 관리
-├── shared/                    # 공유 로직
-│   ├── api/                   # Data Access Layer - API 서비스
-│   │   ├── services/          # 비즈니스 로직 (Service Layer)
-│   │   ├── types/             # API 타입 정의
-│   │   └── index.ts           # API exports
-│   ├── hooks/                 # 공통 훅
-│   ├── lib/                   # Infrastructure Layer - 유틸리티 함수
-│   └── types/                 # 공통 타입
-├── types/                     # Domain Layer - 앱 전용 타입
-├── utils/                     # Infrastructure Layer - 앱 전용 유틸리티
-└── contexts/                  # Business Logic Layer - 전역 상태 관리
-```
+## 📦 사용하는 공통 패키지
 
----
-
-## 🏗️ 레이어별 역할
-
-### 1. Presentation Layer (표현 계층)
-
-- **위치**: `pages/`, `components/`, `widgets/`
-- **역할**: UI 렌더링 및 사용자 상호작용
-- **제약**: 비즈니스 로직 없음, 순수 프레젠테이션
-- **예시**: `FeedbackListPage`, `UserDetailModal`
-
-### 2. Business Logic Layer (비즈니스 로직 계층)
-
-- **위치**: `hooks/`, `contexts/`
-- **역할**: 상태 관리, 비즈니스 규칙, 오케스트레이션
-- **기능**: React Query, 상태 관리, 폼 처리
-- **예시**: `useFeedbacks`, `useUsers`
-
-### 3. Data Access Layer (데이터 접근 계층)
-
-- **위치**: `shared/api/services/`
-- **역할**: 외부 API 호출, 데이터 변환
-- **기능**: API 서비스, 데이터 매핑
-- **예시**: `feedbackService`, `userService`
-
-### 4. Infrastructure Layer (인프라 계층)
-
-- **위치**: `shared/lib/`, `utils/`
-- **역할**: 유틸리티 함수, 외부 라이브러리 래핑
-- **기능**: 헬퍼 함수, 상수, 설정
-- **예시**: `formatUtils`, `constants`
-
-### 5. Domain Layer (도메인 계층)
-
-- **위치**: `types/`, `shared/types/`
-- **역할**: 도메인 모델, 타입 정의
-- **기능**: 엔티티, 값 객체, 타입 정의
-- **예시**: `User`, `Feedback`, `Test`
-
-### 의존성 규칙
-
-```
-Presentation → Business Logic → Data Access → Infrastructure
-     ↓              ↓              ↓
-  Domain Layer (모든 레이어에서 참조 가능)
-```
-
-- **Presentation**: Business Logic만 호출 가능
-- **Business Logic**: Data Access만 호출 가능
-- **Data Access**: Infrastructure만 호출 가능
-- **Domain**: 모든 레이어에서 참조 가능
-
----
-
-## 🛠️ 기술 스택
-
-- **Framework**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **UI Components**: shadcn
-- **API**: Supabase Client
-
----
+- `@pickid/ui`: 공통 UI 컴포넌트
+- `@pickid/shared`: 공통 유틸리티
+- `@pickid/supabase`: 데이터 접근 레이어
+- `@pickid/types`: 공통 타입 정의
+- `@pickid/config`: 공통 설정

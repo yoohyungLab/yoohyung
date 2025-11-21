@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, DefaultInput, DefaultTextarea, Label, Badge, DefaultSelect } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
-import { TEST_TYPES } from '@/constants/test.constants';
+import { TEST_TYPES, TEST_TYPE_VALUES } from '@/constants/test';
 import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import type { ResultStepProps, FeatureInput, ResultData } from '@/types/test.types';
@@ -117,7 +117,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	// 렌더링 함수들
 
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
-		if (selectedType !== 'psychology') return null;
+		if (selectedType !== TEST_TYPE_VALUES.PSYCHOLOGY) return null;
 		const conditions = result.match_conditions as {
 			type?: string;
 			min?: number;
@@ -162,7 +162,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								onChange={(e) =>
 									onUpdateResult(resultIndex, {
 										match_conditions: {
-											type: 'score',
+											type: 'score' as const,
 											...conditions,
 											min: parseInt(e.target.value) || 0,
 										},
@@ -176,7 +176,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								onChange={(e) =>
 									onUpdateResult(resultIndex, {
 										match_conditions: {
-											type: 'score',
+											type: 'score' as const,
 											...conditions,
 											max: parseInt(e.target.value) || 10,
 										},
@@ -227,7 +227,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	};
 
 	const renderScoreBadge = (result: ResultData) => {
-		if (selectedType !== 'psychology') return null;
+		if (selectedType !== TEST_TYPE_VALUES.PSYCHOLOGY) return null;
 		const conditions = result.match_conditions as {
 			type?: string;
 			min?: number;
@@ -334,7 +334,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	// 메인 렌더링
 
 	// 밸런스 게임 타입일 때는 특별한 안내 메시지 표시
-	if (selectedType === 'balance') {
+	if (selectedType === TEST_TYPE_VALUES.BALANCE) {
 		return (
 			<div className="space-y-6">
 				<div className="text-center py-12">
@@ -373,7 +373,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 	}
 
 	// 퀴즈 타입일 때 안내 메시지 및 템플릿 제공
-	if (selectedType === 'quiz') {
+	if (selectedType === TEST_TYPE_VALUES.QUIZ) {
 		const hasResults = results && results.length > 0;
 
 		return (

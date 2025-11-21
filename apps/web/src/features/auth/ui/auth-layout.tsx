@@ -23,7 +23,7 @@ export function AuthLayout({ title, subtitle, children, showLogo = false }: Auth
 				<div className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/20">
 					<header className="text-center mb-8">
 						{showLogo && (
-							<Image src="/icons/logo.svg" alt="로고" width={80} height={80} className="inline-block mb-4" priority />
+							<Image src="/icons/logo.svg" alt="로고" width={80} height={80} className="inline-block mb-4" priority unoptimized />
 						)}
 						<h1 className="text-2xl font-bold text-gray-900">{title}</h1>
 						<p className="text-gray-600 mt-2">{subtitle}</p>

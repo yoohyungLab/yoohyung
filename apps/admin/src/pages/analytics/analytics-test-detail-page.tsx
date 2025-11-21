@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { analyticsService } from '@/shared/api';
+import { analyticsService } from '@/services';
 import { ErrorState } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import {

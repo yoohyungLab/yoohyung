@@ -1,17 +1,30 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { testService } from '@/shared/api';
-import type { Test, TestFilters, TestStats } from '@pickid/supabase';
-import type { TestWithDetails } from '@/types/test.types';
+/**
+ * @hook useTests
+ * @description 테스트 목록 관리 훅
+ */
 
+import { useState, useCallback, useMemo } from 'react';
+import { useTestList } from './useTestList';
+import { useUpdateTestStatus } from './useUpdateTestStatus';
+import { useDeleteTest } from './useDeleteTest';
+import type { TestFilters, TestStats } from '@pickid/supabase';
 
 export const useTests = () => {
-	const [tests, setTests] = useState<Test[]>([]);
-	const [loading, setLoading] = useState(false);
-	const [error, setError] = useState<string | null>(null);
+	// React Query로 테스트 목록 조회
+	const { data: tests = [], isLoading: loading, error: queryError } = useTestList();
+
+	// Mutations
+	const updateStatusMutation = useUpdateTestStatus();
+	const deleteTestMutation = useDeleteTest();
+
+	// Local state
 	const [filters, setFilters] = useState<TestFilters>({
 		search: '',
 		status: 'all',
 	});
+
+	// 에러 상태 처리
+	const error = queryError ? (queryError instanceof Error ? queryError.message : '테스트를 불러오는데 실패했습니다.') : null;
 
 	// 필터링된 테스트
 	const filteredTests = useMemo(() => {
@@ -23,37 +36,7 @@ export const useTests = () => {
 		});
 	}, [tests, filters]);
 
-	// UI용 데이터 변환
-	const uiTests = useMemo(() => {
-		return filteredTests.map(
-			(test): TestWithDetails => ({
-				...test,
-				category_name: '기타',
-				emoji: '📝',
-				status: (test.status as 'draft' | 'published' | 'scheduled' | 'archived') || 'draft',
-				type: (test.type as 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle') || 'psychology',
-				thumbnailImage: test.thumbnail_url || '',
-				startMessage: '',
-				scheduledAt: test.scheduled_at || '',
-				responseCount: test.response_count || 0,
-				completionRate: 0,
-				estimatedTime: test.estimated_time || 5,
-				share_count: 0,
-				completion_count: 0,
-				createdBy: '',
-				createdAt: test.created_at,
-				updatedAt: test.updated_at,
-				isPublished: test.status === 'published',
-				question_count: 0,
-				result_count: 0,
-				response_count: test.response_count || 0,
-				questions: [],
-				results: [],
-			})
-		);
-	}, [filteredTests]);
-
-	// 통계 계산
+	// 통계 계산 (클라이언트 메모이제이션)
 	const stats = useMemo((): TestStats => {
 		if (tests.length === 0) {
 			return {
@@ -76,67 +59,35 @@ export const useTests = () => {
 		};
 	}, [tests]);
 
-	// 데이터 로딩
-	const loadTests = useCallback(async () => {
-		try {
-			setLoading(true);
-			setError(null);
-			const data = await testService.getTests();
-			setTests(data);
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '테스트를 불러오는데 실패했습니다.');
-		} finally {
-			setLoading(false);
-		}
-	}, []);
-
-	// 상태 변경
+	// 상태 변경 (React Query Mutation 사용)
 	const togglePublishStatus = useCallback(
 		async (id: string, isPublished?: boolean) => {
-			try {
-				const test = tests.find((t) => t.id === id);
-				if (!test) return;
+			const test = tests.find((t) => t.id === id);
+			if (!test) return;
 
-				const newStatus =
-					isPublished !== undefined
-						? isPublished
-							? 'published'
-							: 'draft'
-						: test.status === 'published'
-						? 'draft'
-						: 'published';
+			const newStatus =
+				isPublished !== undefined ? (isPublished ? 'published' : 'draft') : test.status === 'published' ? 'draft' : 'published';
 
-				await testService.updateTestStatus(id, newStatus);
-				setTests((prev) => prev.map((t) => (t.id === id ? { ...t, status: newStatus } : t)));
-			} catch (err) {
-				setError(err instanceof Error ? err.message : '상태 변경에 실패했습니다.');
-			}
+			await updateStatusMutation.mutateAsync({ id, status: newStatus });
 		},
-		[tests]
+		[tests, updateStatusMutation]
 	);
 
-	// 삭제
-	const deleteTest = useCallback(async (id: string) => {
-		try {
-			await testService.deleteTest(id);
-			setTests((prev) => prev.filter((test) => test.id !== id));
-		} catch (err) {
-			setError(err instanceof Error ? err.message : '테스트 삭제에 실패했습니다.');
-		}
-	}, []);
+	// 삭제 (React Query Mutation 사용)
+	const deleteTest = useCallback(
+		async (id: string) => {
+			await deleteTestMutation.mutateAsync(id);
+		},
+		[deleteTestMutation]
+	);
 
 	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<TestFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 초기 로딩
-	useEffect(() => {
-		loadTests();
-	}, [loadTests]);
-
 	return {
-		tests: uiTests,
+		tests: filteredTests,
 		loading,
 		error,
 		filters,

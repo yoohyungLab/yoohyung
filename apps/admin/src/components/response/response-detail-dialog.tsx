@@ -1,7 +1,7 @@
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, Badge } from '@pickid/ui';
-import { ResponseUtils } from '@/shared/api/services/user-responses.service';
-import type { UserResponse } from '@/shared/api/services/user-responses.service';
+import { ResponseUtils } from '@/services/user-responses.service';
+import type { UserResponse } from '@/services/user-responses.service';
 
 interface ResponseDetailDialogProps {
 	response: UserResponse | null;

@@ -64,37 +64,30 @@ export const optimizedBalanceGameStatsService = {
 	 * 여러 선택지 응답 수 일괄 증가
 	 */
 	async batchIncrementChoices(choiceIds: string[]): Promise<void> {
-		try {
-			const client = getClient();
+		const client = getClient();
 
-			console.log('[batchIncrementChoices] Starting batch increment for:', choiceIds);
+		console.log('[batchIncrementChoices] Starting batch increment for:', choiceIds);
 
-			// 각 RPC 호출을 순차적으로 실행하고 에러 체크
-			const results = await Promise.all(
-				choiceIds.map(async (choiceId) => {
-					const { data, error } = await (
-						client.rpc as unknown as {
-							(fn: string, args: { choice_uuid: string }): Promise<{ data: unknown; error: Error | null }>;
-						}
-					)('increment_choice_response_count', {
-						choice_uuid: choiceId,
-					});
+		// 각 선택지마다 순차적으로 RPC 호출
+		for (const choiceId of choiceIds) {
+			try {
+				const { error } = await client.rpc('increment_choice_response_count', {
+					choice_uuid: choiceId,
+				});
 
-					if (error) {
-						console.error(`[batchIncrementChoices] Error for choiceId ${choiceId}:`, error);
-						throw error;
-					}
+				if (error) {
+					console.error(`[batchIncrementChoices] Error for choiceId ${choiceId}:`, error);
+					throw error;
+				}
 
-					console.log(`[batchIncrementChoices] Success for choiceId ${choiceId}`, data);
-					return data;
-				})
-			);
-
-			console.log('[batchIncrementChoices] All increments completed successfully:', results);
-		} catch (error) {
-			console.error('[batchIncrementChoices] Fatal error:', error);
-			handleSupabaseError(error, 'batchIncrementChoices');
+				console.log(`[batchIncrementChoices] Success for choiceId ${choiceId}`);
+			} catch (error) {
+				console.error(`[batchIncrementChoices] Failed to increment ${choiceId}:`, error);
+				// 하나 실패해도 계속 진행
+			}
 		}
+
+		console.log('[batchIncrementChoices] Batch increment completed');
 	},
 
 	/**

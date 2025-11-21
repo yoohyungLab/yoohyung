@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { Button } from '@pickid/ui';
 import { ErrorState, LoadingState } from '@/components/ui';
 import { ArrowLeft, ArrowRight, Check, ExternalLink } from 'lucide-react';
-import { testService } from '@/shared/api/services/test.service';
+import { testService } from '@/services/test.service';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import {
 	BasicInfoStep,
@@ -13,7 +13,7 @@ import {
 	StepIndicator,
 	TypeSelectionStep,
 } from '@/components/test/test-create';
-import { TEST_CREATION_STEPS } from '@/constants/test.constants';
+import { TEST_CREATION_STEPS } from '@/constants/test';
 import { useTestCreation } from '@/hooks/useTestCreation';
 import type { Test } from '@pickid/supabase';
 import { convertQuestionsData, convertResultsData } from '@/utils/test.utils';

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { adminAuthService } from '@/shared/api';
+import { adminAuthService } from '@/services';
 import type { AdminUser } from '@pickid/supabase';
 
 

@@ -1,5 +1,3 @@
-
-
 // ============ Analytics ============
 export { trackResultViewed, trackResultShared, trackTestStart } from './analytics';
 
@@ -36,7 +34,6 @@ export { queryClient } from './query-client';
 
 // ============ Test Utils ============
 export { isMobileDevice, getHomeButtonText, getTestTypeName } from './test-utils';
-export { mapTestWithDetailsToNested } from './test-mappers';
 
 // ============ Type Guards ============
 export {

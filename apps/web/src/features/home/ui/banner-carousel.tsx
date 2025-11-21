@@ -23,8 +23,8 @@ export function BannerCarousel({ banners }: BannerCarouselProps) {
 				className="object-cover select-none"
 				priority={index === 0}
 				draggable={false}
-				sizes="100vw"
-				quality={95}
+				sizes="(max-width: 640px) 100vw, (max-width: 1024px) 100vw, 1200px"
+				quality={100}
 			/>
 		</div>
 	));

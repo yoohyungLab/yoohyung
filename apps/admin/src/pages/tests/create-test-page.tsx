@@ -10,7 +10,7 @@ import {
 	StepIndicator,
 	TypeSelectionStep,
 } from '@/components/test/test-create';
-import { TEST_CREATION_STEPS } from '@/constants/test.constants';
+import { TEST_CREATION_STEPS } from '@/constants/test';
 import { useTestCreation } from '@/hooks/useTestCreation';
 
 export function CreateTestPage() {
@@ -94,7 +94,9 @@ export function CreateTestPage() {
 								onUpdateResult={updateResult}
 							/>
 						)}
-						{step === 5 && <PreviewStep testData={basicInfo} questions={questions} results={results} selectedType={type || ''} />}
+						{step === 5 && (
+							<PreviewStep testData={basicInfo} questions={questions} results={results} selectedType={type || ''} />
+						)}
 					</AdminCardContent>
 				</AdminCard>
 

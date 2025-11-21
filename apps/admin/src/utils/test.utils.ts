@@ -1,5 +1,5 @@
 import type { QuestionWithChoices, ResultWithDetails, QuestionData, ResultData, ChoiceData } from '../types/test.types';
-import { DEFAULT_BASIC_INFO } from '../constants/test.constants';
+import { DEFAULT_BASIC_INFO } from '../constants/test';
 
 // 데이터 변환 유틸리티
 

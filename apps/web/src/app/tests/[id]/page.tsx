@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation';
 import { testService } from '@/shared/api/services/test.service';
 import { generatePageMetadata } from '@/shared/lib/metadata';
 import { SITE_CONFIG } from '@/shared/config/metadata';
-import { mapTestWithDetailsToNested } from '@/shared/lib/test-mappers';
 import { TestPageClient } from '@/features/test/ui/test-page-client';
 
 interface IPageProps {
@@ -51,9 +50,7 @@ export default async function TestDetailPage({ params }: IPageProps) {
 
 		if (!testData) notFound();
 
-		const test = mapTestWithDetailsToNested(testData);
-
-		return <TestPageClient test={test} />;
+		return <TestPageClient test={testData} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);
 		notFound();
