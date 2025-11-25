@@ -2,10 +2,10 @@
 import type { Metadata } from 'next';
 import { ReactNode } from 'react';
 
-import { SessionProvider } from '@/shared/providers/session.provider';
-import { QueryProvider } from '@/shared/providers/query.provider';
-import { GoogleAnalytics } from '@/shared/ui/google-analytics';
-import { SITE_CONFIG, VERIFICATION } from '@/shared/config/metadata';
+import { SessionProvider } from '@/providers/session.provider';
+import { QueryClientProvider } from '@pickid/shared';
+import { GoogleAnalytics } from '@/components/google-analytics';
+import { SITE_CONFIG, VERIFICATION } from '@/components/config/metadata';
 import { Toaster } from '@pickid/ui';
 import App from '@/App';
 import './globals.css';
@@ -66,11 +66,11 @@ export default function RootLayout({ children }: { children: ReactNode }) {
 			</head>
 			<body className="flex min-h-screen" suppressHydrationWarning>
 				{gaId && <GoogleAnalytics gaId={gaId} />}
-				<QueryProvider>
+				<QueryClientProvider>
 					<SessionProvider>
 						<App>{children}</App>
 					</SessionProvider>
-				</QueryProvider>
+				</QueryClientProvider>
 				<Toaster />
 				{/* <AdBannerSticky /> */}
 			</body>

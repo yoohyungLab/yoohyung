@@ -33,7 +33,17 @@
       "Bash(pnpm install:*)",
       "Bash(pnpm --filter admin build:*)",
       "Bash(git fetch:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(pnpm --filter @pickid/shared build:*)",
+      "Bash(src/pages/analytics/analytics-test-detail-page.tsx )",
+      "Bash(src/pages/tests/test-list-page.tsx )",
+      "Bash(src/pages/tests/edit-test-page.tsx )",
+      "Bash(src/pages/tests/create-test-page.tsx)",
+      "Bash(pnpm exec tsc:*)",
+      "Bash(for file in useAnalytics.ts useCategories.ts useDashboard.ts useFeedbacks.ts useTestDetail.ts useTests.ts useUsers.ts)",
+      "Bash(do sed -i '' \"s|from ''@/lib/queryKeys''|from ''@pickid/shared''|g\" \"$file\")",
+      "Bash(pnpm --filter web type-check:*)",
+      "Bash(pnpm add:*)"
     ],
     "deny": [],
     "ask": []

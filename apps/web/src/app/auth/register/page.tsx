@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { AuthLayout, AuthForm } from '@/features/auth';
-import { generatePageMetadata } from '@/shared/lib/metadata';
+import { AuthLayout, AuthForm } from '@/app/auth/components';
+import { generatePageMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '회원가입',

@@ -278,7 +278,7 @@ import type { ITestCard, TTestType } from '@/shared/types';
 import { HREF, TEST_TYPES } from '@/shared/constants';
 
 // 4. 내부 Hooks/Utils
-import { useAuth } from '@/features/auth/hooks/use-auth';
+import { useAuth } from '@/features/auth/hooks/useAuth';
 import { formatDate, cn } from '@/shared/lib/utils';
 
 // 5. 로컬 컴포넌트/파일

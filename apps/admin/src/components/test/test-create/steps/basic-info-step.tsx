@@ -4,88 +4,60 @@ import { LoadingState } from '@/components/ui';
 import { X, RefreshCw } from 'lucide-react';
 import { useCategories } from '@/hooks';
 import { ThumbnailUpload } from '../components';
-import type { BasicInfo } from '../types';
+import { useTestForm } from '@/providers/TestCreationFormProvider';
+import { generateShortCode } from '@/utils/test.utils';
 
-interface BasicInfoStepProps {
-	testData: BasicInfo;
-	selectedType: string;
-	onUpdateTestData: (data: Partial<BasicInfo>) => void;
-	onUpdateTitle: (title: string) => void;
-	onRegenerateShortCode?: () => void;
-}
+export const BasicInfoStep = () => {
+	const { watch, setValue } = useTestForm();
+	const testData = watch('basicInfo');
+	const selectedType = watch('type');
 
-export const BasicInfoStep = (props: BasicInfoStepProps) => {
-	const { testData, selectedType, onUpdateTestData, onUpdateTitle, onRegenerateShortCode } = props;
+	const { categories, loading } = useCategories();
 
-	const { categories, loading, error, fetchCategories } = useCategories();
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setValue('basicInfo', { ...testData, title: e.target.value });
+	};
 
-	const handleTitleChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			onUpdateTitle(e.target.value);
-		},
-		[onUpdateTitle]
-	);
+	const handleShortCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setValue('basicInfo', { ...testData, short_code: e.target.value });
+	};
 
-	const handleShortCodeChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			onUpdateTestData({ ...testData, short_code: e.target.value });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setValue('basicInfo', { ...testData, description: e.target.value || null });
+	};
 
-	const handleDescriptionChange = useCallback(
-		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			onUpdateTestData({ ...testData, description: e.target.value || null });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleIntroChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+		setValue('basicInfo', { ...testData, intro_text: e.target.value || null });
+	};
 
-	const handleIntroChange = useCallback(
-		(e: React.ChangeEvent<HTMLTextAreaElement>) => {
-			onUpdateTestData({ ...testData, intro_text: e.target.value || null });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleEstimatedTimeChange = (value: string) => {
+		setValue('basicInfo', { ...testData, estimated_time: parseInt(value) });
+	};
 
-	const handleEstimatedTimeChange = useCallback(
-		(value: string) => {
-			onUpdateTestData({ ...testData, estimated_time: parseInt(value) });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleMaxScoreChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setValue('basicInfo', { ...testData, max_score: parseInt(e.target.value) || 100 });
+	};
 
-	const handleMaxScoreChange = useCallback(
-		(e: React.ChangeEvent<HTMLInputElement>) => {
-			onUpdateTestData({ ...testData, max_score: parseInt(e.target.value) || 100 });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleRequiresGenderChange = (checked: boolean) => {
+		setValue('basicInfo', { ...testData, requires_gender: checked });
+	};
 
-	const handleRequiresGenderChange = useCallback(
-		(checked: boolean) => {
-			onUpdateTestData({ requires_gender: checked });
-		},
-		[onUpdateTestData]
-	);
+	const handlePublishToggle = (checked: boolean) => {
+		setValue('basicInfo', { ...testData, status: checked ? 'published' : 'draft' });
+	};
 
-	const handlePublishToggle = useCallback(
-		(checked: boolean) => {
-			onUpdateTestData({ ...testData, status: checked ? 'published' : 'draft' });
-		},
-		[onUpdateTestData, testData]
-	);
+	const handleRegenerateShortCode = () => {
+		setValue('basicInfo', { ...testData, short_code: generateShortCode() });
+	};
 
 	const categoryIdSet = useMemo(() => new Set(testData.category_ids), [testData.category_ids]);
 
-	const handleCategoryToggle = useCallback(
-		(categoryId: string) => {
-			const newIds = categoryIdSet.has(categoryId)
-				? testData.category_ids.filter((id: string) => id !== categoryId)
-				: [...testData.category_ids, categoryId];
-			onUpdateTestData({ ...testData, category_ids: newIds });
-		},
-		[categoryIdSet, onUpdateTestData, testData]
-	);
+	const handleCategoryToggle = (categoryId: string) => {
+		const newIds = categoryIdSet.has(categoryId)
+			? testData.category_ids.filter((id: string) => id !== categoryId)
+			: [...testData.category_ids, categoryId];
+		setValue('basicInfo', { ...testData, category_ids: newIds });
+	};
 
 	return (
 		<div className="space-y-8">
@@ -109,17 +81,15 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 								placeholder="예: ABC123"
 								className="flex-1"
 							/>
-							{onRegenerateShortCode && (
-								<Button
-									type="button"
-									variant="outline"
-									onClick={onRegenerateShortCode}
-									className="px-3 py-2"
-									title="새 코드 생성"
-								>
-									<RefreshCw className="w-4 h-4" />
-								</Button>
-							)}
+							<Button
+								type="button"
+								variant="outline"
+								onClick={handleRegenerateShortCode}
+								className="px-3 py-2"
+								title="새 코드 생성"
+							>
+								<RefreshCw className="w-4 h-4" />
+							</Button>
 						</div>
 						<p className="text-sm text-gray-500 mt-1">테스트 공유 시 사용할 고유 코드입니다. (예: /t/ABC123)</p>
 					</div>
@@ -172,7 +142,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 				<div className="space-y-6">
 					<ThumbnailUpload
 						thumbnailUrl={testData.thumbnail_url || ''}
-						onUpdateThumbnail={(url) => onUpdateTestData({ ...testData, thumbnail_url: url })}
+						onUpdateThumbnail={(url) => setValue('basicInfo', { ...testData, thumbnail_url: url })}
 					/>
 
 					<div>
@@ -180,18 +150,7 @@ export const BasicInfoStep = (props: BasicInfoStepProps) => {
 							<label className="text-sm font-medium text-gray-700">
 								카테고리 <span className="text-red-500">*</span>
 							</label>
-							{error ? (
-								<div className="text-center py-4">
-									<p className="text-red-500 mb-2">{error}</p>
-									<IconButton
-										onClick={() => fetchCategories()}
-										icon={<X className="w-4 h-4" />}
-										label="다시 시도"
-										variant="outline"
-										size="sm"
-									/>
-								</div>
-							) : loading ? (
+							{loading ? (
 								<LoadingState message="카테고리를 불러오는 중..." size="sm" className="py-4" />
 							) : (
 								<div className="grid grid-cols-2 gap-2">

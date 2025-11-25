@@ -4,7 +4,9 @@ import { Plus, Trash2, X } from 'lucide-react';
 import { TEST_TYPES, TEST_TYPE_VALUES } from '@/constants/test';
 import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
-import type { ResultStepProps, FeatureInput, ResultData } from '@/types/test.types';
+import { useTestForm } from '@/providers/TestCreationFormProvider';
+import { useFieldArray } from 'react-hook-form';
+import type { FeatureInput, ResultData } from '@/types/test.types';
 
 // 상수
 
@@ -50,8 +52,13 @@ const getGenderLabel = (gender: string) => {
 
 // 컴포넌트
 
-export const ResultStep: React.FC<ResultStepProps> = (props) => {
-	const { results, selectedType, onAddResult, onRemoveResult, onUpdateResult } = props;
+export const ResultStep = () => {
+	const { watch, control } = useTestForm();
+	const selectedType = watch('type');
+	const { fields: results, append: addResult, remove: removeResult, update: updateResult } = useFieldArray({
+		control,
+		name: 'results',
+	});
 	const [featureInputs, setFeatureInputs] = useState<Record<number, FeatureInput>>({});
 
 	const typeConfig = TEST_TYPES.find((t) => t.id === selectedType);
@@ -65,6 +72,27 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 		}));
 	};
 
+	const handleUpdateResult = (resultIndex: number, updates: Partial<ResultData>) => {
+		const result = results[resultIndex];
+		updateResult(resultIndex, {
+			...result,
+			...updates,
+		});
+	};
+
+	const handleAddResult = () => {
+		addResult({
+			result_name: '',
+			result_order: results.length,
+			description: '',
+			match_conditions: { type: 'score', min: 0, max: 100 },
+			background_image_url: null,
+			theme_color: DEFAULT_THEME_COLOR,
+			features: {},
+			target_gender: null,
+		});
+	};
+
 	const addFeature = (resultIndex: number) => {
 		const input = featureInputs[resultIndex];
 		if (!input?.key?.trim() || !input?.value?.trim()) return;
@@ -72,7 +100,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		const values = parseValues(input.value);
 
-		onUpdateResult(resultIndex, {
+		handleUpdateResult(resultIndex, {
 			features: { ...currentFeatures, [input.key]: values } as unknown as ResultData['features'],
 		});
 
@@ -86,12 +114,12 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
 		const newFeatures = { ...currentFeatures };
 		delete newFeatures[featureKey];
-		onUpdateResult(resultIndex, { features: newFeatures as unknown as ResultData['features'] });
+		handleUpdateResult(resultIndex, { features: newFeatures as unknown as ResultData['features'] });
 	};
 
 	const updateFeatureValue = (resultIndex: number, featureKey: string, newValue: string) => {
 		const currentFeatures = (results[resultIndex]?.features || {}) as Record<string, unknown>;
-		onUpdateResult(resultIndex, {
+		handleUpdateResult(resultIndex, {
 			features: { ...currentFeatures, [featureKey]: newValue } as unknown as ResultData['features'],
 		});
 	};
@@ -102,13 +130,13 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 
 		if (Array.isArray(currentValue)) {
 			const newValues = currentValue.filter((v) => v !== valueToRemove);
-			onUpdateResult(resultIndex, {
+			handleUpdateResult(resultIndex, {
 				features: { ...currentFeatures, [featureKey]: newValues } as unknown as ResultData['features'],
 			});
 		} else if (typeof currentValue === 'string') {
 			const values = parseValues(currentValue);
 			const newValues = values.filter((v) => v !== valueToRemove);
-			onUpdateResult(resultIndex, {
+			handleUpdateResult(resultIndex, {
 				features: { ...currentFeatures, [featureKey]: newValues.join(', ') } as unknown as ResultData['features'],
 			});
 		}
@@ -135,11 +163,11 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 						value={matchingType}
 						onValueChange={(value) => {
 							if (value === 'code') {
-								onUpdateResult(resultIndex, {
+								handleUpdateResult(resultIndex, {
 									match_conditions: { type: 'code', codes: [] },
 								});
 							} else {
-								onUpdateResult(resultIndex, {
+								handleUpdateResult(resultIndex, {
 									match_conditions: { type: 'score', min: 0, max: 10 },
 								});
 							}
@@ -160,7 +188,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								type="number"
 								value={conditions?.min || 0}
 								onChange={(e) =>
-									onUpdateResult(resultIndex, {
+									handleUpdateResult(resultIndex, {
 										match_conditions: {
 											type: 'score' as const,
 											...conditions,
@@ -174,7 +202,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								type="number"
 								value={conditions?.max || 10}
 								onChange={(e) =>
-									onUpdateResult(resultIndex, {
+									handleUpdateResult(resultIndex, {
 										match_conditions: {
 											type: 'score' as const,
 											...conditions,
@@ -197,7 +225,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 									.split(',')
 									.map((c) => c.trim().toUpperCase())
 									.filter((c) => c.length > 0);
-								onUpdateResult(resultIndex, {
+								handleUpdateResult(resultIndex, {
 									match_conditions: { type: 'code', codes },
 								});
 							}}
@@ -213,7 +241,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 					<DefaultSelect
 						value={result.target_gender || 'all'}
 						onValueChange={(value) =>
-							onUpdateResult(resultIndex, {
+							handleUpdateResult(resultIndex, {
 								target_gender: value === 'all' ? null : value,
 							})
 						}
@@ -470,9 +498,9 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								];
 
 								defaultResults.forEach((result, index) => {
-									onAddResult();
+									handleAddResult();
 									// 결과 추가 후 즉시 기본값으로 업데이트
-									onUpdateResult(index, result);
+									handleUpdateResult(index, result);
 								});
 							}}
 							className="bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 text-base"
@@ -481,7 +509,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 							기본 템플릿으로 시작하기 (5개 등급)
 						</Button>
 						<p className="text-sm text-gray-500 mt-4">또는 직접 결과를 추가하여 커스터마이징할 수 있습니다.</p>
-						<Button onClick={onAddResult} variant="outline" className="mt-3">
+						<Button onClick={handleAddResult} variant="outline" className="mt-3">
 							<Plus className="w-4 h-4 mr-2" />
 							직접 결과 추가하기
 						</Button>
@@ -494,7 +522,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								<h3 className="text-xl font-semibold text-gray-900">퀴즈 결과 설정</h3>
 								<p className="text-gray-600 mt-1">점수 구간별로 다른 메시지를 설정하세요</p>
 							</div>
-							<Button onClick={onAddResult} className="bg-green-600 hover:bg-green-700">
+							<Button onClick={handleAddResult} className="bg-green-600 hover:bg-green-700">
 								<Plus className="w-4 h-4 mr-2" />
 								결과 추가
 							</Button>
@@ -541,7 +569,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 											action={
 												results.length > 1 && (
 													<Button
-														onClick={() => onRemoveResult(resultIndex)}
+														onClick={() => removeResult(resultIndex)}
 														variant="outline"
 														size="sm"
 														className="text-red-600 hover:text-red-700"
@@ -559,7 +587,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 														required
 														value={result.result_name || ''}
 														onChange={(e) =>
-															onUpdateResult(resultIndex, {
+															handleUpdateResult(resultIndex, {
 																result_name: e.target.value,
 															})
 														}
@@ -574,7 +602,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																label="최소 점수"
 																value={conditions?.min || 0}
 																onChange={(e) =>
-																	onUpdateResult(resultIndex, {
+																	handleUpdateResult(resultIndex, {
 																		match_conditions: {
 																			type: 'score',
 																			...conditions,
@@ -590,7 +618,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																label="최대 점수"
 																value={conditions?.max || 100}
 																onChange={(e) =>
-																	onUpdateResult(resultIndex, {
+																	handleUpdateResult(resultIndex, {
 																		match_conditions: {
 																			type: 'score',
 																			...conditions,
@@ -612,7 +640,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 																type="color"
 																value={result.theme_color || '#3B82F6'}
 																onChange={(e) =>
-																	onUpdateResult(resultIndex, {
+																	handleUpdateResult(resultIndex, {
 																		theme_color: e.target.value,
 																	})
 																}
@@ -621,7 +649,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 															<DefaultInput
 																value={result.theme_color || ''}
 																onChange={(e) =>
-																	onUpdateResult(resultIndex, {
+																	handleUpdateResult(resultIndex, {
 																		theme_color: e.target.value,
 																	})
 																}
@@ -637,7 +665,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 														required
 														value={result.description || ''}
 														onChange={(e) =>
-															onUpdateResult(resultIndex, {
+															handleUpdateResult(resultIndex, {
 																description: e.target.value,
 															})
 														}
@@ -665,7 +693,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 						<h3 className="text-xl font-semibold text-gray-900">결과 설정</h3>
 						<p className="text-gray-600 mt-1">{typeConfig?.name} 테스트 결과를 정의하세요</p>
 					</div>
-					<Button onClick={onAddResult} className="bg-green-600 hover:bg-green-700">
+					<Button onClick={handleAddResult} className="bg-green-600 hover:bg-green-700">
 						<Plus className="w-4 h-4 mr-2" />
 						결과 추가
 					</Button>
@@ -682,7 +710,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 					<h3 className="text-xl font-semibold text-gray-900">결과 설정</h3>
 					<p className="text-gray-600 mt-1">{typeConfig?.name} 테스트 결과를 정의하세요</p>
 				</div>
-				<Button onClick={onAddResult} className="bg-green-600 hover:bg-green-700">
+				<Button onClick={handleAddResult} className="bg-green-600 hover:bg-green-700">
 					<Plus className="w-4 h-4 mr-2" />
 					결과 추가
 				</Button>
@@ -708,7 +736,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 								action={
 									results.length > 1 && (
 										<Button
-											onClick={() => onRemoveResult(resultIndex)}
+											onClick={() => removeResult(resultIndex)}
 											variant="outline"
 											size="sm"
 											className="text-red-600 hover:text-red-700"
@@ -726,7 +754,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 											required
 											value={result.result_name || ''}
 											onChange={(e) =>
-												onUpdateResult(resultIndex, {
+												handleUpdateResult(resultIndex, {
 													result_name: e.target.value,
 												})
 											}
@@ -742,7 +770,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 													type="color"
 													value={result.theme_color || DEFAULT_THEME_COLOR}
 													onChange={(e) =>
-														onUpdateResult(resultIndex, {
+														handleUpdateResult(resultIndex, {
 															theme_color: e.target.value,
 														})
 													}
@@ -751,7 +779,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 												<DefaultInput
 													value={result.theme_color || ''}
 													onChange={(e) =>
-														onUpdateResult(resultIndex, {
+														handleUpdateResult(resultIndex, {
 															theme_color: e.target.value,
 														})
 													}
@@ -767,7 +795,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 											required
 											value={result.description || ''}
 											onChange={(e) =>
-												onUpdateResult(resultIndex, {
+												handleUpdateResult(resultIndex, {
 													description: e.target.value,
 												})
 											}
@@ -780,7 +808,7 @@ export const ResultStep: React.FC<ResultStepProps> = (props) => {
 										<ImageUpload
 											imageUrl={result.background_image_url || ''}
 											onUpdateImage={(url) =>
-												onUpdateResult(resultIndex, {
+												handleUpdateResult(resultIndex, {
 													background_image_url: url,
 												})
 											}

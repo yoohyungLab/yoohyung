@@ -58,23 +58,194 @@
 
 ```
 src/
-├── app/              # (Next.js App Router) 페이지 라우팅
-├── features/         # (FSD) 기능별 모듈
-│   ├── auth/        # 인증 기능
-│   ├── test/        # 테스트 기능
-│   ├── home/        # 홈 기능
-│   ├── category/    # 카테고리 기능
-│   ├── feedback/    # 피드백 기능
-│   └── mypage/      # 마이페이지 기능
-├── shared/           # (공유 모듈) API 서비스 및 공통 로직
-│   ├── api/         # API 서비스
-│   ├── hooks/       # 공통 훅
-│   ├── lib/          # 유틸리티 함수
-│   └── types/        # 공통 타입
-└── widgets/          # (FSD) 복잡한 UI 조합
-    ├── header/
-    ├── footer/
-    └── ...
+├── app/                          # (Next.js App Router) 페이지 라우팅
+│   ├── api/                      # API 라우트
+│   ├── auth/                     # 인증 페이지
+│   │   ├── callback/             # OAuth 콜백
+│   │   ├── login/                # 로그인
+│   │   └── register/             # 회원가입
+│   ├── category/                 # 카테고리 페이지
+│   ├── feedback/                 # 피드백 페이지
+│   │   ├── [id]/                 # 피드백 상세
+│   │   └── create/                # 피드백 작성
+│   ├── mypage/                   # 마이페이지
+│   ├── popular/                  # 인기 테스트
+│   ├── tests/                    # 테스트 페이지
+│   │   └── [id]/                 # 동적 라우트
+│   │       ├── page.tsx           # 테스트 상세
+│   │       └── result/            # 테스트 결과
+│   ├── layout.tsx                # 루트 레이아웃
+│   ├── page.tsx                   # 홈 페이지
+│   ├── error.tsx                  # 에러 페이지
+│   ├── not-found.tsx              # 404 페이지
+│   ├── robots.ts                  # robots.txt
+│   └── sitemap.ts                 # sitemap.xml
+│
+├── features/                      # (FSD) 기능별 모듈
+│   ├── auth/                      # 인증 기능
+│   │   ├── config/                # 설정 (스키마)
+│   │   ├── model/                 # ViewModel (로직/상태)
+│   │   │   └── useAuth.ts
+│   │   └── ui/                    # View (프레젠테이션)
+│   │       ├── auth-form.tsx
+│   │       └── auth-layout.tsx
+│   │
+│   ├── test/                      # 테스트 기능
+│   │   ├── config/                # 테스트 설정
+│   │   │   ├── quiz-constants.ts
+│   │   │   └── themes.ts
+│   │   ├── lib/                   # 테스트 유틸리티
+│   │   │   ├── quiz-utils.ts
+│   │   │   └── session-storage.ts
+│   │   ├── model/                 # ViewModel
+│   │   │   ├── hooks/             # 비즈니스 로직 훅
+│   │   │   │   ├── useBalanceGameQuestion.ts
+│   │   │   │   ├── useBalanceGameResult.ts
+│   │   │   │   ├── usePopularTests.ts
+│   │   │   │   ├── useProgress.ts
+│   │   │   │   ├── useQuizResult.ts
+│   │   │   │   ├── useQuizTaking.ts
+│   │   │   │   ├── useTestBalanceGame.ts
+│   │   │   │   ├── useTestList.ts
+│   │   │   │   ├── useTestResult.ts
+│   │   │   │   └── useTestResultShare.ts
+│   │   │   └── types/             # 테스트 타입
+│   │   │       ├── balance-game.ts
+│   │   │       ├── balance.ts
+│   │   │       ├── psychology.ts
+│   │   │       ├── quiz.ts
+│   │   │       └── test.ts
+│   │   └── ui/                    # View
+│   │       ├── balance-game/      # 밸런스 게임 UI
+│   │       │   ├── balance-game-question.tsx
+│   │       │   ├── balance-game-result-container.tsx
+│   │       │   ├── balance-game-result-content.tsx
+│   │       │   ├── balance-game-result-header.tsx
+│   │       │   └── sections/
+│   │       ├── psychology/        # 심리 테스트 UI
+│   │       │   ├── psychology-question-container.tsx
+│   │       │   ├── test-result-container.tsx
+│   │       │   ├── test-result-content.tsx
+│   │       │   ├── test-result-header.tsx
+│   │       │   ├── gender-select-modal.tsx
+│   │       │   ├── shared-result-landing.tsx
+│   │       │   └── sections/      # 결과 섹션들
+│   │       │       ├── compatibility-section.tsx
+│   │       │       ├── description-section.tsx
+│   │       │       ├── gifts-section.tsx
+│   │       │       └── jobs-section.tsx
+│   │       ├── quiz/              # 퀴즈 UI
+│   │       │   ├── quiz-question-container.tsx
+│   │       │   ├── quiz-result-container.tsx
+│   │       │   ├── quiz-result-content.tsx
+│   │       │   ├── quiz-result-header.tsx
+│   │       │   └── sections/
+│   │       ├── shared/            # 공통 UI
+│   │       │   ├── popular-tests-section.tsx
+│   │       │   ├── question-layout.tsx
+│   │       │   ├── test-cta-buttons.tsx
+│   │       │   └── test-intro.tsx
+│   │       ├── test-page-client.tsx
+│   │       └── test-result-page-client.tsx
+│   │
+│   ├── home/                      # 홈 기능
+│   │   ├── model/                 # ViewModel
+│   │   │   ├── hooks/
+│   │   │   │   └── useHomeBalanceGame.ts
+│   │   │   └── types.ts
+│   │   └── ui/                    # View
+│   │       ├── home-container.tsx
+│   │       ├── banner-carousel.tsx
+│   │       ├── category-filter.tsx
+│   │       ├── test-section.tsx
+│   │       ├── balance-game-section.tsx
+│   │       ├── ad-banner-inline.tsx
+│   │       └── ad-banner-sticky.tsx
+│   │
+│   ├── category/                  # 카테고리 기능
+│   │   └── ui/
+│   │       ├── category-container.tsx
+│   │       ├── category-card.tsx
+│   │       ├── category-navigation.tsx
+│   │       └── test-filter.tsx
+│   │
+│   ├── feedback/                  # 피드백 기능
+│   │   ├── lib/
+│   │   │   └── utils.ts
+│   │   ├── model/
+│   │   │   └── hooks/
+│   │   │       └── useFeedback.ts
+│   │   └── ui/
+│   │       ├── feedback-list.tsx
+│   │       ├── feedback-form.tsx
+│   │       └── feedback-category-selector.tsx
+│   │
+│   └── mypage/                    # 마이페이지 기능
+│       └── ui/
+│           └── mypage-container.tsx
+│
+├── shared/                        # (공유 모듈) API 서비스 및 공통 로직
+│   ├── api/                       # API 서비스 (Data Access)
+│   │   └── services/
+│   │       ├── auth.service.ts
+│   │       ├── category.service.ts
+│   │       ├── feedback.service.ts
+│   │       ├── home.service.ts
+│   │       ├── home-balance-game.service.ts
+│   │       ├── popular.service.ts
+│   │       ├── test.service.ts
+│   │       ├── test-result.service.ts
+│   │       ├── test-response.service.ts
+│   │       └── optimized-balance-game-stats.service.ts
+│   │
+│   ├── config/                    # 설정
+│   │   └── metadata.ts
+│   │
+│   ├── constants/                 # 상수
+│   │   ├── routes.ts              # 라우트 상수
+│   │   ├── test.ts                # 테스트 상수
+│   │   ├── feedback.ts
+│   │   ├── quiz.ts
+│   │   ├── ui.ts
+│   │   └── common.ts
+│   │
+│   ├── lib/                       # 유틸리티 함수
+│   │   ├── analytics.ts           # GA4 이벤트 트래킹
+│   │   ├── balance-game.ts
+│   │   ├── color-utils.ts
+│   │   ├── format-utils.ts
+│   │   ├── metadata.ts
+│   │   ├── supabase-error-handler.ts
+│   │   ├── test-utils.ts
+│   │   ├── type-guards.ts
+│   │   └── utils.ts
+│   │
+│   ├── providers/                  # React Context Provider
+│   │   └── session.provider.tsx
+│   │
+│   ├── types/                      # 공통 타입
+│   │   ├── auth.ts
+│   │   ├── home.ts
+│   │   └── test.ts
+│   │
+│   └── ui/                        # 공통 UI 컴포넌트
+│       ├── cards/                 # 카드 컴포넌트
+│       │   ├── base-card.tsx
+│       │   ├── carousel-card.tsx
+│       │   └── home-card.tsx
+│       ├── icons/
+│       │   └── section-icons.tsx
+│       ├── seo/
+│       │   └── test-result-structured-data.tsx
+│       ├── google-analytics.tsx
+│       └── loading.tsx
+│
+└── widgets/                       # (FSD) 복잡한 UI 조합
+    ├── header.tsx                 # 헤더
+    ├── footer.tsx                 # 푸터
+    ├── sidebar-drawer.tsx         # 사이드바 드로어
+    ├── menu-content.tsx           # 메뉴 콘텐츠
+    └── auth-section.tsx           # 인증 섹션
 ```
 
 ---

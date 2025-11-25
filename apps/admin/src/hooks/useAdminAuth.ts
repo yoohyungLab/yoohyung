@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react';
 import { adminAuthService } from '@/services';
-import type { AdminUser } from '@pickid/supabase';
-
+import { supabase, type User } from '@pickid/supabase';
 
 export function useAdminAuth() {
-	const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
+	const [user, setUser] = useState<User | null>(null);
 	const [loading, setLoading] = useState(true);
 
 	useEffect(() => {
 		checkAuth();
+
+		// Supabase Auth 상태 변경 감지
+		const {
+			data: { subscription },
+		} = supabase.auth.onAuthStateChange((_event, session) => {
+			setUser(session?.user ?? null);
+		});
+
+		return () => subscription.unsubscribe();
 	}, []);
 
 	const checkAuth = async () => {
 		try {
-			const admin = await adminAuthService.getCurrentAdmin();
-			setAdminUser(admin);
+			const session = await adminAuthService.getSession();
+			setUser(session?.user ?? null);
 		} catch {
-			setAdminUser(null);
+			setUser(null);
 		} finally {
 			setLoading(false);
 		}
@@ -24,8 +32,8 @@ export function useAdminAuth() {
 
 	const login = async (email: string, password: string) => {
 		try {
-			const admin = await adminAuthService.login(email, password);
-			setAdminUser(admin);
+			const user = await adminAuthService.login(email, password);
+			setUser(user);
 			return { success: true } as const;
 		} catch (err) {
 			return {
@@ -38,11 +46,19 @@ export function useAdminAuth() {
 	const logout = async () => {
 		try {
 			await adminAuthService.logout();
-			setAdminUser(null);
-		} catch {
-			// no-op
+			setUser(null);
+		} catch (error) {
+			console.error('[useAdminAuth] Logout failed:', error);
+			setUser(null);
 		}
 	};
 
-	return { adminUser, loading, login, logout, checkAuth } as const;
+	return {
+		user,
+		loading,
+		login,
+		logout,
+		checkAuth,
+		isAuthenticated: !!user,
+	} as const;
 }

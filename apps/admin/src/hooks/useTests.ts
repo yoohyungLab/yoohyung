@@ -1,32 +1,73 @@
-/**
- * @hook useTests
- * @description 테스트 목록 관리 훅
- */
+import { queryKeys } from '@pickid/shared';
+import { TEST_STATUS } from '@/constants';
+import { testService } from '@/services/test.service';
+import { useToast } from '@pickid/shared';
+import type { Database, TestFilters, TestStats, TestStatus } from '@pickid/supabase';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 
-import { useState, useCallback, useMemo } from 'react';
-import { useTestList } from './useTestList';
-import { useUpdateTestStatus } from './useUpdateTestStatus';
-import { useDeleteTest } from './useDeleteTest';
-import type { TestFilters, TestStats } from '@pickid/supabase';
+// Test status constants
+
+
+type TestInsert = Database['public']['Tables']['tests']['Insert'];
+type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
+type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
+
+interface ISaveTestParams {
+	testData: TestInsert;
+	questionsData: TestQuestionInsert[];
+	resultsData: TestResultInsert[];
+}
+
+interface IUpdateTestStatusParams {
+	id: string;
+	status: TestStatus;
+}
 
 export const useTests = () => {
-	// React Query로 테스트 목록 조회
-	const { data: tests = [], isLoading: loading, error: queryError } = useTestList();
+	const queryClient = useQueryClient();
+	const toast = useToast();
 
-	// Mutations
-	const updateStatusMutation = useUpdateTestStatus();
-	const deleteTestMutation = useDeleteTest();
+	const { data: tests = [], isLoading: loading } = useQuery({
+		queryKey: queryKeys.tests.all,
+		queryFn: () => testService.getTests(),
+		staleTime: 5 * 60 * 1000,
+	});
 
-	// Local state
+	const saveTestMutation = useMutation({
+		mutationFn: ({ testData, questionsData, resultsData }: ISaveTestParams) =>
+			testService.saveCompleteTest(testData, questionsData, resultsData),
+		onSuccess: (_data, variables) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.tests.all });
+			if (variables.testData.id) {
+				queryClient.invalidateQueries({ queryKey: queryKeys.tests.detail(variables.testData.id) });
+			}
+			toast.success('테스트가 성공적으로 저장되었습니다.');
+		},
+	});
+
+	const deleteTestMutation = useMutation({
+		mutationFn: (testId: string) => testService.deleteTest(testId),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.tests.all });
+			toast.success('테스트가 삭제되었습니다.');
+		},
+	});
+
+	const updateStatusMutation = useMutation({
+		mutationFn: ({ id, status }: IUpdateTestStatusParams) => testService.updateTestStatus(id, status),
+		onSuccess: (_data, variables) => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.tests.all });
+			queryClient.invalidateQueries({ queryKey: queryKeys.tests.detail(variables.id) });
+			toast.success('테스트 상태가 변경되었습니다.');
+		},
+	});
+
 	const [filters, setFilters] = useState<TestFilters>({
 		search: '',
 		status: 'all',
 	});
 
-	// 에러 상태 처리
-	const error = queryError ? (queryError instanceof Error ? queryError.message : '테스트를 불러오는데 실패했습니다.') : null;
-
-	// 필터링된 테스트
 	const filteredTests = useMemo(() => {
 		return tests.filter((test) => {
 			const matchesSearch =
@@ -36,7 +77,6 @@ export const useTests = () => {
 		});
 	}, [tests, filters]);
 
-	// 통계 계산 (클라이언트 메모이제이션)
 	const stats = useMemo((): TestStats => {
 		if (tests.length === 0) {
 			return {
@@ -51,37 +91,14 @@ export const useTests = () => {
 
 		return {
 			total: tests.length,
-			published: tests.filter((test) => test.status === 'published').length,
-			draft: tests.filter((test) => test.status === 'draft').length,
-			scheduled: tests.filter((test) => test.status === 'scheduled').length,
-			archived: tests.filter((test) => test.status === 'archived').length,
+			published: tests.filter((test) => test.status === TEST_STATUS.PUBLISHED).length,
+			draft: tests.filter((test) => test.status === TEST_STATUS.DRAFT).length,
+			scheduled: tests.filter((test) => test.status === TEST_STATUS.SCHEDULED).length,
+			archived: tests.filter((test) => test.status === TEST_STATUS.ARCHIVED).length,
 			responses: tests.reduce((sum, test) => sum + (test.response_count || 0), 0),
 		};
 	}, [tests]);
 
-	// 상태 변경 (React Query Mutation 사용)
-	const togglePublishStatus = useCallback(
-		async (id: string, isPublished?: boolean) => {
-			const test = tests.find((t) => t.id === id);
-			if (!test) return;
-
-			const newStatus =
-				isPublished !== undefined ? (isPublished ? 'published' : 'draft') : test.status === 'published' ? 'draft' : 'published';
-
-			await updateStatusMutation.mutateAsync({ id, status: newStatus });
-		},
-		[tests, updateStatusMutation]
-	);
-
-	// 삭제 (React Query Mutation 사용)
-	const deleteTest = useCallback(
-		async (id: string) => {
-			await deleteTestMutation.mutateAsync(id);
-		},
-		[deleteTestMutation]
-	);
-
-	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<TestFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
@@ -89,11 +106,11 @@ export const useTests = () => {
 	return {
 		tests: filteredTests,
 		loading,
-		error,
 		filters,
 		stats,
-		togglePublishStatus,
-		deleteTest,
 		updateFilters,
+		saveTest: saveTestMutation.mutateAsync,
+		deleteTest: deleteTestMutation.mutateAsync,
+		updateTestStatus: updateStatusMutation.mutateAsync,
 	};
 };

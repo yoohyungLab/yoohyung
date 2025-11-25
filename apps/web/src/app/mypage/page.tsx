@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { MyPageContainer } from '@/features/mypage';
-import { generatePageMetadata } from '@/shared/lib/metadata';
+import { MyPageContainer } from '@/app/mypage/components';
+import { generatePageMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '마이페이지',

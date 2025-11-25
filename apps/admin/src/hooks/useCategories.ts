@@ -1,8 +1,9 @@
 import { useCallback, useMemo, useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { categoryService } from '@/services';
-import { queryKeys } from '@/shared/lib/query-client';
-import { CATEGORY_STATUS_VALUES } from '@/shared/lib/constants/options';
+import { queryKeys } from '@pickid/shared';
+import { useToast } from '@pickid/shared';
+import { CATEGORY_STATUS_VALUES } from '@/constants/category';
 import type { Category, CategoryFilters } from '@pickid/supabase';
 
 interface ICategoryStats {
@@ -13,23 +14,17 @@ interface ICategoryStats {
 
 export const useCategories = () => {
 	const queryClient = useQueryClient();
+	const toast = useToast();
 	const [filters, setFilters] = useState<CategoryFilters>({
 		search: '',
 		status: 'all',
 	});
 
-	const {
-		data: categories = [],
-		isLoading,
-		error: queryError,
-	} = useQuery({
+	const { data: categories = [], isLoading } = useQuery({
 		queryKey: queryKeys.categories.all,
 		queryFn: () => categoryService.getCategories(),
 	});
 
-	const error = queryError ? (queryError instanceof Error ? queryError.message : '카테고리를 불러오는데 실패했습니다.') : null;
-
-	// 통계 계산
 	const stats = useMemo((): ICategoryStats => {
 		if (categories.length === 0) {
 			return {
@@ -46,7 +41,6 @@ export const useCategories = () => {
 		};
 	}, [categories]);
 
-	// 필터링된 카테고리
 	const filteredCategories = useMemo(() => {
 		return categories.filter((category) => {
 			const matchesSearch = !filters.search || category.name.toLowerCase().includes(filters.search.toLowerCase());
@@ -58,55 +52,50 @@ export const useCategories = () => {
 		});
 	}, [categories, filters]);
 
-	// 카테고리 생성
 	const createCategoryMutation = useMutation({
-		mutationFn: (categoryData: {
-			name: string;
-			slug: string;
-			sort_order?: number;
-			status?: 'active' | 'inactive';
-		}) => categoryService.createCategory(categoryData),
+		mutationFn: (categoryData: { name: string; slug: string; sort_order?: number; status?: 'active' | 'inactive' }) =>
+			categoryService.createCategory(categoryData),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+			toast.success('카테고리가 생성되었습니다.');
 		},
 	});
 
-	// 카테고리 수정
 	const updateCategoryMutation = useMutation({
 		mutationFn: ({ id, updates }: { id: string; updates: Partial<Category> }) =>
 			categoryService.updateCategory(id, updates),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+			toast.success('카테고리가 수정되었습니다.');
 		},
 	});
 
-	// 상태 변경
 	const updateCategoryStatusMutation = useMutation({
 		mutationFn: ({ id, isActive }: { id: string; isActive: boolean }) =>
 			categoryService.updateCategoryStatus(id, isActive),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+			toast.success('카테고리 상태가 변경되었습니다.');
 		},
 	});
 
-	// 대량 상태 변경
 	const bulkUpdateStatusMutation = useMutation({
 		mutationFn: ({ categoryIds, isActive }: { categoryIds: string[]; isActive: boolean }) =>
 			categoryService.bulkUpdateStatus(categoryIds, isActive),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+			toast.success('대량 상태 변경이 완료되었습니다.');
 		},
 	});
 
-	// 삭제
 	const deleteCategoryMutation = useMutation({
 		mutationFn: (id: string) => categoryService.deleteCategory(id),
 		onSuccess: () => {
 			queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
+			toast.success('카테고리가 삭제되었습니다.');
 		},
 	});
 
-	// 필터 업데이트
 	const updateFilters = useCallback((newFilters: Partial<CategoryFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
@@ -114,14 +103,13 @@ export const useCategories = () => {
 	return {
 		categories: filteredCategories,
 		loading: isLoading,
-		error,
 		filters,
 		stats,
+		updateFilters,
 		createCategory: createCategoryMutation.mutateAsync,
 		updateCategory: updateCategoryMutation.mutateAsync,
 		updateCategoryStatus: updateCategoryStatusMutation.mutateAsync,
 		bulkUpdateStatus: bulkUpdateStatusMutation.mutateAsync,
 		deleteCategory: deleteCategoryMutation.mutateAsync,
-		updateFilters,
 	};
 };

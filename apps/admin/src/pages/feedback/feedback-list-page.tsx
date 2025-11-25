@@ -4,15 +4,15 @@ import type { Feedback } from '@pickid/supabase';
 import { DataTable, type Column, DefaultPagination, Badge } from '@pickid/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
-import { useColumnRenderers } from '@/shared/hooks';
+import { useColumnRenderers } from '@/hooks/use-column-renderers';
 import { useFeedbacks } from '@/hooks';
 import {
 	PAGINATION,
 	FILTER_FEEDBACK_STATUS_OPTIONS,
 	FILTER_FEEDBACK_CATEGORY_OPTIONS,
 	FEEDBACK_STATUS_OPTIONS,
-} from '@/shared/lib/constants';
-import { getStatusText, getCategoryText, getStatusBadgeVariant, getFeedbackStatusStyle } from '@/shared/lib/utils';
+} from '@/constants';
+import { getStatusText, getCategoryText, getStatusBadgeVariant, getFeedbackStatusStyle } from '@/utils/utils';
 
 export function FeedbackListPage() {
 	const renderers = useColumnRenderers();
@@ -21,15 +21,13 @@ export function FeedbackListPage() {
 	const {
 		feedbacks,
 		loading,
-		error,
 		filters,
 		stats,
-		updateFeedbackStatus,
-		bulkUpdateStatus,
-		addAdminReply,
-		deleteFeedback,
-
 		updateFilters,
+		updateStatus,
+		bulkUpdateStatus,
+		addReply,
+		deleteFeedback,
 	} = useFeedbacks();
 
 	const [modalFeedback, setModalFeedback] = useState<Feedback | null>(null);
@@ -41,41 +39,24 @@ export function FeedbackListPage() {
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 개별 피드백 상태 변경
-	const handleStatusChange = useCallback(
-		async (feedbackId: string, newStatus: Feedback['status']) => {
-			await updateFeedbackStatus(feedbackId, newStatus);
-		},
-		[updateFeedbackStatus]
-	);
-
 	// 대량 상태 변경
 	const handleBulkStatusChange = useCallback(
 		async (status: Feedback['status']) => {
 			if (selectedFeedbacks.length === 0) return;
-			await bulkUpdateStatus(selectedFeedbacks, status);
+			await bulkUpdateStatus({ feedbackIds: selectedFeedbacks, status });
 			setSelectedFeedbacks([]);
 		},
 		[selectedFeedbacks, bulkUpdateStatus]
-	);
-
-	// 피드백 삭제 처리
-	const handleDeleteFeedback = useCallback(
-		async (feedbackId: string) => {
-			if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
-			await deleteFeedback(feedbackId);
-		},
-		[deleteFeedback]
 	);
 
 	// 답변 추가 핸들러
 	const handleAddReply = useCallback(
 		async (reply: string) => {
 			if (!showReplyModal || !reply.trim()) return;
-			await addAdminReply(showReplyModal, reply);
+			await addReply({ id: showReplyModal, reply });
 			setShowReplyModal(null);
 		},
-		[showReplyModal, addAdminReply]
+		[showReplyModal, addReply]
 	);
 
 	// Table columns definition (memoized for performance)
@@ -131,26 +112,36 @@ export function FeedbackListPage() {
 			{
 				id: 'actions',
 				header: '액션',
-				cell: ({ row }) =>
-					renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
+				cell: ({ row }) => {
+					const feedback = row.original;
+					return renderers.renderActions(feedback.id, feedback, [
 						{
 							type: 'reply',
-							onClick: (id) => setShowReplyModal(id),
+							onClick: () => setShowReplyModal(feedback.id),
 							condition: (data) => !data.admin_reply,
 						},
 						{
 							type: 'status',
-							onClick: (id, data) => handleStatusChange(id, (data?.status as Feedback['status']) || 'pending'),
+							onClick: async () => {
+								await updateStatus({
+									id: feedback.id,
+									status: feedback.status || 'pending',
+								});
+							},
 							statusOptions: [...FEEDBACK_STATUS_OPTIONS],
 						},
 						{
 							type: 'delete',
-							onClick: (id) => handleDeleteFeedback(id),
+							onClick: async () => {
+								if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
+								await deleteFeedback(feedback.id);
+							},
 						},
-					]),
+					]);
+				},
 			},
 		],
-		[renderers, handleStatusChange, handleDeleteFeedback]
+		[renderers, updateStatus, deleteFeedback]
 	);
 
 	return (
@@ -212,7 +203,7 @@ export function FeedbackListPage() {
 			/>
 
 			{/* Feedback List */}
-			<DataState loading={loading} error={error} data={feedbacks}>
+			<DataState loading={loading} data={feedbacks}>
 				<DataTable
 					data={feedbacks}
 					columns={columns}

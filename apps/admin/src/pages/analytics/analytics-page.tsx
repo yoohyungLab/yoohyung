@@ -1,15 +1,16 @@
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 import { useAnalytics } from '@/hooks';
-import { useColumnRenderers } from '@/shared/hooks';
-import { PAGINATION } from '@/shared/lib/constants';
-import { getTestStatusStyle } from '@/shared/lib/utils';
+import { useColumnRenderers } from '@/hooks/use-column-renderers';
+import { PAGINATION } from '@/constants';
+import { getTestStatusStyle } from '@/utils/utils';
 import { usePagination } from '@pickid/shared';
 import type { AnalyticsFilters, Test } from '@pickid/supabase';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
 import { Clock, Users } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HREF } from '@/constants/routes';
 
 // 분석용 테스트 타입 (평균 소요시간 포함)
 type TestWithAnalytics = Test & {
@@ -28,8 +29,8 @@ export function AnalyticsPage() {
 		timeRange: '7d',
 	});
 
-	const { tests, loading, error, stats, selectedTests, handleBulkAction, updateSelectedTests, clearSelectedTests } =
-		useAnalytics(filters);
+	const { tests, loading, stats } = useAnalytics(filters);
+	const [selectedTests, setSelectedTests] = React.useState<string[]>([]);
 
 	const totalTests = tests.length;
 
@@ -41,7 +42,7 @@ export function AnalyticsPage() {
 	// 핸들러 함수들
 	const handleTestSelect = useCallback(
 		(test: Test) => {
-			navigate(`/analytics/tests/${test.id}`);
+			navigate(HREF.ANALYTICS_TEST_DETAIL(test.id));
 		},
 		[navigate]
 	);
@@ -191,23 +192,18 @@ export function AnalyticsPage() {
 			/>
 
 			{/* 대량 작업 */}
-			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={clearSelectedTests} />
+			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={() => setSelectedTests([])} />
 
 			{/* 테스트 목록 */}
 			<AdminCard>
 				<AdminCardContent className="p-0">
-					<DataState
-						loading={loading}
-						error={error}
-						data={tests}
-						emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요."
-					>
+					<DataState loading={loading} data={tests} emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요.">
 						<DataTable
 							data={tests}
 							columns={columns}
 							selectable={true}
 							selectedItems={selectedTests}
-							onSelectionChange={updateSelectedTests}
+							onSelectionChange={setSelectedTests}
 							getRowId={(test: Test) => test.id}
 							onRowClick={(test: Test) => handleTestSelect(test)}
 						/>

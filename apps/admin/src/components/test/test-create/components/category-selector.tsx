@@ -1,6 +1,6 @@
 'use client';
 
-import { FEEDBACK_CATEGORIES } from '@/shared/lib/constants';
+import { FEEDBACK_CATEGORIES } from '@/constants';
 
 interface FeedbackCategorySelectorProps {
 	selectedCategory: string;

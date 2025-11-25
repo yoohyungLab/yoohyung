@@ -1,8 +1,8 @@
-import { useMemo } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { queryKeys } from '@pickid/shared';
 import { analyticsService } from '@/services';
-import { queryKeys } from '@/shared/lib/query-client';
 import type { AnalyticsFilters } from '@pickid/supabase';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo } from 'react';
 
 export const useAnalytics = (filters: AnalyticsFilters = {}) => {
 	// 테스트 목록 조회
@@ -35,7 +35,6 @@ export const useAnalytics = (filters: AnalyticsFilters = {}) => {
 	return {
 		tests: filteredTests,
 		loading: testsQuery.isLoading || statsQuery.isLoading,
-		error: testsQuery.error?.message || statsQuery.error?.message || null,
 		stats: statsQuery.data || {
 			total: 0,
 			published: 0,

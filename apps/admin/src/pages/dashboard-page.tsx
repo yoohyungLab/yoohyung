@@ -6,8 +6,8 @@ import { useDashboard } from '@/hooks/useDashboard';
 import { KPICard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
 
 
-export function SimplifiedDashboard() {
-	const { stats, topTests, loading, error, lastUpdated } = useDashboard();
+export function DashboardPage() {
+	const { stats, topTests, loading, lastUpdated } = useDashboard();
 
 	// 트렌드 아이콘 렌더링 함수
 	const renderTrendIcon = (trend: string) => {
@@ -23,10 +23,6 @@ export function SimplifiedDashboard() {
 
 	if (loading) {
 		return <LoadingState message="대시보드를 불러오는 중..." />;
-	}
-
-	if (error) {
-		return <ErrorState title="데이터를 불러올 수 없습니다" message={error} />;
 	}
 
 	return (

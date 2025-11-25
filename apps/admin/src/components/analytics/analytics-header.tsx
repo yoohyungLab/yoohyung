@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, Select } from '@pickid/ui';
 import { ArrowLeft, Download } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/utils/utils';
 import type { Test } from '@pickid/supabase';
 
 interface AnalyticsHeaderProps {

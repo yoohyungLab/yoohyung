@@ -1,7 +1,8 @@
-import { useState, useCallback, useMemo } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { queryKeys } from '@pickid/shared';
 import { userService } from '@/services';
-import { queryKeys } from '@/shared/lib/query-client';
+import { useToast } from '@pickid/shared';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 
 interface IUserFilters {
 	search?: string;
@@ -12,15 +13,20 @@ interface IUserFilters {
 export const useUsers = (initialFilters: IUserFilters = {}) => {
 	const [filters, setFilters] = useState<IUserFilters>(initialFilters);
 	const queryClient = useQueryClient();
+	const toast = useToast();
 
-	// 데이터 조회
 	const usersQuery = useQuery({
 		queryKey: queryKeys.users.all,
 		queryFn: () => userService.getUsers(),
 		staleTime: 2 * 60 * 1000,
 	});
 
-	// 필터링
+	const statsQuery = useQuery({
+		queryKey: queryKeys.users.stats(),
+		queryFn: () => userService.getUserStats(),
+		staleTime: 5 * 60 * 1000,
+	});
+
 	const filteredUsers = useMemo(() => {
 		const users = usersQuery.data || [];
 		return users.filter((user) => {
@@ -34,36 +40,40 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		});
 	}, [usersQuery.data, filters]);
 
-	const statsQuery = useQuery({
-		queryKey: queryKeys.users.stats(),
-		queryFn: () => userService.getUserStats(),
-		staleTime: 5 * 60 * 1000,
-	});
-
-	// 뮤테이션들
-	const updateStatusMutation = useMutation({
+	const updateUserMutation = useMutation({
 		mutationFn: ({ id, status }: { id: string; status: 'active' | 'inactive' | 'deleted' }) =>
 			userService.updateUserStatus(id, status),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+			toast.success('사용자 상태가 변경되었습니다.');
+		},
 	});
 
-	const bulkUpdateMutation = useMutation({
+	const bulkUpdateUserMutation = useMutation({
 		mutationFn: ({ userIds, status }: { userIds: string[]; status: 'active' | 'inactive' | 'deleted' }) =>
 			Promise.all(userIds.map((id) => userService.updateUserStatus(id, status))),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+			toast.success('대량 상태 변경이 완료되었습니다.');
+		},
 	});
 
-	const deleteMutation = useMutation({
+	const deleteUserMutation = useMutation({
 		mutationFn: (id: string) => userService.deleteUser(id),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+			toast.success('사용자가 삭제되었습니다.');
+		},
 	});
 
-	const syncMutation = useMutation({
+	const syncUserMutation = useMutation({
 		mutationFn: () => userService.syncAuthUsersToPublic(),
-		onSuccess: () => queryClient.invalidateQueries({ queryKey: queryKeys.users.all }),
+		onSuccess: () => {
+			queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
+			toast.success('사용자 동기화가 완료되었습니다.');
+		},
 	});
 
-	// 액션들
 	const updateFilters = useCallback((newFilters: Partial<IUserFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
@@ -71,7 +81,6 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 	return {
 		users: filteredUsers,
 		loading: usersQuery.isLoading || statsQuery.isLoading,
-		error: usersQuery.error?.message || statsQuery.error?.message || null,
 		stats: statsQuery.data || {
 			total: 0,
 			active: 0,
@@ -86,10 +95,10 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		},
 		filters,
 		updateFilters,
-		updateUserStatus: updateStatusMutation.mutateAsync,
-		bulkUpdateStatus: bulkUpdateMutation.mutateAsync,
-		deleteUser: deleteMutation.mutateAsync,
-		syncUsers: syncMutation.mutateAsync,
-		isSyncing: syncMutation.isPending,
+		updateUser: updateUserMutation.mutateAsync,
+		bulkUpdateUser: bulkUpdateUserMutation.mutateAsync,
+		deleteUser: deleteUserMutation.mutateAsync,
+		syncUser: syncUserMutation.mutateAsync,
 	};
 };
+

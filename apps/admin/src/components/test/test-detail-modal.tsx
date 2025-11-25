@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Button, IconButton } from '@pickid/ui';
 import { LoadingState } from '@/components/ui';
 import { EmptyState } from '@/components/ui';
@@ -24,49 +24,37 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import type { TestWithNestedDetails, Category } from '@pickid/supabase';
-import { getTestTypeInfo, getTestStatusInfo } from '@/shared/lib/test-utils';
-import { testService } from '@/services';
-import { categoryService } from '@/services/category.service';
-import type { TestDetailModalProps, TabType, QuestionWithChoices } from '@/types/test.types';
+import { getTestTypeInfo, getTestStatusInfo } from '@/utils/test-utils';
+import { useTestDetail } from '@/hooks/useTestDetail';
+import { useCategories } from '@/hooks';
+import type { TestDetailModalProps, TabType } from '@/types/test.types';
 import { calculateTestStats, getCategoryNames } from '@/utils/test.utils';
 
 export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: TestDetailModalProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('basic');
 	const [previewQuestionIndex, setPreviewQuestionIndex] = useState(-1);
-	const [testDetails, setTestDetails] = useState<TestWithNestedDetails | null>(null);
-	const [loading, setLoading] = useState(false);
-	const [categories, setCategories] = useState<Array<{ id: string; name: string }>>([]);
+
+	const { data: testDetails, isLoading: loading } = useTestDetail({ testId: test.id });
+	const { categories } = useCategories();
 
 	const typeInfo = getTestTypeInfo(test.type || 'psychology');
 	const statusInfo = getTestStatusInfo(test.status || 'draft');
 
-	// 테스트 상세 데이터 가져오기
-	useEffect(() => {
-		const fetchTestDetails = async () => {
-			setLoading(true);
-			try {
-				const [details, categoryList] = await Promise.all([
-					testService.getTestWithDetails(test.id),
-					categoryService.getCategories(),
-				]);
-				setTestDetails(details);
-				setCategories(categoryList.map((cat: Category) => ({ id: cat.id, name: cat.name })));
-			} catch (error) {
-				console.error('테스트 상세 정보를 가져오는데 실패했습니다:', error);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		fetchTestDetails();
-	}, [test.id]);
-
 	// 통계 계산
-	const stats = calculateTestStats(testDetails?.questions || [], testDetails?.results || []);
+	const stats = useMemo(
+		() => calculateTestStats(testDetails?.questions || [], testDetails?.results || []),
+		[testDetails?.questions, testDetails?.results]
+	);
 
 	// 카테고리 정보 가져오기
-	const categoryNames = getCategoryNames(test.category_ids, categories);
+	const categoryNames = useMemo(
+		() =>
+			getCategoryNames(
+				test.category_ids,
+				categories.map((cat) => ({ id: cat.id, name: cat.name }))
+			),
+		[test.category_ids, categories]
+	);
 
 	const tabs = [
 		{ id: 'basic', label: '기본 정보', icon: Hash },

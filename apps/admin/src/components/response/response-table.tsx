@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { DataTable, type Column, Badge } from '@pickid/ui';
 import { Monitor } from 'lucide-react';
 import { ResponseUtils } from '@/services/user-responses.service';
-import { useColumnRenderers } from '@/shared/hooks';
+import { useColumnRenderers } from '@/hooks';
 import type { UserResponse } from '@/services/user-responses.service';
 
 interface ResponseTableProps {

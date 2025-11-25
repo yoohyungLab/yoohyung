@@ -3,7 +3,7 @@ import type { Feedback } from '@pickid/supabase';
 import { Badge, IconBadge, IconButton } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Calendar, CheckCircle, Clock, Eye, Mail, MessageSquare, Paperclip, Reply, User, X } from 'lucide-react';
-import { getPriorityColor, getStatusText } from '@/shared/lib/utils';
+import { getPriorityColor, getStatusText } from '@/utils/utils';
 
 interface FeedbackDetailModalProps {
 	feedback: Feedback;

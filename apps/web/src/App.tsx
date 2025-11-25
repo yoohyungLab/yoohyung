@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Footer } from '@/widgets/footer';
-import { Header } from '@/widgets/header';
-import { SidebarDrawer } from '@/widgets/sidebar-drawer';
+import { Footer } from '@/components/layout/footer';
+import { Header } from '@/components/layout/header';
+import { SidebarDrawer } from '@/components/layout/sidebar-drawer';
 import { ReactNode } from 'react';
 
 interface AppProps {

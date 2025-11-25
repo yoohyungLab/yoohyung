@@ -3,7 +3,7 @@ export type { Database, Json } from './database';
 import type { Database } from './database';
 
 // Admin 전용 타입들
-export * from './admin';
+// export * from './admin';
 
 // Helper type for table operations
 type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
@@ -78,10 +78,10 @@ export interface UserActivityItem extends UserTestResponse {
 }
 
 // ===== 필터링 인터페이스들 (admin.ts에서 가져옴) =====
-export type { UserFilters, FeedbackFilters, TestFilters, CategoryFilters } from './admin';
+// export type { UserFilters, FeedbackFilters, TestFilters, CategoryFilters } from './admin';
 
 // ===== 통계 타입들 (admin.ts에서 가져옴) =====
-export type { FeedbackStats, UserStats, TestStats, CategoryStats } from './admin';
+// export type { FeedbackStats, UserStats, TestStats, CategoryStats } from './admin';
 
 // ===== Analytics 관련 타입들 =====
 export interface AnalyticsFilters {
@@ -207,7 +207,7 @@ export interface ResponseChartData {
 }
 
 // ===== Admin API 응답 타입들 (admin.ts에서 가져옴) =====
-export type { AdminFeedbackResponse, AdminUserResponse } from './admin';
+// export type { AdminFeedbackResponse, AdminUserResponse } from './admin';
 
 // ===== UI 컴포넌트용 타입들 =====
 export interface FunnelDataItem {

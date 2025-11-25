@@ -1,20 +1,18 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, Badge } from '@pickid/ui';
 import { TEST_TYPES } from '@/constants/test';
+import { useTestForm } from '@/providers/TestCreationFormProvider';
 
-interface TypeSelectionStepProps {
-	selectedType: string | null;
-	onSelectType: (type: string) => void;
-}
-
-export const TypeSelectionStep = ({ selectedType, onSelectType }: TypeSelectionStepProps) => {
+export const TypeSelectionStep = () => {
+	const { watch, setValue } = useTestForm();
+	const selectedType = watch('type');
 	return (
 		<div className="space-y-8">
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
 				{TEST_TYPES.map((type) => (
 					<Card
 						key={type.id}
-						onClick={() => onSelectType(type.id)}
+						onClick={() => setValue('type', type.id)}
 						className={`cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1 ${
 							selectedType === type.id
 								? 'border-2 border-blue-500 bg-blue-50 shadow-lg'

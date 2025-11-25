@@ -24,6 +24,16 @@ export const DEFAULT_BASIC_INFO = {
 	},
 };
 
+export const DEFAULT_CHOICE = {
+	choice_text: '',
+	choice_order: 0,
+	score: 0,
+	is_correct: false,
+	code: null,
+	last_updated: null,
+	response_count: null,
+};
+
 export const DEFAULT_QUESTION = {
 	question_text: '',
 	question_order: 0,
@@ -32,8 +42,8 @@ export const DEFAULT_QUESTION = {
 	correct_answers: null,
 	explanation: null,
 	choices: [
-		{ choice_text: '', choice_order: 0, score: 0, is_correct: false },
-		{ choice_text: '', choice_order: 1, score: 1, is_correct: false },
+		{ ...DEFAULT_CHOICE, choice_order: 0 },
+		{ ...DEFAULT_CHOICE, choice_order: 1, score: 1 },
 	],
 };
 
@@ -127,29 +137,41 @@ export const TEST_CREATION_STEPS = [
 	{ id: 5, title: '미리보기', description: '테스트를 확인하고 발행하세요' },
 ] as const;
 
-// 테스트 상태 옵션
-
+// ===== 테스트 관련 =====
 export const TEST_STATUS_OPTIONS = [
-	{ value: 'all', label: '전체 상태' },
-	{ value: 'published', label: '공개' },
 	{ value: 'draft', label: '초안' },
-	{ value: 'scheduled', label: '예약' },
+	{ value: 'published', label: '게시됨' },
+	{ value: 'scheduled', label: '예약됨' },
+	{ value: 'archived', label: '보관됨' },
 ] as const;
 
-// 페이지네이션 설정
-
-export const PAGINATION = {
-	DEFAULT_PAGE_SIZE: 20,
-	MAX_PAGE_SIZE: 100,
+export const TEST_STATUS_LABELS = {
+	draft: '초안',
+	published: '게시됨',
+	scheduled: '예약됨',
+	archived: '보관됨',
 } as const;
 
-// 색상 테마
+export const TEST_STATUS_COLORS = {
+	draft: 'bg-amber-500 text-white',
+	published: 'bg-emerald-500 text-white',
+	scheduled: 'bg-blue-500 text-white',
+	archived: 'bg-gray-500 text-white',
+} as const;
 
-export const COLOR_THEMES = [
-	{ primary: '#3B82F6', secondary: '#1E40AF', accent: '#60A5FA' },
-	{ primary: '#10B981', secondary: '#047857', accent: '#34D399' },
-	{ primary: '#F59E0B', secondary: '#D97706', accent: '#FBBF24' },
-	{ primary: '#EF4444', secondary: '#DC2626', accent: '#F87171' },
-	{ primary: '#8B5CF6', secondary: '#7C3AED', accent: '#A78BFA' },
-	{ primary: '#EC4899', secondary: '#DB2777', accent: '#F472B6' },
+export const FILTER_TEST_STATUS_OPTIONS = [
+	{ value: 'all', label: '전체 상태' },
+	{ value: 'draft', label: '초안' },
+	{ value: 'published', label: '게시됨' },
+	{ value: 'archived', label: '보관됨' },
 ] as const;
+
+export const TEST_STATUS = {
+	PUBLISHED: 'published',
+	DRAFT: 'draft',
+	SCHEDULED: 'scheduled',
+	ARCHIVED: 'archived',
+} as const;
+
+
+

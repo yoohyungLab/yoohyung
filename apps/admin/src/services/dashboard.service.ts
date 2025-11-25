@@ -54,70 +54,52 @@ class DashboardService {
 			return cachedData as DashboardOverviewStats;
 		}
 
-		try {
-			// 테스트 통계 조회
-			const { data: testsData, error: testsError } = await supabase.from('tests').select('status, created_at');
+		// 테스트 통계 조회
+		const { data: testsData, error: testsError } = await supabase.from('tests').select('status, created_at');
 
-			if (testsError) {
-				console.error('테스트 통계 조회 실패:', testsError);
-				throw new Error('테스트 통계를 불러올 수 없습니다.');
-			}
-
-			// 응답 통계 조회
-			const { data: responsesData, error: responsesError } = await supabase
-				.from('user_test_responses')
-				.select('completed_at');
-
-			if (responsesError) {
-				console.error('응답 통계 조회 실패:', responsesError);
-				throw new Error('응답 통계를 불러올 수 없습니다.');
-			}
-
-			// 데이터 처리
-			const tests = testsData || [];
-			const responses = responsesData || [];
-
-			const totalTests = tests.length;
-			const publishedTests = tests.filter((t: { status: string | null }) => t.status === 'published').length;
-			const draftTests = tests.filter((t: { status: string | null }) => t.status === 'draft').length;
-			const scheduledTests = tests.filter((t: { status: string | null }) => t.status === 'scheduled').length;
-
-			const totalResponses = responses.length;
-			const completedResponses = responses.filter((r: { completed_at: string | null }) => r.completed_at).length;
-			const completionRate = totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0;
-
-			// 평균 완료 시간은 기본값으로 설정 (컬럼이 없을 수 있음)
-			const avgCompletionTime = 120; // 기본값 (2분)
-
-			const result: DashboardOverviewStats = {
-				total: totalTests,
-				published: publishedTests,
-				draft: draftTests,
-				scheduled: scheduledTests,
-				totalResponses,
-				totalCompletions: completedResponses,
-				completionRate: Math.round(completionRate * 100) / 100,
-				avgCompletionTime: Math.round(avgCompletionTime),
-				anomalies: 0, // TODO: 이상 징후 감지 로직 구현
-			};
-
-			setCachedData(cacheKey, result);
-			return result;
-		} catch (error) {
-			console.error('Error in getDashboardStats:', error);
-			// 에러 발생 시 기본값 반환
-			return {
-				total: 0,
-				published: 0,
-				draft: 0,
-				scheduled: 0,
-				totalResponses: 0,
-				totalCompletions: 0,
-				completionRate: 0,
-				avgCompletionTime: 0,
-				anomalies: 0,
-			};
+		if (testsError) {
+			throw new Error(`테스트 통계 조회 실패: ${testsError.message}`);
 		}
+
+		// 응답 통계 조회
+		const { data: responsesData, error: responsesError } = await supabase
+			.from('user_test_responses')
+			.select('completed_at');
+
+		if (responsesError) {
+			throw new Error(`응답 통계 조회 실패: ${responsesError.message}`);
+		}
+
+		// 데이터 처리
+		const tests = testsData || [];
+		const responses = responsesData || [];
+
+		const totalTests = tests.length;
+		const publishedTests = tests.filter((t: { status: string | null }) => t.status === 'published').length;
+		const draftTests = tests.filter((t: { status: string | null }) => t.status === 'draft').length;
+		const scheduledTests = tests.filter((t: { status: string | null }) => t.status === 'scheduled').length;
+
+		const totalResponses = responses.length;
+		const completedResponses = responses.filter((r: { completed_at: string | null }) => r.completed_at).length;
+		const completionRate = totalResponses > 0 ? (completedResponses / totalResponses) * 100 : 0;
+
+		// 평균 완료 시간은 기본값으로 설정 (컬럼이 없을 수 있음)
+		const avgCompletionTime = 120; // 기본값 (2분)
+
+		const result: DashboardOverviewStats = {
+			total: totalTests,
+			published: publishedTests,
+			draft: draftTests,
+			scheduled: scheduledTests,
+			totalResponses,
+			totalCompletions: completedResponses,
+			completionRate: Math.round(completionRate * 100) / 100,
+			avgCompletionTime: Math.round(avgCompletionTime),
+			anomalies: 0, // TODO: 이상 징후 감지 로직 구현
+		};
+
+		setCachedData(cacheKey, result);
+		return result;
 	}
 
 	/**
@@ -130,76 +112,69 @@ class DashboardService {
 			return cachedData as PopularTest[];
 		}
 
-		try {
-			// 오늘 날짜 범위 설정
-			const today = new Date();
-			today.setHours(0, 0, 0, 0);
-			const tomorrow = new Date(today);
-			tomorrow.setDate(tomorrow.getDate() + 1);
+		// 오늘 날짜 범위 설정
+		const today = new Date();
+		today.setHours(0, 0, 0, 0);
+		const tomorrow = new Date(today);
+		tomorrow.setDate(tomorrow.getDate() + 1);
 
-			// 오늘의 응답 수가 많은 테스트 조회 (간단한 방식)
-			const { data: responsesData, error: responsesError } = await supabase
-				.from('user_test_responses')
-				.select('test_id')
-				.gte('created_at', today.toISOString())
-				.lt('created_at', tomorrow.toISOString());
+		// 오늘의 응답 수가 많은 테스트 조회 (간단한 방식)
+		const { data: responsesData, error: responsesError } = await supabase
+			.from('user_test_responses')
+			.select('test_id')
+			.gte('created_at', today.toISOString())
+			.lt('created_at', tomorrow.toISOString());
 
-			if (responsesError) {
-				console.error('인기 테스트 조회 실패:', responsesError);
-				throw new Error('인기 테스트를 불러올 수 없습니다.');
+		if (responsesError) {
+			throw new Error(`인기 테스트 조회 실패: ${responsesError.message}`);
+		}
+
+		// 테스트별 응답 수 집계
+		const testCounts: Record<string, number> = {};
+		(responsesData || []).forEach((response: { test_id: string | null }) => {
+			const testId = response.test_id;
+			if (testId) {
+				testCounts[testId] = (testCounts[testId] || 0) + 1;
 			}
+		});
 
-			// 테스트별 응답 수 집계
-			const testCounts: Record<string, number> = {};
-			(responsesData || []).forEach((response: { test_id: string | null }) => {
-				const testId = response.test_id;
-				if (testId) {
-					testCounts[testId] = (testCounts[testId] || 0) + 1;
-				}
-			});
+		// 상위 N개 테스트 ID 가져오기
+		const topTestIds = Object.entries(testCounts)
+			.sort(([, a], [, b]) => b - a)
+			.slice(0, limit)
+			.map(([testId]) => testId);
 
-			// 상위 N개 테스트 ID 가져오기
-			const topTestIds = Object.entries(testCounts)
-				.sort(([, a], [, b]) => b - a)
-				.slice(0, limit)
-				.map(([testId]) => testId);
-
-			if (topTestIds.length === 0) {
-				setCachedData(cacheKey, []);
-				return [];
-			}
-
-			// 테스트 정보 조회
-			const { data: testsData, error: testsError } = await supabase
-				.from('tests')
-				.select('id, title, slug, status')
-				.in('id', topTestIds)
-				.eq('status', 'published');
-
-			if (testsError) {
-				console.error('테스트 정보 조회 실패:', testsError);
-				throw new Error('테스트 정보를 불러올 수 없습니다.');
-			}
-
-			// 결과 생성
-			const result: PopularTest[] = (testsData || []).map((test, index) => ({
-				id: test.id,
-				title: test.title,
-				slug: test.slug,
-				emoji: '📝', // 기본 이모지
-				response_count: testCounts[test.id] || 0,
-				rank: index + 1,
-				trend: 'up' as const,
-				completion_rate: 85, // 기본값
-				avg_duration: 120, // 기본값
-			}));
-
-			setCachedData(cacheKey, result);
-			return result;
-		} catch (error) {
-			console.error('Error in getTopTestsToday:', error);
+		if (topTestIds.length === 0) {
+			setCachedData(cacheKey, []);
 			return [];
 		}
+
+		// 테스트 정보 조회
+		const { data: testsData, error: testsError } = await supabase
+			.from('tests')
+			.select('id, title, slug, status')
+			.in('id', topTestIds)
+			.eq('status', 'published');
+
+		if (testsError) {
+			throw new Error(`테스트 정보 조회 실패: ${testsError.message}`);
+		}
+
+		// 결과 생성
+		const result: PopularTest[] = (testsData || []).map((test, index) => ({
+			id: test.id,
+			title: test.title,
+			slug: test.slug,
+			emoji: '📝', // 기본 이모지
+			response_count: testCounts[test.id] || 0,
+			rank: index + 1,
+			trend: 'up' as const,
+			completion_rate: 85, // 기본값
+			avg_duration: 120, // 기본값
+		}));
+
+		setCachedData(cacheKey, result);
+		return result;
 	}
 
 	/**
@@ -228,8 +203,7 @@ class DashboardService {
 			.not('device_type', 'is', null);
 
 		if (error) {
-			console.error('디바이스 분석 실패:', error);
-			return { mobile: 0, desktop: 0, tablet: 0 };
+			throw new Error(`디바이스 분석 실패: ${error.message}`);
 		}
 
 		const breakdown = { mobile: 0, desktop: 0, tablet: 0 };
@@ -281,12 +255,7 @@ class DashboardService {
 			.gte('created_at', oneHourAgo.toISOString());
 
 		if (error) {
-			console.error('실시간 통계 조회 실패:', error);
-			return {
-				recentResponses: 0,
-				activeUsers: 0,
-				completionRate: 0,
-			};
+			throw new Error(`실시간 통계 조회 실패: ${error.message}`);
 		}
 
 		const completedResponses = data.filter((r: { completed_at: string | null }) => r.completed_at).length;
@@ -312,8 +281,7 @@ class DashboardService {
 			.gte('created_at', sevenDaysAgo.toISOString());
 
 		if (error) {
-			console.error('주간 트렌드 조회 실패:', error);
-			return [];
+			throw new Error(`주간 트렌드 조회 실패: ${error.message}`);
 		}
 
 		// 날짜별 응답 수 집계
@@ -380,31 +348,26 @@ class DashboardService {
 			return cachedData;
 		}
 
-		try {
-			const [stats, topTests, realtimeStats, weeklyTrends] = await Promise.all([
-				this.getDashboardStats(),
-				this.getTopTestsToday(3),
-				this.getRealtimeStats(),
-				this.getWeeklyTrends(),
-			]);
+		const [stats, topTests, realtimeStats, weeklyTrends] = await Promise.all([
+			this.getDashboardStats(),
+			this.getTopTestsToday(3),
+			this.getRealtimeStats(),
+			this.getWeeklyTrends(),
+		]);
 
-			const alerts: DashboardAlert[] = [];
+		const alerts: DashboardAlert[] = [];
 
-			const result = {
-				stats,
-				alerts,
-				topTests,
-				realtimeStats,
-				weeklyTrends,
-				lastUpdated: new Date(),
-			};
+		const result = {
+			stats,
+			alerts,
+			topTests,
+			realtimeStats,
+			weeklyTrends,
+			lastUpdated: new Date(),
+		};
 
-			setCachedData(cacheKey, result);
-			return result;
-		} catch (error) {
-			console.error('Error in getDashboardOverview:', error);
-			throw error;
-		}
+		setCachedData(cacheKey, result);
+		return result;
 	}
 }
 

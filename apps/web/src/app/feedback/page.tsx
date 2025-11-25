@@ -2,8 +2,8 @@
 
 import { Button } from '@pickid/ui';
 import Link from 'next/link';
-import { useFeedbackList } from '@/features/feedback/model/use-feedback';
-import { FeedbackList } from '@/features/feedback/ui/feedback-list';
+import { useFeedbackList } from '@/app/feedback/hooks/useFeedback';
+import { FeedbackList } from '@/app/feedback/components/feedback-list';
 
 export default function FeedbackPage() {
 	const { data: feedbacks, isLoading, error, refetch } = useFeedbackList();

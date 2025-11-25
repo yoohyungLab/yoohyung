@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { SITE_CONFIG } from '@/shared/config/metadata';
+import { SITE_CONFIG } from '@/components/config/metadata';
 
 /**
  * PWA Manifest (동적 생성)

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
@@ -11,46 +12,87 @@ import {
 	TypeSelectionStep,
 } from '@/components/test/test-create';
 import { TEST_CREATION_STEPS } from '@/constants/test';
-import { useTestCreation } from '@/hooks/useTestCreation';
+import { PATH } from '@/constants/routes';
+import { COMMON_MESSAGES } from '@pickid/shared';
+import { useTestForm } from '@/providers/TestCreationFormProvider';
+import { useTests } from '@/hooks/useTests';
+import { generateShortCode, generateSlug } from '@/utils/test.utils';
+import type { Database } from '@pickid/supabase';
+
+type TestInsert = Database['public']['Tables']['tests']['Insert'];
+type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
+type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 export function CreateTestPage() {
 	const navigate = useNavigate();
-	const {
-		step,
-		type,
-		setStep,
-		setType,
-		nextStep,
-		prevStep,
-		basicInfo,
-		updateBasicInfo,
-		questions,
-		results,
-		saveTest,
-		isLoading,
-		addQuestion,
-		removeQuestion,
-		updateQuestion,
-		addChoice,
-		removeChoice,
-		updateChoice,
-		addResult,
-		removeResult,
-		updateResult,
-		generateShortCode,
-		updateResultVariantRules,
-	} = useTestCreation();
+	const [step, setStep] = useState(1);
+	const { getValues, watch } = useTestForm();
+	const { saveTest, isSaving } = useTests();
+
+	const type = watch('type');
 
 	const handleSave = async () => {
 		try {
-			await saveTest();
-			alert('테스트가 성공적으로 생성되었습니다!');
-			navigate('/tests');
+			const { type, basicInfo, questions, results } = getValues();
+
+			const finalShortCode = basicInfo.short_code || generateShortCode();
+			const finalSlug = basicInfo.slug || generateSlug(basicInfo.title || '');
+			const finalStatus = basicInfo.status || 'published';
+
+			const testData: TestInsert = {
+				...basicInfo,
+				short_code: finalShortCode,
+				slug: finalSlug,
+				type: type || 'psychology',
+				status: finalStatus,
+				published_at: finalStatus === 'published' ? new Date().toISOString() : null,
+				category_ids: basicInfo.category_ids || [],
+				requires_gender: Boolean(basicInfo.requires_gender),
+				estimated_time: basicInfo.estimated_time || 5,
+				max_score: basicInfo.max_score || 100,
+				intro_text: basicInfo.intro_text || null,
+				thumbnail_url: basicInfo.thumbnail_url || null,
+				description: basicInfo.description || null,
+			};
+
+			const questionsData: TestQuestionInsert[] = questions.map((q, index) => ({
+				question_text: q.question_text,
+				question_order: index,
+				image_url: q.image_url,
+				question_type: q.question_type || 'multiple_choice',
+				correct_answers: q.correct_answers || null,
+				explanation: q.explanation || null,
+				choices: q.choices.map((c, choiceIndex) => ({
+					choice_text: c.choice_text,
+					choice_order: choiceIndex,
+					score: c.score,
+					is_correct: c.is_correct,
+					code: (c as { code?: string | null }).code || null,
+				})),
+			}));
+
+			const resultsData: TestResultInsert[] = results.map((r, index) => ({
+				result_name: r.result_name,
+				description: r.description,
+				result_order: index,
+				background_image_url: r.background_image_url,
+				theme_color: r.theme_color,
+				match_conditions: r.match_conditions,
+				features: r.features,
+				target_gender: r.target_gender || null,
+			}));
+
+			await saveTest({ testData, questionsData, resultsData });
+			alert(COMMON_MESSAGES.CREATED);
+			navigate(PATH.TESTS);
 		} catch (err) {
 			console.error('저장 실패:', err);
-			alert('저장 중 오류가 발생했습니다.');
+			alert(COMMON_MESSAGES.FAILED);
 		}
 	};
+
+	const nextStep = () => setStep((prev) => Math.min(prev + 1, 5));
+	const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
 	const currentStepInfo = TEST_CREATION_STEPS.find((s) => s.id === step);
 
@@ -62,41 +104,11 @@ export function CreateTestPage() {
 				<AdminCard variant="step" padding="lg">
 					<AdminCardHeader variant="step" title={currentStepInfo?.title} subtitle={currentStepInfo?.description} />
 					<AdminCardContent>
-						{step === 1 && <TypeSelectionStep selectedType={type} onSelectType={setType} />}
-						{step === 2 && (
-							<BasicInfoStep
-								testData={basicInfo}
-								selectedType={type || ''}
-								onUpdateTestData={updateBasicInfo}
-								onUpdateTitle={(title: string) => updateBasicInfo({ title })}
-								onRegenerateShortCode={() => updateBasicInfo({ short_code: generateShortCode() })}
-								onUpdateResultVariantRules={updateResultVariantRules}
-							/>
-						)}
-						{step === 3 && (
-							<QuestionStep
-								selectedType={type || ''}
-								questions={questions}
-								onAddQuestion={addQuestion}
-								onRemoveQuestion={removeQuestion}
-								onUpdateQuestion={updateQuestion}
-								onAddChoice={addChoice}
-								onRemoveChoice={removeChoice}
-								onUpdateChoice={updateChoice}
-							/>
-						)}
-						{step === 4 && (
-							<ResultStep
-								selectedType={type || ''}
-								results={results}
-								onAddResult={addResult}
-								onRemoveResult={removeResult}
-								onUpdateResult={updateResult}
-							/>
-						)}
-						{step === 5 && (
-							<PreviewStep testData={basicInfo} questions={questions} results={results} selectedType={type || ''} />
-						)}
+						{step === 1 && <TypeSelectionStep />}
+						{step === 2 && <BasicInfoStep />}
+						{step === 3 && <QuestionStep />}
+						{step === 4 && <ResultStep />}
+						{step === 5 && <PreviewStep />}
 					</AdminCardContent>
 				</AdminCard>
 
@@ -115,7 +127,7 @@ export function CreateTestPage() {
 						{step === 5 ? (
 							<Button
 								onClick={handleSave}
-								loading={isLoading}
+								loading={isSaving}
 								loadingText="저장 중..."
 								className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
 							>

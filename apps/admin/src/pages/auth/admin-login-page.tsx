@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
+import { PATH } from '@/constants/routes';
+import { AUTH_MESSAGES as AUTH } from '@pickid/shared';
 
 
 export function AdminLoginPage() {
@@ -25,7 +27,7 @@ export function AdminLoginPage() {
 		e.preventDefault();
 
 		if (!formData.email.trim() || !formData.password.trim()) {
-			setError('아이디와 비밀번호를 모두 입력해주세요.');
+			setError(AUTH.REQUIRED_CREDENTIALS);
 			return;
 		}
 
@@ -36,23 +38,25 @@ export function AdminLoginPage() {
 			const result = await login(formData.email, formData.password);
 
 			if (result.success) {
-				// 로그인 성공 시 메인 페이지(/)로 이동
-				navigate('/');
+				navigate(PATH.INDEX);
 			} else {
-				setError(result.error || '로그인에 실패했습니다.');
+				setError(result.error || AUTH.LOGIN_FAILED);
 			}
 		} catch {
-			setError('로그인 중 오류가 발생했습니다.');
+			setError(AUTH.LOGIN_ERROR);
 		} finally {
 			setIsSubmitting(false);
 		}
 	};
 
+	// 개발 편의를 위한 auto-fill (프로덕션에서는 제거)
 	useEffect(() => {
-		setFormData({
-			email: 'admin@pickid.com',
-			password: 'string12#',
-		});
+		if (process.env.NODE_ENV === 'development') {
+			setFormData({
+				email: 'admin@pickid.com',
+				password: '',
+			});
+		}
 	}, []);
 
 	return (
@@ -77,7 +81,7 @@ export function AdminLoginPage() {
 									value={formData.email}
 									onChange={(e) => handleInputChange('email', e.target.value)}
 									className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-									placeholder="이메일을 입력하세요"
+									placeholder={AUTH.PLACEHOLDER_EMAIL}
 									autoComplete="email"
 									required
 								/>
@@ -94,7 +98,7 @@ export function AdminLoginPage() {
 									value={formData.password}
 									onChange={(e) => handleInputChange('password', e.target.value)}
 									className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-									placeholder="비밀번호를 입력하세요"
+									placeholder={AUTH.PLACEHOLDER_PASSWORD}
 									autoComplete="current-password"
 									required
 								/>
@@ -125,10 +129,10 @@ export function AdminLoginPage() {
 							{isSubmitting ? (
 								<>
 									<div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block mr-2"></div>
-									로그인 중...
+									{AUTH.BUTTON_LOGGING_IN}
 								</>
 							) : (
-								'로그인'
+								AUTH.BUTTON_LOGIN
 							)}
 						</button>
 					</form>

@@ -3,38 +3,15 @@ import { Badge } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
 import { TEST_TYPES } from '@/constants/test';
-import type { BasicInfo } from '../types';
-// ResultData 타입 정의 (useTestCreation과 일치)
-interface ResultData {
-	result_name: string;
-	result_order: number;
-	description: string | null;
-	match_conditions: { type: 'score'; min: number; max: number };
-	background_image_url: string | null;
-	theme_color: string;
-	features: Record<string, unknown>;
-}
+import { useTestForm } from '@/providers/TestCreationFormProvider';
+import type { QuestionData, ResultData } from '@/types/test.types';
 
-interface QuestionData {
-	question_text: string;
-	question_order: number;
-	image_url: string | null;
-	choices: {
-		choice_text: string;
-		choice_order: number;
-		score: number;
-		is_correct: boolean;
-	}[];
-}
-
-interface PreviewStepProps {
-	testData: BasicInfo;
-	questions: QuestionData[];
-	results: ResultData[];
-	selectedType: string;
-}
-
-export const PreviewStep: React.FC<PreviewStepProps> = ({ testData, questions, results, selectedType }) => {
+export const PreviewStep = () => {
+	const { watch } = useTestForm();
+	const testData = watch('basicInfo');
+	const questions = watch('questions');
+	const results = watch('results');
+	const selectedType = watch('type');
 	const getTypeConfig = () => TEST_TYPES.find((t) => t.id === selectedType);
 
 	const checklistItems = [

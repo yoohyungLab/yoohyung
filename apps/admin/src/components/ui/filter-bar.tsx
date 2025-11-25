@@ -1,6 +1,6 @@
-import * as React from 'react';
 import { Button, cn, DefaultSelect, SearchInput, type SelectOption } from '@pickid/ui';
 import { X } from 'lucide-react';
+import * as React from 'react';
 
 interface FilterConfig {
 	search?: boolean;
@@ -30,13 +30,10 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 	};
 
 	const clearFilters = () => {
-		const clearedFilters = Object.keys(values || {}).reduce(
-			(acc, key) => {
-				acc[key] = key === 'search' ? '' : 'all';
-				return acc;
-			},
-			{} as Record<string, string>
-		);
+		const clearedFilters = Object.keys(values || {}).reduce((acc, key) => {
+			acc[key] = key === 'search' ? '' : 'all';
+			return acc;
+		}, {} as Record<string, string>);
 		onFilterChange(clearedFilters);
 	};
 

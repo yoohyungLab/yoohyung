@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon, getKPIColorClasses } from '@/shared/lib/utils';
+import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon, getKPIColorClasses } from '@/utils/utils';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 
 type ColorVariant = 'blue' | 'green' | 'purple' | 'orange';

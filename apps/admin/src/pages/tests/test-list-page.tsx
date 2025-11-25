@@ -1,20 +1,22 @@
 import { TestDetailModal } from '@/components/test/test-detail-modal';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { useTests } from '@/hooks/useTests';
-import { useColumnRenderers } from '@/shared/hooks';
-import { PAGINATION, TEST_STATUS_OPTIONS } from '@/shared/lib/constants';
-import { getTestStatusInfo, getTestTypeInfo } from '@/shared/lib/test-utils';
-import { getTestStatusStyle } from '@/shared/lib/utils';
+import { useColumnRenderers } from '@/hooks';
+import { PAGINATION, TEST_STATUS_OPTIONS } from '@/constants';
+import { getTestStatusInfo, getTestTypeInfo } from '@/utils/test-utils';
+import { getTestStatusStyle } from '@/utils/utils';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HREF } from '@/constants/routes';
+import { COMMON_MESSAGES } from '@pickid/shared';
 
 export function TestListPage() {
 	const navigate = useNavigate();
 	const renderers = useColumnRenderers();
-	const { tests, loading, error, filters, stats, togglePublishStatus, deleteTest, updateFilters } = useTests();
+	const { tests, loading, filters, stats, updateTestStatus, deleteTest, updateFilters } = useTests();
 	const [modalTest, setModalTest] = useState<Test | null>(null);
 	const [selectedTests, setSelectedTests] = useState<string[]>([]);
 
@@ -24,17 +26,21 @@ export function TestListPage() {
 	});
 
 	const handleTogglePublish = async (testId: string, newStatus: string) => {
-		await togglePublishStatus(testId, newStatus === 'published');
+		await updateTestStatus({ id: testId, status: newStatus as TestStatus });
 	};
 
 	const handleDelete = async (testId: string) => {
-		if (!confirm('정말로 이 테스트를 삭제하시겠습니까?')) return;
+		if (!confirm(COMMON_MESSAGES.CONFIRM_DELETE)) return;
 		await deleteTest(testId);
 	};
 
 	const handleBulkPublish = async (isPublished: boolean) => {
 		if (selectedTests.length === 0) return;
-		await Promise.all(selectedTests.map((testId) => togglePublishStatus(testId, isPublished)));
+		await Promise.all(
+			selectedTests.map((testId) =>
+				updateTestStatus({ id: testId, status: (isPublished ? 'published' : 'draft') as TestStatus })
+			)
+		);
 		setSelectedTests([]);
 	};
 
@@ -97,7 +103,7 @@ export function TestListPage() {
 				renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
 					{
 						type: 'edit',
-						onClick: () => navigate(`/tests/${row.original.id}/edit`),
+						onClick: () => navigate(HREF.TEST_EDIT(row.original.id)),
 					},
 					{
 						type: 'status',
@@ -177,7 +183,7 @@ export function TestListPage() {
 			/>
 
 			{/* 테스트 목록 */}
-			<DataState loading={loading} error={error} data={tests}>
+			<DataState loading={loading} data={tests}>
 				<DataTable
 					data={tests}
 					columns={columns}
@@ -205,13 +211,14 @@ export function TestListPage() {
 					test={modalTest}
 					onClose={() => setModalTest(null)}
 					onTogglePublish={async (testId: string, currentStatus: boolean) => {
-						await handleTogglePublish(testId, currentStatus ? 'published' : 'draft');
+						const newStatus = currentStatus ? 'draft' : 'published';
+						await handleTogglePublish(testId, newStatus);
 						// 모달에 표시된 테스트 정보도 업데이트
 						const updatedTest = tests.find((t) => t.id === testId);
 						if (updatedTest) {
 							setModalTest({
 								...updatedTest,
-								status: !currentStatus ? 'published' : 'draft',
+								status: newStatus,
 							});
 						}
 					}}

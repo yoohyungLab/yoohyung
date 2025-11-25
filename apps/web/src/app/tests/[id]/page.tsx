@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import { testService } from '@/shared/api/services/test.service';
-import { generatePageMetadata } from '@/shared/lib/metadata';
-import { SITE_CONFIG } from '@/shared/config/metadata';
-import { TestPageClient } from '@/features/test/ui/test-page-client';
+import { testService } from '@/api/services/test.service';
+import { generatePageMetadata } from '@/lib/metadata';
+import { SITE_CONFIG } from '@/components/config/metadata';
+import { TestPageClient } from '@/app/tests/components/test-page-client';
 
 interface IPageProps {
 	params: Promise<{ id: string }>;

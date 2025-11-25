@@ -32,7 +32,8 @@ Vite 환경 변수는 VITE_ 접두사가 필요합니다.`;
 /**
  * 클라이언트용 Supabase 클라이언트
  * - 브라우저에서 사용
- * - 인증 세션 자동 관리
+ * - 인증 세션 자동 관리 (localStorage)
+ * - Supabase가 자동으로 토큰 갱신 처리
  */
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
 	auth: {

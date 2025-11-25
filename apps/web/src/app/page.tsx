@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import { HomeContainer } from '@/features/home/ui/home-container';
-import { homeService } from '@/shared/api/services/home.service';
-import { generatePageMetadata } from '@/shared/lib/metadata';
-import { SITE_CONFIG } from '@/shared/config/metadata';
+import { HomeContainer } from '@/components/home-container';
+import { homeService } from '@/api/services/home.service';
+import { generatePageMetadata } from '@/lib/metadata';
+import { SITE_CONFIG } from '@/components/config/metadata';
 
 const DEFAULT_METADATA = {
 	...generatePageMetadata({

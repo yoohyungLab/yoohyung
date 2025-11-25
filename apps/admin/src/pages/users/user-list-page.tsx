@@ -1,53 +1,51 @@
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { UserDetailModal } from '@/components/user';
 import { useUsers } from '@/hooks';
-import { useColumnRenderers } from '@/shared/hooks';
-import { FILTER_PROVIDER_OPTIONS, FILTER_STATUS_OPTIONS } from '@/shared/lib/constants';
+import { useColumnRenderers } from '@/hooks';
+import { FILTER_USER_PROVIDER_OPTIONS, FILTER_USER_STATUS_OPTIONS } from '@/constants';
 import { DataTable, type Column } from '@pickid/ui';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 export function UserListPage() {
 	const renderers = useColumnRenderers();
 
-	const {
-		users,
-		loading,
-		error,
-		filters,
-		stats,
-		modalUser,
-		selectedUsers,
-		setSelectedUsers,
-		updateFilters,
-		openModal,
-		closeModal,
-		clearSelection,
-		updateUserStatus,
-		bulkUpdateStatus,
-		deleteUser,
-		syncUsers,
-		isSyncing,
-	} = useUsers({
-		search: '',
-		status: 'all',
-		provider: 'all',
-	});
+	const { users, loading, filters, stats, updateFilters, updateUser, bulkUpdateUser, deleteUser, syncUser, isSyncing } =
+		useUsers({
+			search: '',
+			status: 'all',
+			provider: 'all',
+		});
+
+	const [selectedUsers, setSelectedUsers] = useState<string[]>([]);
+	const [modalUser, setModalUser] = useState<{ id: string; email: string; name?: string } | null>(null);
+
+	const openModal = useCallback((user: { id: string; email: string; name?: string }) => {
+		setModalUser(user);
+	}, []);
+
+	const closeModal = useCallback(() => {
+		setModalUser(null);
+	}, []);
+
+	const clearSelection = useCallback(() => {
+		setSelectedUsers([]);
+	}, []);
 
 	const handleStatusChange = useCallback(
 		async (userId: string, newStatus: 'active' | 'inactive' | 'deleted') => {
 			if (!newStatus) return;
-			await updateUserStatus({ id: userId, status: newStatus });
+			await updateUser({ id: userId, status: newStatus });
 		},
-		[updateUserStatus]
+		[updateUser]
 	);
 
 	const handleBulkStatusChange = useCallback(
 		async (status: 'active' | 'inactive' | 'deleted') => {
 			if (selectedUsers.length === 0 || !status) return;
-			await bulkUpdateStatus({ userIds: selectedUsers, status });
+			await bulkUpdateUser({ userIds: selectedUsers, status });
 			clearSelection();
 		},
-		[selectedUsers, bulkUpdateStatus, clearSelection]
+		[selectedUsers, bulkUpdateUser, clearSelection]
 	);
 
 	const handleDeleteUser = useCallback(
@@ -152,7 +150,7 @@ export function UserListPage() {
 			{/* 동기화 버튼 */}
 			<div className="flex justify-end">
 				<button
-					onClick={() => syncUsers()}
+					onClick={() => syncUser()}
 					disabled={isSyncing}
 					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
 				>
@@ -164,8 +162,8 @@ export function UserListPage() {
 			<FilterBar
 				filters={{
 					search: true,
-					status: { options: [...FILTER_STATUS_OPTIONS] },
-					provider: { options: [...FILTER_PROVIDER_OPTIONS] },
+					status: { options: [...FILTER_USER_STATUS_OPTIONS] },
+					provider: { options: [...FILTER_USER_PROVIDER_OPTIONS] },
 				}}
 				values={{
 					search: filters.search || '',
@@ -200,7 +198,7 @@ export function UserListPage() {
 			/>
 
 			{/* 사용자 목록 */}
-			<DataState loading={loading} error={error} data={users}>
+			<DataState loading={loading} data={users}>
 				<DataTable
 					data={users}
 					columns={columns}

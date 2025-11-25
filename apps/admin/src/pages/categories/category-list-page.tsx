@@ -3,10 +3,10 @@ import { usePagination } from '@pickid/shared';
 import { DataTable, type Column, DefaultPagination, Badge, Button } from '@pickid/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { CategoryCreateModal, CategorySortModal } from '@/components/category';
-import { useColumnRenderers } from '@/shared/hooks';
+import { useColumnRenderers } from '@/hooks/use-column-renderers';
 import { useCategories } from '@/hooks/useCategories';
-import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/shared/lib/constants';
-import { getCategoryStatusText, getCategoryStatusStyle } from '@/shared/lib/utils';
+import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/constants';
+import { getCategoryStatusText, getCategoryStatusStyle } from '@/utils/utils';
 import type { Category } from '@pickid/supabase';
 
 export default function CategoryListPage() {
@@ -16,16 +16,14 @@ export default function CategoryListPage() {
 	const {
 		categories,
 		loading,
-		error,
 		filters,
 		stats,
-		loadCategories,
+		updateFilters,
 		createCategory,
 		updateCategory,
 		updateCategoryStatus,
 		bulkUpdateStatus,
 		deleteCategory,
-		updateFilters,
 	} = useCategories();
 
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -96,10 +94,8 @@ export default function CategoryListPage() {
 		setShowCreateModal(false);
 	};
 
-	const handleSortSuccess = async () => {
+	const handleSortSuccess = () => {
 		setShowSortModal(false);
-		// 순서 변경 후 전체 데이터 다시 로드
-		await loadCategories();
 	};
 
 	// Table columns definition (memoized for performance)
@@ -237,7 +233,7 @@ export default function CategoryListPage() {
 			/>
 
 			{/* Category List */}
-			<DataState loading={loading} error={error} data={categories}>
+			<DataState loading={loading} data={categories}>
 				<DataTable
 					data={categories}
 					columns={columns}

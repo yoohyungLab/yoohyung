@@ -1,15 +1,16 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus } from 'lucide-react';
-import { navigation, isActivePath, type NavEntry } from '@/shared/config/navigation';
+import { navigation, isActivePath, type NavEntry } from '@/config/navigation';
+import { PATH } from '@/constants/routes';
+import type { User } from '@pickid/supabase';
 
 interface IAdminHeaderProps {
-	adminUser: { email?: string | null } | null;
+	user: User | null;
 	onLogout: () => void;
 }
 
-
-export function AdminHeader({ adminUser, onLogout }: IAdminHeaderProps) {
+export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 	const location = useLocation();
 	const navigate = useNavigate();
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -40,7 +41,7 @@ export function AdminHeader({ adminUser, onLogout }: IAdminHeaderProps) {
 	}, [userMenuOpen]);
 
 	const handleCreateTest = () => {
-		navigate('/tests/create');
+		navigate(PATH.TEST_CREATE);
 	};
 
 	const handleToggleMenu = () => {
@@ -86,11 +87,11 @@ export function AdminHeader({ adminUser, onLogout }: IAdminHeaderProps) {
 						aria-label="사용자 메뉴"
 					>
 						<div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
-							{adminUser?.email?.charAt(0).toUpperCase() || 'A'}
+							{user?.email?.charAt(0).toUpperCase() || 'A'}
 						</div>
 						<div className="hidden sm:block text-left">
 							<p className="text-sm font-medium text-gray-800">관리자</p>
-							<p className="text-xs text-gray-500 truncate max-w-[120px]">{adminUser?.email}</p>
+							<p className="text-xs text-gray-500 truncate max-w-[120px]">{user?.email}</p>
 						</div>
 						<span className="text-gray-400 text-xs" aria-hidden="true">
 							▼
@@ -117,4 +118,3 @@ export function AdminHeader({ adminUser, onLogout }: IAdminHeaderProps) {
 		</header>
 	);
 }
-

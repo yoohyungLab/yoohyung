@@ -4,11 +4,11 @@ import { useAdminAuth } from '@/hooks';
 import { LoadingState } from '@/components/ui';
 import { AdminSidebar } from './admin-sidebar';
 import { AdminHeader } from './admin-header';
-
+import { PATH } from '@/constants/routes';
 
 export function AdminLayout() {
 	const navigate = useNavigate();
-	const { adminUser, loading, logout } = useAdminAuth();
+	const { user, loading, logout, isAuthenticated } = useAdminAuth();
 
 	// 사이드바 상태 관리 (localStorage 기반)
 	const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
@@ -21,16 +21,17 @@ export function AdminLayout() {
 	});
 
 	// 사이드바 상태 localStorage 저장
+	// TODO: 이걸 왜 저장함?
 	useEffect(() => {
 		localStorage.setItem('admin.sidebarCollapsed', sidebarCollapsed ? '1' : '0');
 	}, [sidebarCollapsed]);
 
 	// 인증 체크
 	useEffect(() => {
-		if (!loading && !adminUser) {
-			navigate('/auth', { replace: true });
+		if (!loading && !isAuthenticated) {
+			navigate(PATH.AUTH, { replace: true });
 		}
-	}, [adminUser, loading, navigate]);
+	}, [isAuthenticated, loading, navigate]);
 
 	// 로딩 상태
 	if (loading) {
@@ -38,7 +39,7 @@ export function AdminLayout() {
 	}
 
 	// 인증되지 않은 상태
-	if (!adminUser) {
+	if (!isAuthenticated) {
 		return null;
 	}
 
@@ -54,7 +55,7 @@ export function AdminLayout() {
 			{/* 메인 콘텐츠 영역 */}
 			<div className="flex-1 flex flex-col overflow-hidden">
 				{/* 헤더 */}
-				<AdminHeader adminUser={adminUser} onLogout={logout} />
+				<AdminHeader user={user} onLogout={logout} />
 
 				{/* 페이지 콘텐츠 */}
 				<main className="animate-[fadeIn_200ms_ease-out] admin-content flex-1 overflow-auto p-4 md:p-6 bg-gray-50">

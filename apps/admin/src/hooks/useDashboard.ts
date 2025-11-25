@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { analyticsService, dashboardService } from '@/services';
-import { queryKeys } from '@/shared/lib/query-client';
-
+import { queryKeys } from '@pickid/shared';
 
 export const useDashboard = () => {
 	const statsQuery = useQuery({
@@ -42,7 +41,6 @@ export const useDashboard = () => {
 		},
 		topTests: topTestsQuery.data || [],
 		loading: statsQuery.isLoading || topTestsQuery.isLoading,
-		error: statsQuery.error?.message || topTestsQuery.error?.message || null,
 		lastUpdated: new Date(),
 	};
 };

@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminCard } from '@/components/ui/admin-card';
 import { BarChart3, LineChart, PieChart } from 'lucide-react';
-import { cn } from '@/shared/lib/utils';
+import { cn } from '@/utils/utils';
 
 type TabId = 'overview' | 'trends' | 'funnel';
 

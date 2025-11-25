@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle, IconButton } from '@pickid/ui';
 import { Link } from 'react-router-dom';
 import { BarChart3, FileText } from 'lucide-react';
-import { formatNumber } from '@/shared/lib/utils';
+import { formatNumber } from '@/utils/utils';
 import type { PopularTest } from '@pickid/supabase';
 
 interface PopularTestsCardProps {

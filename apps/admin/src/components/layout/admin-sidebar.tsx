@@ -1,11 +1,10 @@
 import { Link, useLocation } from 'react-router-dom';
-import { isActivePath, navigation } from '@/shared/config/navigation';
+import { isActivePath, navigation } from '@/config/navigation';
 
 interface IAdminSidebarProps {
 	sidebarCollapsed: boolean;
 	onToggleSidebar: () => void;
 }
-
 
 export function AdminSidebar({ sidebarCollapsed, onToggleSidebar }: IAdminSidebarProps) {
 	const location = useLocation();
@@ -97,4 +96,3 @@ export function AdminSidebar({ sidebarCollapsed, onToggleSidebar }: IAdminSideba
 		</aside>
 	);
 }
-

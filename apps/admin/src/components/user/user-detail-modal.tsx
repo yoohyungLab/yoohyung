@@ -1,12 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Badge, IconBadge, IconButton } from '@pickid/ui';
-import { userService } from '@/services';
-import type { UserWithActivity, UserActivityItem, Feedback } from '@pickid/supabase';
-import { getStatusConfig, formatDate, getDaysSinceJoin, getLabelText } from '@/shared/lib';
-import { formatDuration } from '@pickid/shared';
-import { X, User, Mail, Calendar, Activity, MessageSquare, Clock, Target, TrendingUp, Hash, Users } from 'lucide-react';
 import { EmptyState, LoadingState } from '@/components/ui';
-import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
+import { AdminCard, AdminCardContent, AdminCardHeader } from '@/components/ui/admin-card';
+import { formatDate, getDaysSinceJoin, getLabelText, getStatusConfig } from '@/lib';
+import { userService } from '@/services';
+import { formatDuration } from '@pickid/shared';
+import type { Feedback, UserActivityItem, UserWithActivity } from '@pickid/supabase';
+import { Badge, IconBadge, IconButton } from '@pickid/ui';
+import { Activity, Calendar, Clock, Hash, Mail, MessageSquare, Target, TrendingUp, User, Users, X } from 'lucide-react';
+import { useCallback, useEffect, useState } from 'react';
 interface UserDetailModalProps {
 	user: UserWithActivity;
 	onClose: () => void;

@@ -1,17 +1,18 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { analyticsService } from '@/services';
-import { ErrorState } from '@pickid/ui';
-import { LoadingState } from '@/components/ui';
 import {
 	AnalyticsHeader,
 	AnalyticsStatsCards,
 	AnalyticsTabs,
-	OverviewTab,
 	FunnelTab,
+	OverviewTab,
 	TrendsTab,
 } from '@/components/analytics';
-import type { Test, Database } from '@pickid/supabase';
+import { LoadingState } from '@/components/ui';
+import { PATH } from '@/constants/routes';
+import { analyticsService } from '@/services';
+import type { Database, Test } from '@pickid/supabase';
+import { ErrorState } from '@pickid/ui';
+import { useCallback, useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // Supabase 함수 반환 타입들
 type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];
@@ -63,7 +64,7 @@ export function AnalyticsTestDetailPage() {
 			if (foundTest) {
 				setTest(foundTest);
 			} else {
-				navigate('/analytics');
+				navigate(PATH.ANALYTICS);
 				return;
 			}
 
@@ -112,9 +113,9 @@ export function AnalyticsTestDetailPage() {
 			<div className="space-y-6 p-6">
 				<ErrorState
 					title="테스트를 찾을 수 없습니다"
-					message="요청하신 테스트가 존재하지 않거나 삭제되었습니다."
+					message={'요청하신 테스트가 존재하지 않거나 삭제되었습니다'}
 					actionLabel="분석 목록으로 돌아가기"
-					onAction={() => navigate('/analytics')}
+					onAction={() => navigate(PATH.ANALYTICS)}
 				/>
 			</div>
 		);
@@ -135,7 +136,7 @@ export function AnalyticsTestDetailPage() {
 				timeRange={timeRange}
 				loading={loading}
 				onTimeRangeChange={setTimeRange}
-				onBack={() => navigate('/analytics')}
+				onBack={() => navigate(PATH.ANALYTICS)}
 			/>
 
 			<AnalyticsStatsCards basicStats={basicStats} />

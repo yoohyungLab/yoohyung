@@ -40,6 +40,13 @@ const nextConfig = {
 				aggregateTimeout: 300,
 			};
 		}
+		// 패키지 alias 설정 (소스 파일 직접 참조)
+		config.resolve.alias = {
+			...config.resolve.alias,
+			'@pickid/shared': require('path').resolve(__dirname, '../../packages/shared/src'),
+			'@pickid/supabase': require('path').resolve(__dirname, '../../packages/supabase/src'),
+			'@pickid/ui': require('path').resolve(__dirname, '../../packages/ui/src'),
+		};
 		return config;
 	},
 	async rewrites() {

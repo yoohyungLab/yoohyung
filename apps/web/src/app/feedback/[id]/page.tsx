@@ -1,8 +1,8 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
-import { useFeedbackDetail } from '@/features/feedback/model/use-feedback';
-import { formatDateTime, getCategoryInfo, getStatusInfo, getStatusClassName } from '@/features/feedback';
+import { useFeedbackDetail } from '@/app/feedback/hooks/useFeedback';
+import { formatDateTime } from '@/lib'; import { getCategoryInfo, getStatusInfo, getStatusClassName } from '@/app/feedback/utils/utils';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 
@@ -77,7 +77,9 @@ export default function FeedbackDetailPage() {
 					</div>
 
 					<div className="p-6">
-						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">{feedback.content as string}</div>
+						<div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+							{feedback.content as string}
+						</div>
 					</div>
 
 					{(feedback.admin_reply as string)?.trim() && (

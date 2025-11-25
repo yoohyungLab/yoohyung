@@ -25,7 +25,13 @@
 			"@/features/*": ["./src/features/*"],
 			"@/widgets/*": ["./src/widgets/*"],
 			"@/pages/*": ["./src/pages/*"],
-			"@/app/*": ["./src/app/*"]
+			"@/app/*": ["./src/app/*"],
+			"@pickid/shared": ["../../packages/shared/src"],
+			"@pickid/shared/*": ["../../packages/shared/src/*"],
+			"@pickid/supabase": ["../../packages/supabase/src"],
+			"@pickid/supabase/*": ["../../packages/supabase/src/*"],
+			"@pickid/ui": ["../../packages/ui/src"],
+			"@pickid/ui/*": ["../../packages/ui/src/*"]
 		},
 		"forceConsistentCasingInFileNames": true
 	},

@@ -26,6 +26,8 @@ export default defineConfig(({ mode }) => {
 			alias: {
 				'@': path.resolve(__dirname, 'src'),
 				'@pickid/ui': path.resolve(__dirname, '../../packages/ui/src'),
+				'@pickid/shared': path.resolve(__dirname, '../../packages/shared/src'),
+				'@pickid/supabase': path.resolve(__dirname, '../../packages/supabase/src'),
 			},
 		},
 		define: {

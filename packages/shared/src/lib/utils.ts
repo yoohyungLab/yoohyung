@@ -41,7 +41,7 @@ export function chunk<T>(array: T[], size: number): T[][] {
 }
 
 export function unique<T>(array: T[]): T[] {
-	return [...new Set(array)];
+	return Array.from(new Set(array));
 }
 
 // 객체 유틸리티

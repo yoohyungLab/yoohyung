@@ -3,23 +3,67 @@ import { DefaultInput, DefaultTextarea, Label, Switch, IconButton, DefaultSelect
 import { Plus, Trash2, X } from 'lucide-react';
 import { ImageUpload } from '../components';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
-import type { QuestionStepProps } from '@/types/test.types';
+import { useTestForm } from '@/providers/TestCreationFormProvider';
+import { useFieldArray } from 'react-hook-form';
+import { DEFAULT_CHOICE } from '@/constants/test';
 
-export const QuestionStep = (props: QuestionStepProps) => {
-	const {
-		questions,
-		selectedType,
-		onAddQuestion,
-		onRemoveQuestion,
-		onUpdateQuestion,
-		onAddChoice,
-		onRemoveChoice,
-		onUpdateChoice,
-	} = props;
+export const QuestionStep = () => {
+	const { watch, control, setValue } = useTestForm();
+	const selectedType = watch('type');
+	const { fields: questions, append: addQuestion, remove: removeQuestion, update: updateQuestion } = useFieldArray({
+		control,
+		name: 'questions',
+	});
+
+	const handleAddChoice = (questionIndex: number) => {
+		const question = questions[questionIndex];
+		updateQuestion(questionIndex, {
+			...question,
+			choices: [...question.choices, DEFAULT_CHOICE],
+		});
+	};
+
+	const handleRemoveChoice = (questionIndex: number, choiceIndex: number) => {
+		const question = questions[questionIndex];
+		updateQuestion(questionIndex, {
+			...question,
+			choices: question.choices.filter((_, idx) => idx !== choiceIndex),
+		});
+	};
+
+	const handleUpdateChoice = (questionIndex: number, choiceIndex: number, updates: Partial<typeof DEFAULT_CHOICE>) => {
+		const question = questions[questionIndex];
+		const updatedChoices = [...question.choices];
+		updatedChoices[choiceIndex] = { ...updatedChoices[choiceIndex], ...updates };
+		updateQuestion(questionIndex, {
+			...question,
+			choices: updatedChoices,
+		});
+	};
+
+	const handleUpdateQuestion = (questionIndex: number, updates: Record<string, unknown>) => {
+		const question = questions[questionIndex];
+		updateQuestion(questionIndex, {
+			...question,
+			...updates,
+		});
+	};
+
+	const handleAddQuestion = () => {
+		addQuestion({
+			question_text: '',
+			question_order: questions.length,
+			image_url: null,
+			question_type: 'multiple_choice',
+			correct_answers: null,
+			explanation: null,
+			choices: [DEFAULT_CHOICE, DEFAULT_CHOICE],
+		});
+	};
 
 	return (
 		<div className="space-y-6">
-			{props.selectedType === 'quiz' && (
+			{selectedType === 'quiz' && (
 				<div className="bg-indigo-50 border border-indigo-200 rounded-lg p-4">
 					<h4 className="font-semibold text-indigo-900 mb-2">📌 퀴즈형 채점 방식</h4>
 					<p className="text-sm text-indigo-800">
@@ -29,7 +73,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 			)}
 
 			<IconButton
-				onClick={onAddQuestion}
+				onClick={handleAddQuestion}
 				icon={<Plus className="w-4 h-4" />}
 				label="질문 추가"
 				className="bg-blue-600 hover:bg-blue-700 text-white"
@@ -51,7 +95,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 							action={
 								questions.length > 1 && (
 									<IconButton
-										onClick={() => onRemoveQuestion(questionIndex)}
+										onClick={() => removeQuestion(questionIndex)}
 										icon={<Trash2 className="w-4 h-4" />}
 										variant="outline"
 										size="sm"
@@ -68,7 +112,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 									<DefaultSelect
 										value={question.question_type || 'multiple_choice'}
 										onValueChange={(value) =>
-											onUpdateQuestion(questionIndex, {
+											handleUpdateQuestion(questionIndex, {
 												question_type: value,
 												// 타입 변경 시 관련 필드 초기화
 												...(value === 'short_answer'
@@ -90,7 +134,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 								required
 								value={question.question_text}
 								onChange={(e) =>
-									onUpdateQuestion(questionIndex, {
+									handleUpdateQuestion(questionIndex, {
 										question_text: e.target.value,
 									})
 								}
@@ -103,7 +147,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 									label="해설 (선택사항)"
 									value={question.explanation || ''}
 									onChange={(e) =>
-										onUpdateQuestion(questionIndex, {
+										handleUpdateQuestion(questionIndex, {
 											explanation: e.target.value,
 										})
 									}
@@ -114,7 +158,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 
 							<ImageUpload
 								imageUrl={question.image_url || ''}
-								onUpdateImage={(url: string) => onUpdateQuestion(questionIndex, { image_url: url })}
+								onUpdateImage={(url: string) => handleUpdateQuestion(questionIndex, { image_url: url })}
 								label="질문 이미지"
 								desc="질문과 관련된 이미지를 추가하세요 (선택사항)"
 							/>
@@ -140,7 +184,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 														if (value) {
 															const currentAnswers = question.correct_answers || [];
 															if (!currentAnswers.includes(value)) {
-																onUpdateQuestion(questionIndex, {
+																handleUpdateQuestion(questionIndex, {
 																	correct_answers: [...currentAnswers, value],
 																});
 																input.value = '';
@@ -159,7 +203,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 															const newAnswers = (question.correct_answers || []).filter(
 																(_: string, idx: number) => idx !== answerIndex
 															);
-															onUpdateQuestion(questionIndex, {
+															handleUpdateQuestion(questionIndex, {
 																correct_answers: newAnswers,
 															});
 														}}
@@ -184,7 +228,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 											선택지 <span className="text-red-500">*</span>
 										</Label>
 										<IconButton
-											onClick={() => onAddChoice(questionIndex)}
+											onClick={() => handleAddChoice(questionIndex)}
 											icon={<Plus className="w-3 h-3" />}
 											label="선택지 추가"
 											variant="outline"
@@ -203,7 +247,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 													<DefaultInput
 														value={choice.choice_text}
 														onChange={(e) =>
-															onUpdateChoice(questionIndex, choiceIndex, {
+															handleUpdateChoice(questionIndex, choiceIndex, {
 																choice_text: e.target.value,
 															})
 														}
@@ -217,7 +261,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 														<Switch
 															checked={choice.is_correct}
 															onCheckedChange={(checked) =>
-																onUpdateChoice(questionIndex, choiceIndex, {
+																handleUpdateChoice(questionIndex, choiceIndex, {
 																	is_correct: checked,
 																	score: 0, // 퀴즈는 점수 사용 안 함
 																})
@@ -232,7 +276,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 																type="number"
 																value={choice.score}
 																onChange={(e) =>
-																	onUpdateChoice(questionIndex, choiceIndex, {
+																	handleUpdateChoice(questionIndex, choiceIndex, {
 																		score: parseInt(e.target.value) || 0,
 																	})
 																}
@@ -245,7 +289,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 															<DefaultInput
 																value={(choice as { code?: string }).code || ''}
 																onChange={(e) =>
-																	onUpdateChoice(questionIndex, choiceIndex, {
+																	handleUpdateChoice(questionIndex, choiceIndex, {
 																		code: e.target.value.toUpperCase(),
 																	} as Partial<typeof choice>)
 																}
@@ -262,7 +306,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 															type="number"
 															value={choice.score}
 															onChange={(e) =>
-																onUpdateChoice(questionIndex, choiceIndex, {
+																handleUpdateChoice(questionIndex, choiceIndex, {
 																	score: parseInt(e.target.value) || 0,
 																})
 															}
@@ -274,7 +318,7 @@ export const QuestionStep = (props: QuestionStepProps) => {
 
 												{question.choices.length > 2 && (
 													<IconButton
-														onClick={() => onRemoveChoice(questionIndex, choiceIndex)}
+														onClick={() => handleRemoveChoice(questionIndex, choiceIndex)}
 														icon={<Trash2 className="w-4 h-4" />}
 														variant="outline"
 														size="sm"

@@ -1,9 +1,9 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { Suspense } from 'react';
-import { CategoryContainer } from '@/features/category/ui/category-container';
-import { categoryService } from '@/shared/api/services/category.service';
-import { generatePageMetadata } from '@/shared/lib/metadata';
+import { CategoryContainer } from '@/app/category/components/category-container';
+import { categoryService } from '@/api/services/category.service';
+import { generatePageMetadata } from '@/lib/metadata';
 
 export const metadata: Metadata = generatePageMetadata({
 	title: '카테고리별 테스트',

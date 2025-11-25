@@ -1,5 +1,5 @@
 import { supabase, createAdminClient } from '@pickid/supabase';
-import type { ExtendedUser } from '@/shared/types/user.types';
+import type { ExtendedUser } from '@/types/user.types';
 
 // 간소화된 사용자 서비스
 export const userService = {

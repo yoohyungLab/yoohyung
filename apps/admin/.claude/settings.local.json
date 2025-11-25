@@ -7,7 +7,8 @@
       "Bash(tree:*)",
       "Bash(awk:*)",
       "Bash(find:*)",
-      "Bash(pnpm type-check)"
+      "Bash(pnpm type-check)",
+      "Bash(npx tsc:*)"
     ],
     "deny": [],
     "ask": []
