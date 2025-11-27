@@ -1,82 +1,54 @@
 import { useState, useEffect } from 'react';
 import { adminAuthService } from '../services';
-import { setAdminToken, ADMIN_TOKEN_KEY } from '../lib/admin-api';
 import type { AdminUser } from '@pickid/supabase';
 
 /**
- * 정석적인 JWT 인증 훅
- * - JWT 토큰만 localStorage에 저장
- * - 사용자 정보는 React 상태로만 관리 (localStorage 저장 안 함)
- * - 페이지 로드 시 토큰 검증하여 사용자 정보 가져오기
+ * Admin Auth Hook - RPC 기반 세션 관리
  */
 export function useAdminAuth() {
 	const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	// 페이지 로드 시 토큰 검증
+	// 페이지 로드 시 세션 확인
 	useEffect(() => {
-		const verifyToken = async () => {
-			if (typeof window === 'undefined') {
-				setLoading(false);
-				return;
-			}
-
-			const token = localStorage.getItem(ADMIN_TOKEN_KEY);
-
-			// 토큰이 없으면 인증되지 않음
-			if (!token) {
-				setAdminUser(null);
-				setAdminToken(null);
-				setLoading(false);
-				return;
-			}
-
-			// 토큰 검증하여 사용자 정보 가져오기
-			try {
-				const user = await adminAuthService.verifyToken(token);
-				setAdminUser(user);
-				setAdminToken(token);
-			} catch (error) {
-				// 토큰이 유효하지 않으면 로그아웃 처리
-				console.error('[Token Verification Error]', error);
-				setAdminUser(null);
-				setAdminToken(null);
-				localStorage.removeItem(ADMIN_TOKEN_KEY);
-			} finally {
-				setLoading(false);
-			}
-		};
-
-		verifyToken();
+		checkAuth();
 	}, []);
 
-	const login = async (email: string, password: string) => {
-		setLoading(true);
+	const checkAuth = async () => {
 		try {
-			const { token, user } = await adminAuthService.login(email, password);
-
-			// JWT 토큰만 localStorage에 저장
-			setAdminToken(token);
-			// 사용자 정보는 상태로만 관리
+			const user = await adminAuthService.getCurrentAdmin();
 			setAdminUser(user);
-
-			return { success: true } as const;
-		} catch (err) {
-			return {
-				success: false,
-				error: err instanceof Error ? err.message : '로그인에 실패했습니다.',
-			} as const;
+		} catch (error) {
+			console.error('[Auth Check Error]', error);
+			setAdminUser(null);
 		} finally {
 			setLoading(false);
 		}
 	};
 
-	const logout = async () => {
-		await adminAuthService.logout();
-		setAdminUser(null);
-		setAdminToken(null);
-		localStorage.removeItem(ADMIN_TOKEN_KEY);
+	const login = async (email: string, password: string) => {
+		try {
+			const user = await adminAuthService.login(email, password);
+			setAdminUser(user);
+			return { success: true } as const;
+		} catch (err) {
+			console.error('[Login Error]', err);
+			return {
+				success: false,
+				error: err instanceof Error ? err.message : '로그인에 실패했습니다.',
+			} as const;
+		}
 	};
 
-	return { adminUser, loading, login, logout } as const;
+	const logout = async () => {
+		try {
+			await adminAuthService.logout();
+			setAdminUser(null);
+		} catch (error) {
+			console.error('[Logout Error]', error);
+			setAdminUser(null);
+		}
+	};
+
+	return { adminUser, loading, login, logout, checkAuth } as const;
 }
