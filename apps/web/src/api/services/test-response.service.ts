@@ -13,13 +13,9 @@ const USER_RESPONSE_QUERY = `
 	test_results:result_id(*)
 `;
 
-/**
- * Test Response Service - 사용자 응답 저장 및 조회
- */
+// Test Response Service - 사용자 응답 저장 및 조회
 export const testResponseService = {
-	/**
-	 * 사용자 응답 저장 (세션/사용자 정보 포함)
-	 */
+	// 사용자 응답 저장 (세션/사용자 정보 포함)
 	async saveUserResponse(params: {
 		testId: string;
 		resultId: string;
@@ -51,9 +47,7 @@ export const testResponseService = {
 		return data;
 	},
 
-	/**
-	 * 사용자 ID로 응답 조회
-	 */
+	// 사용자 ID로 응답 조회
 	async getUserResponseByUser(testId: string, userId: string): Promise<UserTestResponse | null> {
 		const { data, error } = await supabase
 			.from('user_test_responses')
@@ -71,9 +65,7 @@ export const testResponseService = {
 		return data;
 	},
 
-	/**
-	 * 세션 ID로 응답 조회
-	 */
+	// 세션 ID로 응답 조회
 	async getUserResponseBySession(testId: string, sessionId: string): Promise<UserTestResponse | null> {
 		const { data, error } = await supabase
 			.from('user_test_responses')
@@ -91,9 +83,7 @@ export const testResponseService = {
 		return data;
 	},
 
-	/**
-	 * 테스트 완료 결과 저장 (전체 프로세스)
-	 */
+	// 테스트 완료 결과 저장 (전체 프로세스)
 	async saveUserTestResponse(result: TestCompletionResult): Promise<void> {
 		const {
 			data: { session },
@@ -117,9 +107,7 @@ export const testResponseService = {
 		}
 	},
 
-	/**
-	 * 테스트 시작 횟수 증가
-	 */
+	// 테스트 시작 횟수 증가
 	async incrementTestStart(testId: string): Promise<void> {
 		const { error } = await supabase.rpc('increment_test_start', {
 			test_uuid: testId,
@@ -130,9 +118,7 @@ export const testResponseService = {
 		}
 	},
 
-	/**
-	 * 테스트 완료 횟수 증가
-	 */
+	// 테스트 완료 횟수 증가
 	async incrementTestResponse(testId: string): Promise<void> {
 		const { error } = await supabase.rpc('increment_test_response', {
 			test_uuid: testId,

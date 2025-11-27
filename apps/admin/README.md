@@ -91,3 +91,50 @@ export const queryKeys = {
 - `@pickid/supabase`: 데이터 접근 레이어
 - `@pickid/types`: 공통 타입 정의
 - `@pickid/config`: 공통 설정
+
+---
+
+## 🔐 환경 변수 설정
+
+프로젝트 루트 또는 `apps/admin/` 디렉토리에 `.env.local` 파일을 생성하고 다음 환경 변수를 설정하세요:
+
+```env
+# Supabase 설정
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key
+VITE_SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Supabase JWT Secret (Legacy)
+# Supabase Dashboard → Settings → API → JWT Secret
+SUPABASE_JWT_SECRET=fbbnK1KtURu5Y+7uKim9Yc1IiZxOd6oReyqnIfgml7VPrl+MMMS9tQNWKKjbyiq6/ZxnHUc+uiBK2iAm1+eQRw==
+```
+
+### 환경 변수 설명
+
+- **VITE_SUPABASE_URL**: Supabase 프로젝트 URL
+- **VITE_SUPABASE_ANON_KEY**: Supabase Publishable Key (공개 가능)
+- **VITE_SUPABASE_SERVICE_ROLE_KEY**: Supabase Secret Key (서버 전용, 절대 노출 금지)
+- **SUPABASE_JWT_SECRET**: JWT 토큰 서명용 Secret (Legacy JWT Secret)
+
+### Supabase Dashboard에서 확인 방법
+
+1. Supabase Dashboard → Settings → API
+2. **Publishable key**: `VITE_SUPABASE_ANON_KEY`에 사용
+3. **Secret keys** → **default**: `VITE_SUPABASE_SERVICE_ROLE_KEY`에 사용
+4. **Legacy JWT secret**: `SUPABASE_JWT_SECRET`에 사용
+
+### 데이터베이스 JWT Secret 설정
+
+JWT Secret은 `admin_login` RPC 함수 내에서 직접 하드코딩되어 있습니다.
+`ALTER DATABASE` 명령은 권한이 필요하므로 사용하지 않습니다.
+
+Migration을 실행하면 자동으로 JWT Secret이 함수에 포함됩니다:
+
+```bash
+supabase db push
+```
+
+JWT Secret을 변경하려면:
+1. `supabase/migrations/20250101000001_simplify_admin_login.sql` 파일에서
+   `v_jwt_secret` 변수 값을 수정
+2. Migration을 다시 실행

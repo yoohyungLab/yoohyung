@@ -6,27 +6,29 @@ export const config = {
 	],
 };
 
-// 로그인이 필요한 페이지들
-const PROTECTED_ROUTES = ['/feedback/create', '/feedback/:id', '/feedback'];
+// 로그인이 필요한 페이지 패턴
+const PROTECTED_PATTERNS = [
+	'/feedback', // /feedback, /feedback/create, /feedback/123 등 모두 보호
+];
 
 export default async function middleware(req: NextRequest) {
-	const pathname = req.nextUrl.pathname;
-	const search = req.nextUrl.search;
+	const { pathname, search } = req.nextUrl;
 
 	// 로그인이 필요한 페이지인지 확인
-	const isProtected = PROTECTED_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+	const isProtected = PROTECTED_PATTERNS.some((pattern) => pathname.startsWith(pattern));
 
 	if (!isProtected) {
 		return NextResponse.next();
 	}
 
-	// 클라이언트에서 설정하는 인증 플래그 쿠키 검사
+	// 인증 쿠키 확인
 	const isAuthenticated = req.cookies.get('pickid_auth')?.value === '1';
+
 	if (isAuthenticated) {
 		return NextResponse.next();
 	}
 
-	// 미인증 사용자는 로그인 페이지로 즉시 리다이렉트 (클라이언트에서 세션 확인 후 복귀)
+	// 미인증 시 로그인 페이지로 리다이렉트
 	const loginUrl = new URL(`/auth/login?redirectTo=${encodeURIComponent(pathname + search)}`, req.url);
 	return NextResponse.redirect(loginUrl);
 }

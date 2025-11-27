@@ -1,5 +1,6 @@
 import type { TestChoice, TestResult } from '@pickid/supabase';
 
+// TODO: 테스트 초이스
 export interface IPsychologyQuestion {
 	id: string;
 	question_text: string;

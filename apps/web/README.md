@@ -33,6 +33,37 @@
 - MVVM 패턴으로 View와 로직 분리
 - 도메인 중심 설계로 비즈니스 로직 명확화
 
+## 📊 아키텍처 구조도
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Next.js App Router                       │
+│  ┌──────────────────────────────────────────────────────┐   │
+│  │  app/ (Server Components + RSC)                      │   │
+│  │  - page.tsx / layout.tsx                            │   │
+│  │  - 동적 라우트 (tests/[id], feedback/[id] 등)        │   │
+│  └──────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    FSD Layers                               │
+│                                                             │
+│  widgets/     → 헤더·푸터·드로어 같은 복합 UI               │
+│  features/*/ui → View (프레젠테이션)                         │
+│  features/*/model/hooks → ViewModel (TanStack Query, 상태)  │
+│  shared/api/services → Data Access (Supabase 호출)          │
+│  shared/lib|types|constants → 공통 유틸/타입/상수           │
+└─────────────────────────────────────────────────────────────┘
+                            │
+                            ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    External Services                        │
+│  - Supabase (Database + Auth + Storage)                     │
+│  - Google Analytics 4                                       │
+└─────────────────────────────────────────────────────────────┘
+```
+
 <br/><br/>
 
 # 📁 디렉토리 구조 및 URL
@@ -248,6 +279,52 @@ src/
     └── auth-section.tsx           # 인증 섹션
 ```
 
+## 🔄 데이터 흐름도
+
+### SSR (Server-Side Rendering) 흐름
+
+```
+Browser
+  │
+  ▼
+app/page.tsx (Server Component)
+  │  const data = await homeService.getHomePageData();
+  │  return <HomeContainer {...data} />;
+  ▼
+shared/api/services/home.service.ts
+  │  const supabase = createServerClient();
+  │  const data = await supabase
+  │    .from('tests')
+  │    .select('id,title,thumbnail_url');
+  ▼
+Supabase Database
+```
+
+### CSR (Client-Side Rendering) 흐름
+
+```
+Browser
+  │
+  ▼
+features/test/ui/test-page-client.tsx
+  │  const { data } = useTestResult({ testId });
+  │  return <TestResultContainer data={data} />;
+  ▼
+features/test/model/hooks/useTestResult.ts
+  │  const { data } = useQuery({
+  │    queryKey: queryKeys.test.result(testId),
+  │    queryFn: () => testResultService.getResult(testId),
+  │  });
+  ▼
+shared/api/services/test-result.service.ts
+  │  const response = await supabase
+  │    .from('test_results')
+  │    .select('*')
+  │    .eq('test_id', testId)
+  ▼
+Supabase Database
+```
+
 ---
 
 <br/>
@@ -259,3 +336,79 @@ src/
 - `@pickid/supabase`: 데이터 접근 레이어
 - `@pickid/types`: 공통 타입 정의
 - `@pickid/config`: 공통 설정
+
+## 🎯 레이어별 역할
+
+| 레이어                    | 역할                                     | 예시                                                     |
+| ------------------------- | ---------------------------------------- | -------------------------------------------------------- |
+| `app/`                    | 라우팅, SSR 데이터 페칭, 메타데이터 구성 | `app/page.tsx`, `app/tests/[id]/page.tsx`                |
+| `widgets/`                | 전역/복합 UI 조합                        | `widgets/header.tsx`, `widgets/sidebar-drawer.tsx`       |
+| `features/*/ui/`          | 도메인 View 컴포넌트                     | `features/test/ui/test-page-client.tsx`                  |
+| `features/*/model/hooks/` | ViewModel, 서버 상태/비즈니스 로직       | `features/test/model/hooks/useTestResult.ts`             |
+| `features/*/model/types/` | 도메인 타입 정의                         | `features/test/model/types/test.ts`                      |
+| `shared/api/services/`    | Supabase 데이터 접근 계층                | `shared/api/services/test.service.ts`                    |
+| `shared/lib/`             | 공용 유틸(analytics, format 등)          | `shared/lib/analytics.ts`, `shared/lib/utils.ts`         |
+| `shared/types/`           | 공용 타입                                | `shared/types/auth.ts`, `shared/types/test.ts`           |
+| `shared/constants/`       | 공용 상수                                | `shared/constants/routes.ts`, `shared/constants/test.ts` |
+
+## 🧩 기능 모듈 구조 예시 (test feature)
+
+```
+features/test/
+│
+├── ui/                          # View Layer
+│   ├── test-page-client.tsx
+│   ├── test-result-page-client.tsx
+│   ├── psychology/
+│   │   ├── psychology-question-container.tsx
+│   │   ├── test-result-container.tsx
+│   │   ├── test-result-header.tsx
+│   │   └── sections/ (compatibility, description 등)
+│   ├── balance-game/
+│   │   ├── balance-game-question.tsx
+│   │   └── balance-game-result-container.tsx
+│   ├── quiz/
+│   │   ├── quiz-question-container.tsx
+│   │   └── quiz-result-container.tsx
+│   └── shared/
+│       ├── test-cta-buttons.tsx
+│       └── question-layout.tsx
+│
+├── model/                       # ViewModel Layer
+│   ├── hooks/
+│   │   ├── useTestResult.ts
+│   │   ├── useTestBalanceGame.ts
+│   │   ├── useProgress.ts
+│   │   ├── useQuizTaking.ts
+│   │   └── useTestResultShare.ts
+│   └── types/
+│       ├── test.ts
+│       ├── psychology.ts
+│       ├── balance-game.ts
+│       └── quiz.ts
+│
+├── lib/                         # 기능별 유틸리티
+│   ├── session-storage.ts
+│   └── quiz-utils.ts
+│
+└── config/
+    ├── quiz-constants.ts
+    └── themes.ts
+```
+
+### 데이터 흐름 (test feature 예시)
+
+```
+app/tests/[id]/page.tsx
+    └─→ features/test/ui/test-page-client.tsx
+          └─→ features/test/model/hooks/useTestBalanceGame.ts
+                └─→ shared/api/services/test.service.ts
+                      └─→ Supabase
+
+app/tests/[id]/result/page.tsx
+    └─→ features/test/ui/test-result-page-client.tsx
+          ├─→ features/test/model/hooks/useTestResult.ts
+          │     └─→ shared/api/services/test-result.service.ts
+          └─→ features/test/model/hooks/useTestResultShare.ts
+                └─→ shared/lib/analytics.ts (GA4 이벤트)
+```

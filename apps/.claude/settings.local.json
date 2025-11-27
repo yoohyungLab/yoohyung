@@ -43,7 +43,9 @@
       "Bash(for file in useAnalytics.ts useCategories.ts useDashboard.ts useFeedbacks.ts useTestDetail.ts useTests.ts useUsers.ts)",
       "Bash(do sed -i '' \"s|from ''@/lib/queryKeys''|from ''@pickid/shared''|g\" \"$file\")",
       "Bash(pnpm --filter web type-check:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(pnpm --filter pickid-admin build:*)",
+      "Bash(pnpm --filter web-next build:*)"
     ],
     "deny": [],
     "ask": []

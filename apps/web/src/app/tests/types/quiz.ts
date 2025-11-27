@@ -1,12 +1,11 @@
-/**
- * Quiz 관련 타입 정의
- * 상수는 shared/constants/quiz.ts에 있음
- */
+// Quiz 관련 타입 정의
+// 상수는 shared/constants/quiz.ts에 있음
 
 import type { TQuizGrade } from '@/constants';
 
 export type TQuestionType = 'multiple_choice' | 'short_answer';
 
+// TODO: 타입 supabase 타입으로 치환
 export interface IQuizQuestion {
 	id: string;
 	question_text: string;

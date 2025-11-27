@@ -26,6 +26,8 @@
 			"@/widgets/*": ["./src/widgets/*"],
 			"@/pages/*": ["./src/pages/*"],
 			"@/app/*": ["./src/app/*"],
+			"@pickid/config": ["../../packages/config"],
+			"@pickid/config/*": ["../../packages/config/*"],
 			"@pickid/shared": ["../../packages/shared/src"],
 			"@pickid/shared/*": ["../../packages/shared/src/*"],
 			"@pickid/supabase": ["../../packages/supabase/src"],

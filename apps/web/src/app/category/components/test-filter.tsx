@@ -10,10 +10,8 @@ interface TestFilterProps {
 	totalCount: number;
 }
 
-/**
- * 테스트 필터 컴포넌트
- * 정렬 옵션과 총 개수를 표시하는 컴포넌트
- */
+// 테스트 필터 컴포넌트
+// 정렬 옵션과 총 개수를 표시하는 컴포넌트
 export function TestFilter({ sortBy, onSortChange, totalCount }: TestFilterProps) {
 	return (
 		<div className="flex items-center justify-between mb-6">

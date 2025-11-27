@@ -252,30 +252,12 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 								<AdminCardContent className="space-y-3">
 									<div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
 										<span className="text-sm text-gray-600">접수일</span>
-										<span className="text-sm font-medium">
-											{new Date(feedback.created_at).toLocaleString('ko-KR', {
-												year: 'numeric',
-												month: '2-digit',
-												day: '2-digit',
-												hour: '2-digit',
-												minute: '2-digit',
-												hour12: false,
-											})}
-										</span>
+										<span className="text-sm font-medium">{formatDateLong(feedback.created_at)}</span>
 									</div>
 									{feedback.admin_reply_at && (
 										<div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
 											<span className="text-sm text-gray-600">답변일</span>
-											<span className="text-sm font-medium">
-												{new Date(feedback.admin_reply_at).toLocaleString('ko-KR', {
-													year: 'numeric',
-													month: '2-digit',
-													day: '2-digit',
-													hour: '2-digit',
-													minute: '2-digit',
-													hour12: false,
-												})}
-											</span>
+											<span className="text-sm font-medium">{formatDateLong(feedback.admin_reply_at)}</span>
 										</div>
 									)}
 									<div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">

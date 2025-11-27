@@ -69,6 +69,7 @@ export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainer
 		return calculatePercentages(updatedChoices);
 	}, [stats, testId, question.choices]);
 
+	// console.log(showResult, '------showResult');
 	// 질문 선택 화면
 	if (!showResult) {
 		return (

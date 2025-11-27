@@ -13,9 +13,7 @@ function getClient() {
 
 // Home Balance Game Service
 export const homeBalanceGameService = {
-	/**
-	 * 현재 주의 활성 게임 조회
-	 */
+	// 현재 주의 활성 게임 조회
 	async getCurrentWeekGame(): Promise<HomeBalanceGameResponse | null> {
 		const client = getClient();
 
@@ -55,10 +53,8 @@ export const homeBalanceGameService = {
 		};
 	},
 
-	/**
-	 * 투표 실행 및 업데이트된 통계 반환
-	 * Supabase RPC 함수를 사용하여 원자적으로 투표를 처리합니다.
-	 */
+	// 투표 실행 및 업데이트된 통계 반환
+	// Supabase RPC 함수를 사용하여 원자적으로 투표를 처리합니다.
 	async vote(gameId: string, choice: 'A' | 'B'): Promise<VoteResult> {
 		try {
 			const client = supabase;
@@ -104,9 +100,7 @@ export const homeBalanceGameService = {
 		}
 	},
 
-	/**
-	 * 게임 통계 조회
-	 */
+	// 게임 통계 조회
 	async getGameStats(gameId: string) {
 		const client = getClient();
 

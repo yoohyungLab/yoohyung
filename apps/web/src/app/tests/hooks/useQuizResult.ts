@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { testResultService } from '@/api/services/test-result.service';
 import { trackResultViewed } from '@/lib/analytics';
 import { loadTestResult } from '../utils/session-storage';
@@ -12,25 +12,34 @@ interface IQuizResultMessage {
 
 interface IUseQuizResultParams {
 	testId: string;
+	enabled?: boolean;
 }
 
-/**
- * 퀴즈 결과 로드 훅
- * - 세션 스토리지에서 결과 로드
- * - 점수에 맞는 결과 메시지 조회
- *
- * Note: popularTests는 컴포넌트에서 usePopularTests 직접 호출
- */
-export function useQuizResult({ testId }: IUseQuizResultParams) {
+// 퀴즈 결과 로드 훅
+// - 세션 스토리지에서 결과 로드
+// - 점수에 맞는 결과 메시지 조회
+//
+// Note: popularTests는 컴포넌트에서 usePopularTests 직접 호출
+export function useQuizResult({ testId, enabled = true }: IUseQuizResultParams) {
 	const [quizResult, setQuizResult] = useState<IQuizResult | null>(null);
 	const [resultMessage, setResultMessage] = useState<IQuizResultMessage | null>(null);
-	const [isLoading, setIsLoading] = useState(true);
+	const [isLoading, setIsLoading] = useState(enabled);
 	const [error, setError] = useState<Error | null>(null);
+	const hasLoadedRef = useRef(false);
 
 	useEffect(() => {
-		const loadResult = async () => {
+		// enabled가 false면 실행하지 않음
+		if (!enabled) {
+			setIsLoading(false);
+			return;
+		}
+
+		// 이미 로드했다면 다시 로드하지 않음 (프로그레스바 중복 실행 방지)
+		if (hasLoadedRef.current) return;
+
+		async function loadResult() {
 			try {
-				const savedResult = loadTestResult<IQuizResult>();
+				const savedResult = loadTestResult<IQuizResult>(testId);
 				if (!savedResult) {
 					setError(new Error('RESULT_NOT_FOUND'));
 					setIsLoading(false);
@@ -58,16 +67,18 @@ export function useQuizResult({ testId }: IUseQuizResultParams) {
 						});
 					}
 				}
+
+				hasLoadedRef.current = true;
 			} catch (err) {
 				console.error('Failed to load quiz result:', err);
 				setError(err instanceof Error ? err : new Error('Unknown error'));
 			} finally {
 				setIsLoading(false);
 			}
-		};
+		}
 
 		loadResult();
-	}, [testId]);
+	}, [testId, enabled]);
 
 	return { quizResult, resultMessage, isLoading, error };
 }

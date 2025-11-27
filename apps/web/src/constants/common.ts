@@ -1,8 +1,6 @@
-/**
- * Common Constants
- *
- * 전역적으로 사용되는 공통 상수를 정의합니다.
- */
+// Common Constants
+//
+// 전역적으로 사용되는 공통 상수를 정의합니다.
 
 // 기본 플레이스홀더 이미지
 export const DEFAULT_PLACEHOLDER_IMAGE = '/images/placeholder.svg';

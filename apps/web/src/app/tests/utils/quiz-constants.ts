@@ -1,6 +1,4 @@
-/**
- * Quiz 관련 상수
- */
+// Quiz 관련 상수
 
 export type TQuizGrade = 'S' | 'A' | 'B' | 'C' | 'D';
 

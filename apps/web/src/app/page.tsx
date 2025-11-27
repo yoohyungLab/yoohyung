@@ -3,6 +3,7 @@ import { HomeContainer } from '@/components/home-container';
 import { homeService } from '@/api/services/home.service';
 import { generatePageMetadata } from '@/lib/metadata';
 import { SITE_CONFIG } from '@/components/config/metadata';
+import { prepareHomePageData } from '@/lib';
 
 const DEFAULT_METADATA = {
 	...generatePageMetadata({
@@ -19,8 +20,8 @@ const DEFAULT_METADATA = {
 // 홈 페이지 메타데이터 (동적 - 테스트 개수 표시)
 export async function generateMetadata(): Promise<Metadata> {
 	try {
-		const data = await homeService.getHomePageData();
-		const testCount = data.tests.length;
+		const { tests } = await homeService.getHomePageData();
+		const testCount = tests.length;
 
 		const description =
 			testCount > 0
@@ -46,15 +47,16 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function Page() {
 	try {
-		const data = await homeService.getHomePageData();
+		const { tests, categories } = await homeService.getHomePageData();
+		const homeData = prepareHomePageData(tests, categories);
 
 		return (
 			<HomeContainer
-				tests={data.tests}
-				categories={data.categories}
-				popularTests={data.popularTests}
-				recommendedTests={data.recommendedTests}
-				topByType={data.topByType}
+				tests={homeData.tests}
+				categories={homeData.categories}
+				popularTests={homeData.popularTests}
+				recommendedTests={homeData.recommendedTests}
+				topByType={homeData.topByType}
 			/>
 		);
 	} catch (error) {

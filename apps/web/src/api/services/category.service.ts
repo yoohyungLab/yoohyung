@@ -4,10 +4,8 @@ import type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCatego
 // Type re-exports
 export type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCategoriesData };
 
-/**
- * Category Service - 카테고리 관리
- * SSR이 필요한 경우 명시적으로 createServerClient() 사용
- */
+// Category Service - 카테고리 관리
+// SSR이 필요한 경우 명시적으로 createServerClient() 사용
 export const categoryService = {
 	async getActiveCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
@@ -94,9 +92,7 @@ export const categoryService = {
 		return data;
 	},
 
-	/**
-	 * SSR용 카테고리 페이지 데이터 조회
-	 */
+	// SSR용 카테고리 페이지 데이터 조회
 	async getCategoryPageDataSSR(slug: string): Promise<CategoryPageData | null> {
 		const supabaseServer = createServerClient();
 
@@ -136,9 +132,7 @@ export const categoryService = {
 		};
 	},
 
-	/**
-	 * SSR용 전체 카테고리 데이터 조회
-	 */
+	// SSR용 전체 카테고리 데이터 조회
 	async getAllCategoriesDataSSR(): Promise<AllCategoriesData | null> {
 		const supabaseServer = createServerClient();
 
@@ -161,16 +155,4 @@ export const categoryService = {
 		return { allCategories: categories, allTests: tests };
 	},
 
-	transformTestData(tests: Test[]) {
-		return tests.map((test) => ({
-			id: test.id as string,
-			title: test.title as string,
-			description: (test.description as string) || '',
-			thumbnail_url: (test.thumbnail_url as string) || '/images/placeholder.svg',
-			created_at: test.created_at as string,
-			completions: (test.response_count as number) || 0,
-			starts: (test.start_count as number) || 0,
-			category_ids: (test.category_ids as string[] | null) || undefined,
-		}));
-	},
 };

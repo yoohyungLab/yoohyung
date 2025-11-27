@@ -34,18 +34,18 @@ export function Loading({ variant = 'default', message, description }: ILoadingP
 
 	const analysisSteps = useMemo(
 		() => [
-			{ icon: FileText, text: '당신의 답변을 모으고 있어요', delay: 0 },
-			{ icon: TrendingUp, text: '결과를 계산하고 있어요', delay: 800 },
-			{ icon: Users, text: '다른 사람들과 비교 중이에요', delay: 1600 },
+			{ icon: FileText, text: '답변 확인 중', delay: 0 },
+			{ icon: TrendingUp, text: '결과 계산 중', delay: 300 },
+			{ icon: Users, text: '통계 분석 중', delay: 600 },
 		],
 		[]
 	);
 
 	useEffect(() => {
 		if (variant === 'result') {
-			// 최소 로딩 시간: 3200ms (마지막 단계까지 완료)
-			const MIN_LOADING_TIME = 3200;
-			const PROGRESS_INTERVAL = MIN_LOADING_TIME / 100; // 32ms
+			// 최소 로딩 시간: 1000ms (1초)
+			const MIN_LOADING_TIME = 1000;
+			const PROGRESS_INTERVAL = MIN_LOADING_TIME / 100; // 10ms
 
 			const progressInterval = setInterval(() => {
 				setProgress((prev) => {

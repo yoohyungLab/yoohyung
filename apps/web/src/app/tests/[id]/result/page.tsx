@@ -52,7 +52,6 @@ export default async function TestResultPage({ params }: IPageProps) {
 	const { id } = await params;
 
 	try {
-		// ==================== SSR: Data Fetching Only ====================
 		const test = await testService.getTestById(id);
 
 		if (!test) {
@@ -61,7 +60,6 @@ export default async function TestResultPage({ params }: IPageProps) {
 
 		const testType = (test.type as string) || 'psychology';
 
-		// ==================== Delegate to Client Component ====================
 		return <TestResultPageClient testId={id} testType={testType} />;
 	} catch (error) {
 		console.error('테스트 정보 로드 실패:', error);

@@ -1,10 +1,8 @@
 import { MetadataRoute } from 'next';
 import { SITE_CONFIG } from '@/components/config/metadata';
 
-/**
- * PWA Manifest (동적 생성)
- * metadata.ts의 설정을 재사용하여 중복 제거
- */
+// PWA Manifest (동적 생성)
+// metadata.ts의 설정을 재사용하여 중복 제거
 export default function manifest(): MetadataRoute.Manifest {
 	return {
 		name: SITE_CONFIG.title,

@@ -1,6 +1,6 @@
 'use client';
 
-import { parseCompatibility } from '@/lib/format-utils';
+import { parseStringOrArray } from '@/lib/format-utils';
 import { getThemedColors, createCardStyles, createDecorationStyle } from '@/lib/color-utils';
 
 interface ICompatibilitySectionProps {
@@ -10,8 +10,8 @@ interface ICompatibilitySectionProps {
 }
 
 export function CompatibilitySection({ bestMatches, worstMatches, themeColor }: ICompatibilitySectionProps) {
-	const bestList = parseCompatibility(bestMatches);
-	const worstList = parseCompatibility(worstMatches);
+	const bestList = parseStringOrArray(bestMatches);
+	const worstList = parseStringOrArray(worstMatches);
 
 	if (bestList.length === 0 && worstList.length === 0) return null;
 

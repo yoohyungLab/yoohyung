@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@pickid/ui';
 import { Link } from 'react-router-dom';
 import { ExternalLink, Plus, Users, FileText } from 'lucide-react';
-import { BaseCard, CardContent as BaseCardContent } from '../../../../web/src/shared/ui/cards/base-card';
+import { cn } from '@pickid/shared';
 
 const quickActions = [
 	{
@@ -30,6 +30,12 @@ const quickActions = [
 	},
 ];
 
+const getVariantClasses = (variant: 'default' | 'gradient') => {
+	return variant === 'gradient'
+		? 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 hover:from-blue-100 hover:to-indigo-100'
+		: 'bg-white border border-gray-200 shadow-sm hover:shadow-md';
+};
+
 export function QuickActionCard() {
 	return (
 		<Card>
@@ -40,12 +46,13 @@ export function QuickActionCard() {
 				<div className="space-y-3">
 					{quickActions.map((action) => (
 						<Link key={action.id} to={action.href}>
-							<BaseCard
-								variant={action.variant}
-								size="md"
-								className="hover:scale-[1.02] transition-transform"
+							<div
+								className={cn(
+									'rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]',
+									getVariantClasses(action.variant)
+								)}
 							>
-								<BaseCardContent padding="lg">
+								<div className="p-4">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
 											{action.icon}
@@ -56,8 +63,8 @@ export function QuickActionCard() {
 										</div>
 										<ExternalLink className="w-4 h-4 text-gray-400" />
 									</div>
-								</BaseCardContent>
-							</BaseCard>
+								</div>
+							</div>
 						</Link>
 					))}
 				</div>

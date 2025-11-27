@@ -1,6 +1,6 @@
 'use client';
 
-import { parseJobs } from '@/lib/format-utils';
+import { parseStringOrArray } from '@/lib/format-utils';
 import { getThemedColors, createCardStyles, createDecorationStyle } from '@/lib/color-utils';
 
 interface IJobsSectionProps {
@@ -9,7 +9,7 @@ interface IJobsSectionProps {
 }
 
 export function JobsSection({ jobs, themeColor }: IJobsSectionProps) {
-	const jobList = parseJobs(jobs);
+	const jobList = parseStringOrArray(jobs);
 
 	if (jobList.length === 0) return null;
 

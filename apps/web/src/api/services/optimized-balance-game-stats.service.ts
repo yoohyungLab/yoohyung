@@ -42,9 +42,7 @@ function getClient() {
 // 밸런스게임 통계 서비스 (순수 데이터 접근만)
 
 export const optimizedBalanceGameStatsService = {
-	/**
-	 * 선택지 응답 수 증가 (RPC 호출)
-	 */
+	// 선택지 응답 수 증가 (RPC 호출)
 	async incrementChoiceCount(choiceId: string): Promise<void> {
 		try {
 			const client = getClient();
@@ -61,13 +59,9 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 여러 선택지 응답 수 일괄 증가
-	 */
+	// 여러 선택지 응답 수 일괄 증가
 	async batchIncrementChoices(choiceIds: string[]): Promise<void> {
 		const client = getClient();
-
-		console.log('[batchIncrementChoices] Starting batch increment for:', choiceIds);
 
 		// 각 선택지마다 순차적으로 RPC 호출
 		for (const choiceId of choiceIds) {
@@ -77,23 +71,16 @@ export const optimizedBalanceGameStatsService = {
 				});
 
 				if (error) {
-					console.error(`[batchIncrementChoices] Error for choiceId ${choiceId}:`, error);
 					throw error;
 				}
-
-				console.log(`[batchIncrementChoices] Success for choiceId ${choiceId}`);
 			} catch (error) {
-				console.error(`[batchIncrementChoices] Failed to increment ${choiceId}:`, error);
 				// 하나 실패해도 계속 진행
+				handleSupabaseError(error, `batchIncrementChoices:${choiceId}`);
 			}
 		}
-
-		console.log('[batchIncrementChoices] Batch increment completed');
 	},
 
-	/**
-	 * 특정 질문의 선택지 통계 조회 (원시 데이터)
-	 */
+	// 특정 질문의 선택지 통계 조회 (원시 데이터)
 	async getQuestionStatsRaw(questionId: string): Promise<QuestionStatsRaw> {
 		try {
 			const client = getClient();
@@ -124,9 +111,7 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 테스트의 모든 질문 통계 조회 (원시 데이터)
-	 */
+	// 테스트의 모든 질문 통계 조회 (원시 데이터)
 	async getAllQuestionStatsRaw(testId: string): Promise<QuestionStatsRaw[]> {
 		try {
 			const client = getClient();
@@ -154,12 +139,14 @@ export const optimizedBalanceGameStatsService = {
 
 			return rawQuestions.map((question) => {
 				const choices = question.test_choices || [];
-				const totalResponses = choices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
+				// choice_order로 정렬 (A가 0, B가 1)
+				const sortedChoices = [...choices].sort((a, b) => a.choice_order - b.choice_order);
+				const totalResponses = sortedChoices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
 
 				return {
 					questionId: question.id,
 					questionText: question.question_text,
-					choices: choices.map((choice) => ({
+					choices: sortedChoices.map((choice) => ({
 						choiceId: choice.id,
 						choiceText: choice.choice_text,
 						responseCount: choice.response_count || 0,
@@ -173,9 +160,7 @@ export const optimizedBalanceGameStatsService = {
 		}
 	},
 
-	/**
-	 * 인기 선택지 조회 (원시 데이터)
-	 */
+	// 인기 선택지 조회 (원시 데이터)
 	async getPopularChoicesRaw(testId: string, limit: number = 5): Promise<ChoiceStatsRaw[]> {
 		try {
 			const client = getClient();

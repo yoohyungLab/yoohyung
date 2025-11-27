@@ -41,13 +41,9 @@ const TEST_DETAILS_QUERY = `
 	)
 `;
 
-/**
- * Test Service - 기본 CRUD 작업
- */
+// Test Service - 기본 CRUD 작업
 export const testService = {
-	/**
-	 * 게시된 테스트 목록 조회
-	 */
+	// 게시된 테스트 목록 조회
 	async getPublishedTests(): Promise<Test[]> {
 		const { data, error } = await supabase
 			.from('tests')
@@ -62,9 +58,7 @@ export const testService = {
 		return data || [];
 	},
 
-	/**
-	 * ID로 테스트 조회
-	 */
+	// ID로 테스트 조회
 	async getTestById(id: string): Promise<Test | null> {
 		const { data, error } = await supabase.from('tests').select('*').eq('id', id).single();
 
@@ -75,9 +69,7 @@ export const testService = {
 		return data;
 	},
 
-	/**
-	 * Slug로 테스트 조회
-	 */
+	// Slug로 테스트 조회
 	async getTestBySlug(slug: string): Promise<Test | null> {
 		const { data, error } = await supabase
 			.from('tests')
@@ -93,10 +85,8 @@ export const testService = {
 		return data;
 	},
 
-	/**
-	 * 상세 정보 포함 테스트 조회 (질문, 선택지, 결과 포함)
-	 * SSR 지원을 위해 server client 옵션 제공
-	 */
+	// 상세 정보 포함 테스트 조회 (질문, 선택지, 결과 포함)
+	// SSR 지원을 위해 server client 옵션 제공
 	async getTestWithDetails(id: string, useServerClient = false): Promise<TestWithNestedDetails | null> {
 		const client = useServerClient ? createServerClient() : supabase;
 
@@ -109,7 +99,6 @@ export const testService = {
 		if (!data) return null;
 
 		// Nested join으로 인한 중복 데이터 보정
-		/* eslint-disable @typescript-eslint/no-explicit-any */
 		const testData = data as any;
 		const questions = testData.test_questions || [];
 		const results = testData.test_results || [];
@@ -144,7 +133,7 @@ export const testService = {
 		});
 
 		const uniqueResults = Array.from(uniqueResultsMap.values()).sort((a: any, b: any) => a.result_order - b.result_order);
-		/* eslint-enable @typescript-eslint/no-explicit-any */
+
 
 		return {
 			test: testData,

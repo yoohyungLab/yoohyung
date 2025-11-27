@@ -34,9 +34,10 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 	const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || null;
 
 	// 모든 hooks를 최상위에서 호출 (React rules of hooks 준수)
-	const balanceGameData = useBalanceGameResult({ testId });
-	const quizData = useQuizResult({ testId });
-	const psychologyData = useTestResult({ testId });
+	// 타입별로 enabled 조건 설정하여 불필요한 쿼리 방지
+	const balanceGameData = useBalanceGameResult({ testId, enabled: normalizedTestType === 'balance' });
+	const quizData = useQuizResult({ testId, enabled: normalizedTestType === 'quiz' });
+	const psychologyData = useTestResult({ testId, enabled: normalizedTestType === 'psychology' });
 
 	// 타입별 데이터 선택
 	const isLoading =
@@ -66,8 +67,11 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 		const { handleShare } = shareData;
 
 		if (isLoading) return <Loading variant="result" />;
-		if (error || !balanceGameResult) {
-			return <div className="flex items-center justify-center min-h-screen">결과를 불러올 수 없습니다.</div>;
+		if (error) {
+			throw error;
+		}
+		if (!balanceGameResult) {
+			throw new Error('결과를 불러올 수 없습니다.');
 		}
 
 		return (
@@ -100,8 +104,11 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 		const { handleShare } = shareData;
 
 		if (isLoading) return <Loading variant="result" />;
-		if (error || !quizResult) {
-			return <div className="flex items-center justify-center min-h-screen">결과를 불러올 수 없습니다.</div>;
+		if (error) {
+			throw error;
+		}
+		if (!quizResult) {
+			throw new Error('결과를 불러올 수 없습니다.');
 		}
 
 		return (
@@ -136,8 +143,11 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 	const { handleShare } = shareData;
 
 	if (isLoading) return <Loading variant="result" />;
-	if (error || !testResult) {
-		return <div className="flex items-center justify-center min-h-screen">결과를 불러올 수 없습니다.</div>;
+	if (error) {
+		throw error;
+	}
+	if (!testResult) {
+		throw new Error('테스트 결과를 찾을 수 없습니다. 테스트를 다시 진행해주세요.');
 	}
 
 	// 공유 링크 렌더링

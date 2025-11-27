@@ -35,9 +35,7 @@ function convertToQuizQuestion(q: TestWithNestedDetails['questions'][0]): IQuizQ
 	};
 }
 
-/**
- * 퀴즈 답변 채점 (순수 함수)
- */
+// 퀴즈 답변 채점 (순수 함수)
 function gradeQuizAnswers(questions: IQuizQuestion[], userAnswers: Map<string, string>): IQuizAnswer[] {
 	return questions.map((question) => {
 		const userAnswer = userAnswers.get(question.id) || '';

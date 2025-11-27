@@ -8,10 +8,8 @@ const tokenRefreshMutex = new Mutex();
 // Type re-exports
 export type { Session, User };
 
-/**
- * Auth Service - Supabase 기본 사용
- * - 토큰 갱신 시 Mutex로 동시성 제어
- */
+// Auth Service - Supabase 기본 사용
+// - 토큰 갱신 시 Mutex로 동시성 제어
 export const authService = {
 	async signInWithPassword(email: string, password: string) {
 		const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -77,9 +75,7 @@ export const authService = {
 		return data;
 	},
 
-	/**
-	 * 토큰 갱신 (Mutex로 동시성 제어)
-	 */
+	// 토큰 갱신 (Mutex로 동시성 제어)
 	async refreshSession() {
 		return tokenRefreshMutex.runExclusive(async () => {
 			const { data, error } = await supabase.auth.refreshSession();

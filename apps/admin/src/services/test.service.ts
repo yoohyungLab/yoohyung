@@ -428,11 +428,11 @@ export const testService = {
 				const matchConditions = result.match_conditions;
 				// 디버깅: match_conditions 확인
 				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
-					console.log(`[updateTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
-						type: (matchConditions as { type?: string }).type,
-						codes: (matchConditions as { codes?: string[] }).codes,
-						match_conditions: matchConditions,
-					});
+					// console.log(`[updateTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
+					// 	type: (matchConditions as { type?: string }).type,
+					// 	codes: (matchConditions as { codes?: string[] }).codes,
+					// 	match_conditions: matchConditions,
+					// });
 				}
 				return {
 					test_id: testId,
@@ -550,11 +550,11 @@ export const testService = {
 				const matchConditions = result.match_conditions;
 				// 디버깅: match_conditions 확인
 				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
-					console.log(`[createTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
-						type: (matchConditions as { type?: string }).type,
-						codes: (matchConditions as { codes?: string[] }).codes,
-						match_conditions: matchConditions,
-					});
+					// console.log(`[createTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
+					// 	type: (matchConditions as { type?: string }).type,
+					// 	codes: (matchConditions as { codes?: string[] }).codes,
+					// 	match_conditions: matchConditions,
+					// });
 				}
 				return {
 					test_id: testId,

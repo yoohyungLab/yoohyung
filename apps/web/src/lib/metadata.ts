@@ -1,7 +1,5 @@
-/**
- * 메타데이터 헬퍼 함수
- * 페이지별 메타데이터를 일관되게 생성
- */
+// 메타데이터 헬퍼 함수
+// 페이지별 메타데이터를 일관되게 생성
 
 import { Metadata } from 'next';
 import { SITE_CONFIG, SOCIAL } from '@/components/config/metadata';

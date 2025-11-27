@@ -1,0 +1,98 @@
+@theme inline {
+	/* Common */
+	--width-common-width: 475px;
+	--max-width-common-width: 475px;
+	--padding-common-padding: 20px;
+	--radius-common-radius: 8px;
+
+	/* Base Color (Gray Scale) */
+	--color-base-50: #f8f9fa;
+	--color-base-100: #f1f3f4;
+	--color-base-200: #e8eaed;
+	--color-base-300: #dadce0;
+	--color-base-400: #bdc1c6;
+	--color-base-500: #9aa0a6;
+	--color-base-600: #80868b;
+	--color-base-700: #5f6368;
+	--color-base-800: #3c4043;
+	--color-base-900: #202124;
+	--color-base-950: #0d0d0d;
+
+	/* Primary Color (Sky Blue - Pickid Brand) */
+	--color-primary-50: #f0f9ff;
+	--color-primary-100: #e0f2fe;
+	--color-primary-200: #bae6fd;
+	--color-primary-300: #7dd3fc;
+	--color-primary-400: #38bdf8;
+	--color-primary-500: #0ea5e9;
+	--color-primary-600: #0284c7;
+	--color-primary-700: #0369a1;
+	--color-primary-800: #075985;
+	--color-primary-900: #0c4a6e;
+
+	/* Success Color (Green) */
+	--color-success-50: #f0fdf4;
+	--color-success-500: #22c55e;
+	--color-success-600: #16a34a;
+
+	/* Warning Color (Amber) */
+	--color-warning-50: #fffbeb;
+	--color-warning-500: #f59e0b;
+	--color-warning-600: #d97706;
+
+	/* Error/Destructive Color (Red) */
+	--color-error: #ef4444;
+	--color-error-50: #fef2f2;
+	--color-error-500: #ef4444;
+	--color-error-600: #dc2626;
+	--color-error-bg: rgba(239, 68, 68, 0.05);
+	--color-error-border: rgba(239, 68, 68, 0.2);
+
+	/* Black & White */
+	--color-black: #000000;
+	--color-white: #ffffff;
+
+	/* Semantic Colors */
+	--color-background: var(--color-white);
+	--color-foreground: var(--color-base-950);
+	--color-card: var(--color-white);
+	--color-card-foreground: var(--color-base-950);
+	--color-popover: var(--color-white);
+	--color-popover-foreground: var(--color-base-950);
+	--color-primary-foreground: var(--color-white);
+	--color-secondary: var(--color-primary-600);
+	--color-secondary-foreground: var(--color-primary-500);
+	--color-muted: var(--color-base-50);
+	--color-muted-foreground: var(--color-base-600);
+	--color-accent: var(--color-primary-500);
+	--color-accent-foreground: var(--color-white);
+	--color-success-foreground: var(--color-white);
+	--color-border: var(--color-base-200);
+	--color-input: var(--color-base-200);
+	--color-ring: var(--color-primary-500);
+
+	--radius-lg: var(--radius);
+	--radius-md: calc(var(--radius) - 2px);
+	--radius-sm: calc(var(--radius) - 4px);
+
+	@keyframes accordion-down {
+		from {
+			height: 0;
+		}
+		to {
+			height: var(--radix-accordion-content-height);
+		}
+	}
+
+	@keyframes accordion-up {
+		from {
+			height: var(--radix-accordion-content-height);
+		}
+		to {
+			height: 0;
+		}
+	}
+
+	--animate-down: accordion-down 0.2s ease-out;
+	--animate-up: accordion-up 0.2s ease-out;
+}

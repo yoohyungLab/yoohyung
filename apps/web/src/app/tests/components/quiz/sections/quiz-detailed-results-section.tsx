@@ -2,11 +2,8 @@
 
 import { XCircle, ChevronDown, ChevronUp } from 'lucide-react';
 import { useState, useMemo } from 'react';
-import { getThemedColors, createCardStyles, hexToRgba } from '@/lib/color-utils';
+import { getThemedColors, createCardStyles } from '@/lib/color-utils';
 
-// ============================================================================
-// Types
-// ============================================================================
 
 interface IQuizAnswer {
 	questionId: string;
@@ -20,13 +17,8 @@ interface IQuizDetailedResultsSectionProps {
 	themeColor?: string;
 }
 
-// ============================================================================
-// Helper Functions
-// ============================================================================
 
-/**
- * 틀린 문제들을 랜덤으로 섞어서 반환
- */
+// 틀린 문제들을 랜덤으로 섞어서 반환
 const getRandomWrongAnswers = (answers: IQuizAnswer[]): IQuizAnswer[] => {
 	const wrongAnswers = answers.filter((a) => !a.isCorrect);
 
@@ -40,9 +32,6 @@ const getRandomWrongAnswers = (answers: IQuizAnswer[]): IQuizAnswer[] => {
 	return shuffled;
 };
 
-// ============================================================================
-// Main Component
-// ============================================================================
 
 export function QuizDetailedResultsSection({ answers, themeColor = '#3B82F6' }: IQuizDetailedResultsSectionProps) {
 	const [isExpanded, setIsExpanded] = useState(false);
@@ -59,6 +48,15 @@ export function QuizDetailedResultsSection({ answers, themeColor = '#3B82F6' }: 
 	const hasMore = wrongAnswers.length > 3;
 	const colors = getThemedColors(themeColor);
 	const cardStyles = createCardStyles(colors);
+	
+	// 테마 색상 RGB 값 계산
+	const themeRgb = (() => {
+		const cleanHex = themeColor.replace('#', '');
+		const r = parseInt(cleanHex.substring(0, 2), 16);
+		const g = parseInt(cleanHex.substring(2, 4), 16);
+		const b = parseInt(cleanHex.substring(4, 6), 16);
+		return `${r}, ${g}, ${b}`;
+	})();
 
 	return (
 		<div className="relative bg-white rounded-2xl p-5 overflow-hidden" style={cardStyles}>
@@ -80,8 +78,8 @@ export function QuizDetailedResultsSection({ answers, themeColor = '#3B82F6' }: 
 							key={answer.questionId}
 							className="p-4 rounded-xl border transition-all"
 							style={{
-								backgroundColor: hexToRgba('#ef4444', 0.05),
-								borderColor: hexToRgba('#ef4444', 0.2),
+								backgroundColor: 'var(--color-error-bg)',
+								borderColor: 'var(--color-error-border)',
 							}}
 						>
 							<div className="flex items-start gap-3">
@@ -118,9 +116,9 @@ export function QuizDetailedResultsSection({ answers, themeColor = '#3B82F6' }: 
 					onClick={() => setIsExpanded(!isExpanded)}
 					className="mt-4 w-full py-2.5 px-4 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all hover:scale-[1.02]"
 					style={{
-						backgroundColor: hexToRgba(themeColor, 0.1),
+						backgroundColor: `rgba(${themeRgb}, 0.1)`,
 						color: themeColor,
-						border: `1px solid ${hexToRgba(themeColor, 0.2)}`,
+						border: `1px solid rgba(${themeRgb}, 0.2)`,
 					}}
 				>
 					{isExpanded ? (

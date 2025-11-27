@@ -1,7 +1,7 @@
 'use client';
 
 import { parseDescription } from '@/lib/format-utils';
-import { hexToRgba, getThemedColors, createCardStyles, createDecorationStyle } from '@/lib/color-utils';
+import { getThemedColors, createCardStyles, createDecorationStyle } from '@/lib/color-utils';
 
 interface IDescriptionSectionProps {
 	description: string;
@@ -12,12 +12,21 @@ export function DescriptionSection({ description, themeColor }: IDescriptionSect
 	const descriptionLines = parseDescription(description);
 	const colors = getThemedColors(themeColor);
 	const cardStyles = createCardStyles(colors);
+	
+	// 테마 색상 RGB 값 계산
+	const themeRgb = (() => {
+		const cleanHex = themeColor.replace('#', '');
+		const r = parseInt(cleanHex.substring(0, 2), 16);
+		const g = parseInt(cleanHex.substring(2, 4), 16);
+		const b = parseInt(cleanHex.substring(4, 6), 16);
+		return `${r}, ${g}, ${b}`;
+	})();
 
 	return (
 		<div
 			className="relative rounded-2xl p-6 mb-6 overflow-hidden"
 			style={{
-				background: `linear-gradient(135deg, ${hexToRgba(themeColor, 0.08)} 0%, white 100%)`,
+				background: `linear-gradient(135deg, rgba(${themeRgb}, 0.08) 0%, white 100%)`,
 				...cardStyles,
 			}}
 		>

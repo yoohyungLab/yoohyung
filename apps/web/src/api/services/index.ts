@@ -28,7 +28,7 @@ export type { Category, CategoryWithTestCount, CategoryPageData, AllCategoriesDa
 export type { Feedback, ISubmitFeedbackParams } from './feedback.service';
 
 // Type re-exports from home.service
-export type { TestCard, HomePageData } from './home.service';
+// (Category와 Test는 이미 다른 서비스에서 export됨)
 
 // Type re-exports from home-balance-game.service
 export type { HomeBalanceGameResponse, VoteResult } from './home-balance-game.service';

@@ -3,10 +3,10 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { navigation, isActivePath, type NavEntry } from '@/config/navigation';
 import { PATH } from '@/constants/routes';
-import type { User } from '@pickid/supabase';
+import type { AdminUser } from '@pickid/supabase';
 
 interface IAdminHeaderProps {
-	user: User | null;
+	user: AdminUser | null;
 	onLogout: () => void;
 }
 

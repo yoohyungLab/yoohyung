@@ -1,8 +1,4 @@
-// 이 페이지의 기능들은 Google Analytics 4로 이전되었습니다
-// - 트래픽 획득: GA4 → 수명 주기 → 획득 → 트래픽 획득
-// - 사용자 획득: GA4 → 수명 주기 → 획득 → 사용자 획득
-// - 실시간 통계: GA4 → 실시간
-// - 기기/지역: GA4 → 사용자 → 기술/인구통계
+
 
 import React from 'react';
 import { BarChart3, Activity, ExternalLink } from 'lucide-react';

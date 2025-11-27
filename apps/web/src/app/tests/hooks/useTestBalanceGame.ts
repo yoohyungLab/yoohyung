@@ -6,9 +6,7 @@ import type { OptimizedChoiceStats } from '@pickid/supabase';
 
 // 테스트 밸런스게임 훅 (Test 도메인 전용)
 
-/**
- * 특정 질문의 선택지 통계 조회 (퍼센티지 계산 포함)
- */
+// 특정 질문의 선택지 통계 조회 (퍼센티지 계산 포함)
 export function useTestBalanceGameQuestionStats(questionId: string) {
 	return useQuery({
 		queryKey: queryKeys.optimizedBalanceGameStats.question(questionId),
@@ -35,9 +33,7 @@ export function useTestBalanceGameQuestionStats(questionId: string) {
 	});
 }
 
-/**
- * 테스트의 모든 질문 통계 조회 (퍼센티지 계산 포함)
- */
+// 테스트의 모든 질문 통계 조회 (퍼센티지 계산 포함)
 export function useTestBalanceGameAllQuestionStats(testId: string, enabled = true, options?: { forceFresh?: boolean }) {
 	return useQuery({
 		queryKey: queryKeys.optimizedBalanceGameStats.testQuestions(testId),

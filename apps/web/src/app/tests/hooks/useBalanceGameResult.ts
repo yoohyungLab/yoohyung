@@ -20,6 +20,7 @@ interface IBalanceGameResultData {
 
 interface IUseBalanceGameResultProps {
 	testId: string;
+	enabled?: boolean;
 }
 
 // Helper: 세션에서 사용자 답변 로드
@@ -91,12 +92,12 @@ function createBalanceGameResult(
 	};
 }
 
-export function useBalanceGameResult({ testId }: IUseBalanceGameResultProps) {
+export function useBalanceGameResult({ testId, enabled = true }: IUseBalanceGameResultProps) {
 	// 테스트 데이터 로드 (React Query)
 	const { data: testData, isLoading: isLoadingTest } = useQuery({
 		queryKey: ['test', testId],
 		queryFn: () => testService.getTestWithDetails(testId),
-		enabled: !!testId,
+		enabled: !!testId && enabled,
 		staleTime: 5 * 60 * 1000,
 	});
 
@@ -112,7 +113,7 @@ export function useBalanceGameResult({ testId }: IUseBalanceGameResultProps) {
 	}, [testData, testId]);
 
 	// 통계 데이터 조회
-	const statsQuery = useTestBalanceGameAllQuestionStats(testId, !!balanceGameResult, { forceFresh: true });
+	const statsQuery = useTestBalanceGameAllQuestionStats(testId, enabled && !!balanceGameResult, { forceFresh: true });
 
 	// 비교 통계 계산
 	const comparisonStats = useMemo(() => {

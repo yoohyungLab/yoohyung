@@ -14,6 +14,7 @@ const DEFAULT_METADATA = generatePageMetadata({
 	description: '심리테스트를 진행해보세요.',
 });
 
+// TODO: 모듈 따로 분리하기
 export async function generateMetadata({ params }: IPageProps): Promise<Metadata> {
 	try {
 		const { id } = await params;

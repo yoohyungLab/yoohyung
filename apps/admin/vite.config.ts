@@ -44,6 +44,7 @@ export default defineConfig(({ mode }) => {
 				env.SUPABASE_SERVICE_ROLE_KEY || env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''
 			),
 			'process.env.VITE_SUPABASE_SERVICE_ROLE_KEY': JSON.stringify(env.VITE_SUPABASE_SERVICE_ROLE_KEY || ''),
+			'process.env.SUPABASE_JWT_SECRET': JSON.stringify(env.SUPABASE_JWT_SECRET || ''),
 			'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || mode || 'development'),
 		},
 		server: {

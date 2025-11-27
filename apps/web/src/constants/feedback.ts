@@ -1,8 +1,6 @@
-/**
- * Feedback Constants
- *
- * 피드백 카테고리, 상태 등을 정의합니다.
- */
+// Feedback Constants
+//
+// 피드백 카테고리, 상태 등을 정의합니다.
 
 // 피드백 카테고리
 export const FEEDBACK_CATEGORY = {

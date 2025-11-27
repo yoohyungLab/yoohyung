@@ -1,25 +1,24 @@
-/**
- * 세션 스토리지 유틸리티
- */
+// 세션 스토리지 유틸리티
 
-const STORAGE_KEY = 'testResult';
 const BALANCE_ANSWERS_KEY = 'balanceGameAnswers';
 
-export function saveTestResult<T>(data: T): void {
+export function saveTestResult<T>(data: T & { testId?: string }): void {
 	if (typeof window === 'undefined') return;
 
 	try {
-		sessionStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+		const key = data.testId ? `test_result_${data.testId}` : 'testResult';
+		sessionStorage.setItem(key, JSON.stringify(data));
 	} catch (error) {
 		console.error('Failed to save test result:', error);
 	}
 }
 
-export function loadTestResult<T>(): T | null {
+export function loadTestResult<T>(testId?: string): T | null {
 	if (typeof window === 'undefined') return null;
 
 	try {
-		const data = sessionStorage.getItem(STORAGE_KEY);
+		const key = testId ? `test_result_${testId}` : 'testResult';
+		const data = sessionStorage.getItem(key);
 		return data ? JSON.parse(data) : null;
 	} catch (error) {
 		console.error('Failed to load test result:', error);
@@ -27,11 +26,12 @@ export function loadTestResult<T>(): T | null {
 	}
 }
 
-export function clearTestResult(): void {
+export function clearTestResult(testId?: string): void {
 	if (typeof window === 'undefined') return;
 
 	try {
-		sessionStorage.removeItem(STORAGE_KEY);
+		const key = testId ? `test_result_${testId}` : 'testResult';
+		sessionStorage.removeItem(key);
 	} catch (error) {
 		console.error('Failed to clear test result:', error);
 	}
@@ -44,9 +44,7 @@ interface IBalanceGameAnswer {
 	choiceId: string;
 }
 
-/**
- * 밸런스 게임 답변 추가 (누적)
- */
+// 밸런스 게임 답변 추가 (누적)
 export function addBalanceGameAnswer(testId: string, questionId: string, choiceId: string): void {
 	if (typeof window === 'undefined') return;
 
@@ -65,9 +63,7 @@ export function addBalanceGameAnswer(testId: string, questionId: string, choiceI
 	}
 }
 
-/**
- * 밸런스 게임 누적 답변 조회
- */
+// 밸런스 게임 누적 답변 조회
 export function getBalanceGameAnswers(testId: string): IBalanceGameAnswer[] {
 	if (typeof window === 'undefined') return [];
 
@@ -81,10 +77,7 @@ export function getBalanceGameAnswers(testId: string): IBalanceGameAnswer[] {
 	}
 }
 
-/**
- * 밸런스 게임 누적 답변 초기화
- */
-export function clearBalanceGameAnswers(testId: string): void {
+// 밸런스 게임 누적 답변 초기화export function clearBalanceGameAnswers(testId: string): void {
 	if (typeof window === 'undefined') return;
 
 	try {

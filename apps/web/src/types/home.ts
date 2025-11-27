@@ -1,6 +1,4 @@
-/**
- * Home Feature Types
- */
+// Home Feature Types
 
 import type { Test } from '@pickid/supabase';
 

@@ -32,7 +32,8 @@ const setCachedData = (key: string, data: unknown) => {
 	cache.set(key, { data, timestamp: Date.now() });
 };
 
-// TODO: Supabase에서 정의되지 않은 타입들 - 추후 RPC 함수로 대체 예정
+// 대시보드 알림 타입
+// Note: 현재 로컬 타입, 향후 Supabase RPC 함수로 대체 예정
 export interface DashboardAlert {
 	id: string;
 	type: 'error' | 'warning' | 'success';
@@ -44,9 +45,7 @@ export interface DashboardAlert {
 }
 
 class DashboardService {
-	/**
-	 * 대시보드 핵심 통계 조회 (직접 쿼리 사용)
-	 */
+	// 대시보드 핵심 통계 조회 (직접 쿼리 사용)
 	async getDashboardStats(): Promise<DashboardOverviewStats> {
 		const cacheKey = 'dashboard_stats';
 		const cachedData = getCachedData(cacheKey);
@@ -95,16 +94,14 @@ class DashboardService {
 			totalCompletions: completedResponses,
 			completionRate: Math.round(completionRate * 100) / 100,
 			avgCompletionTime: Math.round(avgCompletionTime),
-			anomalies: 0, // TODO: 이상 징후 감지 로직 구현
+			anomalies: 0, // 이상 징후 감지: 향후 ML 기반 탐지 구현 예정
 		};
 
 		setCachedData(cacheKey, result);
 		return result;
 	}
 
-	/**
-	 * 오늘의 인기 테스트 TOP N 조회 (간단한 쿼리 사용)
-	 */
+	// 오늘의 인기 테스트 TOP N 조회 (간단한 쿼리 사용)
 	async getTopTestsToday(limit: number = 3): Promise<PopularTest[]> {
 		const cacheKey = `top_tests_${limit}`;
 		const cachedData = getCachedData(cacheKey);
@@ -177,12 +174,9 @@ class DashboardService {
 		return result;
 	}
 
-	/**
-	 * 특정 테스트의 상세 통계
-	 */
+	// 특정 테스트의 상세 통계
+	// Note: RPC 함수 구현 대기 중, 현재는 기본값 반환
 	async getTestDetailStats(): Promise<TestDetailedStats> {
-		// TODO: RPC 함수가 구현되면 사용
-		// 현재는 기본값 반환
 		return {
 			total_responses: 0,
 			completed_responses: 0,
@@ -192,9 +186,7 @@ class DashboardService {
 		} as TestDetailedStats;
 	}
 
-	/**
-	 * 디바이스별 분석
-	 */
+	// 디바이스별 분석
 	private async getDeviceBreakdown(testId: string) {
 		const { data, error } = await supabase
 			.from('user_test_responses')
@@ -221,9 +213,7 @@ class DashboardService {
 		return breakdown;
 	}
 
-	/**
-	 * 평균 완료 시간 계산
-	 */
+	// 평균 완료 시간 계산
 	private async getAverageCompletionTime(testId: string): Promise<number> {
 		const { data, error } = await supabase
 			.from('user_test_responses')
@@ -242,9 +232,7 @@ class DashboardService {
 		return Math.round(totalTime / data.length);
 	}
 
-	/**
-	 * 실시간 통계 조회 (최근 1시간)
-	 */
+	// 실시간 통계 조회 (최근 1시간)
 	async getRealtimeStats() {
 		const oneHourAgo = new Date();
 		oneHourAgo.setHours(oneHourAgo.getHours() - 1);
@@ -268,9 +256,7 @@ class DashboardService {
 		};
 	}
 
-	/**
-	 * 주간 트렌드 데이터 조회
-	 */
+	// 주간 트렌드 데이터 조회
 	async getWeeklyTrends() {
 		const sevenDaysAgo = new Date();
 		sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -306,9 +292,7 @@ class DashboardService {
 		return trends;
 	}
 
-	/**
-	 * 캐시 무효화
-	 */
+	// 캐시 무효화
 	invalidateCache(pattern?: string) {
 		if (pattern) {
 			// 특정 패턴의 캐시만 무효화
@@ -323,9 +307,7 @@ class DashboardService {
 		}
 	}
 
-	/**
-	 * 캐시 상태 조회
-	 */
+	// 캐시 상태 조회
 	getCacheInfo() {
 		return {
 			size: cache.size,
@@ -338,9 +320,7 @@ class DashboardService {
 		};
 	}
 
-	/**
-	 * 대시보드 전체 데이터 한번에 조회 (성능 최적화)
-	 */
+	// 대시보드 전체 데이터 한번에 조회 (성능 최적화)
 	async getDashboardOverview() {
 		const cacheKey = 'dashboard_overview';
 		const cachedData = getCachedData(cacheKey);

@@ -1,8 +1,6 @@
-/**
- * Quiz Constants
- *
- * 퀴즈 등급, 임계값, 레이블 등을 정의합니다.
- */
+// Quiz Constants
+//
+// 퀴즈 등급, 임계값, 레이블 등을 정의합니다.
 
 export type TQuizGrade = 'S' | 'A' | 'B' | 'C' | 'D';
 

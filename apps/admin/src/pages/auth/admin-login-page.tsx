@@ -5,10 +5,9 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { PATH } from '@/constants/routes';
 import { AUTH_MESSAGES as AUTH } from '@pickid/shared';
 
-
 export function AdminLoginPage() {
 	const navigate = useNavigate();
-	const { login } = useAdminAuth();
+	const { adminUser, login } = useAdminAuth();
 
 	const [formData, setFormData] = useState({
 		email: '',
@@ -17,6 +16,13 @@ export function AdminLoginPage() {
 	const [showPassword, setShowPassword] = useState(false);
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
+
+	// 이미 로그인된 경우 메인으로 리다이렉트
+	useEffect(() => {
+		if (adminUser) {
+			navigate(PATH.INDEX, { replace: true });
+		}
+	}, [adminUser, navigate]);
 
 	const handleInputChange = (field: keyof typeof formData, value: string) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
@@ -34,17 +40,15 @@ export function AdminLoginPage() {
 		setIsSubmitting(true);
 		setError(null);
 
-		try {
-			const result = await login(formData.email, formData.password);
+		const result = await login(formData.email, formData.password);
 
-			if (result.success) {
-				navigate(PATH.INDEX);
-			} else {
-				setError(result.error || AUTH.LOGIN_FAILED);
-			}
-		} catch {
-			setError(AUTH.LOGIN_ERROR);
-		} finally {
+		if (result.success) {
+			// 로그인 성공 시 메인으로 이동
+			setTimeout(() => {
+				navigate(PATH.INDEX, { replace: true });
+			}, 100);
+		} else {
+			setError(result.error || AUTH.LOGIN_FAILED);
 			setIsSubmitting(false);
 		}
 	};
@@ -53,8 +57,8 @@ export function AdminLoginPage() {
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'development') {
 			setFormData({
-				email: 'admin@pickid.com',
-				password: '',
+				email: 'admin@pickid.co.kr',
+				password: 'string12#',
 			});
 		}
 	}, []);

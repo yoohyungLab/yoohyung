@@ -1,8 +1,6 @@
-/**
- * Test Types
- *
- * 테스트 관련 타입을 정의합니다.
- */
+// Test Types
+//
+// 테스트 관련 타입을 정의합니다.
 
 import type { TestResult } from '@pickid/supabase';
 

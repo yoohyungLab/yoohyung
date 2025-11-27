@@ -1,4 +1,8 @@
-// TODO: 이거 왜 있어야하는지??? 단순 타입인데..?
+/**
+ * NavEntry: Discriminated Union 타입
+ * - type 필드로 section(섹션 헤더) vs item(네비게이션 항목) 구분
+ * - TypeScript가 타입을 자동으로 좁혀주어 안전한 타입 체크 가능
+ */
 export type NavEntry =
 	| {
 			type: 'section';
@@ -15,7 +19,12 @@ export type NavEntry =
 			match?: string[];
 	  };
 
-		// TODO: match, href는 상수화되어 있는거 가져다쓰고 href match? 이게 각각 뭘 의미하는지 꼭 필요한건지?
+/**
+ * Navigation 설정
+ * - href: 클릭 시 이동할 경로
+ * - match: 이 메뉴를 활성 상태로 표시할 경로 목록 (하위 경로 포함)
+ *   예: '/tests'를 클릭해도 '/tests/create'에서는 '테스트 관리' 메뉴가 활성화됨
+ */
 export const navigation: NavEntry[] = [
 	{
 		type: 'item',

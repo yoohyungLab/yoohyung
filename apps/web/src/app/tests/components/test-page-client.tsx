@@ -25,7 +25,6 @@ interface IAnswer {
 }
 
 // Main Component
-
 export function TestPageClient({ test }: TestPageClientProps) {
 	const router = useRouter();
 	const testType: TestType = (test.test?.type as TestType) || 'psychology';
@@ -40,19 +39,18 @@ export function TestPageClient({ test }: TestPageClientProps) {
 	const currentQuestion = test.questions[currentIndex];
 	const isLastQuestion = currentIndex >= totalQuestions - 1;
 
-	console.log('[TestPageClient] 테스트 데이터 구조:', {
-		testType,
-		testId: test.test?.id,
-		questionsCount: test.questions.length,
-		firstQuestionChoices: test.questions[0]?.choices?.map((c) => ({
-			id: c.id,
-			text: c.choice_text,
-			code: (c as { code?: string })?.code,
-		})),
-	});
+	// console.log('[TestPageClient] 테스트 데이터 구조:', {
+	// 	testType,
+	// 	testId: test.test?.id,
+	// 	questionsCount: test.questions.length,
+	// 	firstQuestionChoices: test.questions[0]?.choices?.map((c) => ({
+	// 		id: c.id,
+	// 		text: c.choice_text,
+	// 		code: (c as { code?: string })?.code,
+	// 	})),
+	// });
 
 	// Event Handlers
-
 	const handleStartTest = (gender?: 'male' | 'female') => {
 		setUserGender(gender);
 		setIsStarting(false);
@@ -63,16 +61,16 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		const selectedChoice = currentQuestion.choices?.find((c) => c.id === choiceId);
 		const code = (selectedChoice as { code?: string })?.code;
 
-		console.log('[handleAnswer] 선택지 정보:', {
-			choiceId,
-			selectedChoice,
-			code,
-			allChoices: currentQuestion.choices?.map((c) => ({
-				id: c.id,
-				text: c.choice_text,
-				code: (c as { code?: string })?.code,
-			})),
-		});
+		// console.log('[handleAnswer] 선택지 정보:', {
+		// 	choiceId,
+		// 	selectedChoice,
+		// 	code,
+		// 	allChoices: currentQuestion.choices?.map((c) => ({
+		// 		id: c.id,
+		// 		text: c.choice_text,
+		// 		code: (c as { code?: string })?.code,
+		// 	})),
+		// });
 
 		const newAnswers = [
 			...answers.filter((a) => a.questionId !== qId),
@@ -87,7 +85,7 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		}
 
 		if (isLastQuestion) {
-			console.log('[handleAnswer] 마지막 질문 - 저장할 답변:', newAnswers);
+			// console.log('[handleAnswer] 마지막 질문 - 저장할 답변:', newAnswers);
 			await saveResult(newAnswers);
 			router.push(`/tests/${test.test?.id}/result`);
 		} else {
@@ -120,10 +118,10 @@ export function TestPageClient({ test }: TestPageClientProps) {
 			const localAnswers = getBalanceGameAnswers(test.test?.id as string);
 			const choiceIds = localAnswers.map((a) => a.choiceId);
 
-			console.log('[saveBalanceGameResult] DB 일괄 저장 시작:', {
-				choiceIds,
-				localAnswers,
-			});
+			// console.log('[saveBalanceGameResult] DB 일괄 저장 시작:', {
+			// 	choiceIds,
+			// 	localAnswers,
+			// });
 
 			await optimizedBalanceGameStatsService.batchIncrementChoices(choiceIds);
 
@@ -136,7 +134,7 @@ export function TestPageClient({ test }: TestPageClientProps) {
 			// 3. 로컬 누적 답변 초기화
 			clearBalanceGameAnswers(test.test?.id as string);
 
-			console.log('[saveBalanceGameResult] 밸런스 게임 결과 저장 완료');
+			// console.log('[saveBalanceGameResult] 밸런스 게임 결과 저장 완료');
 		} catch (error) {
 			console.error('[saveBalanceGameResult] 저장 실패:', error);
 			// 에러가 발생해도 세션 스토리지에는 저장
@@ -170,6 +168,7 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		const score = Math.round((correctCount / totalQuestions) * 100);
 
 		saveTestResult({
+			testId: test.test?.id, // testId 필드로 통일 (세션 키 생성용)
 			test_id: test.test?.id,
 			test_title: test.test?.title || '',
 			total_questions: totalQuestions,
@@ -194,13 +193,13 @@ export function TestPageClient({ test }: TestPageClientProps) {
 
 		const codes = finalAnswers.map((a) => a.code).filter((c): c is string => Boolean(c));
 
-		console.log('[savePsychologyResult] 결과 저장:', {
-			finalAnswers,
-			extractedCodes: finalAnswers.map((a) => a.code),
-			filteredCodes: codes,
-			totalScore,
-			testId: test.test?.id,
-		});
+		// console.log('[savePsychologyResult] 결과 저장:', {
+		// 	finalAnswers,
+		// 	extractedCodes: finalAnswers.map((a) => a.code),
+		// 	filteredCodes: codes,
+		// 	totalScore,
+		// 	testId: test.test?.id,
+		// });
 
 		saveTestResult({
 			testId: test.test?.id,

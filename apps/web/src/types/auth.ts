@@ -1,8 +1,6 @@
-/**
- * Auth Types
- *
- * 인증 관련 타입을 정의합니다.
- */
+// Auth Types
+//
+// 인증 관련 타입을 정의합니다.
 
 import type { User } from '@supabase/supabase-js';
 

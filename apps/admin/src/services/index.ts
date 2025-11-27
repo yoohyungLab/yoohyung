@@ -1,8 +1,5 @@
-/**
- * Services - Data Access Layer
- *
- * Supabase API 호출을 담당하는 순수 함수들
- */
+// Services - Data Access Layer
+// Supabase API 호출을 담당하는 순수 함수들
 
 export { userService } from './user.service';
 export { testService } from './test.service';

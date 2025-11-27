@@ -1,8 +1,6 @@
-/**
- * Test Constants
- *
- * 테스트 관련 상수를 정의합니다.
- */
+// Test Constants
+//
+// 테스트 관련 상수를 정의합니다.
 
 // 테스트 타입 값
 export const TEST_TYPE = {

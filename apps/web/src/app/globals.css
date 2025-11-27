@@ -117,7 +117,7 @@
 	font-display: swap;
 }
 
-@import '@pickid/ui/styles';
+@import '@pickid/config/src/theme.css';
 
 @tailwind base;
 @tailwind components;
