@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { optimizedBalanceGameStatsService } from '@/api/services/optimized-balance-game-stats.service';
-import { calculatePercentages } from '@/lib/balance-game';
+import { calculatePercentages } from '@/lib/balance-game.utils';
 import { queryKeys } from '@pickid/shared';
 import type { OptimizedChoiceStats } from '@pickid/supabase';
 

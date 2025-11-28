@@ -3,8 +3,12 @@ import { BannerCarousel } from '@/components/banner-carousel';
 import { TestSection } from './test-section';
 import BalanceGameSection from './balance-game-section';
 import { AdBannerInline } from './ad-banner-inline';
-import type { Banner } from '@/types/home';
 import type { Category, TestCard } from '@pickid/supabase';
+
+interface Banner {
+	id: string;
+	image: string;
+}
 
 interface HomeContainerProps {
 	tests: TestCard[];

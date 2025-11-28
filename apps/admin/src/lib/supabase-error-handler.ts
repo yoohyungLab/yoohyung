@@ -10,11 +10,3 @@ export function validateRpcResult(result: unknown, errorMessage: string) {
 	}
 	return r;
 }
-
-/**
- * Not Found 에러 여부 확인 (PGRST116)
- * @param error - 확인할 에러
- */
-export function isNotFoundError(error: unknown): boolean {
-	return (error as { code?: string })?.code === 'PGRST116';
-}

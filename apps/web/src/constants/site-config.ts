@@ -1,8 +1,4 @@
-// 메타데이터 중앙 관리 (단일 소스)
-//
-// 타이틀 패턴 (일관성):
-// - 메인 페이지: "픽키드 | 나를 알아가는 심리테스트"
-// - 서브 페이지: "페이지명 | 픽키드" (layout.tsx template 적용)
+// 사이트 메타데이터 설정 (중앙 관리)
 
 export const SITE_CONFIG = {
 	name: '픽키드',
@@ -23,10 +19,6 @@ export const SITE_CONFIG = {
 		'성격유형검사',
 	],
 };
-
-export const SOCIAL = {
-	twitter: '@pickid',
-} as const;
 
 export const VERIFICATION = {
 	google: process.env.NEXT_PUBLIC_GOOGLE_VERIFICATION,

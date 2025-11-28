@@ -14,20 +14,14 @@ import {
 } from '@/components/test/test-create';
 import { TEST_CREATION_STEPS } from '@/constants/test';
 import { useTestDetail } from '@/hooks';
-import type { Test } from '@pickid/supabase';
+import type { Test, TestInsert, TestQuestionInsert, TestResultInsert, TestStatus, TestType } from '@pickid/supabase';
 import { convertQuestionsData, convertResultsData } from '@/utils/test.utils';
 import { HREF, PATH } from '@/constants/routes';
 import { COMMON_MESSAGES } from '@pickid/shared';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useTests } from '@/hooks/useTests';
 import { generateShortCode, generateSlug } from '@/utils/test.utils';
-import type { Database } from '@pickid/supabase';
 
-type TestStatus = 'draft' | 'published' | 'archived';
-type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
-type TestInsert = Database['public']['Tables']['tests']['Insert'];
-type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
-type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 const VALID_STATUSES: TestStatus[] = ['draft', 'published', 'archived'];
 const VALID_TYPES: TestType[] = ['psychology', 'balance', 'character', 'quiz', 'meme', 'lifestyle'];

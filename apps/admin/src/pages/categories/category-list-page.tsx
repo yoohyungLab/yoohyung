@@ -6,7 +6,7 @@ import { CategoryCreateModal, CategorySortModal } from '@/components/category';
 import { useColumnRenderers } from '@/hooks/use-column-renderers';
 import { useCategories } from '@/hooks/useCategories';
 import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/constants';
-import { getCategoryStatusText, getCategoryStatusStyle } from '@/utils/utils';
+import { getStatusConfig } from '@/utils/utils';
 import type { Category } from '@pickid/supabase';
 
 export default function CategoryListPage() {
@@ -123,13 +123,12 @@ export default function CategoryListPage() {
 				id: 'status',
 				header: '상태',
 				cell: ({ row }) => {
-					const isActive = row.original.status === 'active';
+					const statusConfig = getStatusConfig('category', row.original.status || 'inactive');
+					const statusColor = statusConfig.color || '';
+					const statusText = statusConfig.text || row.original.status;
 					return (
-						<Badge
-							variant="outline"
-							className={`h-6 font-medium transition-colors ${getCategoryStatusStyle(isActive)}`}
-						>
-							{getCategoryStatusText(isActive)}
+						<Badge variant="outline" className={`h-6 font-medium transition-colors ${statusColor}`}>
+							{statusText}
 						</Badge>
 					);
 				},

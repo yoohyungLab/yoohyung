@@ -1,3 +1,5 @@
+
+
 export const PROFILE_STATUS = {
 	ACTIVE: 'active',
 	INACTIVE: 'inactive',
@@ -16,33 +18,23 @@ export const PROFILE_PROVIDER_LABELS = {
 	kakao: '카카오',
 } as const;
 
+export const PROFILE_STATUS_CONFIG = {
+	[PROFILE_STATUS.ACTIVE]: { text: '활성', color: 'bg-emerald-500 text-white', icon: '✅' },
+	[PROFILE_STATUS.INACTIVE]: { text: '비활성', color: 'bg-slate-500 text-white', icon: '❌' },
+	[PROFILE_STATUS.DELETED]: { text: '탈퇴', color: 'bg-rose-500 text-white', icon: '🗑️' },
+} as const;
+
 export const USER_STATUS_OPTIONS = [
-	{ value: 'active', label: '활성' },
-	{ value: 'inactive', label: '비활성' },
-	{ value: 'deleted', label: '탈퇴' },
+	{ value: PROFILE_STATUS.ACTIVE, label: PROFILE_STATUS_CONFIG[PROFILE_STATUS.ACTIVE].text },
+	{ value: PROFILE_STATUS.INACTIVE, label: PROFILE_STATUS_CONFIG[PROFILE_STATUS.INACTIVE].text },
+	{ value: PROFILE_STATUS.DELETED, label: PROFILE_STATUS_CONFIG[PROFILE_STATUS.DELETED].text },
 ] as const;
 
 export const USER_PROVIDER_OPTIONS = [
-	{ value: 'email', label: '이메일' },
-	{ value: 'kakao', label: '카카오' },
+	{ value: PROFILE_PROVIDER.EMAIL, label: PROFILE_PROVIDER_LABELS.email },
+	{ value: PROFILE_PROVIDER.GOOGLE, label: PROFILE_PROVIDER_LABELS.google },
+	{ value: PROFILE_PROVIDER.KAKAO, label: PROFILE_PROVIDER_LABELS.kakao },
 ] as const;
-
-export const USER_STATUS_LABELS = {
-	active: '활성',
-	inactive: '비활성',
-	deleted: '탈퇴',
-} as const;
-
-export const USER_PROVIDER_LABELS = {
-	email: '이메일',
-	kakao: '카카오',
-} as const;
-
-export const USER_STATUS_COLORS = {
-	active: 'bg-emerald-500 text-white',
-	inactive: 'bg-amber-500 text-white',
-	deleted: 'bg-rose-500 text-white',
-} as const;
 
 export const FILTER_USER_STATUS_OPTIONS = [{ value: 'all', label: '전체 상태' }, ...USER_STATUS_OPTIONS] as const;
 

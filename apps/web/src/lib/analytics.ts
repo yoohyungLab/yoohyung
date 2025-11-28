@@ -11,17 +11,8 @@ declare global {
 	}
 }
 
-// 페이지뷰 이벤트
-export const pageview = (url: string) => {
-	if (typeof window.gtag !== 'undefined') {
-		window.gtag('config', process.env.NEXT_PUBLIC_GA_ID || '', {
-			page_path: url,
-		});
-	}
-};
-
-// 커스텀 이벤트
-export const event = ({
+// 커스텀 이벤트 (내부 헬퍼)
+const event = ({
 	action,
 	category,
 	label,
@@ -41,7 +32,7 @@ export const event = ({
 	}
 };
 
-// 테스트 관련 이벤트들
+// 실제 사용되는 이벤트만 export
 export const trackTestStart = (testId: string, testTitle: string) => {
 	event({
 		action: 'test_start',
@@ -51,40 +42,6 @@ export const trackTestStart = (testId: string, testTitle: string) => {
 	});
 };
 
-export const trackTestComplete = (testId: string, testTitle: string, completionTime: number) => {
-	event({
-		action: 'test_complete',
-		category: 'engagement',
-		label: testTitle,
-		value: Math.round(completionTime),
-	});
-};
-
-export const trackQuestionAnswer = (testId: string, questionNumber: number) => {
-	event({
-		action: 'question_answer',
-		category: 'engagement',
-		label: `question_${questionNumber}`,
-	});
-};
-
-export const trackResultShare = (testId: string, resultType: string, shareMethod: string) => {
-	event({
-		action: 'result_share',
-		category: 'social',
-		label: `${resultType}_${shareMethod}`,
-	});
-};
-
-export const trackResultView = (testId: string, resultType: string) => {
-	event({
-		action: 'result_view',
-		category: 'engagement',
-		label: resultType,
-	});
-};
-
-// 기존 코드 호환성을 위한 별칭
 export const trackResultViewed = (testId: string, resultName: string, isLoggedIn: boolean) => {
 	event({
 		action: 'result_viewed',
@@ -98,13 +55,5 @@ export const trackResultShared = (shareMethod: string, testId: string, resultNam
 		action: 'result_shared',
 		category: 'social',
 		label: `${shareMethod}_${resultName}`,
-	});
-};
-
-export const trackCategoryView = (categorySlug: string) => {
-	event({
-		action: 'category_view',
-		category: 'navigation',
-		label: categorySlug,
 	});
 };

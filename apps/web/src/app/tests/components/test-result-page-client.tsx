@@ -35,9 +35,10 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 
 	// 모든 hooks를 최상위에서 호출 (React rules of hooks 준수)
 	// 타입별로 enabled 조건 설정하여 불필요한 쿼리 방지
-	const balanceGameData = useBalanceGameResult({ testId, enabled: normalizedTestType === 'balance' });
-	const quizData = useQuizResult({ testId, enabled: normalizedTestType === 'quiz' });
-	const psychologyData = useTestResult({ testId, enabled: normalizedTestType === 'psychology' });
+	// 공유 링크인 경우, 심리테스트는 대표 결과만 보여주므로 데이터 로드 비활성화
+	const balanceGameData = useBalanceGameResult({ testId, enabled: normalizedTestType === 'balance' && !isSharedLink });
+	const quizData = useQuizResult({ testId, enabled: normalizedTestType === 'quiz' && !isSharedLink });
+	const psychologyData = useTestResult({ testId, enabled: normalizedTestType === 'psychology' && !isSharedLink });
 
 	// 타입별 데이터 선택
 	const isLoading =
@@ -62,6 +63,24 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 
 	// 밸런스게임 결과
 	if (normalizedTestType === 'balance') {
+		// 공유 링크는 밸런스게임에서 지원하지 않음 - 테스트 페이지로 안내
+		if (isSharedLink) {
+			return (
+				<div className="min-h-screen flex flex-col items-center justify-center px-5">
+					<div className="max-w-md text-center">
+						<h1 className="text-2xl font-bold mb-4">친구가 밸런스게임 결과를 공유했어요!</h1>
+						<p className="text-gray-600 mb-6">나도 테스트해보고 결과를 확인해보세요 ✨</p>
+						<a
+							href={`/tests/${testId}`}
+							className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+						>
+							테스트 하러 가기
+						</a>
+					</div>
+				</div>
+			);
+		}
+
 		const { balanceGameResult, funStats, error } = balanceGameData;
 		const { popularTests } = popularTestsData;
 		const { handleShare } = shareData;
@@ -99,6 +118,24 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 
 	// 퀴즈 결과
 	if (normalizedTestType === 'quiz') {
+		// 공유 링크는 퀴즈에서 지원하지 않음 - 테스트 페이지로 안내
+		if (isSharedLink) {
+			return (
+				<div className="min-h-screen flex flex-col items-center justify-center px-5">
+					<div className="max-w-md text-center">
+						<h1 className="text-2xl font-bold mb-4">친구가 퀴즈 결과를 공유했어요!</h1>
+						<p className="text-gray-600 mb-6">나도 테스트해보고 결과를 확인해보세요 ✨</p>
+						<a
+							href={`/tests/${testId}`}
+							className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+						>
+							테스트 하러 가기
+						</a>
+					</div>
+				</div>
+			);
+		}
+
 		const { quizResult, resultMessage, error } = quizData;
 		const { popularTests } = popularTestsData;
 		const { handleShare } = shareData;
@@ -150,9 +187,9 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 		throw new Error('테스트 결과를 찾을 수 없습니다. 테스트를 다시 진행해주세요.');
 	}
 
-	// 공유 링크 렌더링
+	// 공유 링크 렌더링 (심리테스트만 지원)
 	if (isSharedLink) {
-		return <SharedResultLanding testResult={testResult} testId={testId} />;
+		return <SharedResultLanding testId={testId} />;
 	}
 
 	return (

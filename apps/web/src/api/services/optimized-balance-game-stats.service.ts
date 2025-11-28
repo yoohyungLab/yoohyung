@@ -1,25 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
-import { handleSupabaseError } from '@/lib';
 
-// 타입 정의
-
-interface RawChoiceData {
-	id: string;
-	choice_text: string;
-	response_count: number;
-}
-
-interface RawQuestionData {
-	id: string;
-	question_text: string;
-	test_choices: Array<{
-		id: string;
-		choice_text: string;
-		response_count: number;
-		choice_order: number;
-	}>;
-}
-
+// 서비스 반환 타입 (UI 친화적)
 export interface ChoiceStatsRaw {
 	choiceId: string;
 	choiceText: string;
@@ -54,7 +35,7 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 		} catch (error) {
-			handleSupabaseError(error, 'incrementChoiceCount');
+			console.error('Error in incrementChoiceCount:', error);
 			throw error;
 		}
 	},
@@ -75,7 +56,7 @@ export const optimizedBalanceGameStatsService = {
 				}
 			} catch (error) {
 				// 하나 실패해도 계속 진행
-				handleSupabaseError(error, `batchIncrementChoices:${choiceId}`);
+				console.error(`Error in batchIncrementChoices:${choiceId}`, error);
 			}
 		}
 	},
@@ -92,13 +73,12 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 
-			const rawChoices = (choices || []) as RawChoiceData[];
-			const totalResponses = rawChoices.reduce((sum, choice) => sum + (choice.response_count || 0), 0);
+			const totalResponses = (choices || []).reduce((sum, choice) => sum + (choice.response_count || 0), 0);
 
 			return {
 				questionId,
 				questionText: '',
-				choices: rawChoices.map((choice) => ({
+				choices: (choices || []).map((choice) => ({
 					choiceId: choice.id,
 					choiceText: choice.choice_text,
 					responseCount: choice.response_count || 0,
@@ -106,7 +86,7 @@ export const optimizedBalanceGameStatsService = {
 				totalResponses,
 			};
 		} catch (error) {
-			handleSupabaseError(error, 'getQuestionStatsRaw');
+			console.error('Error in getQuestionStatsRaw:', error);
 			throw error;
 		}
 	},
@@ -135,9 +115,7 @@ export const optimizedBalanceGameStatsService = {
 			if (error) throw error;
 			if (!questions || questions.length === 0) return [];
 
-			const rawQuestions = questions as RawQuestionData[];
-
-			return rawQuestions.map((question) => {
+			return questions.map((question) => {
 				const choices = question.test_choices || [];
 				// choice_order로 정렬 (A가 0, B가 1)
 				const sortedChoices = [...choices].sort((a, b) => a.choice_order - b.choice_order);
@@ -155,7 +133,7 @@ export const optimizedBalanceGameStatsService = {
 				};
 			});
 		} catch (error) {
-			handleSupabaseError(error, 'getAllQuestionStatsRaw');
+			console.error('Error in getAllQuestionStatsRaw:', error);
 			throw error;
 		}
 	},
@@ -180,13 +158,13 @@ export const optimizedBalanceGameStatsService = {
 
 			if (error) throw error;
 
-			return ((choices || []) as RawChoiceData[]).map((choice) => ({
+			return (choices || []).map((choice) => ({
 				choiceId: choice.id,
 				choiceText: choice.choice_text,
 				responseCount: choice.response_count || 0,
 			}));
 		} catch (error) {
-			handleSupabaseError(error, 'getPopularChoicesRaw');
+			console.error('Error in getPopularChoicesRaw:', error);
 			throw error;
 		}
 	},

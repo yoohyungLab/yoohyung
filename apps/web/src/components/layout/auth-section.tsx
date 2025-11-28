@@ -1,10 +1,12 @@
 'use client';
 
-import { Button, IconButton } from '@pickid/ui';
+import { Button } from '@pickid/ui';
 import { LogOut, User } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/auth/hooks/useAuth';
+import { SITE_CONFIG } from '@/constants/site-config';
+import { MenuContent } from './menu-content';
 
 interface AuthSectionProps {
 	onMenuClose: () => void;
@@ -12,41 +14,16 @@ interface AuthSectionProps {
 
 export function AuthSection({ onMenuClose }: AuthSectionProps) {
 	const router = useRouter();
-	const { user, signOut, signInWithKakao } = useAuth();
+	const { user, signOut } = useAuth();
 
 	const handleSignOut = async () => {
 		try {
 			await signOut();
+			onMenuClose();
 			router.push('/');
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}
-	};
-
-	const handleSignIn = async (provider: string) => {
-		if (provider === 'kakao') {
-			try {
-				await signInWithKakao();
-			} catch (error) {
-				console.error('Kakao login failed:', error);
-				router.push('/auth/login');
-			}
-		} else {
-			router.push('/auth/login');
-		}
-		onMenuClose();
-	};
-
-	const handleKakaoSignIn = () => {
-		handleSignIn('kakao');
-	};
-
-	const handleLoginClick = () => {
-		handleMenuClick('/auth/login');
-	};
-
-	const handleRegisterClick = () => {
-		handleMenuClick('/auth/register');
 	};
 
 	const handleMenuClick = (href: string) => {
@@ -54,65 +31,78 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 		router.push(href);
 	};
 
+	const handleAuthClick = () => {
+		handleMenuClick('/auth/login');
+	};
+
 	if (user) {
 		return (
-			<div className="space-y-4">
-				{/* 사용자 정보 섹션 */}
-				<div className="bg-gray-50 rounded-lg p-4 mb-4">
-					<div className="flex items-center space-x-3">
-						<div className="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
+			<div className="flex flex-col h-full">
+				{/* 상단 영역 - 사용자 프로필 */}
+				                <div className="bg-gray-50 border-b border-gray-200 py-8 px-6">
+					<div className="flex flex-col items-center gap-4 text-center">
+						<div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
 							{user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
 								<Image
 									src={user.user_metadata?.avatar_url || user.user_metadata?.picture || ''}
 									alt="프로필"
-									width={40}
-									height={40}
+									width={80}
+									height={80}
 									className="rounded-full"
 								/>
 							) : (
-								<User className="w-5 h-5 text-pink-600" />
+								<User className="w-10 h-10 text-pink-600" />
 							)}
 						</div>
-						<div>
-							<p className="font-medium text-gray-900">
-								{user.user_metadata?.name || user.email?.split('@')[0] || '사용자'}
-							</p>
-							<p className="text-sm text-gray-500">{user.email}</p>
+						<div className="flex-1 min-w-0">
+							<p className="text-sm text-gray-500 truncate">{user.email}</p>
 						</div>
 					</div>
 				</div>
 
-				{/* 로그아웃 버튼 */}
-				<Button
-					variant="outline"
-					className="w-full text-red-600 border-red-200 hover:bg-red-50"
-					onClick={handleSignOut}
-				>
-					<LogOut className="w-4 h-4 mr-2" />
-					로그아웃
-				</Button>
+				{/* 중간 영역 - 메뉴 */}
+				<div className="flex-1 overflow-y-auto px-4">
+					<MenuContent onMenuClick={onMenuClose} />
+				</div>
+
+				{/* 하단 영역 - 로그아웃 버튼 */}
+				<div className="border-t border-gray-200 p-4">
+					<Button
+						variant="outline"
+						className="w-full text-red-600 border-red-200 hover:bg-red-50"
+						onClick={handleSignOut}
+					>
+						<LogOut className="w-4 h-4 mr-2" />
+						로그아웃
+					</Button>
+				</div>
 			</div>
 		);
 	}
 
 	return (
-		<div className="space-y-3">
-			<IconButton
-				variant="kakao"
-				className="w-full rounded-lg font-normal hover:scale-100"
-				onClick={handleKakaoSignIn}
-				icon={<Image src="/icons/kakao.svg" alt="카카오" width={16} height={16} />}
-				label="카카오로 시작하기"
-			/>
-			<div className="text-center">
-				<span className="text-sm text-gray-500">간편하게 3초만에 시작하세요</span>
+		<div className="flex flex-col h-full">
+			{/* 상단 영역 - 로고 + 사이트 정보 */}
+			                <div className="bg-gray-50 border-b border-gray-200 py-8 px-6">
+				<div className="flex flex-col items-center gap-4 text-center">
+					<Image src="/icons/logo.svg" alt={SITE_CONFIG.name} width={80} height={80} priority unoptimized />
+					<div className="flex flex-col gap-1">
+						<h2 className="text-xl font-bold text-gray-900">{SITE_CONFIG.name}</h2>
+						<p className="text-sm text-gray-600">나를 알아가는 심리테스트</p>
+					</div>
+					<Button
+						onClick={handleAuthClick}
+						className="bg-white text-pink-600 border border-pink-600 hover:bg-pink-50 px-4 py-2 rounded-full"
+					>
+						로그인 / 회원가입하러가기
+					</Button>
+				</div>
 			</div>
-			<Button variant="outline" className="w-full" onClick={handleLoginClick}>
-				로그인
-			</Button>
-			<Button variant="outline" className="w-full" onClick={handleRegisterClick}>
-				회원가입
-			</Button>
+
+			{/* 중간 영역 - 메뉴 */}
+			<div className="flex-1 overflow-y-auto px-4">
+				<MenuContent onMenuClick={onMenuClose} />
+			</div>
 		</div>
 	);
 }

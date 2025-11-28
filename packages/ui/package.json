@@ -10,7 +10,11 @@
 			"import": "./src/index.tsx",
 			"types": "./src/index.tsx"
 		},
-		"./styles": "./src/styles.css"
+		"./styles": "./src/styles.css",
+		"./constants/colors": {
+			"import": "./src/constants/colors.ts",
+			"types": "./src/constants/colors.ts"
+		}
 	},
 	"files": [
 		"dist"

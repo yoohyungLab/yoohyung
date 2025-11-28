@@ -1,10 +1,7 @@
 import { supabase } from '@pickid/supabase';
-import type { TestResult, Database } from '@pickid/supabase';
-import { isNotFoundError } from '@/lib';
+import type { TestResult, TestResultInsert } from '@pickid/supabase';
+import { isNotFoundError } from '@pickid/shared';
 import { findMatchingResult } from '@/lib/test-result-matching';
-
-// Type definitions
-type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
 
 interface ITestResultRow {
 	result_name: string;
@@ -83,7 +80,7 @@ export const testResultService = {
 				try {
 					const parsedResult = JSON.parse(storedResult);
 					return parsedResult;
-				} catch (err) {
+				} catch {
 					// JSON 파싱 실패 시 무시하고 DB 조회로 진행
 				}
 			}

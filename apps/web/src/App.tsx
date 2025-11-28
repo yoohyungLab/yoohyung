@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { Footer } from '@/components/layout/footer';
 import { Header } from '@/components/layout/header';
 import { SidebarDrawer } from '@/components/layout/sidebar-drawer';
@@ -12,6 +13,10 @@ interface AppProps {
 
 export default function App({ children }: AppProps) {
 	const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+	const pathname = usePathname();
+
+	// 메인 페이지에서만 Footer 표시
+	const showFooter = pathname === '/';
 
 	const handleMenuOpen = () => {
 		setIsDrawerOpen(true);
@@ -32,8 +37,8 @@ export default function App({ children }: AppProps) {
 			{/* 페이지 컨텐츠 */}
 			<main className="min-h-screen">{children}</main>
 
-			{/* 푸터 */}
-			<Footer />
+			{/* 푸터 - 메인 페이지에서만 표시 */}
+			{showFooter && <Footer />}
 
 			{/* 사이드바 드로워 */}
 			<SidebarDrawer isOpen={isDrawerOpen} onOpenChange={handleDrawerOpenChange} />

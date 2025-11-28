@@ -1,7 +1,3 @@
-// Shared Constants - Public API
-//
-// 모든 상수를 중앙에서 관리하고 재내보냅니다.
-
 // Routes
 export * from './routes';
 

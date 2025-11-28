@@ -1,38 +1,75 @@
-// Supabase 생성 타입 import
 export type { Database, Json } from './database';
 import type { Database } from './database';
 
-// Admin 전용 타입들
-// export * from './admin';
+type TableRow<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Row'];
+type TableInsert<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Insert'];
+type TableUpdate<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T]['Update'];
+type Enum<T extends keyof Database['public']['Enums']> = Database['public']['Enums'][T];
 
-// Helper type for table operations
-type Tables<T extends keyof Database['public']['Tables']> = Database['public']['Tables'][T];
+// Categories
+export type Category = TableRow<'categories'>;
+export type CategoryInsert = TableInsert<'categories'>;
+export type CategoryUpdate = TableUpdate<'categories'>;
 
-// ===== 기본 테이블 타입들 (Supabase에서 자동 생성) =====
-export type Category = Tables<'categories'>['Row'];
-export type Test = Tables<'tests'>['Row'];
-export type User = Tables<'users'>['Row'];
-export type Feedback = Tables<'feedbacks'>['Row'];
-export type AdminUser = Tables<'admin_users'>['Row'];
-export type TestQuestion = Tables<'test_questions'>['Row'];
-export type TestChoice = Tables<'test_choices'>['Row'];
-export type TestResult = Tables<'test_results'>['Row'];
-export type UserTestResponse = Tables<'user_test_responses'>['Row'];
-export type HomeBalanceGame = Tables<'home_balance_games'>['Row'];
-export type HomeBalanceVote = Tables<'home_balance_votes'>['Row'];
+// Tests
+export type Test = TableRow<'tests'>;
+export type TestInsert = TableInsert<'tests'>;
+export type TestUpdate = TableUpdate<'tests'>;
+
+// Users
+export type User = TableRow<'users'>;
+export type UserInsert = TableInsert<'users'>;
+export type UserUpdate = TableUpdate<'users'>;
+
+// Feedbacks
+export type Feedback = TableRow<'feedbacks'>;
+export type FeedbackInsert = TableInsert<'feedbacks'>;
+export type FeedbackUpdate = TableUpdate<'feedbacks'>;
+
+// Admin Users
+export type AdminUser = TableRow<'admin_users'>;
+export type AdminUserInsert = TableInsert<'admin_users'>;
+export type AdminUserUpdate = TableUpdate<'admin_users'>;
+
+// Test Questions
+export type TestQuestion = TableRow<'test_questions'>;
+export type TestQuestionInsert = TableInsert<'test_questions'>;
+export type TestQuestionUpdate = TableUpdate<'test_questions'>;
+
+// Test Choices
+export type TestChoice = TableRow<'test_choices'>;
+export type TestChoiceInsert = TableInsert<'test_choices'>;
+export type TestChoiceUpdate = TableUpdate<'test_choices'>;
+
+// Test Results
+export type TestResult = TableRow<'test_results'>;
+export type TestResultInsert = TableInsert<'test_results'>;
+export type TestResultUpdate = TableUpdate<'test_results'>;
+
+// User Test Responses
+export type UserTestResponse = TableRow<'user_test_responses'>;
+export type UserTestResponseInsert = TableInsert<'user_test_responses'>;
+export type UserTestResponseUpdate = TableUpdate<'user_test_responses'>;
+
+// Home Balance Games
+export type HomeBalanceGame = TableRow<'home_balance_games'>;
+export type HomeBalanceGameInsert = TableInsert<'home_balance_games'>;
+export type HomeBalanceGameUpdate = TableUpdate<'home_balance_games'>;
+
+// Home Balance Votes
+export type HomeBalanceVote = TableRow<'home_balance_votes'>;
+export type HomeBalanceVoteInsert = TableInsert<'home_balance_votes'>;
+export type HomeBalanceVoteUpdate = TableUpdate<'home_balance_votes'>;
 
 // ===== Enum 타입들 =====
-// 실제 DB에 있는 Enums
-export type CategoryStatus = Database['public']['Enums']['category_status'];
-export type GenderType = Database['public']['Enums']['gender_type'];
+export type CategoryStatus = Enum<'category_status'>;
+export type GenderType = Enum<'gender_type'>;
 
 // DB에 Enum이 없어서 수동 정의
 export type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
 export type TestStatus = 'draft' | 'published' | 'scheduled' | 'archived';
 export type FeedbackStatus = 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
 export type UserStatus = 'active' | 'inactive' | 'deleted';
-
-// ===== 확장 타입들 (실제 사용되는 것들만) =====
 
 // 중첩된 테스트 데이터 타입 (RPC 함수용)
 export interface TestWithNestedDetails {
@@ -76,12 +113,6 @@ export interface UserActivityItem extends UserTestResponse {
 	duration_sec?: number;
 	result_type?: string;
 }
-
-// ===== 필터링 인터페이스들 (admin.ts에서 가져옴) =====
-// export type { UserFilters, FeedbackFilters, TestFilters, CategoryFilters } from './admin';
-
-// ===== 통계 타입들 (admin.ts에서 가져옴) =====
-// export type { FeedbackStats, UserStats, TestStats, CategoryStats } from './admin';
 
 // ===== Analytics 관련 타입들 =====
 export interface AnalyticsFilters {
@@ -150,39 +181,11 @@ export type UserResponseStats = {
 	unique_users: number;
 };
 
+export type GetTestAnalyticsDataReturn = Database['public']['Functions']['get_test_analytics_data']['Returns'];
+
+export type GetTestBasicStatsReturn = Database['public']['Functions']['get_test_basic_stats']['Returns'];
+
 // Marketing 관련 타입들 (RPC 함수가 없어서 수동 정의)
-export type MarketingFunnel = {
-	visits: number;
-	test_starts: number;
-	test_completes: number;
-	sign_ups: number;
-	start_rate: number;
-	complete_rate: number;
-	sign_up_rate: number;
-};
-
-export type ChannelPerformance = {
-	source: string;
-	medium: string;
-	campaign: string;
-	sessions: number;
-	start_rate: number;
-	complete_rate: number;
-	sign_up_rate: number;
-	avg_dwell_time: number;
-	avg_question_depth: number;
-	share_rate: number;
-};
-
-export type LandingPerformance = {
-	url: string;
-	sessions: number;
-	bounce_rate: number;
-	start_rate: number;
-	complete_rate: number;
-	avg_dwell_time: number;
-	conversion_value: number;
-};
 
 export type PopularTest = {
 	id: string;
@@ -194,22 +197,7 @@ export type PopularTest = {
 	start_count: number;
 };
 
-// 차트 데이터
-export interface ResponseChartData {
-	labels: string[];
-	datasets: Array<{
-		label: string;
-		data: number[];
-		backgroundColor: string;
-		borderColor: string;
-		fill: boolean;
-	}>;
-}
-
-// ===== Admin API 응답 타입들 (admin.ts에서 가져옴) =====
-// export type { AdminFeedbackResponse, AdminUserResponse } from './admin';
-
-// ===== UI 컴포넌트용 타입들 =====
+// UI 컴포넌트용 타입들
 export interface FunnelDataItem {
 	questionId: string;
 	question: string;
@@ -220,7 +208,6 @@ export interface FunnelDataItem {
 	order: number;
 }
 
-// ===== Service Layer Types =====
 // Auth Service Types
 export type AuthResponse = {
 	data: {
@@ -250,38 +237,6 @@ export type SessionResponse = {
 };
 
 // Balance Game Stats Types
-export type ChoiceStats = {
-	choiceId: string;
-	choiceText: string;
-	count: number;
-	percentage: number;
-};
-
-export type QuestionStats = {
-	questionId: string;
-	questionText: string;
-	choiceStats: ChoiceStats[];
-	totalResponses: number;
-};
-
-export type PopularQuestion = {
-	questionId: string;
-	questionText: string;
-	aChoiceText: string;
-	bChoiceText: string;
-	aPercentage: number;
-	bPercentage: number;
-	totalResponses: number;
-};
-
-export type BalanceGameStats = {
-	testId: string;
-	totalParticipants: number;
-	questionStats: QuestionStats[];
-	popularQuestions: PopularQuestion[];
-	mostControversialQuestion: PopularQuestion | null;
-};
-
 export type OptimizedChoiceStats = {
 	choiceId: string;
 	choiceText: string;

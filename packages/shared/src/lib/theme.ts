@@ -1,10 +1,4 @@
-/**
- * @file theme.ts
- * @description 공통 색상 팔레트 및 시맨틱 컬러
- * Web 기준으로 작성되었으며, Admin에서도 사용 가능
- */
-
-// ===== 브랜드 컬러 팔레트 =====
+// 브랜드 컬러 팔레트
 export const COLORS = {
 	// Primary Colors
 	blue: {
@@ -103,13 +97,4 @@ export const COLORS = {
 		800: '#1F2937',
 		900: '#111827',
 	},
-} as const;
-
-// ===== 시맨틱 컬러 (의미 기반) =====
-export const SEMANTIC_COLORS = {
-	primary: COLORS.blue[600],
-	success: COLORS.green[600],
-	warning: COLORS.yellow[600],
-	danger: COLORS.red[600],
-	info: COLORS.purple[600],
 } as const;

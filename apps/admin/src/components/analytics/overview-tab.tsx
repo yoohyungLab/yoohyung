@@ -2,9 +2,9 @@ import React from 'react';
 import { DeviceBreakdown } from './device-breakdown';
 import { ResultDistribution } from './result-distribution';
 import { SharePerformance } from './share-performance';
-import type { Database } from '@pickid/supabase';
+import type { GetTestAnalyticsDataReturn } from '@pickid/supabase';
 
-type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
+type TestAnalyticsData = GetTestAnalyticsDataReturn;
 
 interface OverviewTabProps {
 	testData: TestAnalyticsData | null;

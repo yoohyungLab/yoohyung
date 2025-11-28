@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { useHomeBalanceGame } from '@/hooks';
-import { BALANCE_GAME_COLORS, BALANCE_GAME_TEXT } from '@/constants/balance-game';
+import { BALANCE_GAME_TEXT } from '@/constants/balance-game';
+import { BALANCE_GAME_COLORS } from '@pickid/ui/constants/colors';
 import { calculateBalanceGameStats, createBalanceGameOptions, getVoteCountText } from '@/lib';
 
 export default function BalanceGameSection() {

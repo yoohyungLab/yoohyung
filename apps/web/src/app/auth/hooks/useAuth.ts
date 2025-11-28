@@ -1,11 +1,14 @@
 'use client';
 
 import { useCallback, useContext } from 'react';
+import type { User } from '@supabase/supabase-js';
 import { authService } from '@/api/services/auth.service';
 import { SessionContext } from '@/providers/session.provider';
-import type { AuthState } from '@/types';
 
-export function useAuth(): AuthState & {
+export function useAuth(): {
+	user: User | null;
+	loading: boolean;
+	isAuthenticated: boolean;
 	signIn: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
 	signUp: (email: string, password: string, name?: string) => Promise<{ success: boolean; error?: string }>;
 	signInWithKakao: () => Promise<void>;

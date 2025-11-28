@@ -14,20 +14,10 @@ export type {
 	FeedbackStatus,
 	UserStatus,
 	CategoryStatus,
-	CategoryStats,
 } from '@pickid/supabase';
 
 // 대시보드 관련 타입들
-export interface DashboardStats {
-	totalTests: number;
-	publishedTests: number;
-	todayResponses: number;
-	weeklyResponses: number;
-	todayVisitors: number;
-	weeklyCompletionRate: number;
-	responseGrowth: number;
-	visitorGrowth: number;
-}
+
 
 export interface DashboardAlert {
 	id: string;
@@ -39,12 +29,4 @@ export interface DashboardAlert {
 	created_at: string;
 }
 
-export interface TestPerformance {
-	id: string;
-	title: string;
-	emoji: string;
-	todayResponses: number;
-	conversionRate: number;
-	trend: 'up' | 'down' | 'stable';
-	responseGrowth: number;
-}
+

@@ -77,7 +77,8 @@ export function getBalanceGameAnswers(testId: string): IBalanceGameAnswer[] {
 	}
 }
 
-// 밸런스 게임 누적 답변 초기화export function clearBalanceGameAnswers(testId: string): void {
+// 밸런스 게임 누적 답변 초기화
+export function clearBalanceGameAnswers(testId: string): void {
 	if (typeof window === 'undefined') return;
 
 	try {

@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { SITE_CONFIG } from '@/components/config/metadata';
+import { SITE_CONFIG } from '@/constants/site-config';
 
 // PWA Manifest (동적 생성)
 // metadata.ts의 설정을 재사용하여 중복 제거

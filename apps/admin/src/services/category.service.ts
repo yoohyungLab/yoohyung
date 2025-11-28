@@ -1,5 +1,5 @@
-import { supabase } from '@pickid/supabase';
 import type { Category } from '@pickid/supabase';
+import { supabase } from '@pickid/supabase';
 
 export const categoryService = {
 	// 카테고리 목록 조회

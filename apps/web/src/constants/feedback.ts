@@ -1,7 +1,3 @@
-// Feedback Constants
-//
-// 피드백 카테고리, 상태 등을 정의합니다.
-
 // 피드백 카테고리
 export const FEEDBACK_CATEGORY = {
 	BUG: 'bug',
@@ -40,13 +36,4 @@ export const FEEDBACK_STATUS_LABEL = {
 	completed: '완료',
 	replied: '답변완료',
 	rejected: '반려',
-} as const;
-
-// 피드백 상태 색상
-export const FEEDBACK_STATUS_COLOR = {
-	pending: 'bg-yellow-500 text-white',
-	in_progress: 'bg-blue-500 text-white',
-	completed: 'bg-green-500 text-white',
-	replied: 'bg-emerald-500 text-white',
-	rejected: 'bg-gray-500 text-white',
 } as const;

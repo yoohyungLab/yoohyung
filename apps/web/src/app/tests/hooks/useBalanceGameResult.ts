@@ -2,11 +2,12 @@
 
 import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { calculateComparisonStats, findControversialChoice, findOverwhelmingChoice } from '@/lib/balance-game';
+import { calculateComparisonStats, findControversialChoice, findOverwhelmingChoice } from '@/lib/balance-game.utils';
 import { useTestBalanceGameAllQuestionStats } from '@/app/tests/hooks';
 import { testService } from '@/api/services/test.service';
 import { loadTestResult } from '../utils/session-storage';
-import type { BalanceGameResult, IBalanceGameStats } from '@/app/tests/types/balance-game';
+import type { BalanceGameResult } from '@/app/tests/types/balance-game';
+import type { OptimizedChoiceStats } from '@pickid/supabase';
 
 interface IUserAnswer {
 	questionId: string;
@@ -128,8 +129,6 @@ export function useBalanceGameResult({ testId, enabled = true }: IUseBalanceGame
 					existing.responseCount += choiceStat.responseCount;
 				} else {
 					acc.push({
-						id: choiceStat.choiceId,
-						choice_text: choiceStat.choiceText,
 						choiceId: choiceStat.choiceId,
 						choiceText: choiceStat.choiceText,
 						responseCount: choiceStat.responseCount,
@@ -138,7 +137,7 @@ export function useBalanceGameResult({ testId, enabled = true }: IUseBalanceGame
 				}
 			});
 			return acc;
-		}, [] as IBalanceGameStats[]);
+		}, [] as OptimizedChoiceStats[]);
 
 		return calculateComparisonStats(
 			balanceGameResult.userAnswers.map((a) => a.choiceId),

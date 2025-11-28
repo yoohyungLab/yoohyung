@@ -22,6 +22,7 @@
 		"generate-types-local": "supabase gen types typescript --local > src/types/database.ts"
 	},
 	"dependencies": {
+		"@pickid/shared": "workspace:*",
 		"@supabase/ssr": "^0.7.0",
 		"@supabase/supabase-js": "^2.39.0",
 		"clsx": "^2.1.1",

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button, DefaultInput, DefaultTextarea, Label, Badge, DefaultSelect } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
-import { TEST_TYPES, TEST_TYPE_VALUES } from '@/constants/test';
+import { TEST_TYPES } from '@/constants/test';
 import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
@@ -145,8 +145,9 @@ export const ResultStep = () => {
 	// 렌더링 함수들
 
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
-		if (selectedType !== TEST_TYPE_VALUES.PSYCHOLOGY) return null;
-		const conditions = result.match_conditions as {
+		if (selectedType !== 'psychology' || !result) return null;
+
+		const conditions = (result.match_conditions || {}) as {
 			type?: string;
 			min?: number;
 			max?: number;
@@ -166,11 +167,12 @@ export const ResultStep = () => {
 								handleUpdateResult(resultIndex, {
 									match_conditions: { type: 'code', codes: [] },
 								});
-							} else {
-								handleUpdateResult(resultIndex, {
-									match_conditions: { type: 'score', min: 0, max: 10 },
-								});
+								return;
 							}
+
+							handleUpdateResult(resultIndex, {
+								match_conditions: { type: 'score', min: 0, max: 10 },
+							});
 						}}
 						options={[
 							{ value: 'score', label: '📊 점수형 (점수 범위로 매칭)' },
@@ -186,7 +188,7 @@ export const ResultStep = () => {
 						<div className="grid grid-cols-2 gap-2 mt-2">
 							<DefaultInput
 								type="number"
-								value={conditions?.min || 0}
+								value={conditions?.min ?? 0}
 								onChange={(e) =>
 									handleUpdateResult(resultIndex, {
 										match_conditions: {
@@ -200,7 +202,7 @@ export const ResultStep = () => {
 							/>
 							<DefaultInput
 								type="number"
-								value={conditions?.max || 10}
+								value={conditions?.max ?? 10}
 								onChange={(e) =>
 									handleUpdateResult(resultIndex, {
 										match_conditions: {
@@ -231,7 +233,9 @@ export const ResultStep = () => {
 							}}
 							placeholder="H, H+P, E+S (쉼표로 구분)"
 						/>
-						<p className="text-xs text-gray-500 mt-1">이 결과에 매칭될 코드를 입력하세요. 예: H (단일), H+P (조합)</p>
+						<p className="text-xs text-gray-500 mt-1">
+							이 결과에 매칭될 코드를 입력하세요. 예: H (단일), H+P (조합)
+						</p>
 					</div>
 				)}
 
@@ -248,14 +252,16 @@ export const ResultStep = () => {
 						className="mt-1"
 						options={GENDER_OPTIONS}
 					/>
-					<p className="text-xs text-gray-500 mt-1">전체: 모든 성별에게 표시, 남성/여성: 해당 성별에게만 표시</p>
+					<p className="text-xs text-gray-500 mt-1">
+						전체: 모든 성별에게 표시, 남성/여성: 해당 성별에게만 표시
+					</p>
 				</div>
 			</div>
 		);
 	};
 
 	const renderScoreBadge = (result: ResultData) => {
-		if (selectedType !== TEST_TYPE_VALUES.PSYCHOLOGY) return null;
+		if (selectedType !== 'psychology') return null;
 		const conditions = result.match_conditions as {
 			type?: string;
 			min?: number;
@@ -362,7 +368,7 @@ export const ResultStep = () => {
 	// 메인 렌더링
 
 	// 밸런스 게임 타입일 때는 특별한 안내 메시지 표시
-	if (selectedType === TEST_TYPE_VALUES.BALANCE) {
+	if (selectedType === 'balance') {
 		return (
 			<div className="space-y-6">
 				<div className="text-center py-12">
@@ -401,7 +407,7 @@ export const ResultStep = () => {
 	}
 
 	// 퀴즈 타입일 때 안내 메시지 및 템플릿 제공
-	if (selectedType === TEST_TYPE_VALUES.QUIZ) {
+	if (selectedType === 'quiz') {
 		const hasResults = results && results.length > 0;
 
 		return (

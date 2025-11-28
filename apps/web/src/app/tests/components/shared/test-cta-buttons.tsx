@@ -5,8 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Share2, RotateCcw, Home, Play } from 'lucide-react';
 import { Button } from '@pickid/ui';
 import { useShareToast } from '@pickid/shared';
-import { isMobileDevice } from '@/lib/test-utils';
-import { SITE_CONFIG } from '@/components/config/metadata';
+import { SITE_CONFIG } from '@/constants/site-config';
 
 interface TestCTAButtonsProps {
 	testId: string;
@@ -42,7 +41,8 @@ export function TestCTAButtons(props: TestCTAButtonsProps) {
 		}"\n\n나도 테스트해보기: ${shareUrl}`;
 
 		// 모바일에서는 시스템 공유 우선 사용
-		if (isMobileDevice() && navigator.share) {
+		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+		if (isMobile && navigator.share) {
 			try {
 				await navigator.share({
 					title: shareTitle,

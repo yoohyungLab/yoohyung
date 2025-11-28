@@ -2,16 +2,7 @@ import { queryKeys } from '@pickid/shared';
 import { TEST_STATUS } from '@/constants';
 import { testService } from '@/services/test.service';
 import { useToast } from '@pickid/shared';
-import type { Database, TestFilters, TestStats, TestStatus } from '@pickid/supabase';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useCallback, useMemo, useState } from 'react';
-
-// Test status constants
-
-
-type TestInsert = Database['public']['Tables']['tests']['Insert'];
-type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
-type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
+import type { TestFilters, TestStats, TestStatus, TestInsert, TestQuestionInsert, TestResultInsert } from '@pickid/supabase';
 
 interface ISaveTestParams {
 	testData: TestInsert;

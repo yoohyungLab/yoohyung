@@ -12,8 +12,6 @@ export interface IBalanceOption {
 	percentage: number;
 }
 
-export type BalanceOption = IBalanceOption;
-
 // 밸런스 게임 질문 Props
 export interface IBalanceGameQuestionProps {
 	testId: string;
@@ -121,21 +119,4 @@ export interface IOverwhelmingChoice extends Pick<TestQuestion, 'id' | 'question
 	totalResponses: number;
 }
 
-// 밸런스 게임 테마 (UI 설정용)
-export interface IBalanceGameTheme {
-	primary: string;
-	accent: string;
-	secondary: string;
-	progress: string;
-	question: string;
-	choice: string;
-	gradient: string;
-}
 
-// 밸런스 게임 통계
-export interface IBalanceGameStats extends Pick<TestChoice, 'id' | 'choice_text'> {
-	choiceId: string;
-	choiceText: string;
-	responseCount: number;
-	percentage: number;
-}

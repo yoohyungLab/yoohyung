@@ -28,7 +28,16 @@ const DrawerOverlay = React.forwardRef<
 	React.ElementRef<typeof DrawerPrimitive.Overlay>,
 	React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay>
 >(({ className, ...props }, ref) => (
-	<DrawerPrimitive.Overlay ref={ref} className={cn('fixed inset-0 z-50 bg-black/80', className)} {...props} />
+	<DrawerPrimitive.Overlay
+		ref={ref}
+		className={cn(
+			'fixed inset-0 z-50 bg-black/80',
+			'transition-opacity duration-300 ease-in-out',
+			'data-[state=open]:opacity-100 data-[state=closed]:opacity-0',
+			className
+		)}
+		{...props}
+	/>
 )) as React.ForwardRefExoticComponent<
 	React.ComponentPropsWithoutRef<typeof DrawerPrimitive.Overlay> &
 		React.RefAttributes<React.ElementRef<typeof DrawerPrimitive.Overlay>>

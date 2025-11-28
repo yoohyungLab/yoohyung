@@ -3,7 +3,7 @@ import type { Feedback } from '@pickid/supabase';
 import { Badge, IconBadge, IconButton } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Calendar, CheckCircle, Clock, Eye, Mail, MessageSquare, Paperclip, Reply, User, X } from 'lucide-react';
-import { getPriorityColor, getStatusText } from '@/utils/utils';
+import { getColor, getStatusConfig } from '@/utils/utils';
 
 interface FeedbackDetailModalProps {
 	feedback: Feedback;
@@ -18,7 +18,7 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
 			<div className="bg-white rounded-xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
 				{/* 헤더 */}
-				<header className={`p-6 border-b border-gray-200 bg-gradient-to-r ${getPriorityColor(feedback.status)}`}>
+				<header className={`p-6 border-b border-gray-200 bg-gradient-to-r ${getColor('priority', feedback.status)}`}>
 					<div className="flex items-start justify-between mb-4">
 						<div className="flex items-start gap-4 flex-1">
 							{/* 카테고리 아이콘 */}
@@ -36,30 +36,46 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 								</div>
 
 								<div className="flex items-center gap-3 mb-3">
-									<IconBadge
-										icon={
-											feedback.status === 'resolved' ? (
-												<CheckCircle className="w-3 h-3" />
-											) : feedback.status === 'in_progress' ? (
-												<Clock className="w-3 h-3" />
-											) : feedback.status === 'rejected' ? (
-												<X className="w-3 h-3" />
-											) : (
-												<Clock className="w-3 h-3" />
-											)
-										}
-										text={getStatusText(feedback.status)}
-										variant="outline"
-										className={`bg-white/80 ${
-											feedback.status === 'resolved'
-												? 'text-green-700 border-green-300'
-												: feedback.status === 'in_progress'
-												? 'text-blue-700 border-blue-300'
-												: feedback.status === 'rejected'
-												? 'text-red-700 border-red-300'
-												: 'text-yellow-700 border-yellow-300'
-										}`}
-									/>
+									{(() => {
+										const statusConfig = getStatusConfig('feedback', feedback.status);
+										const statusText = statusConfig.text || feedback.status;
+										const statusStyles = (() => {
+											switch (feedback.status) {
+												case 'completed':
+												case 'replied':
+													return 'text-green-700 border-green-300';
+												case 'in_progress':
+													return 'text-blue-700 border-blue-300';
+												case 'rejected':
+													return 'text-red-700 border-red-300';
+												default:
+													return 'text-yellow-700 border-yellow-300';
+											}
+										})();
+
+										const statusIcon = (() => {
+											switch (feedback.status) {
+												case 'completed':
+												case 'replied':
+													return <CheckCircle className="w-3 h-3" />;
+												case 'in_progress':
+													return <Clock className="w-3 h-3" />;
+												case 'rejected':
+													return <X className="w-3 h-3" />;
+												default:
+													return <Clock className="w-3 h-3" />;
+											}
+										})();
+
+										return (
+											<IconBadge
+												icon={statusIcon}
+												text={statusText}
+												variant="outline"
+												className={`bg-white/80 ${statusStyles}`}
+											/>
+										);
+									})()}
 								</div>
 
 								<div className="flex items-center gap-4 text-sm text-gray-600">

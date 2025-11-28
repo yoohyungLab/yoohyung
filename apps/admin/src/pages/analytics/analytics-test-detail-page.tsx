@@ -9,14 +9,12 @@ import {
 import { LoadingState } from '@/components/ui';
 import { PATH } from '@/constants/routes';
 import { analyticsService } from '@/services';
-import type { Database, Test } from '@pickid/supabase';
+import type { GetTestBasicStatsReturn, GetTestAnalyticsDataReturn, Test } from '@pickid/supabase';
 import { ErrorState } from '@pickid/ui';
-import { useCallback, useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
 
 // Supabase 함수 반환 타입들
-type TestBasicStats = Database['public']['Functions']['get_test_basic_stats']['Returns'];
-type TestAnalyticsData = Database['public']['Functions']['get_test_analytics_data']['Returns'];
+type TestBasicStats = GetTestBasicStatsReturn;
+type TestAnalyticsData = GetTestAnalyticsDataReturn;
 
 // 질문별 성과분석 데이터 타입
 type FunnelDataItem = {

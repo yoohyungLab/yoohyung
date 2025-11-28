@@ -17,11 +17,7 @@ import { COMMON_MESSAGES } from '@pickid/shared';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useTests } from '@/hooks/useTests';
 import { generateShortCode, generateSlug } from '@/utils/test.utils';
-import type { Database } from '@pickid/supabase';
-
-type TestInsert = Database['public']['Tables']['tests']['Insert'];
-type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
-type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
+import type { TestInsert, TestQuestionInsert, TestResultInsert } from '@pickid/supabase';
 
 export function CreateTestPage() {
 	const navigate = useNavigate();

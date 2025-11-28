@@ -3,7 +3,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import { useTestBalanceGameQuestionStats } from '@/app/tests/hooks';
-import { calculatePercentages } from '@/lib/balance-game';
+import { calculatePercentages } from '@/lib/balance-game.utils';
 import { getBalanceGameAnswers } from '../../utils/session-storage';
 import { Button } from '@pickid/ui';
 import Image from 'next/image';
@@ -69,7 +69,6 @@ export function BalanceGameQuestionContainer(props: BalanceGameQuestionContainer
 		return calculatePercentages(updatedChoices);
 	}, [stats, testId, question.choices]);
 
-	// console.log(showResult, '------showResult');
 	// 질문 선택 화면
 	if (!showResult) {
 		return (

@@ -1,6 +1,6 @@
 'use client';
 
-import { SITE_CONFIG } from '@/components/config/metadata';
+import { SITE_CONFIG } from '@/constants/site-config';
 import { trackResultShared } from '@/lib/analytics';
 
 interface UseTestResultShareProps {

@@ -47,6 +47,20 @@ const nextConfig = {
 			'@pickid/supabase': require('path').resolve(__dirname, '../../packages/supabase/src'),
 			'@pickid/ui': require('path').resolve(__dirname, '../../packages/ui/src'),
 		};
+		// TypeScript 파일 확장자 우선순위 설정
+		config.resolve.extensionAlias = {
+			'.js': ['.ts', '.tsx', '.js', '.jsx'],
+			'.jsx': ['.tsx', '.jsx'],
+		};
+		// 확장자 해결 순서 설정 (TypeScript 우선)
+		if (!config.resolve.extensions) {
+			config.resolve.extensions = [];
+		}
+		config.resolve.extensions = [
+			'.ts',
+			'.tsx',
+			...config.resolve.extensions.filter((ext) => ext !== '.ts' && ext !== '.tsx'),
+		];
 		return config;
 	},
 	async rewrites() {

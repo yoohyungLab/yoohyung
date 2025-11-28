@@ -8,7 +8,7 @@ import { Loading } from '@/components/loading';
 import { BalanceGameQuestionContainer } from './balance-game/balance-game-question';
 import { QuizQuestionContainer } from './quiz';
 import { PsychologyQuestionContainer } from './psychology';
-import { COLOR_THEMES } from '../utils';
+import { COLOR_THEMES } from '@pickid/ui/constants/colors';
 import { saveTestResult, getGrade, addBalanceGameAnswer, clearBalanceGameAnswers, getBalanceGameAnswers } from '../utils';
 import { optimizedBalanceGameStatsService } from '@/api/services';
 
@@ -34,21 +34,11 @@ export function TestPageClient({ test }: TestPageClientProps) {
 	const [answers, setAnswers] = useState<IAnswer[]>([]);
 	const [userGender, setUserGender] = useState<'male' | 'female' | undefined>(undefined);
 
-	const theme = COLOR_THEMES[0];
+	const theme = { name: 'rose', ...COLOR_THEMES.rose };
 	const totalQuestions = test.questions.length;
 	const currentQuestion = test.questions[currentIndex];
 	const isLastQuestion = currentIndex >= totalQuestions - 1;
 
-	// console.log('[TestPageClient] 테스트 데이터 구조:', {
-	// 	testType,
-	// 	testId: test.test?.id,
-	// 	questionsCount: test.questions.length,
-	// 	firstQuestionChoices: test.questions[0]?.choices?.map((c) => ({
-	// 		id: c.id,
-	// 		text: c.choice_text,
-	// 		code: (c as { code?: string })?.code,
-	// 	})),
-	// });
 
 	// Event Handlers
 	const handleStartTest = (gender?: 'male' | 'female') => {
@@ -61,16 +51,6 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		const selectedChoice = currentQuestion.choices?.find((c) => c.id === choiceId);
 		const code = (selectedChoice as { code?: string })?.code;
 
-		// console.log('[handleAnswer] 선택지 정보:', {
-		// 	choiceId,
-		// 	selectedChoice,
-		// 	code,
-		// 	allChoices: currentQuestion.choices?.map((c) => ({
-		// 		id: c.id,
-		// 		text: c.choice_text,
-		// 		code: (c as { code?: string })?.code,
-		// 	})),
-		// });
 
 		const newAnswers = [
 			...answers.filter((a) => a.questionId !== qId),
@@ -85,7 +65,6 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		}
 
 		if (isLastQuestion) {
-			// console.log('[handleAnswer] 마지막 질문 - 저장할 답변:', newAnswers);
 			await saveResult(newAnswers);
 			router.push(`/tests/${test.test?.id}/result`);
 		} else {
@@ -118,11 +97,6 @@ export function TestPageClient({ test }: TestPageClientProps) {
 			const localAnswers = getBalanceGameAnswers(test.test?.id as string);
 			const choiceIds = localAnswers.map((a) => a.choiceId);
 
-			// console.log('[saveBalanceGameResult] DB 일괄 저장 시작:', {
-			// 	choiceIds,
-			// 	localAnswers,
-			// });
-
 			await optimizedBalanceGameStatsService.batchIncrementChoices(choiceIds);
 
 			// 2. 세션 스토리지에 답변 저장 (결과 페이지에서 사용)
@@ -134,7 +108,6 @@ export function TestPageClient({ test }: TestPageClientProps) {
 			// 3. 로컬 누적 답변 초기화
 			clearBalanceGameAnswers(test.test?.id as string);
 
-			// console.log('[saveBalanceGameResult] 밸런스 게임 결과 저장 완료');
 		} catch (error) {
 			console.error('[saveBalanceGameResult] 저장 실패:', error);
 			// 에러가 발생해도 세션 스토리지에는 저장
@@ -192,14 +165,6 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		}, 0);
 
 		const codes = finalAnswers.map((a) => a.code).filter((c): c is string => Boolean(c));
-
-		// console.log('[savePsychologyResult] 결과 저장:', {
-		// 	finalAnswers,
-		// 	extractedCodes: finalAnswers.map((a) => a.code),
-		// 	filteredCodes: codes,
-		// 	totalScore,
-		// 	testId: test.test?.id,
-		// });
 
 		saveTestResult({
 			testId: test.test?.id,

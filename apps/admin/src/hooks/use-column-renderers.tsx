@@ -82,15 +82,7 @@ export function useColumnRenderers() {
 		return <span className="text-sm text-gray-900">{value.toLocaleString()}</span>;
 	};
 
-	// 카테고리 렌더링
-	const renderCategory = (category: string, categoryMap?: Record<string, string>) => {
-		const displayName = categoryMap?.[category] || category;
-		return (
-			<span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium bg-gray-50 text-gray-700 border-gray-200 h-6">
-				{displayName}
-			</span>
-		);
-	};
+
 
 	// 제목 + 내용 렌더링
 	const renderTitleWithContent = (title: string, content: string, options?: RenderOptions) => {
@@ -220,7 +212,7 @@ export function useColumnRenderers() {
 	const renderFileAttachment = (fileUrl?: string | null) => {
 		if (!fileUrl) return null;
 		return <FileText className="w-4 h-4 text-blue-500" />;
-	};
+};
 
 	// 지속시간 렌더링
 	const renderDuration = (seconds: number) => {
@@ -235,7 +227,6 @@ export function useColumnRenderers() {
 		renderStatus,
 		renderDate,
 		renderNumber,
-		renderCategory,
 		renderTitleWithContent,
 		renderAuthor,
 		renderActions,

@@ -1,43 +1,45 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { testService } from '@/api/services/test.service';
-import { generatePageMetadata } from '@/lib/metadata';
-import { SITE_CONFIG } from '@/components/config/metadata';
+import { SITE_CONFIG } from '@/constants/site-config';
 import { TestPageClient } from '@/app/tests/components/test-page-client';
 
 interface IPageProps {
 	params: Promise<{ id: string }>;
 }
 
-const DEFAULT_METADATA = generatePageMetadata({
-	title: '테스트',
-	description: '심리테스트를 진행해보세요.',
-});
-
-// TODO: 모듈 따로 분리하기
 export async function generateMetadata({ params }: IPageProps): Promise<Metadata> {
 	try {
 		const { id } = await params;
 		const testData = await testService.getTestWithDetails(id);
 
-		if (!testData) return DEFAULT_METADATA;
+		if (!testData) {
+			return {
+				title: '테스트',
+				description: '심리테스트를 진행해보세요.',
+			};
+		}
 
 		const testTitle = (testData.test?.title as string) || '테스트';
 		const testDescription = (testData.test?.description as string) || '심리테스트를 진행해보세요.';
-		const ogImage = (testData.test?.thumbnail_url as string) || SITE_CONFIG.ogImage;
+		const ogImage = (testData.test?.thumbnail_url as string) || undefined;
 
 		return {
-			...generatePageMetadata({
-				title: testTitle,
-				description: testDescription,
-				path: `/tests/${testData.test?.id}`,
-				ogImage,
-			}),
+			title: testTitle,
+			description: testDescription,
 			keywords: [...SITE_CONFIG.keywords, testTitle, testData.test?.type === 'balance' ? '밸런스게임' : '심리테스트'],
+			...(ogImage && {
+				openGraph: {
+					images: [{ url: ogImage, width: 1200, height: 630, alt: testTitle }],
+				},
+			}),
 		};
 	} catch (error) {
 		console.error('메타데이터 생성 실패:', error);
-		return DEFAULT_METADATA;
+		return {
+			title: '테스트',
+			description: '심리테스트를 진행해보세요.',
+		};
 	}
 }
 

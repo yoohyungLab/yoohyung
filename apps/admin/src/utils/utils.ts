@@ -1,44 +1,11 @@
-import {
-	PROFILE_PROVIDER_LABELS,
-	PROFILE_STATUS,
-	FEEDBACK_STATUS_LABELS,
-	FEEDBACK_CATEGORY_LABELS,
-} from '../constants';
+// TODO: 수정 필요
+import { PROFILE_PROVIDER_LABELS, PROFILE_STATUS_CONFIG } from '../constants/user';
 
-// ===== 공통 유틸리티 =====
-
-// 간단한 cn 함수
-export const cn = (...classes: (string | undefined | null | false)[]) => {
-	return classes.filter(Boolean).join(' ');
-};
-
-// ===== 통합된 상태 관리 =====
-
-// 상태별 설정 타입
-interface StatusConfig {
-	text: string;
-	color: string;
-	icon?: string;
-	variant?: 'default' | 'secondary' | 'success' | 'warning' | 'info' | 'destructive';
-}
-
-// 통합 상태 설정 함수
-export const getStatusConfig = (
-	type: 'profile' | 'feedback' | 'test' | 'category',
-	status: string | boolean
-): StatusConfig => {
+export const getStatusConfig = (type: 'profile' | 'feedback' | 'test' | 'category', status: string | boolean) => {
 	// 프로필 상태
 	if (type === 'profile') {
-		switch (status) {
-			case PROFILE_STATUS.ACTIVE:
-				return { text: '활성', color: 'bg-emerald-500 text-white', icon: '✅' };
-			case PROFILE_STATUS.INACTIVE:
-				return { text: '비활성', color: 'bg-slate-500 text-white', icon: '❌' };
-			case PROFILE_STATUS.DELETED:
-				return { text: '탈퇴', color: 'bg-rose-500 text-white', icon: '🗑️' };
-			default:
-				return { text: '알수없음', color: 'bg-gray-500 text-white', icon: '🛡️' };
-		}
+		const config = PROFILE_STATUS_CONFIG[status as keyof typeof PROFILE_STATUS_CONFIG];
+		return config || { text: '알수없음', color: 'bg-gray-500 text-white', icon: '🛡️' };
 	}
 
 	// 피드백 상태
@@ -113,12 +80,8 @@ export const getStatusConfig = (
 };
 
 // 레이블 매핑 함수
-export const getLabelText = (type: 'feedback' | 'category' | 'provider', key: string): string => {
+export const getLabelText = (type: 'provider', key: string): string => {
 	switch (type) {
-		case 'feedback':
-			return FEEDBACK_STATUS_LABELS[key as keyof typeof FEEDBACK_STATUS_LABELS] || key;
-		case 'category':
-			return FEEDBACK_CATEGORY_LABELS[key as keyof typeof FEEDBACK_CATEGORY_LABELS] || key;
 		case 'provider':
 			return PROFILE_PROVIDER_LABELS[key as keyof typeof PROFILE_PROVIDER_LABELS] || '이메일';
 		default:
@@ -212,35 +175,6 @@ export const getGrowthIcon = (growth: number | string) => {
 	return '→';
 };
 
-// 알림/상태 아이콘 (통합)
-export const getIcon = (type: 'alert' | 'trend', value: string) => {
-	if (type === 'alert') {
-		switch (value) {
-			case 'error':
-				return '🚨';
-			case 'warning':
-				return '⚠️';
-			case 'success':
-				return '🎉';
-			default:
-				return 'ℹ️';
-		}
-	}
-
-	if (type === 'trend') {
-		switch (value) {
-			case 'up':
-				return 'TrendingUp';
-			case 'down':
-				return 'TrendingDown';
-			default:
-				return 'Activity';
-		}
-	}
-
-	return 'ℹ️';
-};
-
 // 알림/상태 색상 (통합)
 export const getColor = (type: 'alert' | 'priority', value: string) => {
 	if (type === 'alert') {
@@ -298,45 +232,4 @@ export const getKPIColorClasses = (color: 'blue' | 'green' | 'purple' | 'orange'
 		},
 	};
 	return colorMap[color];
-};
-
-// 테스트 상태 스타일 (기존 함수와 호환성 유지)
-export const getTestStatusStyle = (status: string) => {
-	return getStatusConfig('test', status).color;
-};
-
-// 카테고리 상태 스타일 (기존 함수와 호환성 유지)
-export const getCategoryStatusStyle = (isActive: boolean) => {
-	return getStatusConfig('category', isActive ? 'active' : 'inactive').color;
-};
-
-// 카테고리 상태 텍스트 (기존 함수와 호환성 유지)
-export const getCategoryStatusText = (isActive: boolean) => {
-	return getStatusConfig('category', isActive ? 'active' : 'inactive').text;
-};
-
-// 우선순위 색상 (기존 함수와 호환성 유지)
-export const getPriorityColor = (status: string) => {
-	return getColor('priority', status);
-};
-
-// 상태 텍스트 (기존 함수와 호환성 유지)
-export const getStatusText = (status: string) => {
-	return getLabelText('feedback', status);
-};
-
-// 카테고리 텍스트 (기존 함수와 호환성 유지)
-export const getCategoryText = (category: string) => {
-	return getLabelText('category', category);
-};
-
-// 상태 뱃지 variant (기존 함수와 호환성 유지)
-export const getStatusBadgeVariant = (status: string) => {
-	const config = getStatusConfig('feedback', status);
-	return config.variant || 'default';
-};
-
-// 피드백 상태 스타일 (기존 함수와 호환성 유지)
-export const getFeedbackStatusStyle = (status: string) => {
-	return getStatusConfig('feedback', status).color;
 };

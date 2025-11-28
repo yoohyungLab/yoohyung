@@ -36,17 +36,3 @@ export function transformToTestCard(test: Test, categories: Category[]): TestCar
 export function transformTestsToCards(tests: Test[], categories: Category[]): TestCard[] {
 	return tests.map((test) => transformToTestCard(test, categories));
 }
-
-// 카테고리 서비스용 테스트 데이터 변환
-export function transformTestData(tests: Test[]) {
-	return tests.map((test) => ({
-		id: test.id as string,
-		title: test.title as string,
-		description: (test.description as string) || '',
-		thumbnail_url: (test.thumbnail_url as string) || '/images/placeholder.svg',
-		created_at: test.created_at as string,
-		completions: (test.response_count as number) || 0,
-		starts: (test.start_count as number) || 0,
-		category_ids: (test.category_ids as string[] | null) || undefined,
-	}));
-}

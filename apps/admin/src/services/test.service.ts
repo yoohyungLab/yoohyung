@@ -1,4 +1,4 @@
-import { supabase } from '@pickid/supabase';
+import { validateRpcResult } from '@/lib';
 import type {
 	Database,
 	QuestionWithChoices,
@@ -9,7 +9,7 @@ import type {
 	TestStatus,
 	TestWithNestedDetails,
 } from '@pickid/supabase';
-import { validateRpcResult } from '@/lib';
+import { supabase } from '@pickid/supabase';
 
 // 타입 정의
 
@@ -426,14 +426,7 @@ export const testService = {
 		if (resultsData.length > 0) {
 			const resultsToInsert = resultsData.map((result, index) => {
 				const matchConditions = result.match_conditions;
-				// 디버깅: match_conditions 확인
-				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
-					// console.log(`[updateTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
-					// 	type: (matchConditions as { type?: string }).type,
-					// 	codes: (matchConditions as { codes?: string[] }).codes,
-					// 	match_conditions: matchConditions,
-					// });
-				}
+			
 				return {
 					test_id: testId,
 					result_name: result.result_name,
@@ -548,14 +541,7 @@ export const testService = {
 		if (resultsData.length > 0) {
 			const resultsToInsert = resultsData.map((result, index) => {
 				const matchConditions = result.match_conditions;
-				// 디버깅: match_conditions 확인
-				if (matchConditions && typeof matchConditions === 'object' && 'type' in matchConditions) {
-					// console.log(`[createTestDirectly] 결과 ${index} (${result.result_name}) 저장:`, {
-					// 	type: (matchConditions as { type?: string }).type,
-					// 	codes: (matchConditions as { codes?: string[] }).codes,
-					// 	match_conditions: matchConditions,
-					// });
-				}
+
 				return {
 					test_id: testId,
 					result_name: result.result_name,

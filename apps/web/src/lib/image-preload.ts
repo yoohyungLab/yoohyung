@@ -22,13 +22,3 @@ export function preloadImage(url: string | null | undefined): void {
 	img.onload = () => preloadedImages.add(url);
 	img.onerror = () => preloadedImages.add(url);
 }
-
-// 여러 이미지를 한번에 프리로드
-export function preloadImages(urls: (string | null | undefined)[]): void {
-	urls.forEach(preloadImage);
-}
-
-// 프리로드 캐시 초기화 (테스트용)
-export function clearPreloadCache(): void {
-	preloadedImages.clear();
-}

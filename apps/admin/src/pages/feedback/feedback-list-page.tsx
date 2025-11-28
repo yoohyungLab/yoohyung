@@ -1,7 +1,7 @@
 import React, { useCallback, useState, useMemo } from 'react';
 import { usePagination } from '@pickid/shared';
 import type { Feedback } from '@pickid/supabase';
-import { DataTable, type Column, DefaultPagination, Badge } from '@pickid/ui';
+import { DataTable, type Column, DefaultPagination, Badge, type BadgeProps } from '@pickid/ui';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
 import { useColumnRenderers } from '@/hooks/use-column-renderers';
@@ -11,8 +11,9 @@ import {
 	FILTER_FEEDBACK_STATUS_OPTIONS,
 	FILTER_FEEDBACK_CATEGORY_OPTIONS,
 	FEEDBACK_STATUS_OPTIONS,
+	FEEDBACK_CATEGORY_OPTIONS,
 } from '@/constants';
-import { getStatusText, getCategoryText, getStatusBadgeVariant, getFeedbackStatusStyle } from '@/utils/utils';
+import { getStatusConfig } from '@/utils/utils';
 
 export function FeedbackListPage() {
 	const renderers = useColumnRenderers();
@@ -59,7 +60,6 @@ export function FeedbackListPage() {
 		[showReplyModal, addReply]
 	);
 
-	// Table columns definition (memoized for performance)
 	const columns: Column<Feedback>[] = useMemo(
 		() => [
 			{
@@ -76,11 +76,17 @@ export function FeedbackListPage() {
 			{
 				id: 'category',
 				header: '카테고리',
-				cell: ({ row }) => (
-					<Badge variant="outline" className="h-6">
-						{getCategoryText(row.original.category)}
-					</Badge>
-				),
+				cell: ({ row }) => {
+					const categoryLabel =
+						FEEDBACK_CATEGORY_OPTIONS.find((option) => option.value === row.original.category)?.label ||
+						row.original.category;
+
+					return (
+						<Badge variant="outline" className="h-6">
+							{categoryLabel}
+						</Badge>
+					);
+				},
 			},
 			{
 				id: 'author',
@@ -90,14 +96,19 @@ export function FeedbackListPage() {
 			{
 				id: 'status',
 				header: '상태',
-				cell: ({ row }) => (
-					<Badge
-						variant={getStatusBadgeVariant(row.original.status)}
-						className={`h-6 border ${getFeedbackStatusStyle(row.original.status)}`}
-					>
-						<span className="flex items-center gap-1">{getStatusText(row.original.status)}</span>
-					</Badge>
-				),
+				cell: ({ row }) => {
+					const statusConfig = getStatusConfig('feedback', row.original.status);
+					const statusVariant = (('variant' in statusConfig ? statusConfig.variant : undefined) ||
+						'default') as BadgeProps['variant'];
+					const statusColor = statusConfig.color || '';
+					const statusText = statusConfig.text || row.original.status;
+
+					return (
+						<Badge variant={statusVariant} className={`h-6 border ${statusColor}`}>
+							<span className="flex items-center gap-1">{statusText}</span>
+						</Badge>
+					);
+				},
 			},
 			{
 				id: 'created_at',

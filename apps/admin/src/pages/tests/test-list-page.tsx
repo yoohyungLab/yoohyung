@@ -4,7 +4,7 @@ import { useTests } from '@/hooks/useTests';
 import { useColumnRenderers } from '@/hooks';
 import { PAGINATION, TEST_STATUS_OPTIONS } from '@/constants';
 import { getTestStatusInfo, getTestTypeInfo } from '@/utils/test-utils';
-import { getTestStatusStyle } from '@/utils/utils';
+import { getStatusConfig } from '@/utils/utils';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
@@ -79,8 +79,10 @@ export function TestListPage() {
 			cell: ({ row }) => {
 				const status = row.original.status || 'draft';
 				const statusInfo = getTestStatusInfo(status);
+					const statusConfig = getStatusConfig('test', status);
+					const statusColor = statusConfig.color || '';
 				return (
-					<Badge variant="outline" className={`h-6 border text-xs ${getTestStatusStyle(status)}`}>
+						<Badge variant="outline" className={`h-6 border text-xs ${statusColor}`}>
 						{statusInfo.name}
 					</Badge>
 				);

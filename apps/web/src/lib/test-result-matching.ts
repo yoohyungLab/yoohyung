@@ -74,7 +74,6 @@ export function findResultByCode(codes: string[], results: TestResult[], gender?
 		.map(([code]) => code);
 
 	const dominantCode = sortedCodes[0];
-	const dominantCount = codeCounts.get(dominantCode) || 0;
 
 	// 성별 필터링
 	let filteredResults = results;

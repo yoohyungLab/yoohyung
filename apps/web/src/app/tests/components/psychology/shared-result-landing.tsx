@@ -1,18 +1,53 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import type { TestResult } from '@pickid/supabase';
+import { testResultService } from '@/api/services/test-result.service';
 import { adjustColor } from '@/lib/color-utils';
+import { Loading } from '@/components/loading';
 import { TestCTAButtons } from '../shared/test-cta-buttons';
 import { TestResultHeader } from './test-result-header';
 import { TestResultContent } from './test-result-content';
 
 interface SharedResultLandingProps {
-	testResult: TestResult;
 	testId: string;
 }
 
 export function SharedResultLanding(props: SharedResultLandingProps) {
-	const { testResult, testId } = props;
+	const { testId } = props;
+	const [testResult, setTestResult] = useState<TestResult | null>(null);
+	const [isLoading, setIsLoading] = useState(true);
+
+	useEffect(() => {
+		async function loadRepresentativeResult() {
+			try {
+				// 테스트의 첫 번째 결과를 대표 결과로 사용
+				const results = await testResultService.getTestResultsByTestId(testId);
+				if (results && results.length > 0) {
+					setTestResult(results[0]);
+				}
+			} catch (error) {
+				console.error('대표 결과 로드 실패:', error);
+			} finally {
+				setIsLoading(false);
+			}
+		}
+
+		loadRepresentativeResult();
+	}, [testId]);
+
+	if (isLoading) {
+		return <Loading variant="result" />;
+	}
+
+	if (!testResult) {
+		return (
+			<div className="min-h-screen flex items-center justify-center">
+				<p className="text-gray-600">결과를 불러올 수 없습니다.</p>
+			</div>
+		);
+	}
+
 	const themeColor = testResult.theme_color || '#3B82F6';
 
 	return (

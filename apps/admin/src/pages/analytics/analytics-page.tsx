@@ -3,7 +3,7 @@ import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 import { useAnalytics } from '@/hooks';
 import { useColumnRenderers } from '@/hooks/use-column-renderers';
 import { PAGINATION } from '@/constants';
-import { getTestStatusStyle } from '@/utils/utils';
+import { getStatusConfig } from '@/utils/utils';
 import { usePagination } from '@pickid/shared';
 import type { AnalyticsFilters, Test } from '@pickid/supabase';
 import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
@@ -75,8 +75,10 @@ export function AnalyticsPage() {
 						scheduled: { text: '예약됨' },
 					};
 					const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
+					const statusConfig = getStatusConfig('test', status || 'draft');
+					const statusColor = statusConfig.color || '';
 					return (
-						<Badge variant="outline" className={`h-6 border ${getTestStatusStyle(status || 'draft')}`}>
+						<Badge variant="outline" className={`h-6 border ${statusColor}`}>
 							{config.text}
 						</Badge>
 					);

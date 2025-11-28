@@ -1,7 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { HomeBalanceGameResponse, VoteResult } from '@pickid/supabase';
-import { calculateABPercentages } from '@/lib/balance-game';
-import { handleSupabaseError } from '@/lib';
+import { calculateABPercentages } from '@/lib/balance-game.utils';
 
 // Type re-exports
 export type { HomeBalanceGameResponse, VoteResult };
@@ -95,7 +94,7 @@ export const homeBalanceGameService = {
 				},
 			};
 		} catch (error) {
-			handleSupabaseError(error, 'vote');
+			console.error('Error in vote:', error);
 			throw new Error('투표 처리 중 오류가 발생했습니다');
 		}
 	},

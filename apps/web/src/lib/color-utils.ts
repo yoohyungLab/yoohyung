@@ -11,9 +11,9 @@ function hexToRgb(hex: string): string {
 	return `${r}, ${g}, ${b}`;
 }
 
-// 테마 색상 기반 배경 그라디언트 생성
+// 테마 색상 기반 배경 그라디언트 생성 (내부 헬퍼)
 // CSS 변수 기반으로 처리
-export function getThemeBackgroundGradient(themeColor: string): string {
+function getThemeBackgroundGradient(themeColor: string): string {
 	const rgb = hexToRgb(themeColor);
 	return `linear-gradient(135deg, rgba(${rgb}, 0.1) 0%, rgba(${rgb}, 0.25) 100%)`;
 }

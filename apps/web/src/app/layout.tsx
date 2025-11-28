@@ -5,12 +5,11 @@ import { ReactNode } from 'react';
 import { SessionProvider } from '@/providers/session.provider';
 import { QueryClientProvider } from '@pickid/shared';
 import { GoogleAnalytics } from '@/components/google-analytics';
-import { SITE_CONFIG, VERIFICATION } from '@/components/config/metadata';
+import { SITE_CONFIG, VERIFICATION } from '@/constants/site-config';
 import { Toaster } from '@pickid/ui';
 import App from '@/App';
 import './globals.css';
 
-// 전체 사이트 공통 메타데이터 (모든 페이지에 적용)
 export const metadata: Metadata = {
 	metadataBase: new URL(SITE_CONFIG.url),
 	title: {
@@ -32,6 +31,29 @@ export const metadata: Metadata = {
 		icon: '/favicon.ico',
 		shortcut: '/favicon.ico',
 		apple: '/favicon.ico',
+	},
+	openGraph: {
+		type: 'website',
+		locale: 'ko_KR',
+		url: SITE_CONFIG.url,
+		siteName: SITE_CONFIG.name,
+		title: SITE_CONFIG.title,
+		description: SITE_CONFIG.description,
+		images: [
+			{
+				url: SITE_CONFIG.ogImage,
+				width: 1200,
+				height: 630,
+				alt: SITE_CONFIG.name,
+			},
+		],
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: SITE_CONFIG.title,
+		description: SITE_CONFIG.description,
+		creator: '@pickid',
+		images: [SITE_CONFIG.ogImage],
 	},
 	robots: {
 		index: true,

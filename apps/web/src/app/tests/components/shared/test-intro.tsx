@@ -5,24 +5,16 @@ import { useCountAnimation } from '@pickid/shared';
 import Image from 'next/image';
 import { Button } from '@pickid/ui';
 import { supabase } from '@pickid/supabase';
-import { trackTestStart } from '@/lib/analytics';
-import { GenderSelectModal } from '../psychology/gender-select-modal';
+import { COUNT_GRADIENTS, TColorTheme } from '@pickid/ui/constants/colors';
 import type { TestWithNestedDetails } from '@pickid/supabase';
-import type { TColorTheme } from '@/constants';
+import { GenderSelectModal } from '../psychology/gender-select-modal';
+import { trackTestStart } from '@/lib/analytics';
 
 interface TestIntroProps {
 	test: TestWithNestedDetails;
-	onStart: (selectedGender?: 'male' | 'female') => void;
+	onStart: (gender?: 'male' | 'female') => void;
 	theme: TColorTheme;
 }
-
-const COUNT_GRADIENTS = {
-	purple: 'from-pink-500 to-amber-500',
-	blue: 'from-blue-600 to-cyan-600',
-	green: 'from-green-600 to-emerald-600',
-	orange: 'from-orange-600 to-amber-600',
-	red: 'from-red-600 to-rose-600',
-} as const;
 
 export function TestIntro({ test, onStart, theme }: TestIntroProps) {
 	const [showGenderModal, setShowGenderModal] = useState(false);

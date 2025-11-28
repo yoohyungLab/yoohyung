@@ -8,17 +8,6 @@ const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUP
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
 
-// 개발 환경에서 환경 변수 로드 확인 (디버깅용)
-if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
-	console.log('[Supabase] 환경 변수 로드 상태:', {
-		hasUrl: !!supabaseUrl,
-		hasKey: !!supabaseAnonKey,
-		urlLength: supabaseUrl.length,
-		keyLength: supabaseAnonKey.length,
-		NODE_ENV: process.env.NODE_ENV,
-	});
-}
-
 // 환경 변수 검증
 if (!supabaseUrl || !supabaseAnonKey) {
 	const errorMsg = `Supabase URL과 Anon Key가 설정되지 않았습니다.

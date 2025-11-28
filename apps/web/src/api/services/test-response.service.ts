@@ -1,12 +1,25 @@
 import { supabase } from '@pickid/supabase';
-import type { UserTestResponse, Database } from '@pickid/supabase';
-import type { TestCompletionResult } from '@/types';
+import type { UserTestResponse, UserTestResponseInsert, TestResult } from '@pickid/supabase';
 
-// Type definitions
-type UserTestResponseInsert = Database['public']['Tables']['user_test_responses']['Insert'];
+// 테스트 완료 결과 (클라이언트 전용)
+export interface TestCompletionResult extends Pick<TestResult, 'test_id' | 'created_at'> {
+	resultId: string;
+	totalScore: number;
+	score: number;
+	answers: Array<{
+		questionId: string;
+		choiceId: string;
+		score: number;
+		code?: string;
+		answeredAt: number;
+	}>;
+	completedAt: string;
+	duration: number;
+	gender?: string;
+}
 
 // Type re-exports
-export type { UserTestResponse, UserTestResponseInsert, TestCompletionResult };
+export type { UserTestResponse, UserTestResponseInsert };
 
 const USER_RESPONSE_QUERY = `
 	*,

@@ -99,46 +99,53 @@ export const testService = {
 		if (!data) return null;
 
 		// Nested join으로 인한 중복 데이터 보정
-		const testData = data as any;
+		type RawQuestion = {
+			id: string;
+			question_order: number;
+			test_choices: Array<{ id: string; choice_order: number }>;
+		};
+		type ProcessedQuestion = RawQuestion & { choices: Array<{ id: string; choice_order: number }> };
+		type RawResult = { id: string; result_order: number };
+
+		const testData = data as unknown as { test_questions: RawQuestion[]; test_results: RawResult[] };
 		const questions = testData.test_questions || [];
 		const results = testData.test_results || [];
 
-		const uniqueQuestionsMap = new Map<string, any>();
-		questions.forEach((q: any) => {
+		const uniqueQuestionsMap = new Map<string, ProcessedQuestion>();
+		questions.forEach((q) => {
 			if (!uniqueQuestionsMap.has(q.id)) {
 				uniqueQuestionsMap.set(q.id, { ...q, choices: [] });
 			}
-			const question = uniqueQuestionsMap.get(q.id);
+			const question = uniqueQuestionsMap.get(q.id)!;
 			const rawChoices = q.test_choices || [];
-			rawChoices.forEach((ch: any) => {
-				if (!question.choices.some((existingChoice: { id: string }) => existingChoice.id === ch.id)) {
+			rawChoices.forEach((ch) => {
+				if (!question.choices.some((existingChoice) => existingChoice.id === ch.id)) {
 					question.choices.push(ch);
 				}
 			});
 		});
 
 		const uniqueQuestions = Array.from(uniqueQuestionsMap.values()).sort(
-			(a: any, b: any) => a.question_order - b.question_order
+			(a, b) => a.question_order - b.question_order
 		);
 
-		uniqueQuestions.forEach((q: any) => {
-			q.choices.sort((a: any, b: any) => a.choice_order - b.choice_order);
+		uniqueQuestions.forEach((q) => {
+			q.choices.sort((a, b) => a.choice_order - b.choice_order);
 		});
 
-		const uniqueResultsMap = new Map<string, any>();
-		results.forEach((r: any) => {
+		const uniqueResultsMap = new Map<string, RawResult>();
+		results.forEach((r) => {
 			if (!uniqueResultsMap.has(r.id)) {
 				uniqueResultsMap.set(r.id, r);
 			}
 		});
 
-		const uniqueResults = Array.from(uniqueResultsMap.values()).sort((a: any, b: any) => a.result_order - b.result_order);
-
+		const uniqueResults = Array.from(uniqueResultsMap.values()).sort((a, b) => a.result_order - b.result_order);
 
 		return {
-			test: testData,
-			questions: uniqueQuestions,
-			results: uniqueResults,
-		} as TestWithNestedDetails;
+			test: testData as unknown as Test,
+			questions: uniqueQuestions as unknown as TestWithNestedDetails['questions'],
+			results: uniqueResults as unknown as TestWithNestedDetails['results'],
+		};
 	},
 };

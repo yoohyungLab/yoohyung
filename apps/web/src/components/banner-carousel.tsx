@@ -3,7 +3,11 @@
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { DefaultCarousel } from '@pickid/ui';
-import type { Banner } from '@/types/home';
+
+interface Banner {
+	id: string;
+	image: string;
+}
 
 interface BannerCarouselProps {
 	banners: Banner[];

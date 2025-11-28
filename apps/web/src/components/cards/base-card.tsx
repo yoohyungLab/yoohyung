@@ -5,7 +5,8 @@ import Link from 'next/link';
 import { cn } from '@pickid/shared';
 import Image from 'next/image';
 
-// 공통 카드 타입 정의export type CardVariant = 'default' | 'outline' | 'elevated' | 'minimal' | 'gradient';
+// 공통 카드 타입 정의
+export type CardVariant = 'default' | 'outline' | 'elevated' | 'minimal' | 'gradient';
 export type CardSize = 'sm' | 'md' | 'lg';
 export type CardAspectRatio = 'square' | 'video' | 'portrait' | 'landscape' | 'auto';
 

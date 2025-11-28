@@ -1,4 +1,4 @@
-import type { Test, TestQuestion, TestChoice, TestResult, Database } from '@pickid/supabase';
+import type { Test, TestQuestion, TestChoice, TestResult } from '@pickid/supabase';
 import type { TEST_TYPES } from '@/constants/test';
 
 // 상수 기반 타입 추론
@@ -6,25 +6,6 @@ import type { TEST_TYPES } from '@/constants/test';
 export type TestType = (typeof TEST_TYPES)[number];
 
 // 기본 타입 정의 (Supabase Database 타입 기반)
-
-// Supabase Insert 타입들
-export type TestInsert = Database['public']['Tables']['tests']['Insert'];
-export type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
-export type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
-
-// Match conditions 타입 정의
-export interface MatchConditions {
-	type: 'score' | 'choice' | 'code';
-	min?: number;
-	max?: number;
-	choices?: string[];
-	codes?: string[];
-}
-
-// Features 타입 정의
-export interface ResultFeatures {
-	[key: string]: string | number | boolean | null;
-}
 
 // 테스트 생성 관련 타입 (Supabase 기본 타입 기반)
 
@@ -119,52 +100,6 @@ export interface ResultVariantRules {
 	[key: string]: unknown;
 }
 
-// 테스트 생성 훅 타입
-
-export interface UseTestCreationReturn {
-	// 상태
-	step: number;
-	type: string | null;
-	basicInfo: BasicInfo;
-	questions: QuestionData[];
-	results: ResultData[];
-	isLoading: boolean;
-
-	// 스텝 관리
-	setStep: (step: number) => void;
-	setType: (type: string | null) => void;
-	nextStep: () => void;
-	prevStep: () => void;
-
-	// 기본 정보 관리
-	updateBasicInfo: (updates: Partial<BasicInfo>) => void;
-	updateResultVariantRules: (rules: ResultVariantRules) => void;
-
-	// 질문 관리
-	setQuestions: (questions: QuestionData[]) => void;
-	addQuestion: () => void;
-	removeQuestion: (index: number) => void;
-	updateQuestion: (index: number, updates: Partial<QuestionData>) => void;
-
-	// 선택지 관리
-	addChoice: (questionIndex: number) => void;
-	removeChoice: (questionIndex: number, choiceIndex: number) => void;
-	updateChoice: (questionIndex: number, choiceIndex: number, updates: Partial<ChoiceData>) => void;
-
-	// 결과 관리
-	setResults: (results: ResultData[]) => void;
-	addResult: () => void;
-	removeResult: (index: number) => void;
-	updateResult: (index: number, updates: Partial<ResultData>) => void;
-
-	// 저장 및 초기화
-	saveTest: (testId?: string) => Promise<unknown>;
-	resetForm: () => void;
-
-	// 유틸리티
-	generateShortCode: () => string;
-}
-
 // 테스트 목록 관련 타입 (Supabase Test 타입 기반)
 
 // 필터 타입
@@ -220,23 +155,6 @@ export interface TestDetailModalProps {
 }
 
 // 컴포넌트 Props 타입 (UI 컴포넌트용)
-
-export interface QuestionStepProps {
-	questions: QuestionData[];
-	selectedType: string;
-	onAddQuestion: () => void;
-	onRemoveQuestion: (questionIndex: number) => void;
-	onUpdateQuestion: (questionIndex: number, updates: Partial<QuestionData>) => void;
-	onAddChoice: (questionIndex: number) => void;
-	onRemoveChoice: (questionIndex: number, choiceIndex: number) => void;
-	onUpdateChoice: (questionIndex: number, choiceIndex: number, updates: Partial<ChoiceData>) => void;
-}
-
-export interface EditTestPageState {
-	initialTest: Test | null;
-	loadingTest: boolean;
-	error: string | null;
-}
 
 // ResultStep 컴포넌트 관련 타입
 

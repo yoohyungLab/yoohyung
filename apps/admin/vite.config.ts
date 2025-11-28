@@ -5,17 +5,6 @@ import path from 'path';
 export default defineConfig(({ mode }) => {
 	const env = loadEnv(mode, process.cwd(), '');
 
-	// 개발 환경에서 환경 변수 로드 확인 (디버깅용)
-	if (mode === 'development') {
-		console.log('[Vite Config] 환경 변수 로드 상태:', {
-			hasViteSupabaseUrl: !!env.VITE_SUPABASE_URL,
-			hasViteSupabaseKey: !!env.VITE_SUPABASE_ANON_KEY,
-			viteUrlLength: env.VITE_SUPABASE_URL?.length || 0,
-			viteKeyLength: env.VITE_SUPABASE_ANON_KEY?.length || 0,
-			mode,
-		});
-	}
-
 	return {
 		base: '/',
 		plugins: [react()],

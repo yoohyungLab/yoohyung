@@ -1,1 +1,0 @@
-export const ALL_OPTION = { value: 'all', label: '전체' } as const;
