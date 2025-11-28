@@ -181,9 +181,32 @@ export type UserResponseStats = {
 	unique_users: number;
 };
 
-export type GetTestAnalyticsDataReturn = Database['public']['Functions']['get_test_analytics_data']['Returns'];
+// Analytics Service 반환 타입들 (RPC 함수가 없어서 수동 정의)
+export type GetTestBasicStatsReturn = {
+	totalResponses: number;
+	completedResponses: number;
+	completionRate: number;
+	avgTime: number;
+	avgScore: number;
+	deviceBreakdown: {
+		mobile: number;
+		desktop: number;
+		tablet: number;
+	};
+};
 
-export type GetTestBasicStatsReturn = Database['public']['Functions']['get_test_basic_stats']['Returns'];
+export type GetTestAnalyticsDataReturn = {
+	testId: string;
+	testTitle: string;
+	period: string;
+	totalResponses: number;
+	completedResponses: number;
+	completionRate: number;
+	avgScore: number;
+	avgTime: number;
+	dailyData: unknown[];
+	scoreDistribution: unknown[];
+};
 
 // Marketing 관련 타입들 (RPC 함수가 없어서 수동 정의)
 

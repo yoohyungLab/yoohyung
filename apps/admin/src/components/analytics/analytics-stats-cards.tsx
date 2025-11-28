@@ -3,10 +3,8 @@ import { AdminCard } from '@/components/ui/admin-card';
 import { Users, CheckCircle, Target, Clock } from 'lucide-react';
 import type { GetTestBasicStatsReturn } from '@pickid/supabase';
 
-type TestBasicStats = GetTestBasicStatsReturn;
-
 interface AnalyticsStatsCardsProps {
-	basicStats: TestBasicStats | null;
+	basicStats: GetTestBasicStatsReturn | null;
 }
 
 export function AnalyticsStatsCards({ basicStats }: AnalyticsStatsCardsProps) {

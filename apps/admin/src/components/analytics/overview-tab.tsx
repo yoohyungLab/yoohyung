@@ -4,10 +4,8 @@ import { ResultDistribution } from './result-distribution';
 import { SharePerformance } from './share-performance';
 import type { GetTestAnalyticsDataReturn } from '@pickid/supabase';
 
-type TestAnalyticsData = GetTestAnalyticsDataReturn;
-
 interface OverviewTabProps {
-	testData: TestAnalyticsData | null;
+	testData: GetTestAnalyticsDataReturn | null;
 	completions: number;
 }
 

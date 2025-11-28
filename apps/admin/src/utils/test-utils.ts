@@ -62,3 +62,28 @@ export function getTestStatusInfo(status: TestStatus | string) {
 		}
 	);
 }
+
+// 테스트 통계 계산
+export function calculateTestStats(questions: unknown[] = [], results: unknown[] = []) {
+	return {
+		totalQuestions: questions.length,
+		totalResults: results.length,
+	};
+}
+
+// 카테고리 ID 배열을 카테고리 이름 배열로 변환
+export function getCategoryNames(
+	categoryIds: string[] | null | undefined,
+	categories: Array<{ id: string; name: string }>
+): string[] {
+	if (!categoryIds || categoryIds.length === 0) {
+		return [];
+	}
+
+	return categoryIds
+		.map((id) => {
+			const category = categories.find((cat) => cat.id === id);
+			return category?.name || '';
+		})
+		.filter((name) => name !== '');
+}

@@ -28,7 +28,7 @@ import { getTestTypeInfo, getTestStatusInfo } from '@/utils/test-utils';
 import { useTestDetail } from '@/hooks/useTestDetail';
 import { useCategories } from '@/hooks';
 import type { TestDetailModalProps, TabType } from '@/types/test.types';
-import { calculateTestStats, getCategoryNames } from '@/utils/test.utils';
+import { calculateTestStats, getCategoryNames } from '@/utils/test-utils';
 
 export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: TestDetailModalProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('basic');

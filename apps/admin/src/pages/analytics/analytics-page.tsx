@@ -69,17 +69,10 @@ export function AnalyticsPage() {
 				header: '상태',
 				cell: ({ row }) => {
 					const status = row.original.status;
-					const statusConfig = {
-						published: { text: '발행됨' },
-						draft: { text: '초안' },
-						scheduled: { text: '예약됨' },
-					};
-					const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.draft;
 					const statusConfig = getStatusConfig('test', status || 'draft');
-					const statusColor = statusConfig.color || '';
 					return (
-						<Badge variant="outline" className={`h-6 border ${statusColor}`}>
-							{config.text}
+						<Badge variant="outline" className={`h-6 border ${statusConfig.color || ''}`}>
+							{statusConfig.text}
 						</Badge>
 					);
 				},

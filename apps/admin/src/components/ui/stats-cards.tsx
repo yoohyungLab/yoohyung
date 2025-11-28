@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@pickid/ui';
-import { cn } from '@/utils/utils';
+import { cn } from '@pickid/ui';
 import {
 	Hash,
 	TrendingUp,

@@ -1,13 +1,11 @@
 import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { PieChart } from 'lucide-react';
-import { cn } from '@/utils/utils';
 import type { GetTestAnalyticsDataReturn } from '@pickid/supabase';
-
-type TestAnalyticsData = GetTestAnalyticsDataReturn;
+import { cn } from '@pickid/shared';
 
 interface ResultDistributionProps {
-	testData: TestAnalyticsData | null;
+	testData: GetTestAnalyticsDataReturn | null;
 	completions: number;
 }
 

@@ -11,10 +11,8 @@ import { PATH } from '@/constants/routes';
 import { analyticsService } from '@/services';
 import type { GetTestBasicStatsReturn, GetTestAnalyticsDataReturn, Test } from '@pickid/supabase';
 import { ErrorState } from '@pickid/ui';
-
-// Supabase 함수 반환 타입들
-type TestBasicStats = GetTestBasicStatsReturn;
-type TestAnalyticsData = GetTestAnalyticsDataReturn;
+import { useEffect, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 
 // 질문별 성과분석 데이터 타입
 type FunnelDataItem = {
@@ -37,8 +35,8 @@ export function AnalyticsTestDetailPage() {
 	const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'funnel'>('overview');
 
 	// 데이터 상태들
-	const [basicStats, setBasicStats] = useState<TestBasicStats | null>(null);
-	const [testData, setTestData] = useState<TestAnalyticsData | null>(null);
+	const [basicStats, setBasicStats] = useState<GetTestBasicStatsReturn | null>(null);
+	const [testData, setTestData] = useState<GetTestAnalyticsDataReturn | null>(null);
 	const [funnelData, setFunnelData] = useState<FunnelDataItem[]>([]);
 	const [dataLoaded, setDataLoaded] = useState(false);
 

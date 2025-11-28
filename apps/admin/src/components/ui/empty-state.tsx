@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@/utils/utils';
+import { cn } from '@pickid/ui';
 
 interface EmptyStateProps {
 	title?: string;
