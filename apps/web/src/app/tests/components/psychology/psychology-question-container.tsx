@@ -1,7 +1,7 @@
 import { Check } from 'lucide-react';
 import type { TestWithNestedDetails } from '@pickid/supabase';
 import { useProgress } from '../../hooks';
-import type { TColorTheme } from '@/constants';
+import type { TColorTheme } from '@pickid/ui/constants/colors';
 import { QuestionLayout } from '../shared';
 
 interface PsychologyQuestionContainerProps {

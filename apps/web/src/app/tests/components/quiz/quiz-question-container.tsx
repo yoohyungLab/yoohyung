@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import { useProgress } from '../../hooks';
-import type { TColorTheme } from '@/constants';
+import type { TColorTheme } from '@pickid/ui/constants/colors';
 import { QuestionLayout } from '../shared';
 
 type QuizChoice = { id: string; choice_text: string; choice_order: number; is_correct?: boolean | null };

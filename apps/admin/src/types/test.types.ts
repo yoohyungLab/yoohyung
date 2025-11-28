@@ -1,4 +1,4 @@
-import type { Test, TestQuestion, TestChoice, TestResult } from '@pickid/supabase';
+import type { Test, TestQuestion, TestChoice, TestResult, Json } from '@pickid/supabase';
 import type { TEST_TYPES } from '@/constants/test';
 
 // 상수 기반 타입 추론
@@ -18,7 +18,7 @@ export interface QuestionData extends Omit<TestQuestion, 'id' | 'test_id' | 'cre
 }
 
 // 선택지 데이터 (Supabase TestChoice 기반)
-export interface ChoiceData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at'> {
+export interface ChoiceData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at' | 'code'> {
 	id?: string;
 	is_correct?: boolean | null;
 	code?: string | null;
@@ -26,7 +26,7 @@ export interface ChoiceData extends Omit<TestChoice, 'id' | 'question_id' | 'cre
 
 // 결과 데이터 (Supabase TestResult 기반)
 export interface ResultData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	match_conditions: MatchConditions | null;
+	match_conditions: Json | null;
 	target_gender: string | null;
 }
 
@@ -57,10 +57,10 @@ export interface ResultWithDetails {
 	result_name: string;
 	result_order: number;
 	description: string | null;
-	match_conditions: MatchConditions | null;
+	match_conditions: Json | null;
 	background_image_url: string | null;
 	theme_color: string | null;
-	features: ResultFeatures | null;
+	features: Json | null;
 	target_gender: string | null;
 	created_at: string | null;
 	updated_at: string | null;

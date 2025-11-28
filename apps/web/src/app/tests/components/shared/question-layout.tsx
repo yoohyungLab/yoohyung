@@ -1,6 +1,6 @@
 import { ChevronLeft } from 'lucide-react';
 import type { ReactNode } from 'react';
-import type { TColorTheme } from '@/constants';
+import type { TColorTheme } from '@pickid/ui/constants/colors';
 
 interface QuestionLayoutProps {
 	current: number;

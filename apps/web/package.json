@@ -6,6 +6,7 @@
 	"scripts": {
 		"dev": "next dev",
 		"build": "next build",
+		"build:strict": "rm -rf .next node_modules/.cache && pnpm install --frozen-lockfile && tsc --noEmit && next build",
 		"start": "next start",
 		"lint": "next lint",
 		"type-check": "tsc --noEmit",

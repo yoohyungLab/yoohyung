@@ -5,6 +5,7 @@
 	"scripts": {
 		"dev": "turbo dev",
 		"build": "turbo build",
+		"build:strict": "rm -rf node_modules/.cache apps/*/.next apps/*/dist packages/*/dist && pnpm install --frozen-lockfile && turbo build",
 		"lint": "turbo lint",
 		"test": "turbo test",
 		"test:watch": "turbo test -- --watch",

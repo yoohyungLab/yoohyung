@@ -21,8 +21,10 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",
+		"build:strict": "rm -rf dist node_modules/.vite node_modules/.cache && pnpm install --frozen-lockfile && tsc --noEmit && vite build",
 		"preview": "vite preview",
 		"lint": "eslint .",
+		"type-check": "tsc --noEmit",
 		"test": "jest",
 		"test:watch": "jest --watch",
 		"test:coverage": "jest --coverage"

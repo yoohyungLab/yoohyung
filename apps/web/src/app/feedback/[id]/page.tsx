@@ -2,7 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useFeedbackDetail } from '@/app/feedback/hooks/useFeedback';
-import { formatDateTime } from '@/lib'; import { getCategoryInfo, getStatusInfo, getStatusClassName } from '@/app/feedback/utils/utils';
+import { formatDateTime } from '@/lib';
+import { getCategoryInfo, getStatusInfo, getStatusClassName } from '@/app/feedback/utils/utils';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 

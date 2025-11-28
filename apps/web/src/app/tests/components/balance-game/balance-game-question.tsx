@@ -7,7 +7,7 @@ import { calculatePercentages } from '@/lib/balance-game.utils';
 import { getBalanceGameAnswers } from '../../utils/session-storage';
 import { Button } from '@pickid/ui';
 import Image from 'next/image';
-import type { TColorTheme } from '@/constants';
+import type { TColorTheme } from '@pickid/ui/constants/colors';
 import { useProgress } from '../../hooks';
 import { QuestionLayout } from '../shared';
 

@@ -7,9 +7,6 @@ export * from './test';
 // Quiz
 export * from './quiz';
 
-// UI
-export * from './ui';
-
 // Feedback
 export * from './feedback';
 
