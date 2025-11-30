@@ -19,9 +19,9 @@ export const PROFILE_PROVIDER_LABELS = {
 } as const;
 
 export const PROFILE_STATUS_CONFIG = {
-	[PROFILE_STATUS.ACTIVE]: { text: '활성', color: 'bg-emerald-500 text-white', icon: '✅' },
-	[PROFILE_STATUS.INACTIVE]: { text: '비활성', color: 'bg-slate-500 text-white', icon: '❌' },
-	[PROFILE_STATUS.DELETED]: { text: '탈퇴', color: 'bg-rose-500 text-white', icon: '🗑️' },
+	[PROFILE_STATUS.ACTIVE]: { text: '활성', variant: 'success', icon: '✅' },
+	[PROFILE_STATUS.INACTIVE]: { text: '비활성', variant: 'outline', icon: '❌' },
+	[PROFILE_STATUS.DELETED]: { text: '탈퇴', variant: 'destructive', icon: '🗑️' },
 } as const;
 
 export const USER_STATUS_OPTIONS = [

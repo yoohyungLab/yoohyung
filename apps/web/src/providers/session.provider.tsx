@@ -41,11 +41,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
 			.then(({ session }) => {
 				setUser(session?.user ?? null);
 				setAuthCookie(!!session?.user);
-
-				// 사용자 동기화
-				if (session?.user) {
-					authService.syncUserToPublic(session.user).catch(console.error);
-				}
 			})
 			.catch(console.error)
 			.finally(() => setLoading(false));
@@ -54,11 +49,6 @@ export function SessionProvider({ children }: SessionProviderProps) {
 		const subscription = authService.onAuthStateChange(async (event, session) => {
 			setUser(session?.user ?? null);
 			setAuthCookie(!!session?.user);
-
-			// 로그인/회원가입 시 사용자 동기화
-			if (session?.user && (event === 'SIGNED_IN' || event === 'SIGNED_UP' || event === 'TOKEN_REFRESHED')) {
-				await authService.syncUserToPublic(session.user).catch(console.error);
-			}
 		});
 
 		return () => subscription.unsubscribe();

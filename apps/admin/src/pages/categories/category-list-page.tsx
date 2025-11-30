@@ -12,7 +12,6 @@ import type { Category } from '@pickid/supabase';
 export default function CategoryListPage() {
 	const renderers = useColumnRenderers();
 
-	// 커스텀 훅 사용
 	const {
 		categories,
 		loading,
@@ -32,12 +31,10 @@ export default function CategoryListPage() {
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 모달 상태
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showSortModal, setShowSortModal] = useState(false);
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-	// 액션 핸들러들
 	const handleStatusChange = useCallback(
 		async (categoryId: string, isActive: boolean) => {
 			await updateCategoryStatus(categoryId, isActive);
@@ -63,7 +60,6 @@ export default function CategoryListPage() {
 		[deleteCategory, categories]
 	);
 
-	// 편집 모달 열기
 	const handleEditCategory = useCallback(
 		(categoryId: string) => {
 			const category = categories.find((c) => c.id === categoryId);
@@ -75,7 +71,6 @@ export default function CategoryListPage() {
 		[categories]
 	);
 
-	// 모달 핸들러들
 	const handleCreateSuccess = async (categoryData?: {
 		name: string;
 		slug: string;
@@ -83,10 +78,8 @@ export default function CategoryListPage() {
 		status?: 'active' | 'inactive';
 	}) => {
 		if (editingCategory && categoryData) {
-			// 수정
 			await updateCategory(editingCategory.id, categoryData);
 		} else if (categoryData) {
-			// 생성
 			await createCategory(categoryData);
 		}
 
@@ -98,7 +91,6 @@ export default function CategoryListPage() {
 		setShowSortModal(false);
 	};
 
-	// Table columns definition (memoized for performance)
 	const columns: Column<Category>[] = useMemo(
 		() => [
 			{
@@ -137,7 +129,9 @@ export default function CategoryListPage() {
 				id: 'created_at',
 				header: '생성일',
 				cell: ({ row }) => (
-					<div className="text-xs text-neutral-600">{new Date(row.original.created_at).toLocaleDateString('ko-KR')}</div>
+					<div className="text-xs text-neutral-600">
+						{new Date(row.original.created_at).toLocaleDateString('ko-KR')}
+					</div>
 				),
 			},
 			{
@@ -169,7 +163,6 @@ export default function CategoryListPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 간단한 통계 */}
 			<StatsCards
 				stats={[
 					{ id: 'total', label: '전체', value: stats.total },
@@ -179,7 +172,6 @@ export default function CategoryListPage() {
 				columns={3}
 			/>
 
-			{/* Search & Filters */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -203,13 +195,18 @@ export default function CategoryListPage() {
 				}}
 				actions={
 					<div className="flex gap-2">
-						<Button onClick={() => setShowSortModal(true)} variant="outline" size="sm" title="카테고리 순서 변경" text="순서변경" />
+						<Button
+							onClick={() => setShowSortModal(true)}
+							variant="outline"
+							size="sm"
+							title="카테고리 순서 변경"
+							text="순서변경"
+						/>
 						<Button onClick={() => setShowCreateModal(true)} size="sm" title="새 카테고리 추가" text="추가" />
 					</div>
 				}
 			/>
 
-			{/* Bulk Actions */}
 			<BulkActions
 				selectedCount={selectedCategories.length}
 				actions={[
@@ -227,7 +224,6 @@ export default function CategoryListPage() {
 				onClear={() => setSelectedCategories([])}
 			/>
 
-			{/* Category List */}
 			<DataState loading={loading} data={categories}>
 				<DataTable
 					data={categories}
@@ -239,7 +235,6 @@ export default function CategoryListPage() {
 				/>
 			</DataState>
 
-			{/* Pagination */}
 			<DefaultPagination
 				currentPage={pagination.currentPage}
 				totalPages={pagination.totalPages}
@@ -247,7 +242,6 @@ export default function CategoryListPage() {
 				className="mt-6"
 			/>
 
-			{/* 카테고리 생성/편집 모달 */}
 			<CategoryCreateModal
 				isOpen={showCreateModal}
 				onClose={() => {
@@ -258,7 +252,6 @@ export default function CategoryListPage() {
 				editCategory={editingCategory}
 			/>
 
-			{/* 카테고리 순서 변경 모달 */}
 			<CategorySortModal
 				isOpen={showSortModal}
 				onClose={() => setShowSortModal(false)}

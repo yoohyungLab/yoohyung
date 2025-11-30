@@ -2,9 +2,7 @@ import { supabase, createAdminClient } from '@pickid/supabase';
 import type { ExtendedUser } from '@/types/user.types';
 import type { UserStatus } from '@pickid/supabase';
 
-// 간소화된 사용자 서비스
 export const userService = {
-	// 사용자 목록 조회
 	async getUsers(): Promise<ExtendedUser[]> {
 		const { data, error } = await supabase.from('users').select('*').order('created_at', { ascending: false });
 
@@ -19,7 +17,6 @@ export const userService = {
 		}));
 	},
 
-	// 사용자 상세 조회
 	async getUserById(id: string): Promise<ExtendedUser> {
 		const { data, error } = await supabase.from('users').select('*').eq('id', id).single();
 
@@ -35,7 +32,6 @@ export const userService = {
 		};
 	},
 
-	// 사용자 상태 변경
 	async updateUserStatus(id: string, status: UserStatus): Promise<ExtendedUser> {
 		const { data, error } = await supabase
 			.from('users')
@@ -55,13 +51,11 @@ export const userService = {
 		};
 	},
 
-	// 사용자 삭제
 	async deleteUser(id: string): Promise<void> {
 		const { error } = await supabase.from('users').delete().eq('id', id);
 		if (error) throw error;
 	},
 
-	// 사용자 통계 조회
 	async getUserStats() {
 		const { data, error } = await supabase.from('users').select('*');
 		if (error) throw error;
@@ -86,7 +80,6 @@ export const userService = {
 		};
 	},
 
-	// 사용자 동기화 (Admin 전용)
 	async syncAuthUsersToPublic() {
 		const adminClient = createAdminClient();
 		const { data: authUsers, error: authError } = await adminClient.auth.admin.listUsers();
@@ -125,7 +118,6 @@ export const userService = {
 		return { synced, errors };
 	},
 
-	// 사용자 활동 조회
 	async getUserActivity(userId: string) {
 		const { data, error } = await supabase
 			.from('user_test_responses')
@@ -209,7 +201,6 @@ export const userService = {
 		}>;
 	},
 
-	// 사용자 피드백 조회
 	async getUserFeedbacks(userId: string) {
 		const { data, error } = await supabase
 			.from('feedbacks')

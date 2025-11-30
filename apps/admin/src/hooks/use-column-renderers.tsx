@@ -12,7 +12,6 @@ interface RenderOptions {
 }
 
 export function useColumnRenderers() {
-	// 기본 텍스트 렌더링
 	const renderText = (value: string | null | undefined, options?: RenderOptions) => {
 		if (!value) return <span className="text-gray-400">-</span>;
 
@@ -22,12 +21,10 @@ export function useColumnRenderers() {
 		return <span className="text-sm text-gray-900">{displayValue}</span>;
 	};
 
-	// 이메일 렌더링
 	const renderEmail = (email: string) => {
 		return <div className="text-sm text-gray-900">{email}</div>;
 	};
 
-	// 이름 + 아바타 렌더링
 	const renderNameWithAvatar = (name: string, avatarUrl?: string | null) => {
 		return (
 			<div className="flex items-center gap-2">
@@ -37,18 +34,23 @@ export function useColumnRenderers() {
 		);
 	};
 
-	// 가입경로 렌더링
 	const renderProvider = (provider: string) => {
 		return <span className="text-sm text-gray-900">{getLabelText('provider', provider)}</span>;
 	};
 
-	// 상태 렌더링 (Badge)
 	const renderStatus = (status: string) => {
 		const statusConfig = getStatusConfig('profile', status);
-		return <Badge className={`${statusConfig.color}`}>{statusConfig.text}</Badge>;
+		return (
+			<Badge
+				variant={
+					statusConfig.variant as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
+				}
+			>
+				{statusConfig.text}
+			</Badge>
+		);
 	};
 
-	// 날짜 렌더링
 	const renderDate = (dateString: string, options?: RenderOptions) => {
 		const { dateFormat = 'short', showIcon = false } = options || {};
 
@@ -76,15 +78,11 @@ export function useColumnRenderers() {
 		return <div className="text-sm text-gray-900">{formattedDate}</div>;
 	};
 
-	// 숫자 렌더링
 	const renderNumber = (value: number | null | undefined) => {
 		if (value === null || value === undefined) return <span className="text-gray-400">-</span>;
 		return <span className="text-sm text-gray-900">{value.toLocaleString()}</span>;
 	};
 
-
-
-	// 제목 + 내용 렌더링
 	const renderTitleWithContent = (title: string, content: string, options?: RenderOptions) => {
 		const { maxLength = 50 } = options || {};
 		return (
@@ -97,7 +95,6 @@ export function useColumnRenderers() {
 		);
 	};
 
-	// 작성자 렌더링
 	const renderAuthor = (authorName: string, showIcon = true) => {
 		if (showIcon) {
 			return <div className="text-sm text-gray-900">{authorName}</div>;
@@ -105,7 +102,6 @@ export function useColumnRenderers() {
 		return <span className="text-sm text-gray-900">{authorName}</span>;
 	};
 
-	// 피드백 상태 Select 렌더링
 	const renderFeedbackStatusSelect = (
 		id: string,
 		data: Record<string, unknown>,
@@ -122,7 +118,6 @@ export function useColumnRenderers() {
 		);
 	};
 
-	// 액션 버튼들 렌더링
 	const renderActions = (
 		id: string,
 		data: Record<string, unknown>,
@@ -136,7 +131,6 @@ export function useColumnRenderers() {
 		return (
 			<div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
 				{actions.map((action, index) => {
-					// 조건이 있고 false면 렌더링하지 않음
 					if (action.condition && !action.condition(data)) {
 						return null;
 					}
@@ -208,13 +202,11 @@ export function useColumnRenderers() {
 		);
 	};
 
-	// 파일 첨부 표시
 	const renderFileAttachment = (fileUrl?: string | null) => {
 		if (!fileUrl) return null;
 		return <FileText className="w-4 h-4 text-blue-500" />;
-};
+	};
 
-	// 지속시간 렌더링
 	const renderDuration = (seconds: number) => {
 		return <span className="text-sm text-gray-900">{formatDuration(seconds)}</span>;
 	};

@@ -1,12 +1,9 @@
-
-
 import React from 'react';
 import { BarChart3, Activity, ExternalLink } from 'lucide-react';
 
 export function GrowthPage() {
 	return (
 		<div className="space-y-6 px-6 py-8">
-			{/* 헤더 */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<div>
 					<h1 className="text-3xl font-bold text-neutral-900">성장 분석</h1>
@@ -14,9 +11,7 @@ export function GrowthPage() {
 				</div>
 			</div>
 
-			{/* GA 안내 카드들 */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{/* 트래픽 획득 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center mb-4">
 						<Activity className="h-8 w-8 text-neutral-900 mr-3" />
@@ -29,7 +24,6 @@ export function GrowthPage() {
 					</div>
 				</div>
 
-				{/* 사용자 획득 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center mb-4">
 						<BarChart3 className="h-8 w-8 text-neutral-900 mr-3" />
@@ -42,7 +36,6 @@ export function GrowthPage() {
 					</div>
 				</div>
 
-				{/* 실시간 분석 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center mb-4">
 						<Activity className="h-8 w-8 text-neutral-900 mr-3" />
@@ -56,7 +49,6 @@ export function GrowthPage() {
 				</div>
 			</div>
 
-			{/* 상세 분석 안내 */}
 			<div className="bg-neutral-50 rounded-xl p-6">
 				<h3 className="text-lg font-semibold text-neutral-900 mb-4">📊 추가 분석 기능</h3>
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -81,7 +73,6 @@ export function GrowthPage() {
 				</div>
 			</div>
 
-			{/* GA 접속 안내 */}
 			<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6 text-center">
 				<h3 className="text-lg font-semibold text-neutral-900 mb-2">Google Analytics 접속하기</h3>
 				<p className="text-neutral-600 mb-4">더 상세하고 정확한 분석 데이터를 확인하세요</p>

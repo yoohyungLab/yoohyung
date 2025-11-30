@@ -63,7 +63,6 @@ export function UserListPage() {
 		[openModal]
 	);
 
-	// Table columns definition (memoized for performance)
 	const columns: Column<{
 		id: string;
 		email: string;
@@ -137,7 +136,6 @@ export function UserListPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 통계 카드 */}
 			<StatsCards
 				stats={[
 					{ id: 'active', label: '활성 사용자', value: stats.active },
@@ -147,18 +145,6 @@ export function UserListPage() {
 				columns={3}
 			/>
 
-			{/* 동기화 버튼 */}
-			<div className="flex justify-end">
-				<button
-					onClick={() => syncUser()}
-					disabled={isSyncing}
-					className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-				>
-					{isSyncing ? '동기화 중...' : '동기화'}
-				</button>
-			</div>
-
-			{/* 검색 및 필터 */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -173,7 +159,6 @@ export function UserListPage() {
 				onFilterChange={updateFilters}
 			/>
 
-			{/* 대량 작업 */}
 			<BulkActions
 				selectedCount={selectedUsers.length}
 				actions={[
@@ -197,7 +182,6 @@ export function UserListPage() {
 				onClear={clearSelection}
 			/>
 
-			{/* 사용자 목록 */}
 			<DataState loading={loading} data={users}>
 				<DataTable
 					data={users}
@@ -210,7 +194,6 @@ export function UserListPage() {
 				/>
 			</DataState>
 
-			{/* 사용자 상세 모달 */}
 			{modalUser && <UserDetailModal user={modalUser as unknown as any} onClose={closeModal} />}
 		</div>
 	);

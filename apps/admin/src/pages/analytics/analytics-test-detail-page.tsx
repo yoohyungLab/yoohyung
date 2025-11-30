@@ -14,7 +14,6 @@ import { ErrorState } from '@pickid/ui';
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
-// 질문별 성과분석 데이터 타입
 type FunnelDataItem = {
 	questionId: string;
 	question: string;
@@ -34,20 +33,17 @@ export function AnalyticsTestDetailPage() {
 	const [timeRange, setTimeRange] = useState<'7d' | '30d' | '90d'>('30d');
 	const [activeTab, setActiveTab] = useState<'overview' | 'trends' | 'funnel'>('overview');
 
-	// 데이터 상태들
 	const [basicStats, setBasicStats] = useState<GetTestBasicStatsReturn | null>(null);
 	const [testData, setTestData] = useState<GetTestAnalyticsDataReturn | null>(null);
 	const [funnelData, setFunnelData] = useState<FunnelDataItem[]>([]);
 	const [dataLoaded, setDataLoaded] = useState(false);
 
-	// 모든 데이터 로딩
 	const loadAllData = useCallback(async () => {
 		if (!id) return;
 
 		setLoading(true);
 		setDataLoaded(false);
 		try {
-			// 병렬로 핵심 데이터만 로딩
 			const [testList, basicStatsData, analyticsData, funnelDataResult] = await Promise.all([
 				analyticsService.getAllTestsForAnalytics(),
 				analyticsService.getTestBasicStats(id),
@@ -55,7 +51,6 @@ export function AnalyticsTestDetailPage() {
 				analyticsService.getTestFunnelData(id),
 			]);
 
-			// 테스트 정보 설정
 			const foundTest = testList.find((t) => t.id === id);
 			if (foundTest) {
 				setTest(foundTest);
@@ -64,14 +59,12 @@ export function AnalyticsTestDetailPage() {
 				return;
 			}
 
-			// 데이터 설정
 			setBasicStats(basicStatsData);
 			setTestData(analyticsData);
 			setFunnelData(funnelDataResult);
 			setDataLoaded(true);
 		} catch (error) {
 			console.error('데이터 로딩 실패:', error);
-			// 에러 발생 시 기본값 설정
 			setBasicStats({
 				responses: 0,
 				completions: 0,
@@ -86,12 +79,10 @@ export function AnalyticsTestDetailPage() {
 		}
 	}, [id, navigate]);
 
-	// 초기 데이터 로딩
 	useEffect(() => {
 		loadAllData();
 	}, [loadAllData]);
 
-	// 시간 범위 변경 시 데이터 다시 로딩
 	useEffect(() => {
 		loadAllData();
 	}, [timeRange, loadAllData]);

@@ -46,7 +46,6 @@ export function AppRoutes() {
 				<Route path={PATH.ANALYTICS} element={<AnalyticsPage />} />
 				<Route path={PATH.ANALYTICS_TEST_DETAIL} element={<AnalyticsTestDetailPage />} />
 				<Route path={PATH.GROWTH} element={<GrowthPage />} />
-				{/* <Route path="settings" element={<SettingsPage />} /> */}
 			</Route>
 
 			<Route path="*" element={<Navigate to={PATH.AUTH} replace />} />

@@ -5,14 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useMemo } from 'react';
 
 export const useAnalytics = (filters: AnalyticsFilters = {}) => {
-	// 테스트 목록 조회
 	const testsQuery = useQuery({
 		queryKey: queryKeys.analytics.testStats('all'),
 		queryFn: () => analyticsService.getAllTestsForAnalytics(),
 		staleTime: 2 * 60 * 1000,
 	});
 
-	// 필터링된 테스트
 	const filteredTests = useMemo(() => {
 		const tests = testsQuery.data || [];
 		return tests.filter((test) => {
@@ -25,7 +23,6 @@ export const useAnalytics = (filters: AnalyticsFilters = {}) => {
 		});
 	}, [testsQuery.data, filters]);
 
-	// 대시보드 통계 조회
 	const statsQuery = useQuery({
 		queryKey: queryKeys.analytics.dashboard(),
 		queryFn: () => analyticsService.getDashboardOverviewStats(),

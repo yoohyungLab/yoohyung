@@ -9,8 +9,6 @@ import { useFieldArray } from 'react-hook-form';
 import type { TestFormResult as ResultData, TestFormResult } from '@/types/test-form';
 import type { FeatureInput } from '@/types/test.types';
 
-// 상수
-
 const GENDER_OPTIONS = [
 	{ value: 'all', label: '전체 (성별 무관)' },
 	{ value: 'male', label: '남성' },
@@ -18,8 +16,6 @@ const GENDER_OPTIONS = [
 ];
 
 const DEFAULT_THEME_COLOR = '#3B82F6';
-
-// 유틸리티 함수
 
 const parseValues = (value: string): string[] => {
 	if (!value.trim()) return [];
@@ -51,8 +47,6 @@ const getGenderLabel = (gender: string) => {
 	}
 };
 
-// 컴포넌트
-
 export const ResultStep = () => {
 	const { watch, control } = useTestForm();
 	const selectedType = watch('type');
@@ -68,8 +62,6 @@ export const ResultStep = () => {
 	const [featureInputs, setFeatureInputs] = useState<Record<number, FeatureInput>>({});
 
 	const typeConfig = TEST_TYPES.find((t) => t.id === selectedType);
-
-	// 기능 관리 함수들
 
 	const updateFeatureInput = (resultIndex: number, field: 'key' | 'value', value: string) => {
 		setFeatureInputs((prev) => ({
@@ -148,8 +140,6 @@ export const ResultStep = () => {
 		}
 	};
 
-	// 렌더링 함수들
-
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
 		if (selectedType !== 'psychology' || !result) return null;
 
@@ -157,7 +147,6 @@ export const ResultStep = () => {
 
 		return (
 			<div className="space-y-4">
-				{/* 매칭 방식 선택 */}
 				<div>
 					<Label className="text-base font-medium mb-2">매칭 방식</Label>
 					<DefaultSelect
@@ -181,7 +170,6 @@ export const ResultStep = () => {
 					/>
 				</div>
 
-				{/* 점수형 입력 */}
 				{conditions?.type === 'score' ? (
 					<div>
 						<Label className="text-sm font-medium">점수 구간</Label>
@@ -196,9 +184,8 @@ export const ResultStep = () => {
 											match_conditions: { ...conditions, min: newMin },
 										});
 									} else {
-										// type이 score가 아니거나 conditions가 없을 경우, score 타입으로 새로 생성
 										handleUpdateResult(resultIndex, {
-											match_conditions: { type: 'score', min: newMin, max: 100 }, // max 기본값 설정
+											match_conditions: { type: 'score', min: newMin, max: 100 },
 										});
 									}
 								}}
@@ -221,7 +208,6 @@ export const ResultStep = () => {
 						</div>
 					</div>
 				) : (
-					/* 코드형 입력 */
 					<div>
 						<Label className="text-sm font-medium mb-2">매칭 코드</Label>
 						<DefaultInput
@@ -241,7 +227,6 @@ export const ResultStep = () => {
 					</div>
 				)}
 
-				{/* 성별 타겟 */}
 				<div className="mt-3">
 					<Label className="text-sm font-medium text-gray-700">성별 타겟</Label>
 					<DefaultSelect
@@ -269,9 +254,7 @@ export const ResultStep = () => {
 		return (
 			<div className="flex items-center gap-2">
 				{conditions.type === 'code' ? (
-					<Badge variant="outline">
-						🎭 {(conditions.codes || []).join(', ') || '미설정'}
-					</Badge>
+					<Badge variant="outline">🎭 {(conditions.codes || []).join(', ') || '미설정'}</Badge>
 				) : (
 					<Badge variant="outline">
 						📊 {conditions.min ?? 0}-{conditions.max ?? 10}점
@@ -360,9 +343,6 @@ export const ResultStep = () => {
 		);
 	};
 
-	// 메인 렌더링
-
-	// 밸런스 게임 타입일 때는 특별한 안내 메시지 표시
 	if (selectedType === 'balance') {
 		return (
 			<div className="space-y-6">
@@ -401,7 +381,6 @@ export const ResultStep = () => {
 		);
 	}
 
-	// 퀴즈 타입일 때 안내 메시지 및 템플릿 제공
 	if (selectedType === 'quiz') {
 		const hasResults = results && results.length > 0;
 
@@ -443,7 +422,6 @@ export const ResultStep = () => {
 						</div>
 						<Button
 							onClick={() => {
-								// 기본 5개 등급 템플릿 추가
 								const defaultResults = [
 									{
 										result_name: 'S등급 - 완벽!',
@@ -500,7 +478,6 @@ export const ResultStep = () => {
 
 								defaultResults.forEach((result, index) => {
 									handleAddResult();
-									// 결과 추가 후 즉시 기본값으로 업데이트
 									handleUpdateResult(index, result);
 								});
 							}}
@@ -516,7 +493,6 @@ export const ResultStep = () => {
 						</Button>
 					</div>
 				) : (
-					// 결과가 있을 때는 일반 결과 편집 UI 표시
 					<>
 						<div className="flex items-center justify-between">
 							<div>

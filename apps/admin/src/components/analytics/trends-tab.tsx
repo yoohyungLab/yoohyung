@@ -1,7 +1,6 @@
 
 
 
-// 임시 컴포넌트 (GA 전환 전까지)
 import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { LineChart } from 'lucide-react';

@@ -16,17 +16,14 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 	const [userMenuOpen, setUserMenuOpen] = useState(false);
 	const menuRef = useRef<HTMLDivElement>(null);
 
-	// 현재 페이지 메타데이터
 	const currentMeta = navigation.find((n) => n.type === 'item' && isActivePath(location.pathname, n)) as
 		| Extract<NavEntry, { type: 'item' }>
 		| undefined;
 
 	const meta = currentMeta ?? (navigation[0] as Extract<NavEntry, { type: 'item' }>);
 
-	// 테스트 생성 CTA 표시 여부
 	const showCreateTestCTA = location.pathname === '/tests' || location.pathname.startsWith('/tests/');
 
-	// 외부 클릭 감지 (메뉴 닫기)
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -56,7 +53,6 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 	return (
 		<header className="bg-white border-b border-neutral-200 px-6 py-4">
 			<div className="flex items-center justify-between">
-				{/* 페이지 제목 */}
 				<div className="flex items-center gap-3 min-w-0">
 					<h1 className="text-2xl text-neutral-900 font-semibold">{meta.name}</h1>
 					{meta.description && (
@@ -64,9 +60,7 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 					)}
 				</div>
 
-				{/* 액션 버튼 & 사용자 메뉴 */}
 				<div className="flex items-center gap-4">
-					{/* 테스트 생성 버튼 */}
 					{showCreateTestCTA && (
 						<button
 							onClick={handleCreateTest}
@@ -78,7 +72,6 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 						</button>
 					)}
 
-					{/* 사용자 메뉴 */}
 					<div className="relative" ref={menuRef}>
 						<button
 							onClick={handleToggleMenu}
@@ -96,7 +89,6 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 							</div>
 						</button>
 
-						{/* 드롭다운 메뉴 */}
 						{userMenuOpen && (
 							<div
 								role="menu"

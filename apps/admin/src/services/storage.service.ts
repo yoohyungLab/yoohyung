@@ -9,7 +9,6 @@ export const storageService = {
 		const fileName = `${timestamp}-${randomString}.${fileExtension}`;
 		const filePath = `${folder}/${fileName}`;
 
-		// Supabase Storage에 업로드
 		const { error } = await supabase.storage.from('images').upload(filePath, file, {
 			cacheControl: '3600',
 			upsert: false,
@@ -37,9 +36,8 @@ export const storageService = {
 		}
 	},
 
-	// 파일 유효성 검사
 	validateImageFile(file: File): { isValid: boolean; error?: string } {
-		const maxSize = 5 * 1024 * 1024; // 5MB
+		const maxSize = 5 * 1024 * 1024;
 		const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
 
 		if (file.size > maxSize) {

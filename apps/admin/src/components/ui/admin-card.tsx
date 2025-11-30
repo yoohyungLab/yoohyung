@@ -37,7 +37,6 @@ interface AdminCardContentProps {
 	className?: string;
 }
 
-// 메인 Card 컴포넌트
 export function AdminCard({
 	children,
 	className,
@@ -100,7 +99,6 @@ export function AdminCard({
 	);
 }
 
-// Card Header 컴포넌트
 export function AdminCardHeader({
 	children,
 	className,
@@ -134,10 +132,8 @@ export function AdminCardHeader({
 	);
 }
 
-// Card Content 컴포넌트
 export function AdminCardContent({ children, className }: AdminCardContentProps) {
 	return <CardContent className={cn('p-0', className)}>{children}</CardContent>;
 }
 
-// 기본 export
 export default AdminCard;

@@ -43,10 +43,17 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 
 	const getStatusBadge = (status: string) => {
 		const statusConfig = getStatusConfig('profile', status);
-		return <Badge className={statusConfig.color}>{statusConfig.text}</Badge>;
+		return (
+			<Badge
+				variant={
+					statusConfig.variant as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
+				}
+			>
+				{statusConfig.text}
+			</Badge>
+		);
 	};
 
-	// 통계 계산
 	const stats = {
 		totalResponses: user.activity?.total_responses || 0,
 		uniqueTests: user.activity?.unique_tests || 0,
@@ -70,11 +77,9 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
 			<div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
-				{/* 헤더 */}
 				<header className="p-6 border-b border-neutral-200 bg-white">
 					<div className="flex items-start justify-between mb-4">
 						<div className="flex items-start gap-4 flex-1">
-							{/* 프로필 이미지 */}
 							<div className="w-20 h-20 rounded-xl bg-neutral-600 flex items-center justify-center shadow-sm">
 								{user.avatar_url ? (
 									<img src={user.avatar_url} alt={user.name || 'User'} className="w-full h-full object-cover" />
@@ -83,7 +88,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 								)}
 							</div>
 
-							{/* 사용자 정보 */}
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-2">
 									<h2 className="text-2xl font-bold text-neutral-900 truncate">{user.name || 'Unknown'}</h2>
@@ -116,7 +120,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 							</div>
 						</div>
 
-						{/* 닫기 버튼 */}
 						<IconButton
 							icon={<X className="h-4 w-4" />}
 							variant="ghost"
@@ -127,7 +130,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 						/>
 					</div>
 
-					{/* 빠른 통계 */}
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
 						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2 mb-1">
@@ -152,7 +154,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 						</div>
 					</div>
 
-					{/* 탭 네비게이션 */}
 					<nav className="flex gap-1 mt-6 bg-neutral-50 rounded-lg p-1">
 						{tabs.map((tab) => {
 							const Icon = tab.icon;
@@ -174,12 +175,10 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 					</nav>
 				</header>
 
-				{/* 콘텐츠 */}
 				<main className="flex-1 overflow-y-auto bg-white">
 					{activeTab === 'basic' && (
 						<section className="p-6 space-y-6">
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								{/* 기본 정보 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -206,7 +205,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									</AdminCardContent>
 								</AdminCard>
 
-								{/* 계정 정보 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -242,7 +240,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 
 					{activeTab === 'activity' && (
 						<section className="p-6 space-y-6">
-							{/* 활동 통계 카드들 */}
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 								<AdminCard variant="info" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
@@ -270,7 +267,6 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 								</AdminCard>
 							</div>
 
-							{/* 상세 활동 통계 */}
 							<AdminCard variant="modal" padding="sm">
 								<AdminCardHeader
 									variant="modal"
@@ -348,9 +344,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 															{getStatusBadge(activity.status || 'pending')}
 															{activity.result_type && activity.result_type !== '결과 없음' && (
 																<div>
-																	<Badge variant="outline">
-																		{activity.result_type}
-																	</Badge>
+																	<Badge variant="outline">{activity.result_type}</Badge>
 																</div>
 															)}
 															{(activity.duration_sec || 0) > 0 && (

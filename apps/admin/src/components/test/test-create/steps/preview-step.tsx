@@ -35,7 +35,6 @@ export const PreviewStep = () => {
 
 	return (
 		<div className="space-y-6">
-			{/* 테스트 정보 */}
 			<AdminCard variant="gradient" padding="sm">
 				<AdminCardHeader
 					variant="modal"
@@ -69,7 +68,6 @@ export const PreviewStep = () => {
 			</AdminCard>
 
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-				{/* 질문 요약 */}
 				<AdminCard variant="modal" padding="sm">
 					<AdminCardHeader
 						variant="modal"
@@ -102,7 +100,6 @@ export const PreviewStep = () => {
 					</AdminCardContent>
 				</AdminCard>
 
-				{/* 결과 요약 */}
 				<AdminCard variant="modal" padding="sm">
 					<AdminCardHeader
 						variant="modal"
@@ -145,7 +142,6 @@ export const PreviewStep = () => {
 				</AdminCard>
 			</div>
 
-			{/* 체크리스트 */}
 			<AdminCard
 				variant="modal"
 				padding="sm"

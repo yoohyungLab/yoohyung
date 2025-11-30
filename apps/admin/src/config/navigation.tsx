@@ -61,7 +61,7 @@ export const navigation = [
 		href: '/growth',
 		icon: <TrendingUp className="w-4 h-4" />,
 		description: '유입·퍼널·가입 분석',
-		match: ['/growth', '/growth/funnel', '/growth/channels', '/growth/landings', '/growth/cohorts'], // 필요시 라우트에 맞춰 조정
+		match: ['/growth', '/growth/funnel', '/growth/channels', '/growth/landings', '/growth/cohorts'],
 	},
 
 	{ type: 'section', name: '유저 & 커뮤니티' },
@@ -85,7 +85,6 @@ export const navigation = [
 
 export type NavEntry = (typeof navigation)[number];
 
-// 헬퍼 함수
 export function isActivePath(pathname: string, entry: NavEntry) {
 	if (entry.type !== 'item') return false;
 	if (entry.href === '/') return pathname === '/';

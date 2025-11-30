@@ -3,7 +3,6 @@ import { TrendingUp, Clock, Smartphone } from 'lucide-react';
 import { ResponseStatsCards, ResponseFilters } from '@/components/response';
 
 export function UserResponsesPage() {
-	// 정적 통계 데이터 (실제로는 API에서 가져와야 함)
 	const stats = {
 		total_responses: 0,
 		completed_responses: 0,
@@ -35,7 +34,6 @@ export function UserResponsesPage() {
 			<ResponseFilters filters={filters} onFilterChange={updateFilters} onExport={onExport} />
 
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-				{/* 디바이스 분포 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center gap-3 mb-4">
 						<div className="w-10 h-10 bg-neutral-600 rounded-lg flex items-center justify-center">
@@ -58,7 +56,6 @@ export function UserResponsesPage() {
 					</div>
 				</div>
 
-				{/* 완료율 상세 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center gap-3 mb-4">
 						<div className="w-10 h-10 bg-neutral-600 rounded-lg flex items-center justify-center">
@@ -81,7 +78,6 @@ export function UserResponsesPage() {
 					</div>
 				</div>
 
-				{/* 평균 소요시간 상세 */}
 				<div className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
 					<div className="flex items-center gap-3 mb-4">
 						<div className="w-10 h-10 bg-neutral-600 rounded-lg flex items-center justify-center">

@@ -17,7 +17,6 @@ export function FunnelDetail({ funnelData }: FunnelDetailProps) {
 
 				return (
 					<div key={item.questionId} className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm">
-						{/* 질문 헤더 */}
 						<div className="flex items-start justify-between mb-4">
 							<div className="flex items-center gap-3">
 								<div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
@@ -43,7 +42,6 @@ export function FunnelDetail({ funnelData }: FunnelDetailProps) {
 							</div>
 						</div>
 
-						{/* 진행률 바 */}
 						<div className="mb-4">
 							<div className="flex justify-between text-sm text-gray-600 mb-2">
 								<span>도달수</span>
@@ -57,7 +55,6 @@ export function FunnelDetail({ funnelData }: FunnelDetailProps) {
 							</div>
 						</div>
 
-						{/* 상세 지표 */}
 						<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 							<div className="text-center p-3 bg-gray-50 rounded-lg">
 								<div className="text-lg font-bold text-gray-900">{item.reached.toLocaleString()}</div>
@@ -84,7 +81,6 @@ export function FunnelDetail({ funnelData }: FunnelDetailProps) {
 							</div>
 						</div>
 
-						{/* 완료율 진행률 바 */}
 						<div className="mt-4">
 							<div className="flex justify-between text-sm text-gray-600 mb-2">
 								<span>완료율</span>

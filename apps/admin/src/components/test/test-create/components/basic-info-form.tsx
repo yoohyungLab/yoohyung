@@ -31,7 +31,6 @@ export function BasicInfoForm({
 						const newTitle = e.target.value;
 						onUpdateTitle(newTitle);
 
-						// 제목이 변경되면 자동으로 slug 생성 (slug가 비어있을 때만)
 						if (!testData.slug || testData.slug.trim() === '') {
 							const newSlug = generateSlug(newTitle);
 							onUpdateTestData({ ...testData, title: newTitle, slug: newSlug });

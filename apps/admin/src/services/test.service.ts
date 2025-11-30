@@ -12,12 +12,8 @@ import type {
 } from '@pickid/supabase';
 import { supabase } from '@pickid/supabase';
 
-// 테스트 서비스
 
 export const testService = {
-	/**
-	 * 모든 테스트 목록 조회
-	 */
 	async getTests(): Promise<Test[]> {
 		const { data, error } = await supabase.from('tests').select('*').order('created_at', { ascending: false });
 
@@ -28,11 +24,7 @@ export const testService = {
 		return data || [];
 	},
 
-	/**
-	 * 테스트 상세 조회 (질문, 결과 포함)
-	 */
 	async getTestWithDetails(testId: string): Promise<TestWithNestedDetails> {
-		// RPC 함수 대신 직접 쿼리 사용 (target_gender 필드 포함)
 		const { data: testData, error: testError } = await supabase.from('tests').select('*').eq('id', testId).single();
 
 		if (testError) {
@@ -116,7 +108,6 @@ export const testService = {
 
 		const results: TestResult[] = (resultsData as any) || [];
 
-		// Fallback: nested join 보정 - 필요시 직접 조인
 		if (questions.some((q) => !q.choices || q.choices.length === 0)) {
 			const ids = questions.map((q) => q.id);
 			const { data: rawChoices } = await supabase
@@ -152,17 +143,12 @@ export const testService = {
 		} satisfies TestWithNestedDetails;
 	},
 
-	/**
-	 * 테스트 상태 변경
-	 */
 	async updateTestStatus(id: string, status: TestStatus): Promise<Test> {
-		// published_at 필드도 함께 업데이트
 		const updateData: Partial<Test> & { updated_at: string; published_at?: string | null } = {
 			status,
 			updated_at: new Date().toISOString(),
 		};
 
-		// published로 변경할 때 published_at 설정
 		if (status === 'published') {
 			updateData.published_at = new Date().toISOString();
 		} else if (status === 'draft') {
@@ -178,9 +164,6 @@ export const testService = {
 		return data;
 	},
 
-	/**
-	 * 테스트 삭제
-	 */
 	async deleteTest(id: string): Promise<void> {
 		const { data, error } = await supabase.rpc('delete_test', {
 			test_uuid: id,
@@ -193,9 +176,6 @@ export const testService = {
 		validateRpcResult(data, '테스트 삭제에 실패했습니다.');
 	},
 
-	/**
-	 * 완전한 테스트 저장 (생성/수정)
-	 */
 	async saveCompleteTest(
 		testData: TestInsert,
 		questionsData: TestQuestionInsert[],
@@ -204,7 +184,6 @@ export const testService = {
 		const isUpdate = !!testData.id;
 
 		if (isUpdate) {
-			// 수정 모드: updateTestDirectly 사용 (code 필드 지원)
 			return await this.updateTestDirectly(
 				testData,
 				questionsData as Array<
@@ -220,7 +199,6 @@ export const testService = {
 				resultsData
 			);
 		} else {
-			// 생성 모드: createTestDirectly 사용 (code 필드 지원)
 			return await this.createTestDirectly(
 				testData,
 				questionsData as Array<
@@ -238,9 +216,6 @@ export const testService = {
 		}
 	},
 
-	/**
-	 * 테스트 직접 업데이트 (RPC 함수 대신)
-	 */
 	async updateTestDirectly(
 		testData: TestInsert,
 		questionsData: Array<
@@ -257,9 +232,7 @@ export const testService = {
 	): Promise<TestWithNestedDetails> {
 		const testId = testData.id!;
 
-		// 과도한 콘솔 출력 제거
 
-		// 1. 테스트 기본 정보 업데이트
 		const { error: testError } = await supabase
 			.from('tests')
 			.update({
@@ -281,12 +254,10 @@ export const testService = {
 
 		if (testError) throw testError;
 
-		// 2. 기존 질문과 선택지 삭제
 		const { error: deleteQuestionsError } = await supabase.from('test_questions').delete().eq('test_id', testId);
 
 		if (deleteQuestionsError) throw deleteQuestionsError;
 
-		// 3. 모든 질문을 배치로 삽입
 		if (questionsData.length > 0) {
 			const questionsToInsert = questionsData.map((questionData, i) => ({
 				test_id: testId,
@@ -308,7 +279,6 @@ export const testService = {
 				throw new Error('질문 삽입 실패: 예상한 수만큼 삽입되지 않았습니다.');
 			}
 
-			// 4. 모든 선택지를 배치로 삽입
 			const allChoicesToInsert = questionsData.flatMap((questionData, questionIndex) => {
 				if (!questionData.choices || questionData.choices.length === 0) return [];
 				return questionData.choices.map(
@@ -336,12 +306,10 @@ export const testService = {
 			}
 		}
 
-		// 5. 기존 결과 삭제
 		const { error: deleteResultsError } = await supabase.from('test_results').delete().eq('test_id', testId);
 
 		if (deleteResultsError) throw deleteResultsError;
 
-		// 6. 새 결과 삽입
 		if (resultsData.length > 0) {
 			const resultsToInsert = resultsData.map((result, index) => {
 				const matchConditions = result.match_conditions;
@@ -364,13 +332,9 @@ export const testService = {
 			if (resultsError) throw resultsError;
 		}
 
-		// 7. 업데이트된 테스트 데이터 반환
 		return await this.getTestWithDetails(testId);
 	},
 
-	/**
-	 * 테스트 직접 생성 (RPC 함수 대신, code 필드 지원)
-	 */
 	async createTestDirectly(
 		testData: TestInsert,
 		questionsData: Array<
@@ -385,7 +349,6 @@ export const testService = {
 		>,
 		resultsData: TestResultInsert[]
 	): Promise<TestWithNestedDetails> {
-		// 1. 테스트 기본 정보 생성
 		const { data: testResult, error: testError } = await supabase
 			.from('tests')
 			.insert({
@@ -410,11 +373,9 @@ export const testService = {
 
 		const testId = testResult.id;
 
-		// 2. 질문과 선택지 삽입
 		for (let i = 0; i < questionsData.length; i++) {
 			const questionData = questionsData[i];
 
-			// 질문 삽입
 			const { data: questionResult, error: questionError } = await supabase
 				.from('test_questions')
 				.insert({
@@ -431,7 +392,6 @@ export const testService = {
 
 			if (questionError) throw questionError;
 
-			// 선택지 삽입
 			if (questionData.choices && questionData.choices.length > 0) {
 				const choicesToInsert = questionData.choices.map(
 					(
@@ -456,7 +416,6 @@ export const testService = {
 			}
 		}
 
-		// 3. 결과 삽입
 		if (resultsData.length > 0) {
 			const resultsToInsert = resultsData.map((result, index) => {
 				const matchConditions = result.match_conditions;
@@ -479,7 +438,6 @@ export const testService = {
 			if (resultsError) throw resultsError;
 		}
 
-		// 4. 생성된 테스트 데이터 반환
 		return await this.getTestWithDetails(testId);
 	},
 };

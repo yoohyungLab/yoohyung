@@ -19,7 +19,6 @@ export function ResponseDetailDialog({ response, isOpen, onClose }: ResponseDeta
 					<DialogTitle>응답 상세 정보</DialogTitle>
 				</DialogHeader>
 				<div className="space-y-6">
-					{/* 기본 정보 */}
 					<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 						<div className="space-y-3">
 							<h4 className="font-semibold text-lg border-b border-neutral-200 pb-2 text-neutral-900">기본 정보</h4>
@@ -80,7 +79,6 @@ export function ResponseDetailDialog({ response, isOpen, onClose }: ResponseDeta
 						</div>
 					</div>
 
-					{/* 시간 정보 */}
 					<div className="space-y-3">
 						<h4 className="font-semibold text-lg border-b border-neutral-200 pb-2 text-neutral-900">시간 정보</h4>
 						<div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -107,7 +105,6 @@ export function ResponseDetailDialog({ response, isOpen, onClose }: ResponseDeta
 						</div>
 					</div>
 
-					{/* 질문별 응답 */}
 					<div className="space-y-3">
 						<h4 className="font-semibold text-lg border-b border-neutral-200 pb-2 text-neutral-900">질문별 응답</h4>
 						<div className="bg-neutral-50 p-4 rounded-lg max-h-60 overflow-y-auto">

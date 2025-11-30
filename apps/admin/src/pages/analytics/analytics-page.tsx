@@ -12,7 +12,6 @@ import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HREF } from '@/constants/routes';
 
-// 분석용 테스트 타입 (평균 소요시간 포함)
 type TestWithAnalytics = Test & {
 	avg_completion_time?: number;
 };
@@ -21,7 +20,6 @@ export function AnalyticsPage() {
 	const renderers = useColumnRenderers();
 	const navigate = useNavigate();
 
-	// 통합된 useAnalytics 훅 사용
 	const [filters, setFilters] = React.useState<AnalyticsFilters>({
 		search: '',
 		status: 'all',
@@ -39,7 +37,6 @@ export function AnalyticsPage() {
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 핸들러 함수들
 	const handleTestSelect = useCallback(
 		(test: Test) => {
 			navigate(HREF.ANALYTICS_TEST_DETAIL(test.id));
@@ -51,7 +48,6 @@ export function AnalyticsPage() {
 		setFilters((prev: AnalyticsFilters) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	// 테이블 컬럼 정의
 	const columns: Column<TestWithAnalytics>[] = useMemo(
 		() => [
 			{
@@ -127,7 +123,6 @@ export function AnalyticsPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 통계 카드 */}
 			<StatsCards
 				stats={[
 					{ id: 'total', label: '전체 테스트', value: stats.total },
@@ -144,7 +139,6 @@ export function AnalyticsPage() {
 				columns={6}
 			/>
 
-			{/* 검색 및 필터 */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -180,10 +174,8 @@ export function AnalyticsPage() {
 				}}
 			/>
 
-			{/* 대량 작업 */}
 			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={() => setSelectedTests([])} />
 
-			{/* 테스트 목록 */}
 			<DataState loading={loading} data={tests} emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요.">
 				<DataTable
 					data={tests}
@@ -196,7 +188,6 @@ export function AnalyticsPage() {
 				/>
 			</DataState>
 
-			{/* 페이지네이션 */}
 			<DefaultPagination
 				currentPage={pagination.currentPage}
 				totalPages={pagination.totalPages}

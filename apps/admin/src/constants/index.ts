@@ -1,4 +1,3 @@
-// All constants are now exported from their respective domain-specific files.
 
 export * from './user';
 export * from './category';

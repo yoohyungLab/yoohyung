@@ -12,20 +12,17 @@ export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지'
 		try {
 			setUploading(true);
 
-			// 파일 유효성 검사
 			const validation = storageService.validateImageFile(file);
 			if (!validation.isValid) {
 				alert(validation.error);
 				return;
 			}
 
-			// 이미지 업로드
 			const result = await storageService.uploadImage(file, 'test-thumbnails');
 			onUpdateImage(result.url);
 		} catch (error) {
 			console.error('이미지 업로드 실패:', error);
 
-			// RLS 정책 에러인 경우 특별한 안내 메시지
 			if (error instanceof Error && error.message.includes('row-level security policy')) {
 				alert(
 					'이미지 업로드를 위해 Supabase Storage RLS 정책 설정이 필요합니다.\n\n' +
@@ -72,7 +69,6 @@ export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지'
 
 	const handleImageRemove = async () => {
 		try {
-			// 기존 이미지가 Supabase URL인 경우 삭제
 			if (imageUrl?.includes('supabase')) {
 				const url = new URL(imageUrl);
 				const pathParts = url.pathname.split('/');
@@ -87,7 +83,6 @@ export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지'
 			onUpdateImage('');
 		} catch (error) {
 			console.error('이미지 삭제 실패:', error);
-			// 삭제 실패해도 UI에서는 제거
 			onUpdateImage('');
 		}
 	};
@@ -117,16 +112,15 @@ export function ImageUpload({ imageUrl, onUpdateImage, desc, label = '이미지'
 					</div>
 				)}
 			</div>
-			<input ref={fileInputRef} type="file" accept="image/*" onChange={handleFileSelect} className="hidden" />
-			<Button variant="outline" className="w-full mt-3" onClick={handleUploadClick} loading={uploading} loadingText="업로드 중...">
+			<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelect} />
+			<Button onClick={handleUploadClick} variant="outline" size="sm" className="mt-2" disabled={uploading}>
 				<Upload className="w-4 h-4 mr-2" />
-				직접 업로드
+				{uploading ? '업로드 중...' : '이미지 업로드'}
 			</Button>
 		</div>
 	);
 }
 
-// ThumbnailUpload는 ImageUpload의 래퍼 컴포넌트
 export const ThumbnailUpload = ({
 	thumbnailUrl,
 	onUpdateThumbnail,

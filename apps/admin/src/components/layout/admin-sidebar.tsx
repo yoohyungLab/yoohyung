@@ -88,7 +88,6 @@ export function AdminSidebar({ sidebarCollapsed, onToggleSidebar }: AdminSidebar
 			aria-label="사이드바 내비게이션"
 		>
 			<div className="flex flex-col h-full">
-				{/* Logo and Brand */}
 				<div className="p-6 border-b border-neutral-200">
 					<div className="flex items-center">
 						<div className="w-8 h-8 bg-neutral-900 rounded-lg flex items-center justify-center mr-3">
@@ -103,12 +102,10 @@ export function AdminSidebar({ sidebarCollapsed, onToggleSidebar }: AdminSidebar
 					</div>
 				</div>
 
-				{/* Navigation */}
 				<nav className="flex-1 p-4 overflow-y-auto">
 					<ul className="space-y-2">{renderNavItems()}</ul>
 				</nav>
 
-				{/* Toggle Button */}
 				<div className="p-4 border-t border-neutral-200">
 					<button
 						onClick={onToggleSidebar}

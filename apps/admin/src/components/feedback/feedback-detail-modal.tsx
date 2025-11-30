@@ -17,16 +17,13 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
 			<div className="bg-white rounded-xl max-w-5xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
-				{/* 헤더 */}
 				<header className="p-6 border-b border-neutral-200 bg-white">
 					<div className="flex items-start justify-between mb-4">
 						<div className="flex items-start gap-4 flex-1">
-							{/* 카테고리 아이콘 */}
 							<div className="w-16 h-16 rounded-xl bg-neutral-600 flex items-center justify-center shadow-sm">
 								<MessageSquare className="w-8 h-8 text-white" />
 							</div>
 
-							{/* 건의사항 정보 */}
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-2">
 									<h2 className="text-2xl font-bold text-neutral-900 truncate">{feedback.title}</h2>
@@ -81,7 +78,6 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 							</div>
 						</div>
 
-						{/* 닫기 버튼 */}
 						<IconButton
 							icon={<X className="h-4 w-4" />}
 							variant="ghost"
@@ -92,7 +88,6 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 						/>
 					</div>
 
-					{/* 빠른 액션 */}
 					<div className="flex items-center justify-between">
 						{feedback.attached_file_url && (
 							<IconBadge
@@ -115,12 +110,9 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 					</div>
 				</header>
 
-				{/* 콘텐츠 */}
 				<main className="flex-1 overflow-y-auto bg-white p-6">
 					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-						{/* 메인 콘텐츠 */}
 						<section className="lg:col-span-2 space-y-6">
-							{/* 건의사항 내용 */}
 							<AdminCard variant="modal" padding="sm">
 								<AdminCardHeader
 									variant="modal"
@@ -140,7 +132,6 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 								</AdminCardContent>
 							</AdminCard>
 
-							{/* 첨부파일 */}
 							{feedback.attached_file_url && (
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
@@ -170,7 +161,6 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 								</AdminCard>
 							)}
 
-							{/* 관리자 답변 */}
 							{feedback.admin_reply ? (
 								<AdminCard variant="info" padding="sm">
 									<AdminCardHeader
@@ -232,9 +222,7 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 							)}
 						</section>
 
-						{/* 사이드바 정보 */}
 						<aside className="space-y-6">
-							{/* 처리 현황 */}
 							<AdminCard variant="modal" padding="sm">
 								<AdminCardHeader
 									variant="modal"

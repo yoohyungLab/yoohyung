@@ -8,7 +8,6 @@ import { KPICard, QuickActionCard, PopularTestsCard } from '@/components/dashboa
 export function DashboardPage() {
 	const { stats, topTests, loading, lastUpdated } = useDashboard();
 
-	// 트렌드 아이콘 렌더링 함수
 	const renderTrendIcon = (trend: string) => {
 		switch (trend) {
 			case 'up':
@@ -26,7 +25,6 @@ export function DashboardPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 헤더 */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<div>
 					<h1 className="text-3xl font-bold text-neutral-900">대시보드</h1>
@@ -44,7 +42,6 @@ export function DashboardPage() {
 				</div>
 			</div>
 
-			{/* 핵심 KPI (4개만) */}
 			<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 				<KPICard
 					title="활성 테스트"
@@ -81,7 +78,6 @@ export function DashboardPage() {
 				/>
 			</div>
 
-			{/* 실시간 통계는 Google Analytics에서 확인하세요 */}
 			<Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
 				<CardContent className="p-6">
 					<div className="flex items-center justify-between">
@@ -96,7 +92,6 @@ export function DashboardPage() {
 				</CardContent>
 			</Card>
 
-			{/* 오늘의 테스트 성과 (TOP 3만) */}
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 				<PopularTestsCard topTests={topTests} renderTrendIcon={renderTrendIcon} />
 				<QuickActionCard />

@@ -17,7 +17,6 @@ export function AdminLoginPage() {
 	const [isSubmitting, setIsSubmitting] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 
-	// 이미 로그인된 경우 메인으로 리다이렉트
 	useEffect(() => {
 		if (adminUser) {
 			navigate(PATH.INDEX, { replace: true });
@@ -43,7 +42,6 @@ export function AdminLoginPage() {
 		const result = await login(formData.email, formData.password);
 
 		if (result.success) {
-			// 로그인 성공 시 메인으로 이동
 			setTimeout(() => {
 				navigate(PATH.INDEX, { replace: true });
 			}, 100);
@@ -53,7 +51,6 @@ export function AdminLoginPage() {
 		}
 	};
 
-	// 개발 편의를 위한 auto-fill (프로덕션에서는 제거)
 	useEffect(() => {
 		if (process.env.NODE_ENV === 'development') {
 			setFormData({
@@ -66,16 +63,13 @@ export function AdminLoginPage() {
 	return (
 		<div className="min-h-screen bg-white flex items-center justify-center p-4">
 			<div className="max-w-md w-full">
-				{/* 로고/제목 */}
 				<div className="text-center mb-8">
 					<h1 className="text-3xl font-bold text-black mb-2">🔐 관리자 로그인</h1>
 					<p className="text-gray-600">픽키드 관리자 페이지</p>
 				</div>
 
-				{/* 로그인 폼 */}
 				<div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-8">
 					<form onSubmit={handleSubmit} className="space-y-6">
-						{/* 이메일 입력 */}
 						<div>
 							<label className="block text-sm font-medium text-black mb-2">이메일</label>
 							<div className="relative">
@@ -92,7 +86,6 @@ export function AdminLoginPage() {
 							</div>
 						</div>
 
-						{/* 비밀번호 입력 */}
 						<div>
 							<label className="block text-sm font-medium text-black mb-2">비밀번호</label>
 							<div className="relative">
@@ -116,7 +109,6 @@ export function AdminLoginPage() {
 							</div>
 						</div>
 
-						{/* 에러 메시지 */}
 						{error && (
 							<div className="flex items-center gap-2 p-3 bg-gray-100 border border-gray-300 rounded-lg text-black">
 								<AlertCircle className="w-4 h-4" />
@@ -124,7 +116,6 @@ export function AdminLoginPage() {
 							</div>
 						)}
 
-						{/* 로그인 버튼 */}
 						<button
 							type="submit"
 							disabled={isSubmitting}

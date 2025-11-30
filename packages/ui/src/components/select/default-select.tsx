@@ -77,10 +77,12 @@ export const DefaultSelect = ({
 				<SelectContent
 					position="popper"
 					sideOffset={5}
-					className="z-50 w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)]"
+					className={cn(
+						'z-50 w-[var(--radix-select-trigger-width)] min-w-[var(--radix-select-trigger-width)] max-w-[var(--radix-select-trigger-width)] overflow-hidden rounded-md border bg-white text-gray-900 shadow-md'
+					)}
 				>
 					{options.map((option) => (
-						<SelectItem key={option.value} value={option.value} disabled={option.disabled}>
+						<SelectItem key={option.value} value={option.value} disabled={option.disabled} className="cursor-pointer">
 							{option.label}
 						</SelectItem>
 					))}

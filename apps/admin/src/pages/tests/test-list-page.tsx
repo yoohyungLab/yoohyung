@@ -78,9 +78,12 @@ export function TestListPage() {
 			header: '상태',
 			cell: ({ row }) => {
 				const status = row.original.status || 'draft';
-					const statusConfig = getStatusConfig('test', status);
+				const statusConfig = getStatusConfig('test', status);
 				return (
-					<Badge variant="outline" className="whitespace-nowrap">
+					<Badge
+						variant={statusConfig.variant as 'success' | 'outline' | 'info' | 'destructive' | 'default'}
+						className="whitespace-nowrap"
+					>
 						{statusConfig.text}
 					</Badge>
 				);
@@ -120,7 +123,6 @@ export function TestListPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 통계 카드 */}
 			<StatsCards
 				stats={[
 					{ id: 'total', label: '전체 테스트', value: stats?.total || 0 },
@@ -136,7 +138,6 @@ export function TestListPage() {
 				columns={5}
 			/>
 
-			{/* 검색 및 필터 */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -158,7 +159,6 @@ export function TestListPage() {
 				}}
 			/>
 
-			{/* 대량 작업 */}
 			<BulkActions
 				selectedCount={selectedTests.length}
 				actions={[
@@ -182,7 +182,6 @@ export function TestListPage() {
 				onClear={() => setSelectedTests([])}
 			/>
 
-			{/* 테스트 목록 */}
 			<DataState loading={loading} data={tests}>
 				<DataTable
 					data={tests}
@@ -197,7 +196,6 @@ export function TestListPage() {
 				/>
 			</DataState>
 
-			{/* 페이지네이션 */}
 			<DefaultPagination
 				currentPage={pagination.currentPage}
 				totalPages={pagination.totalPages}
@@ -205,7 +203,6 @@ export function TestListPage() {
 				className="mt-6"
 			/>
 
-			{/* 테스트 상세 모달 */}
 			{modalTest && (
 				<TestDetailModal
 					test={modalTest}
@@ -213,7 +210,6 @@ export function TestListPage() {
 					onTogglePublish={async (testId: string, currentStatus: boolean) => {
 						const newStatus = currentStatus ? 'draft' : 'published';
 						await handleTogglePublish(testId, newStatus);
-						// 모달에 표시된 테스트 정보도 업데이트
 						const updatedTest = tests.find((t) => t.id === testId);
 						if (updatedTest) {
 							setModalTest({

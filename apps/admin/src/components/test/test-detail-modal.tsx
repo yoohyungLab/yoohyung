@@ -39,13 +39,11 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 	const typeInfo = getTestTypeInfo(test.type || 'psychology');
 	const statusInfo = getTestStatusInfo(test.status || 'draft');
 
-	// 통계 계산
 	const stats = useMemo(
 		() => calculateTestStats(testDetails?.questions || [], testDetails?.results || []),
 		[testDetails?.questions, testDetails?.results]
 	);
 
-	// 카테고리 정보 가져오기
 	const categoryNames = useMemo(
 		() =>
 			getCategoryNames(
@@ -81,17 +79,14 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 	};
 
 	const handleDuplicate = () => {
-		// 복제 로직 구현
 	};
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
 			<div className="bg-white rounded-xl max-w-7xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
-				{/* 헤더 */}
 				<div className="p-6 border-b border-neutral-200 bg-white">
 					<div className="flex items-start justify-between mb-4">
 						<div className="flex items-start gap-4 flex-1">
-							{/* 썸네일 */}
 							<div className="w-20 h-20 rounded-xl overflow-hidden bg-neutral-600 flex items-center justify-center flex-shrink-0 shadow-sm">
 								{test.thumbnail_url ? (
 									<img src={test.thumbnail_url} alt={test.title} className="w-full h-full object-cover" />
@@ -100,7 +95,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								)}
 							</div>
 
-							{/* 제목 및 정보 */}
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-2">
 									<h2 className="text-2xl font-bold text-neutral-900 truncate">{test.title}</h2>
@@ -141,7 +135,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 							</div>
 						</div>
 
-						{/* 닫기 버튼 */}
 						<IconButton
 							icon={<X className="h-4 w-4" />}
 							variant="ghost"
@@ -152,7 +145,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 						/>
 					</div>
 
-					{/* 빠른 통계 */}
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2">
@@ -184,7 +176,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 						</div>
 					</div>
 
-					{/* 탭 네비게이션 */}
 					<div className="flex gap-1 mt-6 bg-neutral-50 rounded-lg p-1">
 						{tabs.map((tab) => {
 							const Icon = tab.icon;
@@ -206,12 +197,10 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 					</div>
 				</div>
 
-				{/* 콘텐츠 */}
 				<div className="flex-1 overflow-y-auto bg-white">
 					{activeTab === 'basic' && (
 						<div className="p-6">
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								{/* 기본 정보 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -261,7 +250,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									</AdminCardContent>
 								</AdminCard>
 
-								{/* 설정 정보 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -321,7 +309,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 
 					{activeTab === 'questions' && (
 						<div className="p-6">
-							{/* 질문 개요 */}
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 								<AdminCard variant="info" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
@@ -351,7 +338,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								</AdminCard>
 							</div>
 
-							{/* 질문 목록 */}
 							<AdminCard variant="modal" padding="sm" className="mt-6">
 								<AdminCardHeader
 									variant="modal"
@@ -421,7 +407,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 
 					{activeTab === 'results' && (
 						<div className="p-6">
-							{/* 결과 개요 */}
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
 								<AdminCard variant="info" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
@@ -454,7 +439,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								</AdminCard>
 							</div>
 
-							{/* 결과 목록 */}
 							<AdminCard variant="modal" padding="sm" className="mt-6">
 								<AdminCardHeader
 									variant="modal"
@@ -537,7 +521,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 					{activeTab === 'stats' && (
 						<div className="p-6">
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-								{/* 참여 통계 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -576,7 +559,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									</AdminCardContent>
 								</AdminCard>
 
-								{/* 콘텐츠 통계 */}
 								<AdminCard variant="modal" padding="sm">
 									<AdminCardHeader
 										variant="modal"
@@ -641,7 +623,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								<AdminCardContent>
 									<div className="bg-neutral-50 rounded-lg p-8">
 										<div className="max-w-md mx-auto">
-											{/* 시작 화면 */}
 											{previewQuestionIndex === -1 && (
 												<div className="text-center">
 													<div className="w-20 h-20 mx-auto bg-neutral-600 rounded-2xl flex items-center justify-center text-3xl font-bold text-white shadow-sm">
@@ -672,12 +653,10 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 												</div>
 											)}
 
-											{/* 질문이 없을 때 */}
 											{previewQuestionIndex >= 0 && (!testDetails?.questions || testDetails.questions.length === 0) && (
 												<div className="text-center py-8 text-neutral-500">질문 데이터가 없습니다.</div>
 											)}
 
-											{/* 질문 화면 */}
 											{previewQuestionIndex >= 0 && previewQuestionIndex < (testDetails?.questions?.length || 0) && (
 												<div>
 													<div className="text-center">
@@ -704,7 +683,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																		if (previewQuestionIndex < (testDetails?.questions?.length || 0) - 1) {
 																			setPreviewQuestionIndex(previewQuestionIndex + 1);
 																		} else {
-																			setPreviewQuestionIndex(999); // 결과 화면으로
+																			setPreviewQuestionIndex(999);
 																		}
 																	}}
 																	className={`w-full p-4 text-left border border-neutral-200 rounded-lg hover:bg-neutral-50 transition-colors ${
@@ -724,7 +703,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 												</div>
 											)}
 
-											{/* 결과 화면 */}
 											{previewQuestionIndex >= 999 && (
 												<div className="text-center">
 													<div className="text-6xl mb-4">🎉</div>
@@ -761,7 +739,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 					)}
 				</div>
 
-				{/* 하단 액션 버튼 */}
 				<div className="p-6 border-t border-neutral-200 bg-white">
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
@@ -795,7 +772,6 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 							<IconButton
 								size="sm"
 								onClick={() => {
-									// 수정 페이지로 이동하는 로직
 									window.location.href = `/tests/${test.id}/edit`;
 								}}
 								icon={<Edit className="w-4 h-4" />}

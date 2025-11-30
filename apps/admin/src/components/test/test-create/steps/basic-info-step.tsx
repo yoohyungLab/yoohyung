@@ -62,7 +62,6 @@ export const BasicInfoStep = () => {
 	return (
 		<div className="space-y-8">
 			<div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-				{/* 왼쪽: 기본 정보 */}
 				<div className="space-y-6">
 					<DefaultInput
 						label="테스트 제목"
@@ -138,7 +137,6 @@ export const BasicInfoStep = () => {
 					</div>
 				</div>
 
-				{/* 오른쪽: 비주얼 설정 */}
 				<div className="space-y-6">
 					<ThumbnailUpload
 						thumbnailUrl={testData.thumbnail_url || ''}
@@ -175,7 +173,6 @@ export const BasicInfoStep = () => {
 					</div>
 				</div>
 
-				{/* 성별 필드 설정 */}
 				<div className="space-y-4">
 					<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
 						<div>
@@ -187,7 +184,6 @@ export const BasicInfoStep = () => {
 					</div>
 				</div>
 
-				{/* 발행 설정 */}
 				<div className="space-y-4">
 					<div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
 						<div className="text-base font-medium">즉시발행</div>

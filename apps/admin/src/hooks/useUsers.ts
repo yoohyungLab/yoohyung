@@ -66,14 +66,6 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		},
 	});
 
-	const syncUserMutation = useMutation({
-		mutationFn: () => userService.syncAuthUsersToPublic(),
-		onSuccess: () => {
-			queryClient.invalidateQueries({ queryKey: queryKeys.users.all });
-			toast.success('사용자 동기화가 완료되었습니다.');
-		},
-	});
-
 	const updateFilters = useCallback((newFilters: Partial<IUserFilters>) => {
 		setFilters((prev) => ({ ...prev, ...newFilters }));
 	}, []);
@@ -98,7 +90,5 @@ export const useUsers = (initialFilters: IUserFilters = {}) => {
 		updateUser: updateUserMutation.mutateAsync,
 		bulkUpdateUser: bulkUpdateUserMutation.mutateAsync,
 		deleteUser: deleteUserMutation.mutateAsync,
-		syncUser: syncUserMutation.mutateAsync,
 	};
 };
-

@@ -79,11 +79,9 @@ export const analyticsService = {
 				created_at: string;
 			}>) || [];
 
-		// 각 테스트의 평균 소요시간 계산
 		const testsWithAvgTime = await Promise.all(
 			tests.map(async (test) => {
 				try {
-					// 해당 테스트의 완료된 응답들의 소요시간 조회
 					const { data: responses, error: responseError } = await supabase
 						.from('user_test_responses')
 						.select('completion_time_seconds')
@@ -117,7 +115,6 @@ export const analyticsService = {
 	},
 
 	async getDashboardOverviewStats(): Promise<DashboardOverviewStats> {
-		// 테스트 통계 조회
 		const { data: tests, error: testsError } = await supabase.from('tests').select('id, status');
 
 		if (testsError) {
@@ -135,13 +132,11 @@ export const analyticsService = {
 		const testData = tests || [];
 		const responseData = responses || [];
 
-		// 테스트 상태별 카운트
 		const total = testData.length;
 		const published = testData.filter((t: { id: string; status: string | null }) => t.status === 'published').length;
 		const draft = testData.filter((t: { id: string; status: string | null }) => t.status === 'draft').length;
 		const scheduled = testData.filter((t: { id: string; status: string | null }) => t.status === 'scheduled').length;
 
-		// 응답 통계
 		const totalResponses = responseData.length;
 		const totalCompletions = responseData.filter((r: { completed_at: string | null }) => r.completed_at).length;
 		const completionRate = totalResponses > 0 ? (totalCompletions / totalResponses) * 100 : 0;
@@ -164,14 +159,13 @@ export const analyticsService = {
 			totalCompletions,
 			completionRate: Math.round(completionRate * 10) / 10,
 			avgCompletionTime: Math.round(avgCompletionTime),
-			anomalies: 0, // 이상 패턴 감지는 별도 구현 필요
+			anomalies: 0,
 		};
 
 		return result;
 	},
 
 	async getTestBasicStats(testId: string): Promise<AdminGetTestBasicStatsReturn> {
-		// 응답 데이터 조회
 		const { data: responses, error: responsesError } = await supabase
 			.from('user_test_responses')
 			.select('id, completed_at, total_score, completion_time_seconds, device_type')
@@ -200,7 +194,6 @@ export const analyticsService = {
 				  responseData.length
 				: 0;
 
-		// 디바이스별 통계
 		const deviceBreakdown = {
 			mobile: responseData.filter((r) => r.device_type === 'mobile').length,
 			desktop: responseData.filter((r) => r.device_type === 'desktop').length,
@@ -222,7 +215,6 @@ export const analyticsService = {
 		const startDate = new Date();
 		startDate.setDate(endDate.getDate() - days);
 
-		// 테스트 기본 정보 조회
 		const { data: testData, error: testError } = await supabase
 			.from('tests')
 			.select('id, title, description, created_at, response_count, start_count')
@@ -263,9 +255,9 @@ export const analyticsService = {
 			completionRate: Math.round(completionRate * 100) / 100,
 			avgScore: Math.round(avgScore * 100) / 100,
 			avgTime: Math.round(avgTime),
-			dailyData: [], // 일별 데이터는 별도 구현 필요
+			dailyData: [],
 			scoreDistribution: [],
-			popular_results: [], // 임시로 빈 배열 반환
+			popular_results: [],
 		};
 	},
 
@@ -280,7 +272,6 @@ export const analyticsService = {
 			order: number;
 		}>
 	> {
-		// 테스트 질문들 조회
 		const { data: questions, error: questionsError } = await supabase
 			.from('test_questions')
 			.select('id, question_text, question_order')
@@ -309,7 +300,6 @@ export const analyticsService = {
 				completion_time_seconds: number | null;
 			}>) || [];
 
-		// 각 질문별 퍼널 데이터 계산
 		const funnelData = questionList.map(
 			(question: { id: string; question_text: string; question_order: number }, index: number) => {
 				let reached = 0;
@@ -320,10 +310,8 @@ export const analyticsService = {
 					if (response.responses) {
 						try {
 							const responses = response.responses as Array<{ choice_id?: string; answer?: string }>;
-							// 해당 질문까지 도달한 응답 수
 							if (responses.length > index) {
 								reached++;
-								// 해당 질문을 완료한 응답 수 (다음 질문으로 넘어간 경우)
 								if (responses.length > index + 1 || response.completed_at) {
 									completed++;
 									if (response.completion_time_seconds) {
@@ -332,7 +320,6 @@ export const analyticsService = {
 								}
 							}
 						} catch (error) {
-							// ignore parse error
 						}
 					}
 				});

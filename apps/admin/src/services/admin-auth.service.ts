@@ -4,13 +4,7 @@ import type { AdminUser } from '@pickid/supabase';
 const TOKEN_KEY = 'admin_token';
 const USER_KEY = 'admin_user';
 
-/**
- * Admin Auth Service - RPC 함수만 사용 (간단)
- */
 export const adminAuthService = {
-	/**
-	 * 로그인 - RPC로 세션 토큰 생성
-	 */
 	async login(email: string, password: string): Promise<AdminUser> {
 		const { data, error } = await supabase.rpc('admin_login', {
 			p_email: email,
@@ -25,16 +19,12 @@ export const adminAuthService = {
 			throw new Error('로그인에 실패했습니다.');
 		}
 
-		// 세션에 저장
 		sessionStorage.setItem(TOKEN_KEY, data.token);
 		sessionStorage.setItem(USER_KEY, JSON.stringify(data.user));
 
 		return data.user as AdminUser;
 	},
 
-	/**
-	 * 세션 확인 - RPC로 토큰 검증
-	 */
 	async getCurrentAdmin(): Promise<AdminUser | null> {
 		const token = sessionStorage.getItem(TOKEN_KEY);
 		if (!token) return null;
@@ -57,9 +47,6 @@ export const adminAuthService = {
 		}
 	},
 
-	/**
-	 * 로그아웃 - RPC로 세션 삭제
-	 */
 	async logout() {
 		const token = sessionStorage.getItem(TOKEN_KEY);
 
@@ -67,7 +54,6 @@ export const adminAuthService = {
 			try {
 				await supabase.rpc('admin_logout', { p_token: token });
 			} catch {
-				// 무시
 			}
 		}
 

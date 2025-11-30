@@ -42,13 +42,11 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 		setError(null);
 
 		try {
-			// 새로운 순서로 sort_order 업데이트
 			const updates = sortedCategories.map((category, index) => ({
 				id: category.id,
 				sort_order: index,
 			}));
 
-			// 병렬로 모든 카테고리 순서 업데이트
 			await Promise.all(updates.map(({ id, sort_order }) => categoryService.updateCategory(id, { sort_order })));
 
 			onSuccess();
@@ -66,7 +64,6 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 			<div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden shadow-2xl">
-				{/* Header */}
 				<div className="p-6 border-b border-neutral-200 flex items-center justify-between">
 					<h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-900">
 						<ArrowUpDown className="h-5 w-5" />
@@ -77,7 +74,6 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 					</Button>
 				</div>
 
-				{/* Content */}
 				<div className="p-6">
 					{error && (
 						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm mb-4">
@@ -87,7 +83,6 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 
 					<div className="mb-4 text-sm text-neutral-600">드래그하여 순서를 변경하세요. 위에 있을수록 먼저 표시됩니다.</div>
 
-					{/* 카테고리 목록 */}
 					<div className="space-y-2 max-h-[400px] overflow-y-auto">
 						{sortedCategories.map((category, index) => (
 							<div
@@ -104,7 +99,6 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 								<div className="flex items-center gap-2">
 									<span className="text-xs bg-neutral-100 text-neutral-800 px-2 py-1 rounded">순서: {index}</span>
 
-									{/* 위/아래 이동 버튼 */}
 									<div className="flex flex-col gap-1">
 										<Button
 											variant="outline"
@@ -130,7 +124,6 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 						))}
 					</div>
 
-					{/* 버튼 */}
 					<div className="flex justify-end space-x-2 pt-4 mt-6 border-t border-neutral-200">
 						<Button type="button" variant="outline" onClick={handleClose} disabled={loading} text="취소" />
 						<Button onClick={handleSave} loading={loading} loadingText="저장 중..." text="순서 저장" />

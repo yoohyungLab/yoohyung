@@ -115,7 +115,6 @@ export const QuestionStep = () => {
 										onValueChange={(value) =>
 											handleUpdateQuestion(questionIndex, {
 												question_type: value,
-												// 타입 변경 시 관련 필드 초기화
 												...(value === 'short_answer'
 													? { correct_answers: [], choices: [] }
 													: { correct_answers: null }),
@@ -164,7 +163,6 @@ export const QuestionStep = () => {
 								desc="질문과 관련된 이미지를 추가하세요 (선택사항)"
 							/>
 
-							{/* 주관식일 때: 정답 입력 UI */}
 							{selectedType === 'quiz' && question.question_type === 'short_answer' ? (
 								<div>
 									<Label className="text-sm font-medium mb-2">
@@ -222,7 +220,6 @@ export const QuestionStep = () => {
 									</div>
 								</div>
 							) : (
-								/* 객관식일 때: 기존 선택지 UI */
 								<div>
 									<div className="flex items-center justify-between mb-4">
 										<Label className="text-sm font-medium">
@@ -264,7 +261,7 @@ export const QuestionStep = () => {
 															onCheckedChange={(checked) =>
 																handleUpdateChoice(questionIndex, choiceIndex, {
 																	is_correct: checked,
-																	score: null, // 퀴즈는 점수 사용 안 함, null로 설정
+																	score: null,
 																})
 															}
 														/>

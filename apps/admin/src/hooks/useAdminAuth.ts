@@ -6,7 +6,6 @@ export function useAdminAuth() {
 	const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 	const [loading, setLoading] = useState(true);
 
-	// 페이지 로드 시 세션 확인
 	useEffect(() => {
 		checkAuth();
 	}, []);

@@ -9,26 +9,22 @@ export function AdminLayout() {
 	const navigate = useNavigate();
 	const { adminUser, loading, logout } = useAdminAuth();
 
-	// 사이드바 상태 관리 (localStorage 기반)
 	const [sidebarCollapsed, setSidebarCollapsed] = useState<boolean>(() => {
 		const saved = localStorage.getItem('admin.sidebarCollapsed');
 		if (saved !== null) return saved === '1';
 		return window.matchMedia('(max-width: 1024px)').matches;
 	});
 
-	// 사이드바 상태 변경시 localStorage 저장
 	useEffect(() => {
 		localStorage.setItem('admin.sidebarCollapsed', sidebarCollapsed ? '1' : '0');
 	}, [sidebarCollapsed]);
 
-	// 인증 체크 및 리다이렉트 (로딩 완료 후에만 체크)
 	useEffect(() => {
 		if (!loading && !adminUser) {
 			navigate(PATH.AUTH, { replace: true });
 		}
 	}, [loading, adminUser, navigate]);
 
-	// 로딩 중이거나 인증되지 않은 상태
 	if (loading || !adminUser) {
 		return (
 			<div className="flex items-center justify-center h-screen">
@@ -43,15 +39,11 @@ export function AdminLayout() {
 
 	return (
 		<div className="flex h-screen bg-white">
-			{/* 사이드바 */}
 			<AdminSidebar sidebarCollapsed={sidebarCollapsed} onToggleSidebar={handleToggleSidebar} />
 
-			{/* 메인 콘텐츠 영역 */}
 			<div className="flex-1 flex flex-col overflow-hidden">
-				{/* 헤더 */}
 				<AdminHeader user={adminUser} onLogout={logout} />
 
-				{/* 페이지 콘텐츠 */}
 				<main className="flex-1 overflow-auto bg-white">
 					<Outlet />
 				</main>

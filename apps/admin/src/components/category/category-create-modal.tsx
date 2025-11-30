@@ -24,32 +24,30 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		sort_order: 0,
 		status: 'active' as 'active' | 'inactive',
 	});
-	const [autoSlug, setAutoSlug] = useState(true); // slug 자동 생성 여부
+	const [autoSlug, setAutoSlug] = useState(true);
 
 	const handleChange = (field: string, value: string | number | boolean) => {
 		setFormData((prev) => ({ ...prev, [field]: value }));
 		if (error) setError(null);
 
-		// name이 변경되고 autoSlug가 true일 때 slug 자동 생성
 		if (field === 'name' && autoSlug && typeof value === 'string') {
 			const generatedSlug = value
 				.toLowerCase()
-				.replace(/[^a-z0-9가-힣\s-]/g, '') // 특수문자 제거
-				.replace(/\s+/g, '-') // 공백을 하이픈으로
-				.replace(/-+/g, '-') // 연속된 하이픈을 하나로
-				.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+				.replace(/[^a-z0-9가-힣\s-]/g, '')
+				.replace(/\s+/g, '-')
+				.replace(/-+/g, '-')
+				.replace(/^-|-$/g, '');
 			setFormData((prev) => ({ ...prev, slug: generatedSlug }));
 		}
 	};
 
-	// slug를 수동으로 수정하면 자동 생성 비활성화
 	const handleSlugChange = (value: string) => {
 		setAutoSlug(false);
 		const cleanSlug = value
 			.toLowerCase()
-			.replace(/[^a-z0-9-]/g, '') // 영문, 숫자, 하이픈만 허용
-			.replace(/-+/g, '-') // 연속된 하이픈을 하나로
-			.replace(/^-|-$/g, ''); // 앞뒤 하이픈 제거
+			.replace(/[^a-z0-9-]/g, '')
+			.replace(/-+/g, '-')
+			.replace(/^-|-$/g, '');
 		setFormData((prev) => ({ ...prev, slug: cleanSlug }));
 	};
 
@@ -59,7 +57,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 		setError(null);
 	};
 
-	// 편집 모드일 때 폼 데이터 설정
 	useEffect(() => {
 		if (editCategory) {
 			setFormData({
@@ -68,7 +65,7 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 				sort_order: editCategory.sort_order || 0,
 				status: editCategory.status,
 			});
-			setAutoSlug(false); // 편집 모드에서는 자동 생성 비활성화
+			setAutoSlug(false);
 		} else {
 			resetForm();
 		}
@@ -94,7 +91,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 			return;
 		}
 
-		// slug 유효성 검사: 영문 소문자, 숫자, 하이픈만 허용
 		const slugRegex = /^[a-z0-9-]+$/;
 		if (!slugRegex.test(formData.slug)) {
 			setError('Slug는 영문 소문자, 숫자, 하이픈(-)만 사용 가능합니다.');
@@ -128,7 +124,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
 			<div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
-				{/* Header */}
 				<div className="p-6 border-b border-neutral-200 flex items-center justify-between">
 					<h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-900">
 						{editCategory ? (
@@ -147,13 +142,11 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 					</Button>
 				</div>
 
-				{/* Form */}
 				<form onSubmit={handleSubmit} className="p-6 space-y-4">
 					{error && (
 						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm">{error}</div>
 					)}
 
-					{/* 카테고리명 */}
 					<DefaultInput
 						label="카테고리명"
 						required
@@ -164,7 +157,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						className="w-full"
 					/>
 
-					{/* Slug */}
 					<div>
 						<DefaultInput
 							label="URL Slug"
@@ -180,7 +172,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						</p>
 					</div>
 
-					{/* 순서 */}
 					<DefaultInput
 						label="정렬 순서"
 						type="number"
@@ -193,7 +184,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 					/>
 					<p className="text-xs text-neutral-500">낮은 숫자일수록 먼저 표시됩니다.</p>
 
-					{/* 활성화 여부 */}
 					<div className="flex items-center space-x-2">
 						<input
 							type="checkbox"
@@ -205,7 +195,6 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						<label className="text-sm font-medium text-neutral-700">생성 후 즉시 활성화</label>
 					</div>
 
-					{/* 버튼 */}
 					<div className="flex justify-end space-x-2 pt-4">
 						<Button type="button" variant="outline" onClick={handleClose} disabled={loading} text="취소" />
 						<Button type="submit" loading={loading} loadingText="생성 중..." text="카테고리 생성" />

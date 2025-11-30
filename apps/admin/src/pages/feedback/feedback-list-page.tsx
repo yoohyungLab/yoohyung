@@ -18,7 +18,6 @@ import { getStatusConfig } from '@/utils/utils';
 export function FeedbackListPage() {
 	const renderers = useColumnRenderers();
 
-	// 커스텀 훅 사용
 	const {
 		feedbacks,
 		loading,
@@ -40,7 +39,6 @@ export function FeedbackListPage() {
 		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
 	});
 
-	// 대량 상태 변경
 	const handleBulkStatusChange = useCallback(
 		async (status: Feedback['status']) => {
 			if (selectedFeedbacks.length === 0) return;
@@ -50,7 +48,6 @@ export function FeedbackListPage() {
 		[selectedFeedbacks, bulkUpdateStatus]
 	);
 
-	// 답변 추가 핸들러
 	const handleAddReply = useCallback(
 		async (reply: string) => {
 			if (!showReplyModal || !reply.trim()) return;
@@ -157,7 +154,6 @@ export function FeedbackListPage() {
 
 	return (
 		<div className="space-y-6 p-6">
-			{/* 간단한 통계 */}
 			<StatsCards
 				stats={[
 					{ id: 'total', label: '전체', value: stats.total },
@@ -170,7 +166,6 @@ export function FeedbackListPage() {
 				columns={6}
 			/>
 
-			{/* Search & Filters */}
 			<FilterBar
 				filters={{
 					search: true,
@@ -189,7 +184,6 @@ export function FeedbackListPage() {
 				onFilterChange={updateFilters}
 			/>
 
-			{/* Bulk Actions */}
 			<BulkActions
 				selectedCount={selectedFeedbacks.length}
 				actions={[
@@ -213,7 +207,6 @@ export function FeedbackListPage() {
 				onClear={() => setSelectedFeedbacks([])}
 			/>
 
-			{/* Feedback List */}
 			<DataState loading={loading} data={feedbacks}>
 				<DataTable
 					data={feedbacks}
@@ -228,7 +221,6 @@ export function FeedbackListPage() {
 				/>
 			</DataState>
 
-			{/* Pagination */}
 			<DefaultPagination
 				currentPage={pagination.currentPage}
 				totalPages={pagination.totalPages}
@@ -236,7 +228,6 @@ export function FeedbackListPage() {
 				className="mt-6"
 			/>
 
-			{/* 피드백 상세 모달 */}
 			{modalFeedback && (
 				<FeedbackDetailModal
 					feedback={modalFeedback}
@@ -248,7 +239,6 @@ export function FeedbackListPage() {
 				/>
 			)}
 
-			{/* 답변 모달 */}
 			<FeedbackReplyModal isOpen={!!showReplyModal} onClose={() => setShowReplyModal(null)} onSubmit={handleAddReply} />
 		</div>
 	);

@@ -1,10 +1,3 @@
-/**
- * @file messages.ts
- * @description 공통 메시지 및 에러 핸들링
- * 반복되는 메시지만 상수화하고, 컨텍스트별 메시지는 인라인으로 작성
- */
-
-// ===== 공통 메시지 (반복 사용) =====
 export const COMMON_MESSAGES = {
 	SUCCESS: '성공했습니다',
 	FAILED: '실패했습니다',
@@ -21,7 +14,6 @@ export const COMMON_MESSAGES = {
 	NO_RESULTS: '검색 결과가 없습니다',
 } as const;
 
-// ===== 인증 관련 =====
 export const AUTH_MESSAGES = {
 	LOGIN_FAILED: '로그인에 실패했습니다',
 	LOGIN_ERROR: '로그인 중 오류가 발생했습니다',
@@ -34,11 +26,6 @@ export const AUTH_MESSAGES = {
 	BUTTON_LOGGING_IN: '로그인 중...',
 } as const;
 
-// ===== 에러 메시지 매핑 =====
-
-/**
- * Supabase Auth 에러를 사용자 친화적인 메시지로 변환
- */
 export function mapAuthError(error: unknown): string {
 	const errorMap: Record<string, string> = {
 		'Invalid login credentials': '이메일 또는 비밀번호가 올바르지 않습니다.',
@@ -57,9 +44,6 @@ export function mapAuthError(error: unknown): string {
 	return mapError(error, errorMap, AUTH_MESSAGES.LOGIN_ERROR);
 }
 
-/**
- * 일반적인 API 에러를 사용자 친화적인 메시지로 변환
- */
 export function mapApiError(error: unknown): string {
 	const errorMap: Record<string, string> = {
 		'Network Error': '네트워크 연결을 확인해주세요.',
@@ -73,20 +57,15 @@ export function mapApiError(error: unknown): string {
 	return mapError(error, errorMap, COMMON_MESSAGES.ERROR);
 }
 
-/**
- * 에러를 에러 맵과 기본 메시지를 사용하여 사용자 친화적인 메시지로 변환하는 공통 함수
- */
 function mapError(error: unknown, errorMap: Record<string, string>, defaultMessage: string): string {
 	if (!error) return COMMON_MESSAGES.UNKNOWN_ERROR;
 
 	const errorMessage = typeof error === 'string' ? error : String(error);
 
-	// 정확한 매칭
 	if (errorMap[errorMessage]) {
 		return errorMap[errorMessage];
 	}
 
-	// 부분 매칭
 	for (const [key, value] of Object.entries(errorMap)) {
 		if (errorMessage.includes(key)) {
 			return value;

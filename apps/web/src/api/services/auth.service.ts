@@ -88,21 +88,4 @@ export const authService = {
 		} = supabase.auth.onAuthStateChange(callback);
 		return subscription;
 	},
-
-	async syncUserToPublic(user: User) {
-		const { error } = await supabase.from('users').upsert({
-			id: user.id,
-			email: user.email,
-			name: user.user_metadata?.name || user.email?.split('@')[0] || 'Unknown',
-			provider: user.app_metadata?.provider || 'email',
-			status: 'active',
-			avatar_url: user.user_metadata?.avatar_url || null,
-			created_at: user.created_at,
-			updated_at: new Date().toISOString(),
-		});
-
-		if (error) {
-			throw new Error(`사용자 동기화 실패: ${error.message}`);
-		}
-	},
 };

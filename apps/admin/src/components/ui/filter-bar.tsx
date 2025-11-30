@@ -44,12 +44,10 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 
 	return (
 		<div className={cn('space-y-4', className)}>
-			{/* Filters Card */}
 			<div className="bg-white rounded-xl shadow-sm border border-neutral-200">
 				<div className="p-4">
 					<div className="flex gap-3 items-center justify-between">
 						<div className="flex gap-3 items-center flex-1">
-							{/* Search Filter */}
 							{filters?.search && (
 								<div className="relative flex-1 max-w-sm">
 									<SearchInput
@@ -65,7 +63,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 								</div>
 							)}
 
-							{/* Status Filter */}
 							{filters?.status && (
 								<DefaultSelect
 									value={values.status || 'all'}
@@ -75,7 +72,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 								/>
 							)}
 
-							{/* Provider Filter */}
 							{filters?.provider && (
 								<DefaultSelect
 									value={values.provider || 'all'}
@@ -85,7 +81,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 								/>
 							)}
 
-							{/* Category Filter */}
 							{filters?.category && (
 								<DefaultSelect
 									value={values.category || 'all'}
@@ -95,7 +90,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 								/>
 							)}
 
-							{/* Date Filter */}
 							{filters?.date && (
 								<input
 									type="date"
@@ -106,7 +100,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 								/>
 							)}
 
-							{/* Clear Filters */}
 							{hasActiveFilters && (
 								<Button
 									variant="ghost"
@@ -120,7 +113,6 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 							)}
 						</div>
 
-						{/* Actions */}
 						{actions && <div className="flex items-center gap-2">{actions}</div>}
 					</div>
 				</div>

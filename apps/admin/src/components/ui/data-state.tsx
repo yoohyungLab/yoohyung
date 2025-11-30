@@ -9,7 +9,6 @@ interface DataStateProps {
 	data: unknown[];
 	onRetry?: () => void;
 	children: React.ReactNode;
-	// 커스터마이징 옵션들
 	loadingMessage?: string;
 	errorTitle?: string;
 	errorMessage?: string;
@@ -33,21 +32,17 @@ export function DataState({
 	emptyIcon = '📭',
 	emptyAction,
 }: DataStateProps) {
-	// 로딩 상태
 	if (loading && data.length === 0) {
 		return <LoadingState message={loadingMessage} />;
 	}
 
-	// 에러 상태
 	if (error) {
 		return <ErrorState title={errorTitle} message={errorMessage || error} onRetry={onRetry} />;
 	}
 
-	// 데이터가 없는 상태
 	if (data.length === 0) {
 		return <EmptyState title={emptyTitle} message={emptyMessage} icon={emptyIcon} action={emptyAction} />;
 	}
 
-	// 정상 상태 - children 렌더링
 	return <>{children}</>;
 }

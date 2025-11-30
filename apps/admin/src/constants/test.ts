@@ -1,4 +1,3 @@
-// 테스트 생성 기본값
 
 export const DEFAULT_BASIC_INFO = {
 	title: '',
@@ -8,7 +7,7 @@ export const DEFAULT_BASIC_INFO = {
 	category_ids: [],
 	short_code: '',
 	intro_text: '',
-	status: 'published' as const, // 기본값을 published로 변경
+	status: 'published' as const,
 	estimated_time: 5,
 	scheduled_at: null,
 	max_score: 100,
@@ -58,10 +57,8 @@ export const DEFAULT_RESULT = {
 	target_gender: null,
 };
 
-// 테스트 타입 값 상수
 
 
-// 테스트 유형 정의
 export const TEST_TYPES = [
 	{
 		id: 'psychology',
@@ -109,7 +106,6 @@ export const TEST_TYPES = [
 
 
 
-// 단계 정의
 
 export const TEST_CREATION_STEPS = [
 	{ id: 1, title: '유형 선택', description: '테스트 유형을 선택하세요' },
@@ -119,7 +115,6 @@ export const TEST_CREATION_STEPS = [
 	{ id: 5, title: '미리보기', description: '테스트를 확인하고 발행하세요' },
 ] as const;
 
-// ===== 테스트 관련 =====
 export const TEST_STATUS_OPTIONS = [
 	{ value: 'draft', label: '초안' },
 	{ value: 'published', label: '게시됨' },
