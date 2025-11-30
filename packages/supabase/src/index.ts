@@ -2,11 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types/database';
 
 // 환경 변수 가져오기 (Next.js 또는 Vite)
-// Vite에서는 vite.config.ts의 define을 통해 process.env로 접근 가능
-// Next.js에서는 process.env 직접 사용
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
-const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_ROLE_KEY;
+// Vite 환경에서는 import.meta.env를, 그 외 환경(Next.js)에서는 process.env를 사용합니다.
+const getEnv = (key: string): string | undefined => {
+	if (typeof import.meta.env !== 'undefined') {
+		return import.meta.env[key];
+	}
+	if (typeof process !== 'undefined') {
+		return process.env[key];
+	}
+	return undefined;
+};
+
+const supabaseUrl = getEnv('NEXT_PUBLIC_SUPABASE_URL') || getEnv('VITE_SUPABASE_URL') || '';
+const supabaseAnonKey = getEnv('NEXT_PUBLIC_SUPABASE_ANON_KEY') || getEnv('VITE_SUPABASE_ANON_KEY') || '';
+const supabaseServiceRoleKey = getEnv('SUPABASE_SERVICE_ROLE_KEY') || getEnv('VITE_SUPABASE_SERVICE_ROLE_KEY');
 
 // 환경 변수 검증
 if (!supabaseUrl || !supabaseAnonKey) {

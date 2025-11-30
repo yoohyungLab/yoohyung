@@ -48,8 +48,9 @@ export function useQuizResult({ testId, enabled = true }: IUseQuizResultParams) 
 
 				if (results?.length) {
 					const matchedResult = results.find((result) => {
-						const minScore = result.match_conditions?.min || 0;
-						const maxScore = result.match_conditions?.max || 100;
+						const matchConditions = result.match_conditions as { min?: number; max?: number } | null;
+						const minScore = matchConditions?.min || 0;
+						const maxScore = matchConditions?.max || 100;
 						return savedResult.score >= minScore && savedResult.score <= maxScore;
 					});
 

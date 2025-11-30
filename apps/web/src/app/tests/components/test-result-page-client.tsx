@@ -29,7 +29,7 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 
 	// 모든 hooks를 최상위에서 호출 (React rules of hooks 준수)
 
-	const balanceGameData = useBalanceGameResult({ testId, enabled: normalizedTestType === 'balance' && !isSharedLink });
+	const balanceGameData = useBalanceGameResult(testId, normalizedTestType === 'balance' && !isSharedLink);
 	const quizData = useQuizResult({ testId, enabled: normalizedTestType === 'quiz' && !isSharedLink });
 	const psychologyData = useTestResult({ testId, enabled: normalizedTestType === 'psychology' && !isSharedLink });
 

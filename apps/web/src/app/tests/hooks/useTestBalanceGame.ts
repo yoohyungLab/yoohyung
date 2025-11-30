@@ -103,7 +103,12 @@ export const useBalanceGame = ({ testId, questions }: UseBalanceGameProps) => {
 		const statsForQuestion = localStats.find((q) => q.questionId === currentQuestion.id);
 		if (!statsForQuestion) return null;
 
-		return calculatePercentages(statsForQuestion.choices);
+		return calculatePercentages(
+			statsForQuestion.choices.map((c) => ({
+				...c,
+				questionId: currentQuestion.id,
+			}))
+		);
 	}, [currentQuestion, localStats]);
 
 	// 7. 테스트 완료 여부

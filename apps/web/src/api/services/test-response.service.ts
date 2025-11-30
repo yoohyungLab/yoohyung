@@ -8,7 +8,9 @@ const USER_RESPONSE_QUERY = `
 
 export const testResponseService = {
 	// 사용자 응답 저장 (세션/사용자 정보 포함)
-	async saveUserResponse(params: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender'>): Promise<UserTestResponse> {
+	async saveUserResponse(
+		params: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender'>
+	): Promise<UserTestResponse> {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
@@ -17,10 +19,11 @@ export const testResponseService = {
 			test_id: params.test_id,
 			result_id: params.result_id,
 			user_id: session?.user?.id || null,
-			session_id: session?.user?.id ? null : crypto.randomUUID(),
+			session_id: crypto.randomUUID(),
 			total_score: params.total_score,
 			gender: params.gender || null,
 			completed_at: new Date().toISOString(),
+			responses: {},
 		};
 
 		const { data, error } = await supabase.from('user_test_responses').insert(insertData).select().single();
@@ -69,7 +72,9 @@ export const testResponseService = {
 	},
 
 	// 테스트 완료 결과 저장 (전체 프로세스)
-	async saveUserTestResponse(result: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender' | 'completed_at'>): Promise<void> {
+	async saveUserTestResponse(
+		result: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender' | 'completed_at'>
+	): Promise<void> {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
@@ -78,10 +83,11 @@ export const testResponseService = {
 			test_id: result.test_id,
 			result_id: result.result_id,
 			user_id: session?.user?.id || null,
-			session_id: session?.user?.id ? null : crypto.randomUUID(),
+			session_id: crypto.randomUUID(),
 			total_score: result.total_score,
 			gender: result.gender || null,
 			completed_at: result.completed_at,
+			responses: {},
 		};
 
 		const { error } = await supabase.from('user_test_responses').insert(insertData);

@@ -43,12 +43,17 @@ function gradeQuizAnswers(questions: IQuizQuestion[], userAnswers: Map<string, s
 		let correctAnswer = '';
 
 		if (question.question_type === 'short_answer') {
-			isCorrect = checkShortAnswer(userAnswer, question.correct_answers || []);
-			correctAnswer = question.correct_answers?.[0] || '';
+			const correctAnswers = Array.isArray(question.correct_answers) 
+				? question.correct_answers 
+				: question.correct_answers 
+					? [question.correct_answers] 
+					: [];
+			isCorrect = checkShortAnswer(userAnswer, correctAnswers);
+			correctAnswer = correctAnswers[0] || '';
 		} else {
-			const selectedChoice = question.choices.find((c) => c.id === userAnswer);
+			const selectedChoice = question.choices?.find((c) => c.id === userAnswer);
 			isCorrect = selectedChoice?.is_correct || false;
-			const correctChoice = question.choices.find((c) => c.is_correct);
+			const correctChoice = question.choices?.find((c) => c.is_correct);
 			correctAnswer = correctChoice?.choice_text || '';
 		}
 

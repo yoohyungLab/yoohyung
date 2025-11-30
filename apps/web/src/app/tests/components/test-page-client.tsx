@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { TestWithNestedDetails, TestQuestion } from '@pickid/supabase';
+import type { TestWithNestedDetails, TestQuestion, TestChoice } from '@pickid/supabase';
 import { TestIntro } from './shared/test-intro';
 import { Loading } from '@/components/loading';
 import { BalanceGameQuestionContainer } from './balance-game/balance-game-question';
@@ -77,7 +77,7 @@ function BalanceGamePlayer({
 
 	return (
 		<BalanceGameQuestionContainer
-			question={currentQuestion}
+			question={currentQuestion as TestQuestion & { choices: TestChoice[] }}
 			questionStats={currentQuestionStats}
 			currentIndex={currentQuestionIndex}
 			totalQuestions={totalQuestions}
@@ -118,7 +118,10 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		const selectedChoice = currentQuestion.choices?.find((c) => c.id === choiceId);
 		const code = (selectedChoice as { code?: string })?.code;
 
-		const newAnswers = [...answers.filter((a) => a.questionId !== qId), { questionId: qId, choiceId, ...(code && { code }) }];
+		const newAnswers = [
+			...answers.filter((a) => a.questionId !== qId),
+			{ questionId: qId, choiceId, ...(code && { code }) },
+		];
 		setAnswers(newAnswers);
 
 		if (isLastQuestion) {
