@@ -1,10 +1,9 @@
 import { Card, CardContent, IconButton } from '@pickid/ui';
-import { LoadingState, ErrorState } from '@/components/ui';
+import { LoadingState } from '@/components/ui';
 import { Activity, BarChart3, FileText, Plus, Target, TrendingDown, TrendingUp, Users } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useDashboard } from '@/hooks/useDashboard';
 import { KPICard, QuickActionCard, PopularTestsCard } from '@/components/dashboard';
-
 
 export function DashboardPage() {
 	const { stats, topTests, loading, lastUpdated } = useDashboard();
@@ -13,11 +12,11 @@ export function DashboardPage() {
 	const renderTrendIcon = (trend: string) => {
 		switch (trend) {
 			case 'up':
-				return <TrendingUp className="w-4 h-4 text-green-600" />;
+				return <TrendingUp className="w-4 h-4 text-neutral-600" />;
 			case 'down':
-				return <TrendingDown className="w-4 h-4 text-red-600" />;
+				return <TrendingDown className="w-4 h-4 text-neutral-600" />;
 			default:
-				return <Activity className="w-4 h-4 text-gray-600" />;
+				return <Activity className="w-4 h-4 text-neutral-600" />;
 		}
 	};
 
@@ -26,18 +25,18 @@ export function DashboardPage() {
 	}
 
 	return (
-		<div className="space-y-6 p-5">
+		<div className="space-y-6 p-6">
 			{/* 헤더 */}
 			<div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
 				<div>
-					<h1 className="text-3xl font-bold text-gray-900">대시보드</h1>
-					<p className="text-gray-600 mt-1">오늘의 핵심 지표</p>
-					<p className="text-sm text-gray-500 mt-1">업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}</p>
+					<h1 className="text-3xl font-bold text-neutral-900">대시보드</h1>
+					<p className="text-neutral-600 mt-1">오늘의 핵심 지표</p>
+					<p className="text-sm text-neutral-500 mt-1">업데이트: {lastUpdated.toLocaleTimeString('ko-KR')}</p>
 				</div>
 				<div className="flex items-center gap-3">
 					<Link to="/tests/create">
 						<IconButton
-							className="bg-blue-600 hover:bg-blue-700 text-white"
+							className="bg-neutral-600 hover:bg-neutral-700 text-white"
 							icon={<Plus className="w-4 h-4" />}
 							text="테스트 만들기"
 						/>
@@ -83,14 +82,14 @@ export function DashboardPage() {
 			</div>
 
 			{/* 실시간 통계는 Google Analytics에서 확인하세요 */}
-			<Card className="border-l-4 border-l-blue-500 bg-blue-50">
-				<CardContent className="p-4">
+			<Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+				<CardContent className="p-6">
 					<div className="flex items-center justify-between">
 						<div>
-							<h3 className="font-semibold text-gray-900">🔄 실시간 활동</h3>
-							<p className="text-sm text-gray-600">Google Analytics에서 더 정확한 실시간 데이터 확인 가능</p>
+							<h3 className="font-semibold text-neutral-900">🔄 실시간 활동</h3>
+							<p className="text-sm text-neutral-600 mt-1">Google Analytics에서 더 정확한 실시간 데이터 확인 가능</p>
 						</div>
-						<div className="text-sm text-gray-500">
+						<div className="text-sm text-neutral-500">
 							<p>GA4 → 실시간 → 개요</p>
 						</div>
 					</div>

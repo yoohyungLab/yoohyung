@@ -35,7 +35,7 @@ export const TypeSelectionStep = () => {
 								<h4 className="font-medium text-sm text-gray-700 mb-2">주요 특징</h4>
 								<div className="flex flex-wrap gap-1">
 									{type.features.map((feature: string, index: number) => (
-										<Badge key={index} variant="outline" className="text-xs">
+										<Badge key={index} variant="outline">
 											{feature}
 										</Badge>
 									))}

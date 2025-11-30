@@ -136,7 +136,7 @@ export function UserListPage() {
 	);
 
 	return (
-		<div className="space-y-6 p-5">
+		<div className="space-y-6 p-6">
 			{/* 통계 카드 */}
 			<StatsCards
 				stats={[
@@ -152,7 +152,7 @@ export function UserListPage() {
 				<button
 					onClick={() => syncUser()}
 					disabled={isSyncing}
-					className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+					className="px-4 py-2 bg-neutral-600 text-white rounded-lg hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
 				>
 					{isSyncing ? '동기화 중...' : '동기화'}
 				</button>

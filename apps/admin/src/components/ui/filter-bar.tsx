@@ -45,7 +45,7 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 	return (
 		<div className={cn('space-y-4', className)}>
 			{/* Filters Card */}
-			<div className="border-0 shadow-sm bg-white rounded-lg">
+			<div className="bg-white rounded-xl shadow-sm border border-neutral-200">
 				<div className="p-4">
 					<div className="flex gap-3 items-center justify-between">
 						<div className="flex gap-3 items-center flex-1">
@@ -102,7 +102,7 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 									placeholder="날짜 선택"
 									value={values.date || ''}
 									onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleFilterChange('date', e.target.value)}
-									className="w-[140px] px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+									className="w-[140px] px-3 py-2 text-sm border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-neutral-500 focus:border-transparent"
 								/>
 							)}
 
@@ -112,7 +112,7 @@ export function FilterBar({ filters, values, onFilterChange, actions, className 
 									variant="ghost"
 									size="sm"
 									onClick={clearFilters}
-									className="h-9 px-2 text-muted-foreground hover:text-foreground"
+									className="h-9 px-2 text-neutral-600 hover:text-neutral-900"
 								>
 									<X className="h-4 w-4 mr-1" />
 									필터 초기화

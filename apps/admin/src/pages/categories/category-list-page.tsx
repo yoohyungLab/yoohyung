@@ -105,7 +105,7 @@ export default function CategoryListPage() {
 				id: 'name',
 				header: '카테고리명',
 				cell: ({ row }) => (
-					<Badge variant="outline" className="h-6">
+					<Badge variant="outline" className="whitespace-nowrap">
 						{row.original.name}
 					</Badge>
 				),
@@ -114,7 +114,7 @@ export default function CategoryListPage() {
 				id: 'sort_order',
 				header: '순서',
 				cell: ({ row }) => (
-					<Badge variant="outline" className="font-mono bg-gray-50 text-xs h-5">
+					<Badge variant="outline" className="font-mono whitespace-nowrap">
 						{row.original.sort_order}
 					</Badge>
 				),
@@ -127,7 +127,7 @@ export default function CategoryListPage() {
 					const statusColor = statusConfig.color || '';
 					const statusText = statusConfig.text || row.original.status;
 					return (
-						<Badge variant="outline" className={`h-6 font-medium transition-colors ${statusColor}`}>
+						<Badge variant="outline" className="whitespace-nowrap">
 							{statusText}
 						</Badge>
 					);
@@ -137,7 +137,7 @@ export default function CategoryListPage() {
 				id: 'created_at',
 				header: '생성일',
 				cell: ({ row }) => (
-					<div className="text-xs text-gray-600">{new Date(row.original.created_at).toLocaleDateString('ko-KR')}</div>
+					<div className="text-xs text-neutral-600">{new Date(row.original.created_at).toLocaleDateString('ko-KR')}</div>
 				),
 			},
 			{
@@ -168,7 +168,7 @@ export default function CategoryListPage() {
 	);
 
 	return (
-		<div className="space-y-6 p-5">
+		<div className="space-y-6 p-6">
 			{/* 간단한 통계 */}
 			<StatsCards
 				stats={[

@@ -57,7 +57,7 @@ export function TestListPage() {
 			header: '테스트',
 			cell: ({ row }) => (
 				<div className="min-w-0">
-					<div className="font-medium text-gray-900 truncate">{row.original.title}</div>
+					<div className="font-medium text-neutral-900 truncate">{row.original.title}</div>
 				</div>
 			),
 		},
@@ -67,7 +67,7 @@ export function TestListPage() {
 			cell: ({ row }) => {
 				const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
 				return (
-					<Badge variant="outline" className="text-xs">
+					<Badge variant="outline" className="whitespace-nowrap">
 						{typeInfo.name}
 					</Badge>
 				);
@@ -80,7 +80,7 @@ export function TestListPage() {
 				const status = row.original.status || 'draft';
 					const statusConfig = getStatusConfig('test', status);
 				return (
-					<Badge variant="outline" className={`h-6 border text-xs ${statusConfig.color}`}>
+					<Badge variant="outline" className="whitespace-nowrap">
 						{statusConfig.text}
 					</Badge>
 				);
@@ -119,7 +119,7 @@ export function TestListPage() {
 	];
 
 	return (
-		<div className="space-y-6 p-5">
+		<div className="space-y-6 p-6">
 			{/* 통계 카드 */}
 			<StatsCards
 				stats={[

@@ -71,37 +71,36 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
 			<div className="bg-white rounded-xl max-w-6xl w-full max-h-[95vh] overflow-hidden flex flex-col shadow-2xl">
 				{/* 헤더 */}
-				<header className="p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-blue-50">
+				<header className="p-6 border-b border-neutral-200 bg-white">
 					<div className="flex items-start justify-between mb-4">
 						<div className="flex items-start gap-4 flex-1">
 							{/* 프로필 이미지 */}
-							<div className="w-20 h-20 rounded-xl bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center shadow-lg">
+							<div className="w-20 h-20 rounded-xl bg-neutral-600 flex items-center justify-center shadow-sm">
 								{user.avatar_url ? (
 									<img src={user.avatar_url} alt={user.name || 'User'} className="w-full h-full object-cover" />
 								) : (
-									<span className="text-2xl font-bold text-white">{user.name?.[0] || 'U'}</span>
+									<User className="w-10 h-10 text-white" />
 								)}
 							</div>
 
 							{/* 사용자 정보 */}
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-2">
-									<h2 className="text-2xl font-bold text-gray-900 truncate">{user.name || 'Unknown'}</h2>
-									<span className="text-lg">👤</span>
+									<h2 className="text-2xl font-bold text-neutral-900 truncate">{user.name || 'Unknown'}</h2>
 								</div>
 
 								<div className="flex items-center gap-3 mb-3">
 									<IconBadge
-										icon={getStatusConfig('profile', user.status || 'active').icon || '👤'}
+										icon={getStatusConfig('profile', user.status || 'active').icon || <User className="w-3 h-3" />}
 										text={getStatusConfig('profile', user.status || 'active').text}
 										variant="outline"
-										className="bg-white/80"
+										className="bg-white"
 									/>
 									<IconBadge
 										icon={<Mail className="w-3 h-3" />}
 										text={getLabelText('provider', user.provider || 'email')}
 										variant="outline"
-										className="bg-white/80"
+										className="bg-white"
 									/>
 									<IconBadge
 										icon={<Calendar className="w-3 h-3" />}
@@ -111,7 +110,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 											day: 'numeric',
 										})}
 										variant="outline"
-										className="bg-white/80"
+										className="bg-white"
 									/>
 								</div>
 							</div>
@@ -123,38 +122,38 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 							variant="ghost"
 							size="sm"
 							onClick={onClose}
-							className="h-8 w-8 p-0 hover:bg-white/80"
+							className="h-8 w-8 p-0 hover:bg-neutral-100"
 							aria-label="닫기"
 						/>
 					</div>
 
 					{/* 빠른 통계 */}
 					<div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-						<div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2 mb-1">
-								<Target className="w-4 h-4 text-blue-600" />
-								<span className="text-sm text-gray-600">참여 테스트</span>
+								<Target className="w-4 h-4 text-neutral-600" />
+								<span className="text-sm text-neutral-600">참여 테스트</span>
 							</div>
-							<div className="text-lg font-semibold text-gray-900">{stats.uniqueTests}</div>
+							<div className="text-lg font-semibold text-neutral-900">{stats.uniqueTests}</div>
 						</div>
-						<div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2 mb-1">
-								<Users className="w-4 h-4 text-green-600" />
-								<span className="text-sm text-gray-600">총 응답</span>
+								<Users className="w-4 h-4 text-neutral-600" />
+								<span className="text-sm text-neutral-600">총 응답</span>
 							</div>
-							<div className="text-lg font-semibold text-gray-900">{stats.totalResponses}</div>
+							<div className="text-lg font-semibold text-neutral-900">{stats.totalResponses}</div>
 						</div>
-						<div className="bg-white/60 backdrop-blur-sm rounded-lg p-3 border border-white/20">
+						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2 mb-1">
-								<TrendingUp className="w-4 h-4 text-purple-600" />
-								<span className="text-sm text-gray-600">완료율</span>
+								<TrendingUp className="w-4 h-4 text-neutral-600" />
+								<span className="text-sm text-neutral-600">완료율</span>
 							</div>
-							<div className="text-lg font-semibold text-gray-900">{stats.avgCompletionRate.toFixed(1)}%</div>
+							<div className="text-lg font-semibold text-neutral-900">{stats.avgCompletionRate.toFixed(1)}%</div>
 						</div>
 					</div>
 
 					{/* 탭 네비게이션 */}
-					<nav className="flex gap-1 mt-6 bg-white/40 rounded-lg p-1 backdrop-blur-sm">
+					<nav className="flex gap-1 mt-6 bg-neutral-50 rounded-lg p-1">
 						{tabs.map((tab) => {
 							const Icon = tab.icon;
 							return (
@@ -163,8 +162,8 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									onClick={() => setActiveTab(tab.id)}
 									className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
 										activeTab === tab.id
-											? 'bg-white text-blue-600 shadow-sm font-medium'
-											: 'text-gray-600 hover:text-gray-800 hover:bg-white/60'
+											? 'bg-white text-neutral-900 shadow-sm font-medium'
+											: 'text-neutral-600 hover:text-neutral-900 hover:bg-white'
 									}`}
 								>
 									<Icon className="w-4 h-4" />
@@ -176,7 +175,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 				</header>
 
 				{/* 콘텐츠 */}
-				<main className="flex-1 overflow-y-auto bg-gray-50">
+				<main className="flex-1 overflow-y-auto bg-white">
 					{activeTab === 'basic' && (
 						<section className="p-6 space-y-6">
 							<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -186,23 +185,23 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 										variant="modal"
 										title={
 											<div className="text-lg flex items-center gap-2">
-												<User className="w-5 h-5 text-blue-600" />
+												<User className="w-5 h-5 text-neutral-600" />
 												기본 정보
 											</div>
 										}
 									/>
 									<AdminCardContent className="space-y-4">
 										<div>
-											<label className="text-sm font-medium text-gray-700">사용자 ID</label>
-											<div className="mt-1 font-mono text-sm text-blue-600">{user.id}</div>
+											<label className="text-sm font-medium text-neutral-700">사용자 ID</label>
+											<div className="mt-1 font-mono text-sm text-neutral-600">{user.id}</div>
 										</div>
 										<div>
-											<label className="text-sm font-medium text-gray-700">이름</label>
-											<div className="mt-1 text-gray-900">{user.name}</div>
+											<label className="text-sm font-medium text-neutral-700">이름</label>
+											<div className="mt-1 text-neutral-900">{user.name}</div>
 										</div>
 										<div>
-											<label className="text-sm font-medium text-gray-700">이메일</label>
-											<div className="mt-1 text-gray-900">{user.email}</div>
+											<label className="text-sm font-medium text-neutral-700">이메일</label>
+											<div className="mt-1 text-neutral-900">{user.email}</div>
 										</div>
 									</AdminCardContent>
 								</AdminCard>
@@ -213,7 +212,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 										variant="modal"
 										title={
 											<div className="text-lg flex items-center gap-2">
-												<Calendar className="w-5 h-5 text-green-600" />
+												<Calendar className="w-5 h-5 text-neutral-600" />
 												계정 정보
 											</div>
 										}
@@ -221,18 +220,18 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									<AdminCardContent className="space-y-4">
 										<div className="grid grid-cols-1 gap-4 text-sm">
 											<div>
-												<span className="text-gray-600">가입일</span>
-												<div className="font-medium text-gray-900">{formatDate(user.created_at || new Date())}</div>
+												<span className="text-neutral-600">가입일</span>
+												<div className="font-medium text-neutral-900">{formatDate(user.created_at || new Date())}</div>
 											</div>
 											<div>
-												<span className="text-gray-600">가입 경과일</span>
-												<div className="font-medium text-gray-900">
+												<span className="text-neutral-600">가입 경과일</span>
+												<div className="font-medium text-neutral-900">
 													{getDaysSinceJoin(user.created_at || new Date())}일
 												</div>
 											</div>
 											<div>
-												<span className="text-gray-600">최근 수정일</span>
-												<div className="font-medium text-gray-900">{formatDate(user.updated_at || new Date())}</div>
+												<span className="text-neutral-600">최근 수정일</span>
+												<div className="font-medium text-neutral-900">{formatDate(user.updated_at || new Date())}</div>
 											</div>
 										</div>
 									</AdminCardContent>
@@ -245,28 +244,28 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 						<section className="p-6 space-y-6">
 							{/* 활동 통계 카드들 */}
 							<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-								<AdminCard variant="info" padding="sm" className="bg-blue-50">
+								<AdminCard variant="info" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
-										<div className="text-2xl font-bold text-blue-600">{stats.totalResponses}</div>
-										<div className="text-sm text-blue-700">총 응답수</div>
+										<div className="text-2xl font-bold text-neutral-900">{stats.totalResponses}</div>
+										<div className="text-sm text-neutral-600">총 응답수</div>
 									</AdminCardContent>
 								</AdminCard>
-								<AdminCard variant="success" padding="sm" className="bg-green-50">
+								<AdminCard variant="success" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
-										<div className="text-2xl font-bold text-green-600">{stats.uniqueTests}</div>
-										<div className="text-sm text-green-700">참여 테스트</div>
+										<div className="text-2xl font-bold text-neutral-900">{stats.uniqueTests}</div>
+										<div className="text-sm text-neutral-600">참여 테스트</div>
 									</AdminCardContent>
 								</AdminCard>
-								<AdminCard variant="modal" padding="sm" className="bg-purple-50">
+								<AdminCard variant="modal" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
-										<div className="text-2xl font-bold text-purple-600">{stats.avgCompletionRate.toFixed(1)}%</div>
-										<div className="text-sm text-purple-700">평균 완료율</div>
+										<div className="text-2xl font-bold text-neutral-900">{stats.avgCompletionRate.toFixed(1)}%</div>
+										<div className="text-sm text-neutral-600">평균 완료율</div>
 									</AdminCardContent>
 								</AdminCard>
-								<AdminCard variant="warning" padding="sm" className="bg-orange-50">
+								<AdminCard variant="warning" padding="sm" className="bg-neutral-50">
 									<AdminCardContent className="p-4 text-center">
-										<div className="text-2xl font-bold text-orange-600">{stats.activityScore}</div>
-										<div className="text-sm text-orange-700">활동 점수</div>
+										<div className="text-2xl font-bold text-neutral-900">{stats.activityScore}</div>
+										<div className="text-sm text-neutral-600">활동 점수</div>
 									</AdminCardContent>
 								</AdminCard>
 							</div>
@@ -277,22 +276,22 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									variant="modal"
 									title={
 										<div className="text-lg flex items-center gap-2">
-											<TrendingUp className="w-5 h-5 text-blue-600" />
+											<TrendingUp className="w-5 h-5 text-neutral-600" />
 											상세 통계
 										</div>
 									}
 								/>
 								<AdminCardContent className="space-y-3">
 									<div className="flex justify-between items-center">
-										<span className="text-gray-600">평균 소요시간</span>
+										<span className="text-neutral-600">평균 소요시간</span>
 										<Badge variant="outline">{stats.avgDuration > 0 ? formatDuration(stats.avgDuration) : '-'}</Badge>
 									</div>
 									<div className="flex justify-between items-center">
-										<span className="text-gray-600">완료율</span>
+										<span className="text-neutral-600">완료율</span>
 										<div className="flex items-center gap-2">
-											<div className="w-20 bg-gray-200 rounded-full h-2">
+											<div className="w-20 bg-neutral-200 rounded-full h-2">
 												<div
-													className="bg-purple-500 h-2 rounded-full transition-all duration-300"
+													className="bg-neutral-600 h-2 rounded-full transition-all duration-300"
 													style={{ width: `${stats.avgCompletionRate}%` }}
 												/>
 											</div>
@@ -300,7 +299,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 										</div>
 									</div>
 									<div className="flex justify-between items-center">
-										<span className="text-gray-600">인기 결과 유형</span>
+										<span className="text-neutral-600">인기 결과 유형</span>
 										<Badge variant="outline">{user.activity?.top_result_type || '-'}</Badge>
 									</div>
 								</AdminCardContent>
@@ -315,7 +314,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									variant="modal"
 									title={
 										<div className="text-lg flex items-center gap-2">
-											<Target className="w-5 h-5 text-blue-600" />
+											<Target className="w-5 h-5 text-neutral-600" />
 											테스트 참여 기록
 										</div>
 									}
@@ -328,14 +327,14 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 											{activities.map((activity: UserActivityItem) => (
 												<div
 													key={activity.id}
-													className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+													className="border border-neutral-200 rounded-lg p-4 hover:border-neutral-300 transition-colors"
 												>
 													<div className="flex items-start justify-between">
 														<div className="flex items-start gap-3">
 															<div className="text-2xl">{activity.test_emoji || '📝'}</div>
 															<div className="flex-1">
-																<h4 className="font-medium text-gray-900 mb-1">{activity.test_title}</h4>
-																<div className="text-sm text-gray-500 space-y-1">
+																<h4 className="font-medium text-neutral-900 mb-1">{activity.test_title}</h4>
+																<div className="text-sm text-neutral-500 space-y-1">
 																	<div>
 																		시작: {new Date(activity.started_at || new Date()).toLocaleDateString('ko-KR')}
 																	</div>
@@ -349,13 +348,13 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 															{getStatusBadge(activity.status || 'pending')}
 															{activity.result_type && activity.result_type !== '결과 없음' && (
 																<div>
-																	<Badge variant="outline" className="text-xs">
+																	<Badge variant="outline">
 																		{activity.result_type}
 																	</Badge>
 																</div>
 															)}
 															{(activity.duration_sec || 0) > 0 && (
-																<div className="text-xs text-gray-500 flex items-center gap-1">
+																<div className="text-xs text-neutral-500 flex items-center gap-1">
 																	<Clock className="w-3 h-3" />
 																	{formatDuration(activity.duration_sec || 0)}
 																</div>
@@ -369,7 +368,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 										<EmptyState
 											title="테스트 참여 기록이 없습니다"
 											message="아직 참여한 테스트가 없습니다."
-											icon={<Target className="w-12 h-12 mx-auto text-gray-300" />}
+											icon={<Target className="w-12 h-12 mx-auto text-neutral-300" />}
 											className="py-12"
 										/>
 									)}
@@ -385,7 +384,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 									variant="modal"
 									title={
 										<div className="text-lg flex items-center gap-2">
-											<MessageSquare className="w-5 h-5 text-blue-600" />
+											<MessageSquare className="w-5 h-5 text-neutral-600" />
 											건의사항 내역
 										</div>
 									}
@@ -396,16 +395,16 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 											{feedbacks.map((feedback: Feedback) => (
 												<div
 													key={feedback.id}
-													className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors"
+													className="border border-neutral-200 rounded-lg p-4 hover:border-neutral-300 transition-colors"
 												>
 													<div className="flex items-start justify-between mb-3">
-														<h4 className="font-medium text-gray-900">{feedback.title}</h4>
+														<h4 className="font-medium text-neutral-900">{feedback.title}</h4>
 														<Badge variant="outline" className="text-xs">
 															{feedback.status}
 														</Badge>
 													</div>
 
-													<div className="text-sm text-gray-600 mb-3">
+													<div className="text-sm text-neutral-600 mb-3">
 														<div className="flex items-center gap-4">
 															<IconBadge
 																icon={<Hash className="w-3 h-3" />}
@@ -423,17 +422,17 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 													</div>
 
 													{feedback.content && (
-														<div className="text-sm text-gray-700 mb-3 p-3 bg-gray-50 rounded-lg">
+														<div className="text-sm text-neutral-700 mb-3 p-3 bg-neutral-50 rounded-lg">
 															{feedback.content}
 														</div>
 													)}
 
 													{feedback.admin_reply && (
-														<div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-															<div className="text-xs text-blue-600 font-medium mb-1">관리자 답변</div>
-															<div className="text-sm text-blue-800">{feedback.admin_reply}</div>
+														<div className="mt-3 p-3 bg-neutral-50 rounded-lg border-l-4 border-neutral-400">
+															<div className="text-xs text-neutral-600 font-medium mb-1">관리자 답변</div>
+															<div className="text-sm text-neutral-800">{feedback.admin_reply}</div>
 															{feedback.admin_reply_at && (
-																<div className="text-xs text-blue-600 mt-1">
+																<div className="text-xs text-neutral-600 mt-1">
 																	{new Date(feedback.admin_reply_at).toLocaleDateString('ko-KR')}
 																</div>
 															)}
@@ -446,7 +445,7 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 										<EmptyState
 											title="건의사항이 없습니다"
 											message="아직 등록된 건의사항이 없습니다."
-											icon={<MessageSquare className="w-12 h-12 mx-auto text-gray-300" />}
+											icon={<MessageSquare className="w-12 h-12 mx-auto text-neutral-300" />}
 											className="py-12"
 										/>
 									)}

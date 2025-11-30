@@ -94,8 +94,8 @@ export function CreateTestPage() {
 	const currentStepInfo = TEST_CREATION_STEPS.find((s) => s.id === step);
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-			<div className="max-w-7xl mx-auto p-5 space-y-6">
+		<div className="min-h-screen bg-white">
+			<div className="max-w-7xl mx-auto p-6 space-y-6">
 				<StepIndicator steps={TEST_CREATION_STEPS} currentStep={step} onStepClick={setStep} disabled={!type} />
 
 				<AdminCard variant="step" padding="lg">
@@ -115,7 +115,7 @@ export function CreateTestPage() {
 							onClick={prevStep}
 							variant="outline"
 							disabled={step === 1}
-							className="flex items-center gap-2 px-6 py-3 rounded-xl border-2 hover:bg-gray-50 transition-all duration-200"
+							className="flex items-center gap-2 px-6 py-3 rounded-lg border border-neutral-300 hover:bg-neutral-50 transition-colors"
 						>
 							<ArrowLeft className="w-4 h-4" />
 							이전 단계
@@ -126,7 +126,7 @@ export function CreateTestPage() {
 								onClick={handleSave}
 								loading={isSaving}
 								loadingText="저장 중..."
-								className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+								className="bg-neutral-600 hover:bg-neutral-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors"
 							>
 								<Check className="w-4 h-4" />
 								테스트 생성
@@ -134,7 +134,7 @@ export function CreateTestPage() {
 						) : (
 							<Button
 								onClick={nextStep}
-								className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white px-8 py-3 rounded-xl flex items-center gap-2 shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-105"
+								className="bg-neutral-600 hover:bg-neutral-700 text-white px-8 py-3 rounded-lg flex items-center gap-2 transition-colors"
 							>
 								다음 단계
 								<ArrowRight className="w-4 h-4" />

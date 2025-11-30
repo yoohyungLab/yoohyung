@@ -47,17 +47,17 @@ export function AdminCard({
 	rounded = 'lg',
 }: AdminCardProps) {
 	const variantClasses = {
-		default: 'bg-white border border-gray-200',
-		outline: 'bg-white border-2 border-gray-300',
-		elevated: 'bg-white shadow-lg border border-gray-100',
-		bordered: 'bg-white border-l-4 border-l-blue-500 border border-gray-200',
-		gradient: 'bg-gradient-to-r from-blue-50 to-indigo-50 border-2 border-blue-200',
-		step: 'bg-white shadow-lg border-0 rounded-2xl overflow-hidden',
-		action: 'bg-white rounded-2xl shadow-lg',
-		modal: 'bg-white border-0 shadow-sm',
-		info: 'bg-blue-50 border-0 shadow-sm',
-		warning: 'bg-yellow-50 border-0 shadow-sm',
-		success: 'bg-green-50 border-0 shadow-sm',
+		default: 'bg-white border border-neutral-200',
+		outline: 'bg-white border-2 border-neutral-300',
+		elevated: 'bg-white shadow-sm border border-neutral-200',
+		bordered: 'bg-white border-l-4 border-l-neutral-600 border border-neutral-200',
+		gradient: 'bg-neutral-50 border border-neutral-200',
+		step: 'bg-white shadow-sm border border-neutral-200 rounded-xl overflow-hidden',
+		action: 'bg-white rounded-xl shadow-sm border border-neutral-200',
+		modal: 'bg-white border border-neutral-200 shadow-sm',
+		info: 'bg-neutral-50 border border-neutral-200 shadow-sm',
+		warning: 'bg-neutral-50 border border-neutral-200 shadow-sm',
+		success: 'bg-neutral-50 border border-neutral-200 shadow-sm',
 	};
 
 	const paddingClasses = {
@@ -111,9 +111,9 @@ export function AdminCardHeader({
 	variant = 'default',
 }: AdminCardHeaderProps) {
 	const variantClasses = {
-		default: 'border-b border-gray-100 pb-3 mb-4',
-		gradient: 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 pb-3 mb-4 -mx-4 -mt-4 px-4 pt-4',
-		step: 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100 pb-3 mb-4 -mx-6 -mt-6 px-6 pt-4',
+		default: 'border-b border-neutral-200 pb-3 mb-4',
+		gradient: 'bg-neutral-50 border-b border-neutral-200 pb-3 mb-4 -mx-4 -mt-4 px-4 pt-4',
+		step: 'bg-neutral-50 border-b border-neutral-200 pb-3 mb-4 -mx-6 -mt-6 px-6 pt-4',
 		modal: 'pb-3 mb-4',
 	};
 
@@ -121,10 +121,10 @@ export function AdminCardHeader({
 		<CardHeader className={cn('p-0', variantClasses[variant], className)}>
 			<div className="flex items-center justify-between">
 				<div className="flex items-center gap-3">
-					{icon && <div className="text-gray-600">{icon}</div>}
+					{icon && <div className="text-neutral-600">{icon}</div>}
 					<div>
-						{title && <div className="text-lg font-bold text-gray-900">{title}</div>}
-						{subtitle && <div className="text-gray-600 text-sm mt-1">{subtitle}</div>}
+						{title && <div className="text-lg font-bold text-neutral-900">{title}</div>}
+						{subtitle && <div className="text-neutral-600 text-sm mt-1">{subtitle}</div>}
 					</div>
 				</div>
 				{action && <div className="flex-shrink-0">{action}</div>}

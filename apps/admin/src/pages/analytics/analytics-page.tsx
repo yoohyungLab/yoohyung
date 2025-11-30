@@ -58,9 +58,8 @@ export function AnalyticsPage() {
 				id: 'title',
 				header: '테스트명',
 				cell: ({ row }) => (
-					<div className="flex items-center gap-2">
-						<div className="font-medium text-gray-900">{row.original.title}</div>
-						<div className="text-sm text-gray-500">{row.original.description}</div>
+					<div className="min-w-0">
+						<div className="font-medium text-neutral-900 truncate">{row.original.title}</div>
 					</div>
 				),
 			},
@@ -71,7 +70,7 @@ export function AnalyticsPage() {
 					const status = row.original.status;
 					const statusConfig = getStatusConfig('test', status || 'draft');
 					return (
-						<Badge variant="outline" className={`h-6 border ${statusConfig.color || ''}`}>
+						<Badge variant="outline" className="whitespace-nowrap">
 							{statusConfig.text}
 						</Badge>
 					);
@@ -97,8 +96,8 @@ export function AnalyticsPage() {
 							: 0;
 					return (
 						<div className="flex items-center gap-2">
-							<div className="w-16 bg-gray-200 rounded-full h-2">
-								<div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(rate, 100)}%` }} />
+							<div className="w-16 bg-neutral-200 rounded-full h-2">
+								<div className="bg-neutral-600 h-2 rounded-full" style={{ width: `${Math.min(rate, 100)}%` }} />
 							</div>
 							<span className="text-sm font-medium">{rate}%</span>
 						</div>
@@ -114,12 +113,7 @@ export function AnalyticsPage() {
 					const seconds = avgTime % 60;
 					const timeText = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
 
-					return (
-						<div className="flex items-center gap-1">
-							<Clock className="w-4 h-4 text-gray-500" />
-							<span className="text-sm">{avgTime > 0 ? timeText : '-'}</span>
-						</div>
-					);
+					return <span className="text-sm">{avgTime > 0 ? timeText : '-'}</span>;
 				},
 			},
 			{
@@ -190,21 +184,17 @@ export function AnalyticsPage() {
 			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={() => setSelectedTests([])} />
 
 			{/* 테스트 목록 */}
-			<AdminCard>
-				<AdminCardContent className="p-0">
-					<DataState loading={loading} data={tests} emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요.">
-						<DataTable
-							data={tests}
-							columns={columns}
-							selectable={true}
-							selectedItems={selectedTests}
-							onSelectionChange={setSelectedTests}
-							getRowId={(test: Test) => test.id}
-							onRowClick={(test: Test) => handleTestSelect(test)}
-						/>
-					</DataState>
-				</AdminCardContent>
-			</AdminCard>
+			<DataState loading={loading} data={tests} emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요.">
+				<DataTable
+					data={tests}
+					columns={columns}
+					selectable={true}
+					selectedItems={selectedTests}
+					onSelectionChange={setSelectedTests}
+					getRowId={(test: Test) => test.id}
+					onRowClick={(test: Test) => handleTestSelect(test)}
+				/>
+			</DataState>
 
 			{/* 페이지네이션 */}
 			<DefaultPagination

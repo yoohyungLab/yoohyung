@@ -65,10 +65,10 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-			<div className="bg-white rounded-lg max-w-lg w-full max-h-[80vh] overflow-hidden">
+			<div className="bg-white rounded-xl max-w-lg w-full max-h-[80vh] overflow-hidden shadow-2xl">
 				{/* Header */}
-				<div className="p-6 border-b border-gray-200 flex items-center justify-between">
-					<h2 className="text-lg font-semibold flex items-center gap-2">
+				<div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+					<h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-900">
 						<ArrowUpDown className="h-5 w-5" />
 						카테고리 순서 변경
 					</h2>
@@ -80,29 +80,29 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 				{/* Content */}
 				<div className="p-6">
 					{error && (
-						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm mb-4">
+						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm mb-4">
 							{error}
 						</div>
 					)}
 
-					<div className="mb-4 text-sm text-gray-600">드래그하여 순서를 변경하세요. 위에 있을수록 먼저 표시됩니다.</div>
+					<div className="mb-4 text-sm text-neutral-600">드래그하여 순서를 변경하세요. 위에 있을수록 먼저 표시됩니다.</div>
 
 					{/* 카테고리 목록 */}
 					<div className="space-y-2 max-h-[400px] overflow-y-auto">
 						{sortedCategories.map((category, index) => (
 							<div
 								key={category.id}
-								className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg border border-gray-200"
+								className="flex items-center gap-3 p-3 bg-neutral-50 rounded-lg border border-neutral-200"
 							>
-								<GripVertical className="h-4 w-4 text-gray-400 cursor-move" />
+								<GripVertical className="h-4 w-4 text-neutral-400 cursor-move" />
 
 								<div className="flex-1">
-									<div className="font-medium text-gray-900">{category.name}</div>
-									{category.description && <div className="text-sm text-gray-500 truncate">{category.description}</div>}
+									<div className="font-medium text-neutral-900">{category.name}</div>
+									{category.description && <div className="text-sm text-neutral-500 truncate">{category.description}</div>}
 								</div>
 
 								<div className="flex items-center gap-2">
-									<span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">순서: {index}</span>
+									<span className="text-xs bg-neutral-100 text-neutral-800 px-2 py-1 rounded">순서: {index}</span>
 
 									{/* 위/아래 이동 버튼 */}
 									<div className="flex flex-col gap-1">
@@ -131,7 +131,7 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 					</div>
 
 					{/* 버튼 */}
-					<div className="flex justify-end space-x-2 pt-4 mt-6 border-t border-gray-200">
+					<div className="flex justify-end space-x-2 pt-4 mt-6 border-t border-neutral-200">
 						<Button type="button" variant="outline" onClick={handleClose} disabled={loading} text="취소" />
 						<Button onClick={handleSave} loading={loading} loadingText="저장 중..." text="순서 저장" />
 					</div>

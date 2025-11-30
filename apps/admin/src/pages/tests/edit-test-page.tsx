@@ -150,8 +150,8 @@ export function EditTestPage() {
 	if (!testWithDetails) return null;
 
 	return (
-		<div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-			<div className="max-w-7xl mx-auto p-5 space-y-6">
+		<div className="min-h-screen bg-white">
+			<div className="max-w-7xl mx-auto p-6 space-y-6">
 				<div className="flex items-center justify-between">
 					<div className="flex items-center gap-3">
 						<IconButton

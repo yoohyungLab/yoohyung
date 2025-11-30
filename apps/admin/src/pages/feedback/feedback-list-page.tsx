@@ -82,7 +82,7 @@ export function FeedbackListPage() {
 						row.original.category;
 
 					return (
-						<Badge variant="outline" className="h-6">
+						<Badge variant="outline" className="whitespace-nowrap">
 							{categoryLabel}
 						</Badge>
 					);
@@ -104,7 +104,7 @@ export function FeedbackListPage() {
 					const statusText = statusConfig.text || row.original.status;
 
 					return (
-						<Badge variant={statusVariant} className={`h-6 border ${statusColor}`}>
+						<Badge variant={statusVariant} className="whitespace-nowrap">
 							<span className="flex items-center gap-1">{statusText}</span>
 						</Badge>
 					);
@@ -156,7 +156,7 @@ export function FeedbackListPage() {
 	);
 
 	return (
-		<div className="space-y-6 p-5">
+		<div className="space-y-6 p-6">
 			{/* 간단한 통계 */}
 			<StatsCards
 				stats={[

@@ -33,60 +33,60 @@ export interface StatsCardsProps {
 
 const colorConfig = {
 	blue: {
-		bgColor: 'from-blue-50 to-blue-100',
-		textColor: 'text-blue-600',
-		valueColor: 'text-blue-700',
-		iconBgColor: 'bg-blue-200',
-		iconColor: 'text-blue-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	green: {
-		bgColor: 'from-green-50 to-green-100',
-		textColor: 'text-green-600',
-		valueColor: 'text-green-700',
-		iconBgColor: 'bg-green-200',
-		iconColor: 'text-green-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	yellow: {
-		bgColor: 'from-yellow-50 to-yellow-100',
-		textColor: 'text-yellow-600',
-		valueColor: 'text-yellow-700',
-		iconBgColor: 'bg-yellow-200',
-		iconColor: 'text-yellow-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	red: {
-		bgColor: 'from-red-50 to-red-100',
-		textColor: 'text-red-600',
-		valueColor: 'text-red-700',
-		iconBgColor: 'bg-red-200',
-		iconColor: 'text-red-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	purple: {
-		bgColor: 'from-purple-50 to-purple-100',
-		textColor: 'text-purple-600',
-		valueColor: 'text-purple-700',
-		iconBgColor: 'bg-purple-200',
-		iconColor: 'text-purple-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	indigo: {
-		bgColor: 'from-indigo-50 to-indigo-100',
-		textColor: 'text-indigo-600',
-		valueColor: 'text-indigo-700',
-		iconBgColor: 'bg-indigo-200',
-		iconColor: 'text-indigo-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	pink: {
-		bgColor: 'from-pink-50 to-pink-100',
-		textColor: 'text-pink-600',
-		valueColor: 'text-pink-700',
-		iconBgColor: 'bg-pink-200',
-		iconColor: 'text-pink-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 	gray: {
-		bgColor: 'from-gray-50 to-gray-100',
-		textColor: 'text-gray-600',
-		valueColor: 'text-gray-700',
-		iconBgColor: 'bg-gray-200',
-		iconColor: 'text-gray-600',
+		bgColor: 'bg-white',
+		textColor: 'text-neutral-600',
+		valueColor: 'text-neutral-900',
+		iconBgColor: 'bg-neutral-100',
+		iconColor: 'text-neutral-600',
 	},
 };
 
@@ -167,14 +167,14 @@ export function StatsCards({ stats, className, columns = 3 }: StatsCardsProps) {
 				const icon = getIcon(stat.id, stat.icon);
 
 				return (
-					<Card key={stat.id} className={`border-0 shadow-sm bg-gradient-to-br ${colors.bgColor}`}>
-						<CardContent className="p-3">
+					<Card key={stat.id} className={`border border-neutral-200 shadow-sm ${colors.bgColor} rounded-lg`}>
+						<CardContent className="p-4">
 							<div className="flex items-center justify-between">
 								<div>
 									<p className={`text-xs ${colors.textColor}`}>{stat.label}</p>
 									<p className={`text-lg font-bold ${colors.valueColor}`}>{stat.value}</p>
 								</div>
-								<div className={`w-8 h-8 ${colors.iconBgColor} rounded-full flex items-center justify-center`}>
+								<div className={`w-10 h-10 ${colors.iconBgColor} rounded-lg flex items-center justify-center`}>
 									<span className={colors.iconColor}>{icon}</span>
 								</div>
 							</div>

@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon, getKPIColorClasses } from '@/utils/utils';
+import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon } from '@/utils/utils';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 
 type ColorVariant = 'blue' | 'green' | 'purple' | 'orange';
@@ -19,34 +19,34 @@ export function KPICard({
 	title,
 	value,
 	icon,
-	color,
+	color: _color,
 	subtitle,
 	growth,
 	growthLabel = '전주 대비',
 	showGrowth = false,
 }: KPICardProps) {
-	const colorClasses = getKPIColorClasses(color);
-
 	return (
-		<AdminCard className={`border-l-4 ${colorClasses.border}`} padding="lg">
+		<AdminCard className="bg-white rounded-xl shadow-sm border border-neutral-200" padding="lg">
 			<AdminCardContent>
 				<div className="flex items-center justify-between">
-					<div>
-						<p className="text-sm font-medium text-gray-600">{title}</p>
+					<div className="flex-1">
+						<p className="text-sm font-medium text-neutral-600">{title}</p>
 						<div className="flex items-center gap-2 mt-2">
-							<span className={`text-3xl font-bold ${colorClasses.value}`}>
+							<span className="text-3xl font-bold text-neutral-900">
 								{typeof value === 'number' ? formatNumber(value) : value}
 							</span>
-							<div className={colorClasses.icon}>{icon}</div>
+							<div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
+								<div className="text-neutral-600">{icon}</div>
+							</div>
 						</div>
-						{subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
+						{subtitle && <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>}
 						{showGrowth && growth !== undefined && (
 							<div className="flex items-center gap-1 mt-1">
 								<span className={`text-sm flex items-center gap-1 ${getGrowthColor(growth)}`}>
 									<span>{getGrowthIcon(growth)}</span>
 									{formatGrowth(growth)}
 								</span>
-								<span className="text-sm text-gray-500">{growthLabel}</span>
+								<span className="text-sm text-neutral-500">{growthLabel}</span>
 							</div>
 						)}
 					</div>

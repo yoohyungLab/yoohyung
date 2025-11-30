@@ -269,11 +269,11 @@ export const ResultStep = () => {
 		return (
 			<div className="flex items-center gap-2">
 				{conditions.type === 'code' ? (
-					<Badge variant="outline" className="bg-purple-50 text-purple-700">
+					<Badge variant="outline">
 						🎭 {(conditions.codes || []).join(', ') || '미설정'}
 					</Badge>
 				) : (
-					<Badge variant="outline" className="bg-blue-50">
+					<Badge variant="outline">
 						📊 {conditions.min ?? 0}-{conditions.max ?? 10}점
 					</Badge>
 				)}
@@ -564,7 +564,7 @@ export const ResultStep = () => {
 													</span>
 													결과 {resultIndex + 1}
 													{isScoreType && (
-														<Badge variant="outline" className="bg-indigo-50">
+														<Badge variant="outline">
 															{conditions.min || 0}-{conditions.max || 100}점
 														</Badge>
 													)}

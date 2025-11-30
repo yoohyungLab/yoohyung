@@ -127,10 +127,10 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-			<div className="bg-white rounded-lg max-w-md w-full">
+			<div className="bg-white rounded-xl max-w-md w-full shadow-2xl">
 				{/* Header */}
-				<div className="p-6 border-b border-gray-200 flex items-center justify-between">
-					<h2 className="text-lg font-semibold flex items-center gap-2">
+				<div className="p-6 border-b border-neutral-200 flex items-center justify-between">
+					<h2 className="text-lg font-semibold flex items-center gap-2 text-neutral-900">
 						{editCategory ? (
 							<>
 								<Pencil className="h-5 w-5" />
@@ -150,7 +150,7 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 				{/* Form */}
 				<form onSubmit={handleSubmit} className="p-6 space-y-4">
 					{error && (
-						<div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md text-sm">{error}</div>
+						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm">{error}</div>
 					)}
 
 					{/* 카테고리명 */}
@@ -175,7 +175,7 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 							disabled={loading}
 							className="w-full"
 						/>
-						<p className="text-xs text-gray-500 mt-1">
+						<p className="text-xs text-neutral-500 mt-1">
 							URL에 사용될 고유 식별자입니다. 예: psychology, personality-type
 						</p>
 					</div>
@@ -191,7 +191,7 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 						min={0}
 						className="w-full"
 					/>
-					<p className="text-xs text-gray-500">낮은 숫자일수록 먼저 표시됩니다.</p>
+					<p className="text-xs text-neutral-500">낮은 숫자일수록 먼저 표시됩니다.</p>
 
 					{/* 활성화 여부 */}
 					<div className="flex items-center space-x-2">
@@ -200,9 +200,9 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 							checked={formData.status === 'active'}
 							onChange={(e) => handleChange('status', e.target.checked ? 'active' : 'inactive')}
 							disabled={loading}
-							className="h-4 w-4 text-blue-600 focus:ring-blue-500  rounded"
+							className="h-4 w-4 text-neutral-600 focus:ring-neutral-500 rounded"
 						/>
-						<label className="text-sm font-medium text-gray-700">생성 후 즉시 활성화</label>
+						<label className="text-sm font-medium text-neutral-700">생성 후 즉시 활성화</label>
 					</div>
 
 					{/* 버튼 */}

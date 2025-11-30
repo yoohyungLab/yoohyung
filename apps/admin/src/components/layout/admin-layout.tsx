@@ -42,7 +42,7 @@ export function AdminLayout() {
 	};
 
 	return (
-		<div className="admin-layout flex h-screen bg-gray-50 text-gray-900">
+		<div className="flex h-screen bg-white">
 			{/* 사이드바 */}
 			<AdminSidebar sidebarCollapsed={sidebarCollapsed} onToggleSidebar={handleToggleSidebar} />
 
@@ -52,7 +52,7 @@ export function AdminLayout() {
 				<AdminHeader user={adminUser} onLogout={logout} />
 
 				{/* 페이지 콘텐츠 */}
-				<main className="animate-[fadeIn_200ms_ease-out] admin-content flex-1 overflow-auto p-4 md:p-6 bg-gray-50">
+				<main className="flex-1 overflow-auto bg-white">
 					<Outlet />
 				</main>
 			</div>

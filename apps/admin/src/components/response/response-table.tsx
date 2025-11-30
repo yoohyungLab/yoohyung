@@ -47,7 +47,7 @@ export function ResponseTable({
 				cell: ({ row }) => (
 					<div className="flex flex-wrap gap-1">
 						{row.original.category_names.map((cat: string, index: number) => (
-							<Badge key={index} variant="outline" className="text-xs">
+							<Badge key={index} variant="outline" className="whitespace-nowrap">
 								{cat}
 							</Badge>
 						))}
@@ -58,7 +58,7 @@ export function ResponseTable({
 				id: 'result',
 				header: '결과 유형',
 				cell: ({ row }) => (
-					<Badge variant="default" className="text-xs">
+					<Badge variant="default" className="whitespace-nowrap">
 						{row.original.result_name || '결과 없음'}
 					</Badge>
 				),
@@ -98,7 +98,7 @@ export function ResponseTable({
 				cell: ({ row }) => {
 					const status = ResponseUtils.getResponseStatus(row.original);
 					return (
-						<Badge variant={status === 'completed' ? 'default' : 'secondary'} className="text-xs">
+						<Badge variant={status === 'completed' ? 'default' : 'secondary'} className="whitespace-nowrap">
 							{status === 'completed' ? '완료' : '미완료'}
 						</Badge>
 					);

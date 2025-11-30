@@ -14,37 +14,37 @@ export const getStatusConfig = (type: 'profile' | 'feedback' | 'test' | 'categor
 			case 'pending':
 				return {
 					text: '대기중',
-					color: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200',
+					color: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 					variant: 'warning',
 				};
 			case 'in_progress':
 				return {
 					text: '진행중',
-					color: 'bg-blue-100 text-blue-800 border-blue-200 hover:bg-blue-200',
+					color: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 					variant: 'info',
 				};
 			case 'completed':
 				return {
 					text: '완료',
-					color: 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200',
+					color: 'bg-black text-white border-black hover:bg-gray-800',
 					variant: 'success',
 				};
 			case 'replied':
 				return {
 					text: '답변완료',
-					color: 'bg-violet-100 text-violet-800 border-violet-200 hover:bg-violet-200',
+					color: 'bg-black text-white border-black hover:bg-gray-800',
 					variant: 'secondary',
 				};
 			case 'rejected':
 				return {
 					text: '거부',
-					color: 'bg-rose-100 text-rose-800 border-rose-200 hover:bg-rose-200',
+					color: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 					variant: 'destructive',
 				};
 			default:
 				return {
 					text: '알수없음',
-					color: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+					color: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 					variant: 'default',
 				};
 		}
@@ -54,14 +54,14 @@ export const getStatusConfig = (type: 'profile' | 'feedback' | 'test' | 'categor
 	if (type === 'test') {
 		const statusInfo = getTestStatusInfo(status as string);
 		const statusColorMap: Record<string, string> = {
-			published: 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200',
-			draft: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
-			scheduled: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200',
-			archived: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+			published: 'bg-black text-white border-black hover:bg-gray-800',
+			draft: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+			scheduled: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
+			archived: 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 		};
 		return {
 			text: statusInfo.name,
-			color: statusColorMap[status as string] || 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+			color: statusColorMap[status as string] || 'bg-gray-100 text-gray-800 border-gray-300 hover:bg-gray-200',
 		};
 	}
 

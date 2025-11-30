@@ -53,10 +53,10 @@ export const PreviewStep = () => {
 						{testData.intro_text && <p className="text-blue-600 text-sm">{testData.intro_text}</p>}
 
 						<div className="flex flex-wrap gap-2 mt-4">
-							<Badge variant="outline" className="bg-white">
+							<Badge variant="outline">
 								{getTypeConfig()?.name || '알 수 없음'}
 							</Badge>
-							<Badge variant="outline" className="bg-white">
+							<Badge variant="outline">
 								<Clock className="w-3 h-3 mr-1" />
 								{testData.estimated_time || 5}분
 							</Badge>

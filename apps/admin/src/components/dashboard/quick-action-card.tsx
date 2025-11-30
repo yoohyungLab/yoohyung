@@ -8,7 +8,7 @@ const quickActions = [
 		id: 'create-test',
 		title: '새 테스트 만들기',
 		description: '템플릿으로 빠르게 생성',
-		icon: <Plus className="w-6 h-6 text-blue-600" />,
+		icon: <Plus className="w-5 h-5 text-neutral-600" />,
 		href: '/tests/create',
 		variant: 'gradient' as const,
 	},
@@ -16,7 +16,7 @@ const quickActions = [
 		id: 'manage-users',
 		title: '사용자 관리',
 		description: '사용자 현황 및 관리',
-		icon: <Users className="w-6 h-6 text-purple-600" />,
+		icon: <Users className="w-5 h-5 text-neutral-600" />,
 		href: '/users',
 		variant: 'default' as const,
 	},
@@ -24,7 +24,7 @@ const quickActions = [
 		id: 'manage-tests',
 		title: '테스트 관리',
 		description: '편집 및 설정 변경',
-		icon: <FileText className="w-6 h-6 text-green-600" />,
+		icon: <FileText className="w-5 h-5 text-neutral-600" />,
 		href: '/tests',
 		variant: 'default' as const,
 	},
@@ -32,36 +32,38 @@ const quickActions = [
 
 const getVariantClasses = (variant: 'default' | 'gradient') => {
 	return variant === 'gradient'
-		? 'bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 hover:from-blue-100 hover:to-indigo-100'
-		: 'bg-white border border-gray-200 shadow-sm hover:shadow-md';
+		? 'bg-neutral-100 border border-neutral-200 hover:bg-neutral-200'
+		: 'bg-white border border-neutral-200 hover:bg-neutral-50';
 };
 
 export function QuickActionCard() {
 	return (
-		<Card>
-			<CardHeader>
-				<CardTitle>빠른 액션</CardTitle>
+		<Card className="bg-white rounded-xl shadow-sm border border-neutral-200">
+			<CardHeader className="p-6 border-b border-neutral-200">
+				<CardTitle className="text-xl text-neutral-900">빠른 액션</CardTitle>
 			</CardHeader>
-			<CardContent>
+			<CardContent className="p-6">
 				<div className="space-y-3">
 					{quickActions.map((action) => (
 						<Link key={action.id} to={action.href}>
 							<div
 								className={cn(
-									'rounded-xl overflow-hidden transition-all duration-300 hover:scale-[1.02]',
+									'rounded-lg overflow-hidden transition-all duration-200',
 									getVariantClasses(action.variant)
 								)}
 							>
 								<div className="p-4">
 									<div className="flex items-center justify-between">
 										<div className="flex items-center gap-3">
-											{action.icon}
+											<div className="w-10 h-10 bg-neutral-100 rounded-lg flex items-center justify-center">
+												{action.icon}
+											</div>
 											<div>
-												<p className="font-medium text-gray-900">{action.title}</p>
-												<p className="text-sm text-gray-500">{action.description}</p>
+												<p className="font-medium text-neutral-900">{action.title}</p>
+												<p className="text-sm text-neutral-500">{action.description}</p>
 											</div>
 										</div>
-										<ExternalLink className="w-4 h-4 text-gray-400" />
+										<ExternalLink className="w-4 h-4 text-neutral-400" />
 									</div>
 								</div>
 							</div>
