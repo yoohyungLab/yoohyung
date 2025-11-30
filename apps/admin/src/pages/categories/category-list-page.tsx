@@ -203,12 +203,8 @@ export default function CategoryListPage() {
 				}}
 				actions={
 					<div className="flex gap-2">
-						<Button onClick={() => setShowSortModal(true)} variant="outline" size="sm" title="카테고리 순서 변경">
-							순서변경
-						</Button>
-						<Button onClick={() => setShowCreateModal(true)} size="sm" title="새 카테고리 추가">
-							추가
-						</Button>
+						<Button onClick={() => setShowSortModal(true)} variant="outline" size="sm" title="카테고리 순서 변경" text="순서변경" />
+						<Button onClick={() => setShowCreateModal(true)} size="sm" title="새 카테고리 추가" text="추가" />
 					</div>
 				}
 			/>

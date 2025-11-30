@@ -1,11 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { Category, Test } from '@pickid/supabase';
 
-// Type re-exports
-export type { Category, Test };
-
-// Home Service - 홈 페이지 데이터 조회
-// 순수 데이터 접근만 담당, 변환 로직은 lib/transforms.ts에서 처리
 export const homeService = {
 	getClient() {
 		return typeof window === 'undefined' ? createServerClient() : supabase;
@@ -41,7 +36,6 @@ export const homeService = {
 		return data || [];
 	},
 
-	// 홈 페이지 데이터 일괄 조회 (테스트 + 카테고리)
 	async getHomePageData(): Promise<{ tests: Test[]; categories: Category[] }> {
 		const client = this.getClient();
 

@@ -1,4 +1,5 @@
-import { Button, cn, DefaultSelect, SearchInput, type SelectOption } from '@pickid/ui';
+import { Button, DefaultSelect, SearchInput, type SelectOption } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 import { X } from 'lucide-react';
 import * as React from 'react';
 

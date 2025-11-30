@@ -22,7 +22,6 @@ import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useTests } from '@/hooks/useTests';
 import { generateShortCode, generateSlug } from '@/utils/test.utils';
 
-
 const VALID_STATUSES: TestStatus[] = ['draft', 'published', 'archived'];
 const VALID_TYPES: TestType[] = ['psychology', 'balance', 'character', 'quiz', 'meme', 'lifestyle'];
 
@@ -34,6 +33,7 @@ export function EditTestPage() {
 	const { getValues, watch, reset } = useTestForm();
 	const { saveTest, isSaving } = useTests();
 
+	// TODO: onst type = watch('type'); 처럼 중복 코드 너무 많아서 커스텀훅으로 빼던가 해야할듯
 	const type = watch('type');
 
 	const { data: testWithDetails, isLoading } = useTestDetail({
@@ -156,7 +156,7 @@ export function EditTestPage() {
 					<div className="flex items-center gap-3">
 						<IconButton
 							icon={<ArrowLeft className="w-4 h-4" />}
-							label="테스트 목록으로"
+							text="테스트 목록으로"
 							onClick={() => navigate(PATH.TESTS)}
 						/>
 						<div>
@@ -166,7 +166,7 @@ export function EditTestPage() {
 					</div>
 					{initialTest && (
 						<IconButton
-							label="미리보기"
+							text="미리보기"
 							icon={<ExternalLink className="w-4 h-4 mr-2" />}
 							variant="outline"
 							onClick={() => window.open(HREF.TEST_DETAIL(initialTest.id), '_blank')}

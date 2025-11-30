@@ -102,17 +102,15 @@ export function FeedbackForm() {
 							onClick={() => router.back()}
 							className="flex-1"
 							disabled={isPending}
-						>
-							취소
-						</Button>
+							text="취소"
+						/>
 						<Button
 							type="submit"
 							className="flex-1 bg-gray-900 hover:bg-gray-800 text-white font-semibold"
 							loading={isPending}
 							loadingText="제출 중..."
-						>
-							제출하기
-						</Button>
+							text="제출하기"
+						/>
 					</div>
 				</form>
 			</div>

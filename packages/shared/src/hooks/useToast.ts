@@ -22,7 +22,6 @@ export function useToast() {
 	return toastVariables;
 }
 
-// 공유 성공 토스트 훅
 export function useShareToast() {
 	const showShareSuccessToast = () => {
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);

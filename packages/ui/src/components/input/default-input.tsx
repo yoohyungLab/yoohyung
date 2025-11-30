@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Input } from './input';
-import { cn } from '../../lib/utils';
+import { cn } from '@pickid/shared';
 
 export interface DefaultInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 	label?: string;

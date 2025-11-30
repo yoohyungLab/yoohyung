@@ -1,11 +1,11 @@
 import React from 'react';
 import { Button, type ButtonProps } from './button';
 import { Switch } from './switch';
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 
 interface IconButtonProps extends Omit<ButtonProps, 'children'> {
 	icon: React.ReactNode;
-	label?: string;
+	text?: string;
 	'aria-label'?: string;
 	switch?: boolean;
 	switchChecked?: boolean;
@@ -16,7 +16,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 	(
 		{
 			icon,
-			label,
+			text,
 			className,
 			'aria-label': ariaLabel,
 			switch: isSwitch,
@@ -32,7 +32,7 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 				<div className="flex items-center justify-between">
 					<div className="flex items-center space-x-2">
 						{icon}
-						{label && <span className="text-sm font-medium">{label}</span>}
+						{text && <span className="text-sm font-medium">{text}</span>}
 					</div>
 					<Switch checked={switchChecked} onCheckedChange={onSwitchChange} />
 				</div>
@@ -44,18 +44,18 @@ export const IconButton = React.forwardRef<HTMLButtonElement, IconButtonProps>(
 				ref={ref}
 				variant={variant}
 				className={cn(variant === 'kakao' ? '' : 'p-2', className)}
-				aria-label={ariaLabel || label}
+				aria-label={ariaLabel || text}
 				{...props}
 			>
 				{variant === 'kakao' ? (
 					<div className="flex items-center justify-center space-x-2">
 						{icon}
-						{label && <span>{label}</span>}
+						{text && <span>{text}</span>}
 					</div>
 				) : (
 					<>
 						{icon}
-						{label && <span className="ml-2">{label}</span>}
+						{text && <span className="ml-2">{text}</span>}
 					</>
 				)}
 			</Button>

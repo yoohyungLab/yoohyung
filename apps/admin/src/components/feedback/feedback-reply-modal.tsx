@@ -35,12 +35,8 @@ export function FeedbackReplyModal({ isOpen, onClose, onSubmit }: FeedbackReplyM
 					className="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent mb-4 text-sm resize-none"
 				/>
 				<div className="flex gap-2 justify-end">
-					<Button variant="outline" onClick={handleClose}>
-						취소
-					</Button>
-					<Button onClick={handleSubmit} disabled={!replyText.trim()}>
-						답변 추가
-					</Button>
+					<Button variant="outline" onClick={handleClose} text="취소" />
+					<Button onClick={handleSubmit} disabled={!replyText.trim()} text="답변 추가" />
 				</div>
 			</div>
 		</div>

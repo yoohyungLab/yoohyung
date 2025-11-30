@@ -16,7 +16,7 @@ export function PopularTestsCard({ topTests, renderTrendIcon }: PopularTestsCard
 				<CardTitle className="flex items-center justify-between">
 					<span>오늘의 인기 테스트</span>
 					<Link to="/tests">
-						<IconButton variant="outline" size="sm" icon={<BarChart3 className="w-4 h-4" />} label="전체 보기" />
+						<IconButton variant="outline" size="sm" icon={<BarChart3 className="w-4 h-4" />} text="전체 보기" />
 					</Link>
 				</CardTitle>
 			</CardHeader>

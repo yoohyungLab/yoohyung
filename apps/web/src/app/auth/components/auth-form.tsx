@@ -97,7 +97,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 				icon={
 					<Image src="/icons/kakao.svg" alt="카카오" width={20} height={20} style={{ width: 'auto', height: 'auto' }} />
 				}
-				label="카카오로 3초 만에 시작하기"
+				text="카카오로 3초 만에 시작하기"
 			/>
 
 			{/* 구분선 */}
@@ -198,9 +198,8 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 				className="w-full bg-gradient-to-r from-rose-500 to-pink-500 hover:from-rose-600 hover:to-pink-600 text-white font-semibold h-12 rounded-xl shadow-lg hover:shadow-xl transition-all hover:scale-[1.02] mt-6"
 				loading={isSubmitting}
 				loadingText={isLogin ? '로그인 중...' : '회원가입 중...'}
-			>
-				{isLogin ? '로그인' : '회원가입'}
-			</Button>
+				text={isLogin ? '로그인' : '회원가입'}
+			/>
 
 			{/* 추가 컨텐츠 (링크 등) */}
 			{children}

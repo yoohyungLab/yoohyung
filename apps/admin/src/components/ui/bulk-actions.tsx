@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@pickid/ui';
-import { cn } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 import { X } from 'lucide-react';
 
 export interface BulkAction {

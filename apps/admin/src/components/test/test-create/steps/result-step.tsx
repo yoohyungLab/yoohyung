@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Button, DefaultInput, DefaultTextarea, Label, Badge, DefaultSelect } from '@pickid/ui';
 import { Plus, Trash2, X } from 'lucide-react';
 import { TEST_TYPES } from '@/constants/test';
@@ -6,7 +6,8 @@ import { ImageUpload } from '../components/image-upload';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useFieldArray } from 'react-hook-form';
-import type { FeatureInput, ResultData } from '@/types/test.types';
+import type { TestFormResult as ResultData, TestFormResult } from '@/types/test-form';
+import type { FeatureInput } from '@/types/test.types';
 
 // 상수
 
@@ -55,7 +56,12 @@ const getGenderLabel = (gender: string) => {
 export const ResultStep = () => {
 	const { watch, control } = useTestForm();
 	const selectedType = watch('type');
-	const { fields: results, append: addResult, remove: removeResult, update: updateResult } = useFieldArray({
+	const {
+		fields: results,
+		append: addResult,
+		remove: removeResult,
+		update: updateResult,
+	} = useFieldArray({
 		control,
 		name: 'results',
 	});
@@ -72,7 +78,7 @@ export const ResultStep = () => {
 		}));
 	};
 
-	const handleUpdateResult = (resultIndex: number, updates: Partial<ResultData>) => {
+	const handleUpdateResult = (resultIndex: number, updates: Partial<TestFormResult>) => {
 		const result = results[resultIndex];
 		updateResult(resultIndex, {
 			...result,
@@ -147,13 +153,7 @@ export const ResultStep = () => {
 	const renderScoreRange = (result: ResultData, resultIndex: number) => {
 		if (selectedType !== 'psychology' || !result) return null;
 
-		const conditions = (result.match_conditions || {}) as {
-			type?: string;
-			min?: number;
-			max?: number;
-			codes?: string[];
-		};
-		const matchingType = conditions?.type || 'score';
+		const conditions = result.match_conditions;
 
 		return (
 			<div className="space-y-4">
@@ -161,7 +161,7 @@ export const ResultStep = () => {
 				<div>
 					<Label className="text-base font-medium mb-2">매칭 방식</Label>
 					<DefaultSelect
-						value={matchingType}
+						value={conditions?.type || 'score'}
 						onValueChange={(value) => {
 							if (value === 'code') {
 								handleUpdateResult(resultIndex, {
@@ -182,32 +182,36 @@ export const ResultStep = () => {
 				</div>
 
 				{/* 점수형 입력 */}
-				{matchingType === 'score' ? (
+				{conditions?.type === 'score' ? (
 					<div>
 						<Label className="text-sm font-medium">점수 구간</Label>
 						<div className="grid grid-cols-2 gap-2 mt-2">
 							<DefaultInput
 								type="number"
-								value={conditions?.min ?? 0}
-								onChange={(e) =>
-									handleUpdateResult(resultIndex, {
-										match_conditions: {
-											type: 'score' as const,
-											...conditions,
-											min: parseInt(e.target.value) || 0,
-										},
-									})
-								}
+								value={(conditions && conditions.type === 'score' ? conditions.min : 0) ?? 0}
+								onChange={(e) => {
+									const newMin = parseInt(e.target.value) || 0;
+									if (conditions && conditions.type === 'score') {
+										handleUpdateResult(resultIndex, {
+											match_conditions: { ...conditions, min: newMin },
+										});
+									} else {
+										// type이 score가 아니거나 conditions가 없을 경우, score 타입으로 새로 생성
+										handleUpdateResult(resultIndex, {
+											match_conditions: { type: 'score', min: newMin, max: 100 }, // max 기본값 설정
+										});
+									}
+								}}
 								placeholder="최소점수"
-							/>
+							/>{' '}
 							<DefaultInput
 								type="number"
-								value={conditions?.max ?? 10}
+								value={conditions.max ?? 10}
 								onChange={(e) =>
 									handleUpdateResult(resultIndex, {
 										match_conditions: {
-											type: 'score' as const,
 											...conditions,
+											type: 'score',
 											max: parseInt(e.target.value) || 10,
 										},
 									})
@@ -233,9 +237,7 @@ export const ResultStep = () => {
 							}}
 							placeholder="H, H+P, E+S (쉼표로 구분)"
 						/>
-						<p className="text-xs text-gray-500 mt-1">
-							이 결과에 매칭될 코드를 입력하세요. 예: H (단일), H+P (조합)
-						</p>
+						<p className="text-xs text-gray-500 mt-1">이 결과에 매칭될 코드를 입력하세요. 예: H (단일), H+P (조합)</p>
 					</div>
 				)}
 
@@ -252,34 +254,27 @@ export const ResultStep = () => {
 						className="mt-1"
 						options={GENDER_OPTIONS}
 					/>
-					<p className="text-xs text-gray-500 mt-1">
-						전체: 모든 성별에게 표시, 남성/여성: 해당 성별에게만 표시
-					</p>
+					<p className="text-xs text-gray-500 mt-1">전체: 모든 성별에게 표시, 남성/여성: 해당 성별에게만 표시</p>
 				</div>
 			</div>
 		);
 	};
 
 	const renderScoreBadge = (result: ResultData) => {
-		if (selectedType !== 'psychology') return null;
-		const conditions = result.match_conditions as {
-			type?: string;
-			min?: number;
-			max?: number;
-			codes?: string[];
-		};
+		if (selectedType !== 'psychology' || !result.match_conditions) return null;
+
+		const conditions = result.match_conditions;
 		const gender = result.target_gender;
-		const matchingType = conditions?.type || 'score';
 
 		return (
 			<div className="flex items-center gap-2">
-				{matchingType === 'code' ? (
+				{conditions.type === 'code' ? (
 					<Badge variant="outline" className="bg-purple-50 text-purple-700">
-						🎭 {(conditions?.codes || []).join(', ') || '미설정'}
+						🎭 {(conditions.codes || []).join(', ') || '미설정'}
 					</Badge>
 				) : (
 					<Badge variant="outline" className="bg-blue-50">
-						📊 {conditions?.min || 0}-{conditions?.max || 10}점
+						📊 {conditions.min ?? 0}-{conditions.max ?? 10}점
 					</Badge>
 				)}
 				{gender && (
@@ -556,6 +551,7 @@ export const ResultStep = () => {
 							{results.map((result, resultIndex) => {
 								if (!result) return null;
 								const conditions = result.match_conditions;
+								const isScoreType = conditions && 'type' in conditions && conditions.type === 'score';
 
 								return (
 									<AdminCard key={resultIndex} variant="bordered" padding="sm">
@@ -567,9 +563,11 @@ export const ResultStep = () => {
 														{resultIndex + 1}
 													</span>
 													결과 {resultIndex + 1}
-													<Badge variant="outline" className="bg-indigo-50">
-														{conditions?.min || 0}-{conditions?.max || 100}점
-													</Badge>
+													{isScoreType && (
+														<Badge variant="outline" className="bg-indigo-50">
+															{conditions.min || 0}-{conditions.max || 100}점
+														</Badge>
+													)}
 												</div>
 											}
 											action={
@@ -606,13 +604,13 @@ export const ResultStep = () => {
 															<DefaultInput
 																type="number"
 																label="최소 점수"
-																value={conditions?.min || 0}
+																value={isScoreType ? conditions.min || 0 : 0}
 																onChange={(e) =>
 																	handleUpdateResult(resultIndex, {
 																		match_conditions: {
 																			type: 'score',
-																			...conditions,
 																			min: parseInt(e.target.value) || 0,
+																			max: isScoreType ? conditions.max || 100 : 100,
 																		},
 																	})
 																}
@@ -622,12 +620,12 @@ export const ResultStep = () => {
 															<DefaultInput
 																type="number"
 																label="최대 점수"
-																value={conditions?.max || 100}
+																value={isScoreType ? conditions.max || 100 : 100}
 																onChange={(e) =>
 																	handleUpdateResult(resultIndex, {
 																		match_conditions: {
 																			type: 'score',
-																			...conditions,
+																			min: isScoreType ? conditions.min || 0 : 0,
 																			max: parseInt(e.target.value) || 100,
 																		},
 																	})

@@ -3,7 +3,7 @@ import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { useTests } from '@/hooks/useTests';
 import { useColumnRenderers } from '@/hooks';
 import { PAGINATION, TEST_STATUS_OPTIONS } from '@/constants';
-import { getTestStatusInfo, getTestTypeInfo } from '@/utils/test-utils';
+import { getTestTypeInfo } from '@/utils/test.utils';
 import { getStatusConfig } from '@/utils/utils';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
@@ -78,12 +78,10 @@ export function TestListPage() {
 			header: '상태',
 			cell: ({ row }) => {
 				const status = row.original.status || 'draft';
-				const statusInfo = getTestStatusInfo(status);
 					const statusConfig = getStatusConfig('test', status);
-					const statusColor = statusConfig.color || '';
 				return (
-						<Badge variant="outline" className={`h-6 border text-xs ${statusColor}`}>
-						{statusInfo.name}
+					<Badge variant="outline" className={`h-6 border text-xs ${statusConfig.color}`}>
+						{statusConfig.text}
 					</Badge>
 				);
 			},

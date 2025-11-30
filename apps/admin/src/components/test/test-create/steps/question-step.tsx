@@ -6,6 +6,7 @@ import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/ad
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useFieldArray } from 'react-hook-form';
 import { DEFAULT_CHOICE } from '@/constants/test';
+import type { TestFormChoice } from '@/types/test-form';
 
 export const QuestionStep = () => {
 	const { watch, control, setValue } = useTestForm();
@@ -31,7 +32,7 @@ export const QuestionStep = () => {
 		});
 	};
 
-	const handleUpdateChoice = (questionIndex: number, choiceIndex: number, updates: Partial<typeof DEFAULT_CHOICE>) => {
+	const handleUpdateChoice = (questionIndex: number, choiceIndex: number, updates: Partial<TestFormChoice>) => {
 		const question = questions[questionIndex];
 		const updatedChoices = [...question.choices];
 		updatedChoices[choiceIndex] = { ...updatedChoices[choiceIndex], ...updates };
@@ -75,7 +76,7 @@ export const QuestionStep = () => {
 			<IconButton
 				onClick={handleAddQuestion}
 				icon={<Plus className="w-4 h-4" />}
-				label="질문 추가"
+				text="질문 추가"
 				className="bg-blue-600 hover:bg-blue-700 text-white"
 			/>
 
@@ -230,7 +231,7 @@ export const QuestionStep = () => {
 										<IconButton
 											onClick={() => handleAddChoice(questionIndex)}
 											icon={<Plus className="w-3 h-3" />}
-											label="선택지 추가"
+											text="선택지 추가"
 											variant="outline"
 											size="sm"
 										/>
@@ -259,11 +260,11 @@ export const QuestionStep = () => {
 													<div className="flex items-center gap-2">
 														<Label className="text-sm">정답</Label>
 														<Switch
-															checked={choice.is_correct}
+															checked={!!choice.is_correct}
 															onCheckedChange={(checked) =>
 																handleUpdateChoice(questionIndex, choiceIndex, {
 																	is_correct: checked,
-																	score: 0, // 퀴즈는 점수 사용 안 함
+																	score: null, // 퀴즈는 점수 사용 안 함, null로 설정
 																})
 															}
 														/>
@@ -274,10 +275,10 @@ export const QuestionStep = () => {
 															<Label className="text-sm">점수</Label>
 															<DefaultInput
 																type="number"
-																value={choice.score}
+																value={choice.score || ''}
 																onChange={(e) =>
 																	handleUpdateChoice(questionIndex, choiceIndex, {
-																		score: parseInt(e.target.value) || 0,
+																		score: parseInt(e.target.value) || null,
 																	})
 																}
 																className="w-20"
@@ -287,11 +288,11 @@ export const QuestionStep = () => {
 														<div className="flex items-center gap-2">
 															<Label className="text-sm">코드</Label>
 															<DefaultInput
-																value={(choice as { code?: string }).code || ''}
+																value={choice.code || ''}
 																onChange={(e) =>
 																	handleUpdateChoice(questionIndex, choiceIndex, {
 																		code: e.target.value.toUpperCase(),
-																	} as Partial<typeof choice>)
+																	})
 																}
 																placeholder="E, I, S..."
 																className="w-16"
@@ -304,10 +305,10 @@ export const QuestionStep = () => {
 														<Label className="text-sm">점수</Label>
 														<DefaultInput
 															type="number"
-															value={choice.score}
+															value={choice.score || ''}
 															onChange={(e) =>
 																handleUpdateChoice(questionIndex, choiceIndex, {
-																	score: parseInt(e.target.value) || 0,
+																	score: parseInt(e.target.value) || null,
 																})
 															}
 															className="w-20"

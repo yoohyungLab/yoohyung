@@ -27,7 +27,7 @@ export const DEFAULT_BASIC_INFO = {
 export const DEFAULT_CHOICE = {
 	choice_text: '',
 	choice_order: 0,
-	score: 0,
+	score: null,
 	is_correct: false,
 	code: null,
 	last_updated: null,
@@ -43,7 +43,7 @@ export const DEFAULT_QUESTION = {
 	explanation: null,
 	choices: [
 		{ ...DEFAULT_CHOICE, choice_order: 0 },
-		{ ...DEFAULT_CHOICE, choice_order: 1, score: 1 },
+		{ ...DEFAULT_CHOICE, choice_order: 1, score: null },
 	],
 };
 

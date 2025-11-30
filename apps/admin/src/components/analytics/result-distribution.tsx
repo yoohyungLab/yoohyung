@@ -1,11 +1,11 @@
 import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { PieChart } from 'lucide-react';
-import type { GetTestAnalyticsDataReturn } from '@pickid/supabase';
+import type { AdminGetTestAnalyticsDataReturn } from '@/types/analytics.types';
 import { cn } from '@pickid/shared';
 
 interface ResultDistributionProps {
-	testData: GetTestAnalyticsDataReturn | null;
+	testData: AdminGetTestAnalyticsDataReturn | null;
 	completions: number;
 }
 
@@ -20,7 +20,7 @@ export function ResultDistribution({ testData, completions }: ResultDistribution
 			{testData?.popular_results ? (
 				<div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 					<div className="space-y-4">
-						{testData.popular_results.map((result, index) => {
+						{testData.popular_results.map((result: { result_name: string; percentage: number; count: number }, index) => {
 							const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-orange-500', 'bg-pink-500'];
 							return (
 								<div key={index} className="flex items-center justify-between">

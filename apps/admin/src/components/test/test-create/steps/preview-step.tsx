@@ -1,10 +1,9 @@
-import React from 'react';
 import { Badge } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Target, Heart, Clock, AlertCircle, Check } from 'lucide-react';
 import { TEST_TYPES } from '@/constants/test';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
-import type { QuestionData, ResultData } from '@/types/test.types';
+import type { TestFormQuestion as QuestionData, TestFormResult as ResultData } from '@/types/test-form';
 
 export const PreviewStep = () => {
 	const { watch } = useTestForm();
@@ -132,7 +131,9 @@ export const PreviewStep = () => {
 											</p>
 											{selectedType === 'psychology' && result.match_conditions && (
 												<p className="text-xs text-gray-500 mt-1">
-													{result.match_conditions.min}-{result.match_conditions.max}점
+													{result.match_conditions.type === 'score'
+														? `${result.match_conditions.min}-${result.match_conditions.max}점`
+														: `코드: ${result.match_conditions.codes.join(', ')}`}{' '}
 												</p>
 											)}
 										</div>

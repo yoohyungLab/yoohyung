@@ -2,7 +2,8 @@ import React from 'react';
 import { DefaultInput, DefaultTextarea, DefaultSelect, Button } from '@pickid/ui';
 import { RefreshCw } from 'lucide-react';
 import { generateSlug } from '@/utils/test.utils';
-import { BasicInfoFormProps } from '../types';
+import type { BasicInfoFormProps } from '@/types/test-form';
+import type { TestType } from '@pickid/supabase';
 
 const TIME_OPTIONS = [
 	{ value: '1', label: '1분 (초단편)' },
@@ -48,10 +49,9 @@ export function BasicInfoForm({
 					required
 					value={testData.slug}
 					onChange={(e) => onUpdateTestData({ ...testData, slug: e.target.value })}
-					placeholder="예: my-mbti-test"
-					helpText="URL에 사용될 고유한 식별자입니다. 한글, 영문, 숫자, 하이픈만 사용 가능합니다."
-				/>
-				{testData.slug && <p className="text-sm text-gray-500 mt-1">URL: /tests/{testData.slug}</p>}
+					            placeholder="예: 인싸력-테스트"
+					            helperText="URL에 사용될 고유한 식별자입니다. 한글, 영문, 숫자, 하이픈만 사용 가능합니다."
+					        />				{testData.slug && <p className="text-sm text-gray-500 mt-1">URL: /tests/{testData.slug}</p>}
 			</div>
 
 			<div>
@@ -80,7 +80,7 @@ export function BasicInfoForm({
 
 			<DefaultTextarea
 				label="테스트 설명"
-				value={testData.description}
+				value={testData.description || ''}
 				onChange={(e) => onUpdateTestData({ ...testData, description: e.target.value })}
 				placeholder="테스트에 대한 간단한 설명을 입력하세요 (SNS 공유시 표시됩니다)"
 				rows={3}
@@ -88,7 +88,7 @@ export function BasicInfoForm({
 
 			<DefaultTextarea
 				label="시작 문구"
-				value={testData.intro_text}
+				value={testData.intro_text || ''}
 				onChange={(e) => onUpdateTestData({ ...testData, intro_text: e.target.value })}
 				placeholder="테스트 시작 전 사용자에게 보여줄 문구를 입력하세요"
 				rows={3}
@@ -140,7 +140,7 @@ export function BasicInfoForm({
 				<DefaultSelect
 					label="테스트 유형"
 					value={testData.type || 'psychology'}
-					onValueChange={(value: string) => onUpdateTestData({ ...testData, type: value })}
+					onValueChange={(value: string) => onUpdateTestData({ ...testData, type: value as TestType })}
 					options={[
 						{ value: 'psychology', label: '심리 테스트' },
 						{ value: 'balance', label: '밸런스 게임' },

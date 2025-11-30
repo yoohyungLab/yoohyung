@@ -1,21 +1,13 @@
-// Routes
 export * from './routes';
 
-// Test
 export * from './test';
 
-// Quiz
 export * from './quiz';
 
-// Feedback
 export * from './feedback';
 
-// Common
 export * from './common';
 
-// Legacy exports (하위 호환성 - 점진적 제거 예정)
-// @deprecated - FEEDBACK_CATEGORY_LABEL을 사용하세요
-export { FEEDBACK_CATEGORY_LABEL as FEEDBACK_CATEGORIES } from './feedback';
+export * from './home';
 
-// @deprecated - FEEDBACK_STATUS_LABEL을 사용하세요
-export { FEEDBACK_STATUS_LABEL as FEEDBACK_STATUS } from './feedback';
+export * from './site-config';

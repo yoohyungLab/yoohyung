@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button } from '@pickid/ui';
 import { AlertCircle, RefreshCw } from 'lucide-react';
-import { cn } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 
 interface ErrorStateProps {
 	title?: string;

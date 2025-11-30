@@ -6,6 +6,7 @@ export const TEST_TYPE = {
 	PERSONALITY: 'personality',
 } as const;
 
+// TODO: 왜 분리해서 써야하는지? 실제로 사용하고 잇는게맞는지? TTestType을 여기저기서 만히 쓰는데 하나로만 쓰게 해주고 굳이 타입화해야하는지도 확인해보기. 필요없으면 제거
 export type TTestType = (typeof TEST_TYPE)[keyof typeof TEST_TYPE];
 
 // 테스트 상태
@@ -16,6 +17,7 @@ export const TEST_STATUS = {
 	ARCHIVED: 'archived',
 } as const;
 
+// TODO: 왜 분리해서 써야하는지? 실제로 사용하고 잇는게맞는지? TTestStatus 여기저기서 만히 쓰는데 하나로만 쓰게 해주고 굳이 타입화해야하는지도 확인해보기. 필요없으면 제거
 export type TTestStatus = (typeof TEST_STATUS)[keyof typeof TEST_STATUS];
 
 // 테스트 상태 레이블

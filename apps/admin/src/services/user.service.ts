@@ -1,5 +1,6 @@
 import { supabase, createAdminClient } from '@pickid/supabase';
 import type { ExtendedUser } from '@/types/user.types';
+import type { UserStatus } from '@pickid/supabase';
 
 // 간소화된 사용자 서비스
 export const userService = {
@@ -35,7 +36,7 @@ export const userService = {
 	},
 
 	// 사용자 상태 변경
-	async updateUserStatus(id: string, status: 'active' | 'inactive' | 'deleted'): Promise<ExtendedUser> {
+	async updateUserStatus(id: string, status: UserStatus): Promise<ExtendedUser> {
 		const { data, error } = await supabase
 			.from('users')
 			.update({ status, updated_at: new Date().toISOString() })

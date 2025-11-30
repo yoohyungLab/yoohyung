@@ -39,7 +39,7 @@ export function DashboardPage() {
 						<IconButton
 							className="bg-blue-600 hover:bg-blue-700 text-white"
 							icon={<Plus className="w-4 h-4" />}
-							label="테스트 만들기"
+							text="테스트 만들기"
 						/>
 					</Link>
 				</div>

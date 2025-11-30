@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 import {
 	Pagination,
 	PaginationContent,

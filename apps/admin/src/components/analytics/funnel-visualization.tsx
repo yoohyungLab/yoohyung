@@ -1,7 +1,7 @@
 import React from 'react';
 import { AdminCard, AdminCardHeader } from '@/components/ui/admin-card';
 import { BarChart3 } from 'lucide-react';
-import { cn } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 import type { FunnelDataItem } from '@pickid/supabase';
 
 interface FunnelVisualizationProps {

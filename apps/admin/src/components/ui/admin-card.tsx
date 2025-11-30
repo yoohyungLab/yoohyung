@@ -1,5 +1,6 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, cn } from '@pickid/ui';
+import { Card, CardContent, CardHeader } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 
 interface AdminCardProps {
 	children: React.ReactNode;

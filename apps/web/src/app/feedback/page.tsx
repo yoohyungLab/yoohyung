@@ -18,9 +18,10 @@ export default function FeedbackPage() {
 							<p className="text-sm text-gray-600">의견을 들려주세요</p>
 						</div>
 						<Link href="/feedback/create">
-							<Button className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 text-sm font-semibold rounded-lg">
-								피드백 작성
-							</Button>
+							<Button
+								className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 text-sm font-semibold rounded-lg"
+								text="피드백 작성"
+							/>
 						</Link>
 					</div>
 				</div>
@@ -34,9 +35,7 @@ export default function FeedbackPage() {
 						</div>
 						<h2 className="text-base font-semibold text-gray-900 mb-1">오류가 발생했습니다</h2>
 						<p className="text-sm text-gray-500 mb-4">{error.message}</p>
-						<Button onClick={() => refetch()} variant="outline" className="text-sm">
-							다시 시도
-						</Button>
+						<Button onClick={() => refetch()} variant="outline" className="text-sm" text="다시 시도" />
 					</div>
 				) : isLoading ? (
 					<div className="flex items-center justify-center py-16">

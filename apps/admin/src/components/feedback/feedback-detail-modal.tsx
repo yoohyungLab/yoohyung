@@ -126,7 +126,7 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 						{!feedback.admin_reply && (
 							<IconButton
 								icon={<Reply className="w-4 h-4" />}
-								label="답변하기"
+								text="답변하기"
 								size="sm"
 								onClick={() => onReply(feedback.id)}
 								className="bg-white/90 hover:bg-white text-gray-900"
@@ -181,7 +181,7 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 											</div>
 											<IconButton
 												icon={<Paperclip className="w-4 h-4" />}
-												label="다운로드"
+												text="다운로드"
 												variant="outline"
 												size="sm"
 											/>

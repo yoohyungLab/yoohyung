@@ -1,5 +1,5 @@
-// TODO: 수정 필요
 import { PROFILE_PROVIDER_LABELS, PROFILE_STATUS_CONFIG } from '../constants/user';
+import { getTestStatusInfo } from './test.utils';
 
 export const getStatusConfig = (type: 'profile' | 'feedback' | 'test' | 'category', status: string | boolean) => {
 	// 프로필 상태
@@ -52,16 +52,17 @@ export const getStatusConfig = (type: 'profile' | 'feedback' | 'test' | 'categor
 
 	// 테스트 상태
 	if (type === 'test') {
-		switch (status) {
-			case 'published':
-				return { text: '발행됨', color: 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200' };
-			case 'draft':
-				return { text: '초안', color: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200' };
-			case 'scheduled':
-				return { text: '예약됨', color: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200' };
-			default:
-				return { text: '알수없음', color: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200' };
-		}
+		const statusInfo = getTestStatusInfo(status as string);
+		const statusColorMap: Record<string, string> = {
+			published: 'bg-emerald-100 text-emerald-800 border-emerald-200 hover:bg-emerald-200',
+			draft: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+			scheduled: 'bg-amber-100 text-amber-800 border-amber-200 hover:bg-amber-200',
+			archived: 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+		};
+		return {
+			text: statusInfo.name,
+			color: statusColorMap[status as string] || 'bg-gray-100 text-gray-800 border-gray-200 hover:bg-gray-200',
+		};
 	}
 
 	// 카테고리 상태

@@ -1,13 +1,8 @@
 import { supabase } from '@pickid/supabase';
-
-export interface UploadResult {
-	url: string;
-	path: string;
-}
+import type { UploadResult } from '@/types/storage.types';
 
 export const storageService = {
 	async uploadImage(file: File, folder: string = 'test-thumbnails'): Promise<UploadResult> {
-		// 파일명 생성 (타임스탬프 + 랜덤 문자열)
 		const timestamp = Date.now();
 		const randomString = Math.random().toString(36).substring(2, 15);
 		const fileExtension = file.name.split('.').pop();
@@ -24,7 +19,6 @@ export const storageService = {
 			throw new Error(`이미지 업로드 실패: ${error.message}`);
 		}
 
-		// 공개 URL 생성
 		const {
 			data: { publicUrl },
 		} = supabase.storage.from('images').getPublicUrl(filePath);

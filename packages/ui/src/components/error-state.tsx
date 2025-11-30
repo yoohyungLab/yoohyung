@@ -1,7 +1,7 @@
 import React from 'react';
 import { AlertTriangle, ArrowLeft, Home } from 'lucide-react';
 import { Button } from './button';
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 
 /**
  * 실제 사용되는 에러 타입만 정의

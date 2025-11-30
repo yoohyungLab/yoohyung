@@ -3,7 +3,7 @@
 import * as React from 'react';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 
 interface DefaultCarouselProps {
 	items: React.ReactNode[];

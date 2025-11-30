@@ -1,6 +1,6 @@
 import React from 'react';
 import { Badge, type BadgeProps } from './badge';
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 
 interface IconBadgeProps extends Omit<BadgeProps, 'children'> {
 	icon: React.ReactNode;

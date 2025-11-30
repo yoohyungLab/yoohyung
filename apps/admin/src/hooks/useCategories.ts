@@ -4,13 +4,8 @@ import { categoryService } from '@/services';
 import { queryKeys } from '@pickid/shared';
 import { useToast } from '@pickid/shared';
 import { CATEGORY_STATUS_VALUES } from '@/constants/category';
-import type { Category, CategoryFilters } from '@pickid/supabase';
-
-interface ICategoryStats {
-	total: number;
-	active: number;
-	inactive: number;
-}
+import type { Category } from '@pickid/supabase';
+import type { CategoryFilters, ICategoryStats } from '@/types/category.types';
 
 export const useCategories = () => {
 	const queryClient = useQueryClient();

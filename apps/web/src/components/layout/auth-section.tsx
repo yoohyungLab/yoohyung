@@ -39,7 +39,7 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 		return (
 			<div className="flex flex-col h-full">
 				{/* 상단 영역 - 사용자 프로필 */}
-				                <div className="bg-gray-50 border-b border-gray-200 py-8 px-6">
+				<div className="bg-gray-50 border-b border-gray-200 py-8 px-6">
 					<div className="flex flex-col items-center gap-4 text-center">
 						<div className="w-20 h-20 bg-pink-100 rounded-full flex items-center justify-center flex-shrink-0">
 							{user.user_metadata?.avatar_url || user.user_metadata?.picture ? (
@@ -83,9 +83,8 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 	return (
 		<div className="flex flex-col h-full">
 			{/* 상단 영역 - 로고 + 사이트 정보 */}
-			                <div className="bg-gray-50 border-b border-gray-200 py-8 px-6">
+			<div className="bg-gray-50 border-b border-gray-200 py-20 px-6">
 				<div className="flex flex-col items-center gap-4 text-center">
-					<Image src="/icons/logo.svg" alt={SITE_CONFIG.name} width={80} height={80} priority unoptimized />
 					<div className="flex flex-col gap-1">
 						<h2 className="text-xl font-bold text-gray-900">{SITE_CONFIG.name}</h2>
 						<p className="text-sm text-gray-600">나를 알아가는 심리테스트</p>
@@ -93,9 +92,8 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 					<Button
 						onClick={handleAuthClick}
 						className="bg-white text-pink-600 border border-pink-600 hover:bg-pink-50 px-4 py-2 rounded-full"
-					>
-						로그인 / 회원가입하러가기
-					</Button>
+						text="로그인 / 회원가입하러가기"
+					/>
 				</div>
 			</div>
 

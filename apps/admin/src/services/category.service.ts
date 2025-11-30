@@ -2,7 +2,6 @@ import type { Category } from '@pickid/supabase';
 import { supabase } from '@pickid/supabase';
 
 export const categoryService = {
-	// 카테고리 목록 조회
 	async getCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
 			.from('categories')
@@ -12,7 +11,6 @@ export const categoryService = {
 		return data || [];
 	},
 
-	// 활성 카테고리만 조회
 	async getActiveCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
 			.from('categories')
@@ -23,7 +21,6 @@ export const categoryService = {
 		return data || [];
 	},
 
-	// slug 중복 체크
 	async checkSlugExists(slug: string, excludeId?: string): Promise<boolean> {
 		let query = supabase.from('categories').select('id').eq('slug', slug);
 		if (excludeId) {
@@ -34,7 +31,6 @@ export const categoryService = {
 		return (data?.length || 0) > 0;
 	},
 
-	// 고유한 slug 생성
 	async generateUniqueSlug(baseSlug: string, excludeId?: string): Promise<string> {
 		let slug = baseSlug;
 		let counter = 1;
@@ -47,14 +43,12 @@ export const categoryService = {
 		return slug;
 	},
 
-	// 카테고리 생성
 	async createCategory(category: {
 		name: string;
 		sort_order?: number;
 		slug: string;
 		status?: 'active' | 'inactive';
 	}): Promise<Category> {
-		// slug 중복 체크 및 고유한 slug 생성
 		const uniqueSlug = await this.generateUniqueSlug(category.slug);
 
 		const categoryData = {
@@ -67,9 +61,7 @@ export const categoryService = {
 		return data;
 	},
 
-	// 카테고리 수정
 	async updateCategory(id: string, updates: Partial<Category>): Promise<Category> {
-		// slug가 변경되는 경우 중복 체크
 		if (updates.slug) {
 			const uniqueSlug = await this.generateUniqueSlug(updates.slug, id);
 			updates.slug = uniqueSlug;
@@ -85,13 +77,11 @@ export const categoryService = {
 		return data;
 	},
 
-	// 상태 변경
 	async updateCategoryStatus(id: string, isActive: boolean): Promise<Category> {
 		const status = isActive ? 'active' : 'inactive';
 		return this.updateCategory(id, { status });
 	},
 
-	// 대량 상태 변경
 	async bulkUpdateStatus(categoryIds: string[], isActive: boolean): Promise<number> {
 		const status = isActive ? 'active' : 'inactive';
 		const { data, error } = await supabase
@@ -103,7 +93,6 @@ export const categoryService = {
 		return data?.length || 0;
 	},
 
-	// 카테고리 삭제
 	async deleteCategory(id: string): Promise<void> {
 		const { error } = await supabase.from('categories').delete().eq('id', id);
 		if (error) throw error;

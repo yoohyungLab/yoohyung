@@ -11,7 +11,7 @@ import { PATH } from '@/constants/routes';
 import { analyticsService } from '@/services';
 import type { GetTestBasicStatsReturn, GetTestAnalyticsDataReturn, Test } from '@pickid/supabase';
 import { ErrorState } from '@pickid/ui';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // 질문별 성과분석 데이터 타입

@@ -36,12 +36,10 @@ export function usePopularTests({ currentTestId, limit = 3, enabled = true }: IU
 
 				return {
 					id: test.id as string,
-					testId: test.id as string,
 					title: test.title as string,
 					description: (test.description as string) || `${category} 테스트`,
-					category,
 					thumbnail_url: (test.thumbnail_url as string) || '',
-					thumbnailUrl: (test.thumbnail_url as string) || '',
+					category,
 					participantCount: (test.start_count as number) || 0,
 				};
 			});

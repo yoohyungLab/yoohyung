@@ -3,23 +3,11 @@ export { trackResultViewed, trackResultShared, trackTestStart } from './analytic
 
 // Balance Game Utils
 export {
-	calculateBalanceGameStats,
-	createBalanceGameOptions,
-	getVoteCountText,
-	calculateSinglePercentage,
-	calculateABPercentages,
 	calculatePercentages,
-	normalizeAccumulatedStats,
-	calculateABStats,
 	calculateComparisonStats,
-	findMostPopularChoice,
-	findChoiceStat,
 	findControversialChoice,
 	findOverwhelmingChoice,
 } from './balance-game.utils';
-
-// Balance Game Constants (re-export)
-export { BALANCE_GAME_DEFAULTS, BALANCE_GAME_TEXT } from '@/constants/balance-game';
 
 // Color Utils
 export {
@@ -44,4 +32,3 @@ export { getCategoryNames, transformToTestCard, transformTestsToCards } from './
 
 // Test Result Matching
 export { findMatchingResult, findResultByScore, findResultByCode } from './test-result-matching';
-

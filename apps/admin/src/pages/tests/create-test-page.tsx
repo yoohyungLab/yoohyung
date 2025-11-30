@@ -25,6 +25,7 @@ export function CreateTestPage() {
 	const { getValues, watch } = useTestForm();
 	const { saveTest, isSaving } = useTests();
 
+	// TODO: 의미없는 구조분해 지양
 	const type = watch('type');
 
 	const handleSave = async () => {

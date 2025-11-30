@@ -1,16 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import type { TestWithNestedDetails } from '@pickid/supabase';
+import type { TestWithNestedDetails, TestQuestion } from '@pickid/supabase';
 import { TestIntro } from './shared/test-intro';
 import { Loading } from '@/components/loading';
 import { BalanceGameQuestionContainer } from './balance-game/balance-game-question';
 import { QuizQuestionContainer } from './quiz';
 import { PsychologyQuestionContainer } from './psychology';
-import { COLOR_THEMES } from '@pickid/ui/constants/colors';
-import { saveTestResult, getGrade, addBalanceGameAnswer, clearBalanceGameAnswers, getBalanceGameAnswers } from '../utils';
-import { optimizedBalanceGameStatsService } from '@/api/services';
+import { COLOR_THEMES, TColorTheme } from '@pickid/ui/constants/colors';
+import { saveTestResult, getGrade } from '../utils';
+import { useBalanceGame } from '../hooks/useTestBalanceGame';
+import type { QuestionWithChoices } from '@/app/tests/types/balance-game'; // Add this import
 
 interface TestPageClientProps {
 	test: TestWithNestedDetails;
@@ -24,7 +25,74 @@ interface IAnswer {
 	code?: string;
 }
 
-// Main Component
+/**
+ * 밸런스 게임 플레이를 위한 전용 컴포넌트
+ */
+function BalanceGamePlayer({
+	test,
+	theme,
+	onComplete,
+}: {
+	test: TestWithNestedDetails;
+	theme: TColorTheme;
+	onComplete: (answers: Map<string, string>) => void;
+}) {
+	const {
+		currentQuestion,
+		currentQuestionIndex,
+		totalQuestions,
+		currentQuestionStats,
+		handleSelectChoice,
+		isLoading,
+		isCompleted,
+		submitAnswers,
+		answers,
+	} = useBalanceGame({ testId: test.test?.id ?? '', questions: test.questions as QuestionWithChoices[] });
+
+	const [showResult, setShowResult] = useState(false);
+	const [selectedChoiceId, setSelectedChoiceId] = useState<string | null>(null);
+
+	const handleChoice = (choiceId: string) => {
+		if (!currentQuestion) return;
+		setSelectedChoiceId(choiceId);
+		handleSelectChoice(currentQuestion.id, choiceId);
+		setShowResult(true);
+	};
+
+	const handleNext = () => {
+		setShowResult(false);
+		setSelectedChoiceId(null);
+		// The useBalanceGame hook automatically increments the index via handleSelectChoice
+	};
+
+	useEffect(() => {
+		if (isCompleted) {
+			submitAnswers(); // 서버에 최종 답변 일괄 제출 (fire and forget)
+			onComplete(answers); // 부모 컴포넌트에 완료 및 답변 전달
+		}
+	}, [isCompleted, submitAnswers, onComplete, answers]);
+
+	if (isLoading) return <Loading />;
+	if (!currentQuestion) return <Loading variant="result" />;
+
+	return (
+		<BalanceGameQuestionContainer
+			question={currentQuestion}
+			questionStats={currentQuestionStats}
+			currentIndex={currentQuestionIndex}
+			totalQuestions={totalQuestions}
+			onSelectChoice={handleChoice}
+			theme={theme}
+			isResultVisible={showResult}
+			selectedChoiceId={selectedChoiceId}
+			onNext={handleNext}
+		/>
+	);
+}
+
+/**
+ * 테스트 유형에 따라 적절한 문제 컴포넌트를 렌더링하는 클라이언트 컨트롤러
+ */
 export function TestPageClient({ test }: TestPageClientProps) {
 	const router = useRouter();
 	const testType: TestType = (test.test?.type as TestType) || 'psychology';
@@ -39,30 +107,19 @@ export function TestPageClient({ test }: TestPageClientProps) {
 	const currentQuestion = test.questions[currentIndex];
 	const isLastQuestion = currentIndex >= totalQuestions - 1;
 
-
-	// Event Handlers
 	const handleStartTest = (gender?: 'male' | 'female') => {
 		setUserGender(gender);
 		setIsStarting(false);
 	};
 
+	// 퀴즈, 심리테스트용 답변 처리기
 	const handleAnswer = async (choiceId: string, questionId?: string) => {
 		const qId = questionId || (currentQuestion.id as string);
 		const selectedChoice = currentQuestion.choices?.find((c) => c.id === choiceId);
 		const code = (selectedChoice as { code?: string })?.code;
 
-
-		const newAnswers = [
-			...answers.filter((a) => a.questionId !== qId),
-			{ questionId: qId, choiceId, ...(code && { code }) },
-		];
-
+		const newAnswers = [...answers.filter((a) => a.questionId !== qId), { questionId: qId, choiceId, ...(code && { code }) }];
 		setAnswers(newAnswers);
-
-		// 밸런스 게임인 경우 로컬에 누적 저장 (DB 저장은 마지막에 한번에)
-		if (testType === 'balance') {
-			addBalanceGameAnswer(test.test?.id as string, qId, choiceId);
-		}
 
 		if (isLastQuestion) {
 			await saveResult(newAnswers);
@@ -75,13 +132,10 @@ export function TestPageClient({ test }: TestPageClientProps) {
 	const handlePrevious =
 		testType === 'psychology' && currentIndex > 0 ? () => setCurrentIndex(currentIndex - 1) : undefined;
 
-	// Helper Functions
-
+	// 결과 저장 로직 (밸런스 게임 제외)
 	const saveResult = async (finalAnswers: IAnswer[]) => {
 		try {
-			if (testType === 'balance') {
-				await saveBalanceGameResult(finalAnswers);
-			} else if (testType === 'quiz') {
+			if (testType === 'quiz') {
 				saveQuizResult(finalAnswers);
 			} else if (testType === 'psychology') {
 				savePsychologyResult(finalAnswers);
@@ -91,43 +145,21 @@ export function TestPageClient({ test }: TestPageClientProps) {
 		}
 	};
 
-	const saveBalanceGameResult = async (finalAnswers: IAnswer[]) => {
-		try {
-			// 1. 로컬에 누적된 모든 선택값을 DB에 일괄 저장
-			const localAnswers = getBalanceGameAnswers(test.test?.id as string);
-			const choiceIds = localAnswers.map((a) => a.choiceId);
-
-			await optimizedBalanceGameStatsService.batchIncrementChoices(choiceIds);
-
-			// 2. 세션 스토리지에 답변 저장 (결과 페이지에서 사용)
-			saveTestResult({
-				testId: test.test?.id,
-				answers: finalAnswers,
-			});
-
-			// 3. 로컬 누적 답변 초기화
-			clearBalanceGameAnswers(test.test?.id as string);
-
-		} catch (error) {
-			console.error('[saveBalanceGameResult] 저장 실패:', error);
-			// 에러가 발생해도 세션 스토리지에는 저장
-			saveTestResult({
-				testId: test.test?.id,
-				answers: finalAnswers,
-			});
-		}
+	// 밸런스 게임 완료시 호출될 콜백
+	const handleBalanceGameComplete = (finalAnswers: Map<string, string>) => {
+		saveTestResult({
+			testId: test.test?.id,
+			answers: Array.from(finalAnswers.entries()).map(([questionId, choiceId]) => ({ questionId, choiceId })),
+		});
+		router.push(`/tests/${test.test?.id}/result`);
 	};
 
 	const saveQuizResult = (finalAnswers: IAnswer[]) => {
-		// 정답 개수 계산 및 상세 답변 정보 생성
 		const detailedAnswers = test.questions.map((q) => {
 			const userAnswer = finalAnswers.find((a) => a.questionId === q.id);
 			const correctChoice = q.choices?.find((c) => (c as { is_correct?: boolean }).is_correct);
 			const isCorrect = userAnswer?.choiceId === correctChoice?.id;
-
-			// 사용자가 선택한 답변과 정답 텍스트
 			const userChoice = q.choices?.find((c) => c.id === userAnswer?.choiceId);
-
 			return {
 				questionId: q.id as string,
 				questionType: 'multiple_choice' as const,
@@ -136,91 +168,70 @@ export function TestPageClient({ test }: TestPageClientProps) {
 				correctAnswer: correctChoice?.choice_text || '',
 			};
 		});
-
 		const correctCount = detailedAnswers.filter((a) => a.isCorrect).length;
 		const score = Math.round((correctCount / totalQuestions) * 100);
-
 		saveTestResult({
-			testId: test.test?.id, // testId 필드로 통일 (세션 키 생성용)
-			test_id: test.test?.id,
+			testId: test.test?.id,
 			test_title: test.test?.title || '',
 			total_questions: totalQuestions,
 			correct_count: correctCount,
 			score,
 			grade: getGrade(score),
 			answers: detailedAnswers,
-			completion_time: 0,
 		});
 	};
 
 	const savePsychologyResult = (finalAnswers: IAnswer[]) => {
-		const totalScore = test.questions.reduce((sum, q) => {
-			const userAnswer = finalAnswers.find((a) => a.questionId === q.id);
-			if (!userAnswer) return sum;
-
-			const selectedChoice = q.choices?.find((c) => c.id === userAnswer.choiceId);
-			const choiceScore = (selectedChoice as { score?: number })?.score || 0;
-
-			return sum + choiceScore;
+		const totalScore = finalAnswers.reduce((sum, answer) => {
+			const question = test.questions.find((q) => q.id === answer.questionId);
+			const choice = question?.choices?.find((c) => c.id === answer.choiceId);
+			return sum + ((choice as { score?: number })?.score || 0);
 		}, 0);
-
 		const codes = finalAnswers.map((a) => a.code).filter((c): c is string => Boolean(c));
-
 		saveTestResult({
 			testId: test.test?.id,
 			answers: finalAnswers,
 			totalScore,
 			codes,
 			gender: userGender,
-			resultId: 'temp',
 		});
 	};
-
-	// Render
 
 	if (isStarting) {
 		return <TestIntro test={test} theme={theme} onStart={handleStartTest} />;
 	}
 
-	if (currentIndex >= totalQuestions || !currentQuestion) {
+	if (!currentQuestion) {
 		return <Loading variant="result" />;
 	}
 
-	if (testType === 'balance') {
-		return (
-			<BalanceGameQuestionContainer
-				key={currentIndex}
-				question={currentQuestion}
-				currentIndex={currentIndex}
-				totalQuestions={totalQuestions}
-				testId={test.test?.id as string}
-				onAnswer={(choiceId: string) => handleAnswer(choiceId, currentQuestion.id as string)}
-				theme={theme}
-			/>
-		);
+	// 테스트 타입에 따라 다른 컴포넌트 렌더링
+	switch (testType) {
+		case 'balance':
+			return <BalanceGamePlayer test={test} theme={theme} onComplete={handleBalanceGameComplete} />;
+		case 'quiz':
+			return (
+				<QuizQuestionContainer
+					question={currentQuestion}
+					currentIndex={currentIndex}
+					totalQuestions={totalQuestions}
+					onAnswer={handleAnswer}
+					previousAnswer={answers.find((a) => a.questionId === currentQuestion.id)?.choiceId}
+					theme={theme}
+				/>
+			);
+		case 'psychology':
+			return (
+				<PsychologyQuestionContainer
+					question={currentQuestion}
+					currentIndex={currentIndex}
+					totalQuestions={totalQuestions}
+					onAnswer={handleAnswer}
+					onPrevious={handlePrevious}
+					theme={theme}
+				/>
+			);
+		default:
+			return <div>지원하지 않는 테스트 타입입니다.</div>;
 	}
-
-	if (testType === 'quiz') {
-		return (
-			<QuizQuestionContainer
-				question={currentQuestion}
-				currentIndex={currentIndex}
-				totalQuestions={totalQuestions}
-				onAnswer={handleAnswer}
-				previousAnswer={answers.find((a) => a.questionId === currentQuestion.id)?.choiceId}
-				theme={theme}
-			/>
-		);
-	}
-
-	return (
-		<PsychologyQuestionContainer
-			question={currentQuestion}
-			currentIndex={currentIndex}
-			totalQuestions={totalQuestions}
-			onAnswer={handleAnswer}
-			onPrevious={handlePrevious}
-			theme={theme}
-		/>
-	);
 }

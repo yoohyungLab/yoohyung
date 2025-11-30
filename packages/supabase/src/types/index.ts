@@ -65,7 +65,8 @@ export type HomeBalanceVoteUpdate = TableUpdate<'home_balance_votes'>;
 export type CategoryStatus = Enum<'category_status'>;
 export type GenderType = Enum<'gender_type'>;
 
-// DB에 Enum이 없어서 수동 정의
+// TODO: DB에 Enum 추가 필요 (supabase/migrations/add_enums.sql 참고)
+// 현재는 수동 정의 중
 export type TestType = 'psychology' | 'balance' | 'character' | 'quiz' | 'meme' | 'lifestyle';
 export type TestStatus = 'draft' | 'published' | 'scheduled' | 'archived';
 export type FeedbackStatus = 'pending' | 'in_progress' | 'completed' | 'replied' | 'rejected';
@@ -231,33 +232,7 @@ export interface FunnelDataItem {
 	order: number;
 }
 
-// Auth Service Types
-export type AuthResponse = {
-	data: {
-		user: import('@supabase/supabase-js').User | null;
-		session: import('@supabase/supabase-js').Session | null;
-	} | null;
-	error: null;
-};
-
-export type SignUpResponse = {
-	data: {
-		user: import('@supabase/supabase-js').User | null;
-		session: import('@supabase/supabase-js').Session | null;
-	} | null;
-	error: null;
-};
-
-export type SignOutResponse = {
-	error: null;
-};
-
-export type SessionResponse = {
-	data: {
-		session: import('@supabase/supabase-js').Session | null;
-	};
-	error: null;
-};
+// Auth 타입들은 @supabase/supabase-js에서 직접 사용하세요
 
 // Balance Game Stats Types
 export type OptimizedChoiceStats = {
@@ -288,44 +263,7 @@ export type AllCategoriesData = {
 	allTests: Test[];
 };
 
-// Home Balance Game Types
-export type HomeBalanceGameStats = {
-	totalVotes: number;
-	votesA: number;
-	votesB: number;
-	percentageA: number;
-	percentageB: number;
-};
-
-export type VoteResult = {
-	success: boolean;
-	message: string;
-	choice: 'A' | 'B';
-	stats: HomeBalanceGameStats;
-};
-
-export type HomeBalanceGameResponse = Pick<
-	HomeBalanceGame,
-	| 'id'
-	| 'title'
-	| 'option_a_emoji'
-	| 'option_a_label'
-	| 'option_b_emoji'
-	| 'option_b_label'
-	| 'total_votes'
-	| 'votes_a'
-	| 'votes_b'
-	| 'week_number'
-> & {
-	optionAEmoji: string;
-	optionALabel: string;
-	optionBEmoji: string;
-	optionBLabel: string;
-	totalVotes: number;
-	votesA: number;
-	votesB: number;
-	weekNumber: number;
-};
+// Home Balance Game 타입들은 HomeBalanceGame 테이블 타입을 직접 사용하세요
 
 // Home Service Types
 export type TestCard = Pick<

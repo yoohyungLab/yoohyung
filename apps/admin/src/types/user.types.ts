@@ -1,9 +1,12 @@
-import type { User } from '@pickid/supabase';
+import type { User, UserResponseStats, UserStatus } from '@pickid/supabase';
 
 export interface ExtendedUser extends User {
 	name?: string;
-	provider: 'email' | 'google' | 'kakao';
-	status: 'active' | 'inactive' | 'deleted';
+	provider: string;
+	status: UserStatus | null;
 	avatar_url?: string;
 }
 
+export interface AdminUserResponseStats extends UserResponseStats {
+	mobile_ratio: number;
+}

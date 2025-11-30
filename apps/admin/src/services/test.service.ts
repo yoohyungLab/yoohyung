@@ -1,41 +1,16 @@
 import { validateRpcResult } from '@/lib';
 import type {
-	Database,
 	QuestionWithChoices,
 	Test,
 	TestChoice,
-	TestQuestion,
+	TestInsert,
+	TestQuestionInsert,
 	TestResult,
+	TestResultInsert,
 	TestStatus,
 	TestWithNestedDetails,
 } from '@pickid/supabase';
 import { supabase } from '@pickid/supabase';
-
-// 타입 정의
-
-type TestInsert = Database['public']['Tables']['tests']['Insert'];
-type TestQuestionInsert = Database['public']['Tables']['test_questions']['Insert'];
-type TestResultInsert = Database['public']['Tables']['test_results']['Insert'];
-
-export interface QuestionCreationData extends Omit<TestQuestion, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	choices: ChoiceCreationData[];
-}
-
-export interface ChoiceCreationData extends Omit<TestChoice, 'id' | 'question_id' | 'created_at'> {
-	score_value?: number; // score 필드의 별칭 (옵셔널로 변경)
-}
-
-export interface ResultCreationData extends Omit<TestResult, 'id' | 'test_id' | 'created_at' | 'updated_at'> {
-	result_type?: string; // 추가 필드
-	result_title?: string; // result_name의 별칭
-	result_description?: string; // description의 별칭
-	result_image_url?: string | null; // background_image_url의 별칭
-	score_min?: number; // match_conditions에서 추출
-	score_max?: number; // match_conditions에서 추출
-	order_index?: number; // result_order의 별칭
-}
-
-// 유틸리티 함수는 shared/lib로 이동되었습니다
 
 // 테스트 서비스
 
@@ -119,88 +94,39 @@ export const testService = {
 			throw new Error(`결과 목록 조회 실패: ${resultsError.message}`);
 		}
 
-		// 질문/결과 타입을 명확히 매핑
-		type QueryQuestionRow = {
-			id: string;
-			question_text: string;
-			question_order: number;
-			image_url: string | null;
-			question_type: string;
-			correct_answers: string[] | null;
-			explanation: string | null;
-			created_at: string;
-			updated_at: string;
-			test_choices: Array<{
-				id: string;
-				choice_text: string;
-				choice_order: number;
-				score: number | null;
-				is_correct: boolean | null;
-				code: string | null;
-				created_at: string | null;
-			}>;
-		};
+		const questions: QuestionWithChoices[] = ((questionsData as any) || []).map((q: any) => ({
+			id: q.id,
+			question_text: q.question_text,
+			question_order: q.question_order,
+			image_url: q.image_url,
+			question_type: q.question_type,
+			correct_answers: q.correct_answers,
+			explanation: q.explanation,
+			created_at: q.created_at,
+			updated_at: q.updated_at,
+			choices: (q.test_choices || []).map((ch: any) => ({
+				id: ch.id,
+				choice_text: ch.choice_text,
+				choice_order: ch.choice_order,
+				score: ch.score ?? 0,
+				is_correct: ch.is_correct ?? false,
+				code: ch.code ?? null,
+			})),
+		}));
 
-		const questionRows: QueryQuestionRow[] = (questionsData as unknown as QueryQuestionRow[]) || [];
-		const questions: QuestionWithChoices[] = questionRows.map((q) => {
-			const mappedChoices = (q.test_choices || []).map((choice) => ({
-				id: choice.id,
-				choice_text: choice.choice_text,
-				choice_order: choice.choice_order,
-				score: choice.score ?? 0,
-				is_correct: choice.is_correct ?? false,
-				code: choice.code ?? null,
-				created_at: choice.created_at,
-				last_updated: null,
-				response_count: 0,
-				question_id: null,
-			}));
-			const mapped = {
-				id: q.id,
-				question_text: q.question_text,
-				question_order: q.question_order,
-				image_url: q.image_url,
-				question_type: q.question_type,
-				correct_answers: q.correct_answers,
-				explanation: q.explanation,
-				created_at: q.created_at,
-				updated_at: q.updated_at,
-				choices: mappedChoices.map((ch) => ({
-					id: ch.id,
-					choice_text: ch.choice_text,
-					choice_order: ch.choice_order,
-					score: ch.score,
-					is_correct: ch.is_correct,
-					code: ch.code,
-				})),
-			};
-			return mapped as unknown as QuestionWithChoices;
-		});
-
-		const results: TestResult[] = (resultsData as unknown as TestResult[]) || [];
+		const results: TestResult[] = (resultsData as any) || [];
 
 		// Fallback: nested join 보정 - 필요시 직접 조인
 		if (questions.some((q) => !q.choices || q.choices.length === 0)) {
 			const ids = questions.map((q) => q.id);
 			const { data: rawChoices } = await supabase
 				.from('test_choices')
-				.select('id, choice_text, choice_order, score, is_correct, code, created_at, question_id, choice_order')
+				.select('id, choice_text, choice_order, score, is_correct, code, created_at, question_id')
 				.in('question_id', ids)
 				.order('choice_order');
 
-			const byQ: Record<
-				string,
-				Array<{
-					id: string;
-					choice_text: string;
-					choice_order: number;
-					score: number;
-					is_correct: boolean;
-					code: string | null;
-				}>
-			> = {};
-			for (const ch of (rawChoices as unknown as (TestChoice & { question_id: string; code?: string | null })[]) ||
-				[]) {
+			const byQ: Record<string, any[]> = {};
+			for (const ch of (rawChoices as any) || []) {
 				if (!byQ[ch.question_id]) byQ[ch.question_id] = [];
 				byQ[ch.question_id].push({
 					id: ch.id,
@@ -214,14 +140,7 @@ export const testService = {
 
 			for (const q of questions) {
 				if (!q.choices || q.choices.length === 0) {
-					q.choices = (byQ[q.id] || []).map((ch) => ({
-						id: ch.id,
-						choice_text: ch.choice_text,
-						choice_order: ch.choice_order,
-						score: ch.score,
-						is_correct: ch.is_correct,
-						code: ch.code,
-					})) as unknown as QuestionWithChoices['choices'];
+					q.choices = (byQ[q.id] || []) as any;
 				}
 			}
 		}
@@ -426,7 +345,7 @@ export const testService = {
 		if (resultsData.length > 0) {
 			const resultsToInsert = resultsData.map((result, index) => {
 				const matchConditions = result.match_conditions;
-			
+
 				return {
 					test_id: testId,
 					result_name: result.result_name,

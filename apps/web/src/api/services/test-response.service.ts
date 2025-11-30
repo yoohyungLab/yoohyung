@@ -1,55 +1,27 @@
 import { supabase } from '@pickid/supabase';
-import type { UserTestResponse, UserTestResponseInsert, TestResult } from '@pickid/supabase';
-
-// 테스트 완료 결과 (클라이언트 전용)
-export interface TestCompletionResult extends Pick<TestResult, 'test_id' | 'created_at'> {
-	resultId: string;
-	totalScore: number;
-	score: number;
-	answers: Array<{
-		questionId: string;
-		choiceId: string;
-		score: number;
-		code?: string;
-		answeredAt: number;
-	}>;
-	completedAt: string;
-	duration: number;
-	gender?: string;
-}
-
-// Type re-exports
-export type { UserTestResponse, UserTestResponseInsert };
+import type { UserTestResponse, UserTestResponseInsert } from '@pickid/supabase';
 
 const USER_RESPONSE_QUERY = `
 	*,
 	test_results:result_id(*)
 `;
 
-// Test Response Service - 사용자 응답 저장 및 조회
 export const testResponseService = {
 	// 사용자 응답 저장 (세션/사용자 정보 포함)
-	async saveUserResponse(params: {
-		testId: string;
-		resultId: string;
-		answers: { questionId: string; choiceId: string; score: number }[];
-		totalScore: number;
-		gender?: string;
-	}): Promise<UserTestResponse> {
+	async saveUserResponse(params: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender'>): Promise<UserTestResponse> {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
 
-		const insertData = {
-			test_id: params.testId,
-			result_id: params.resultId,
+		const insertData: UserTestResponseInsert = {
+			test_id: params.test_id,
+			result_id: params.result_id,
 			user_id: session?.user?.id || null,
-			session_id: session ? null : crypto.randomUUID(),
-			answers: params.answers as unknown as string,
-			total_score: params.totalScore,
+			session_id: session?.user?.id ? null : crypto.randomUUID(),
+			total_score: params.total_score,
 			gender: params.gender || null,
 			completed_at: new Date().toISOString(),
-		} as unknown as UserTestResponseInsert;
+		};
 
 		const { data, error } = await supabase.from('user_test_responses').insert(insertData).select().single();
 
@@ -97,21 +69,20 @@ export const testResponseService = {
 	},
 
 	// 테스트 완료 결과 저장 (전체 프로세스)
-	async saveUserTestResponse(result: TestCompletionResult): Promise<void> {
+	async saveUserTestResponse(result: Pick<UserTestResponseInsert, 'test_id' | 'result_id' | 'total_score' | 'gender' | 'completed_at'>): Promise<void> {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
 
-		const insertData = {
+		const insertData: UserTestResponseInsert = {
 			test_id: result.test_id,
-			result_id: result.resultId,
+			result_id: result.result_id,
 			user_id: session?.user?.id || null,
-			session_id: session ? null : crypto.randomUUID(),
-			answers: result.answers as unknown as string,
-			total_score: result.totalScore,
+			session_id: session?.user?.id ? null : crypto.randomUUID(),
+			total_score: result.total_score,
 			gender: result.gender || null,
-			completed_at: result.completedAt,
-		} as unknown as UserTestResponseInsert;
+			completed_at: result.completed_at,
+		};
 
 		const { error } = await supabase.from('user_test_responses').insert(insertData);
 
@@ -139,6 +110,18 @@ export const testResponseService = {
 
 		if (error) {
 			throw new Error(`테스트 완료 횟수 증가 실패: ${error.message}`);
+		}
+	},
+
+	// 밸런스 게임 투표 일괄 제출
+	async submitBalanceGameVotes(votes: Array<{ choice_id: string }>): Promise<void> {
+		const { error } = await supabase.rpc('submit_balance_game_votes' as any, {
+			p_votes: votes,
+		});
+
+		if (error) {
+			console.error('Error submitting balance game votes:', error);
+			throw new Error(`밸런스 게임 투표 제출 실패: ${error.message}`);
 		}
 	},
 };

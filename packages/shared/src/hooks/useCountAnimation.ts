@@ -2,12 +2,6 @@
 
 import { useState, useEffect } from 'react';
 
-/**
- * 숫자 카운트 애니메이션 훅
- * @param target 목표 숫자
- * @param duration 애니메이션 지속 시간 (ms)
- * @returns { count: number, isAnimating: boolean }
- */
 export function useCountAnimation(target: number, duration = 2000) {
 	const [count, setCount] = useState(0);
 	const [isAnimating, setIsAnimating] = useState(false);
@@ -45,4 +39,3 @@ export function useCountAnimation(target: number, duration = 2000) {
 
 	return { count, isAnimating };
 }
-

@@ -207,12 +207,8 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 
 					{/* 버튼 */}
 					<div className="flex justify-end space-x-2 pt-4">
-						<Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
-							취소
-						</Button>
-						<Button type="submit" loading={loading} loadingText="생성 중...">
-							카테고리 생성
-						</Button>
+						<Button type="button" variant="outline" onClick={handleClose} disabled={loading} text="취소" />
+						<Button type="submit" loading={loading} loadingText="생성 중..." text="카테고리 생성" />
 					</div>
 				</form>
 			</div>

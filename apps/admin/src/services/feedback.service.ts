@@ -1,7 +1,5 @@
-import type { AdminFeedbackResponse, Feedback, FeedbackStats } from '@pickid/supabase';
+import type { Feedback } from '@pickid/supabase';
 import { supabase } from '@pickid/supabase';
-
-export type { AdminFeedbackResponse, FeedbackStats };
 
 export const feedbackService = {
 	async getFeedbacks(): Promise<Feedback[]> {

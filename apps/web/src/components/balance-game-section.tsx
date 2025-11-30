@@ -2,18 +2,15 @@
 
 import Link from 'next/link';
 import { useHomeBalanceGame } from '@/hooks';
-import { BALANCE_GAME_TEXT } from '@/constants/balance-game';
 import { BALANCE_GAME_COLORS } from '@pickid/ui/constants/colors';
-import { calculateBalanceGameStats, createBalanceGameOptions, getVoteCountText } from '@/lib';
 
 export default function BalanceGameSection() {
 	const { game, isLoading, vote, isVoting, userChoice, resetVote } = useHomeBalanceGame();
 
-	// 로딩 중이면 로딩 표시
 	if (isLoading) {
 		return (
 			<section className="py-8">
-				<h2 className="text-2xl font-black text-gray-900 mb-4">{BALANCE_GAME_TEXT.loading}</h2>
+				<div className="h-8 w-3/4 bg-gray-200 rounded-md mb-4 animate-pulse" />
 				<div className="bg-white rounded-2xl p-5 animate-pulse border border-gray-200">
 					<div className="h-32 bg-gray-200 rounded-lg" />
 				</div>
@@ -21,12 +18,9 @@ export default function BalanceGameSection() {
 		);
 	}
 
-	// 게임 데이터가 없으면 렌더링하지 않음
 	if (!game) return null;
 
 	const showResult = userChoice !== null;
-	const stats = calculateBalanceGameStats(game);
-	const options = createBalanceGameOptions(game, stats);
 
 	return (
 		<section className="py-8">
@@ -36,7 +30,7 @@ export default function BalanceGameSection() {
 				{!showResult ? (
 					<>
 						<div className="grid grid-cols-2 gap-3 mb-4">
-							{options.map(({ id, emoji, label }) => (
+							{game.options.map(({ id, emoji, label }) => (
 								<button
 									key={id}
 									onClick={() => vote(id)}
@@ -62,16 +56,16 @@ export default function BalanceGameSection() {
 							<div
 								className={`w-10 h-10 ${BALANCE_GAME_COLORS.vs.background} rounded-full flex items-center justify-center ${BALANCE_GAME_COLORS.vs.border} shadow-sm`}
 							>
-								<span className="text-xs font-black text-gray-700">{BALANCE_GAME_TEXT.vsLabel}</span>
+								<span className="text-xs font-black text-gray-700">VS</span>
 							</div>
 						</div>
 
-						<p className="text-xs text-center text-gray-500 mt-3">{getVoteCountText(stats.totalVotes)}</p>
+						<p className="text-xs text-center text-gray-500 mt-3">{`${game.totalVotes.toLocaleString()}명이 참여했어요!`}</p>
 					</>
 				) : (
 					<div className="space-y-4">
 						<div className="space-y-2.5">
-							{options.map(({ id, emoji, label, votes, percentage }) => {
+							{game.options.map(({ id, emoji, label, votes, percentage }) => {
 								const isSelected = userChoice === id;
 								const isA = id === 'A';
 
@@ -96,7 +90,7 @@ export default function BalanceGameSection() {
 															isA ? BALANCE_GAME_COLORS.A.badge : BALANCE_GAME_COLORS.B.badge
 														}`}
 													>
-														{BALANCE_GAME_TEXT.selectedBadge}
+														내 선택
 													</span>
 												)}
 											</div>
@@ -132,17 +126,17 @@ export default function BalanceGameSection() {
 
 						<div className="grid grid-cols-2 gap-2">
 							<Link
-								href={BALANCE_GAME_TEXT.otherTestsHref}
+								href="/tests"
 								className="py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-all text-center flex items-center justify-center"
 							>
-								{BALANCE_GAME_TEXT.otherTestsButton}
+								다른 테스트 둘러보기
 							</Link>
 							<button
 								onClick={resetVote}
 								className="py-2.5 bg-white text-gray-900 text-sm font-bold rounded-lg hover:bg-gray-50 transition-all border border-gray-200"
 								type="button"
 							>
-								{BALANCE_GAME_TEXT.retryButton}
+								다시 투표하기
 							</button>
 						</div>
 					</div>
@@ -150,10 +144,10 @@ export default function BalanceGameSection() {
 
 				{!showResult && (
 					<Link
-						href={BALANCE_GAME_TEXT.moreGamesHref}
+						href="/tests/balance"
 						className="block text-center text-xs text-gray-500 hover:text-gray-900 mt-4 w-full py-1 font-medium transition-colors"
 					>
-						{BALANCE_GAME_TEXT.moreGames}
+						더 많은 밸런스게임 보기 →
 					</Link>
 				)}
 			</div>

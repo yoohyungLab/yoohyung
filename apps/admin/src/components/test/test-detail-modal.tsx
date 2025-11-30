@@ -24,11 +24,10 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import { getTestTypeInfo, getTestStatusInfo } from '@/utils/test-utils';
+import { getTestTypeInfo, getTestStatusInfo, calculateTestStats, getCategoryNames } from '@/utils/test.utils';
 import { useTestDetail } from '@/hooks/useTestDetail';
 import { useCategories } from '@/hooks';
 import type { TestDetailModalProps, TabType } from '@/types/test.types';
-import { calculateTestStats, getCategoryNames } from '@/utils/test-utils';
 
 export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: TestDetailModalProps) {
 	const [activeTab, setActiveTab] = useState<TabType>('basic');
@@ -194,7 +193,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									key={tab.id}
 									onClick={() => setActiveTab(tab.id)}
 									icon={<Icon className="w-4 h-4" />}
-									label={tab.label}
+									text={tab.label}
 									variant={activeTab === tab.id ? 'default' : 'ghost'}
 									className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all ${
 										activeTab === tab.id
@@ -664,11 +663,12 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 														onClick={() => setPreviewQuestionIndex(0)}
 														className="w-full py-3 text-lg"
 														disabled={!testDetails?.questions || testDetails.questions.length === 0}
-													>
-														{testDetails?.questions && testDetails.questions.length > 0
-															? '테스트 시작하기'
-															: '질문이 없습니다'}
-													</Button>
+														text={
+															testDetails?.questions && testDetails.questions.length > 0
+																? '테스트 시작하기'
+																: '질문이 없습니다'
+														}
+													/>
 												</div>
 											)}
 
@@ -750,9 +750,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 															</div>
 														)}
 													</div>
-													<Button onClick={() => setPreviewQuestionIndex(-1)} variant="outline" className="w-full mt-6">
-														다시 시작하기
-													</Button>
+													<Button onClick={() => setPreviewQuestionIndex(-1)} variant="outline" className="w-full mt-6" text="다시 시작하기" />
 												</div>
 											)}
 										</div>
@@ -791,7 +789,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								size="sm"
 								onClick={handleTogglePublish}
 								icon={test.status === 'published' ? <Lock className="w-4 h-4" /> : <Globe className="w-4 h-4" />}
-								label={test.status === 'published' ? '비공개 전환' : '공개 전환'}
+								text={test.status === 'published' ? '비공개 전환' : '공개 전환'}
 								className={
 									test.status === 'published'
 										? 'text-yellow-600 border-yellow-300 hover:bg-yellow-50'
@@ -805,7 +803,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 									window.location.href = `/tests/${test.id}/edit`;
 								}}
 								icon={<Edit className="w-4 h-4" />}
-								label="수정하기"
+								text="수정하기"
 							/>
 							<Button
 								variant="outline"

@@ -15,11 +15,7 @@ interface IUseQuizResultParams {
 	enabled?: boolean;
 }
 
-// 퀴즈 결과 로드 훅
-// - 세션 스토리지에서 결과 로드
-// - 점수에 맞는 결과 메시지 조회
-//
-// Note: popularTests는 컴포넌트에서 usePopularTests 직접 호출
+
 export function useQuizResult({ testId, enabled = true }: IUseQuizResultParams) {
 	const [quizResult, setQuizResult] = useState<IQuizResult | null>(null);
 	const [resultMessage, setResultMessage] = useState<IQuizResultMessage | null>(null);
@@ -28,13 +24,11 @@ export function useQuizResult({ testId, enabled = true }: IUseQuizResultParams) 
 	const hasLoadedRef = useRef(false);
 
 	useEffect(() => {
-		// enabled가 false면 실행하지 않음
 		if (!enabled) {
 			setIsLoading(false);
 			return;
 		}
 
-		// 이미 로드했다면 다시 로드하지 않음 (프로그레스바 중복 실행 방지)
 		if (hasLoadedRef.current) return;
 
 		async function loadResult() {

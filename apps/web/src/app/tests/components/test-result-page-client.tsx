@@ -9,19 +9,14 @@ import { BalanceGameResultContainer } from './balance-game/balance-game-result-c
 import { QuizResultContainer } from './quiz/quiz-result-container';
 import { TestResultContainer } from './psychology/test-result-container';
 import { SharedResultLanding } from './psychology/shared-result-landing';
-import {
-	useTestResult,
-	useQuizResult,
-	useBalanceGameResult,
-	usePopularTests,
-	useTestResultShare,
-} from '../hooks';
+import { useTestResult, useQuizResult, useBalanceGameResult, usePopularTests, useTestResultShare } from '../hooks';
 
 interface ITestResultPageClientProps {
 	testId: string;
 	testType: string;
 }
 
+// TODO: supabase에서 가져오기
 type TTestType = 'balance' | 'quiz' | 'psychology';
 
 export function TestResultPageClient({ testId, testType }: ITestResultPageClientProps) {
@@ -29,13 +24,11 @@ export function TestResultPageClient({ testId, testType }: ITestResultPageClient
 	const isSharedLink = searchParams.get('ref') === 'share';
 	const normalizedTestType: TTestType = (testType as TTestType) || 'psychology';
 
-	// 공통 데이터
 	const { isAuthenticated, user } = useAuth();
 	const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || null;
 
 	// 모든 hooks를 최상위에서 호출 (React rules of hooks 준수)
-	// 타입별로 enabled 조건 설정하여 불필요한 쿼리 방지
-	// 공유 링크인 경우, 심리테스트는 대표 결과만 보여주므로 데이터 로드 비활성화
+
 	const balanceGameData = useBalanceGameResult({ testId, enabled: normalizedTestType === 'balance' && !isSharedLink });
 	const quizData = useQuizResult({ testId, enabled: normalizedTestType === 'quiz' && !isSharedLink });
 	const psychologyData = useTestResult({ testId, enabled: normalizedTestType === 'psychology' && !isSharedLink });

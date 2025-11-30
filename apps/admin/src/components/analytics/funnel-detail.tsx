@@ -1,5 +1,5 @@
 import React from 'react';
-import { cn } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 import type { FunnelDataItem } from '@pickid/supabase';
 
 interface FunnelDetailProps {

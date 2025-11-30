@@ -2,9 +2,6 @@ import { useState, useEffect } from 'react';
 import { adminAuthService } from '../services';
 import type { AdminUser } from '@pickid/supabase';
 
-/**
- * Admin Auth Hook - RPC 기반 세션 관리
- */
 export function useAdminAuth() {
 	const [adminUser, setAdminUser] = useState<AdminUser | null>(null);
 	const [loading, setLoading] = useState(true);

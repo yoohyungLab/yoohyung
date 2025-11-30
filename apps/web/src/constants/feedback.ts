@@ -18,6 +18,9 @@ export const FEEDBACK_CATEGORY_LABEL = {
 	other: '기타',
 } as const;
 
+// Alias for backward compatibility
+export const FEEDBACK_CATEGORIES = FEEDBACK_CATEGORY_LABEL;
+
 // 피드백 상태
 export const FEEDBACK_STATUS = {
 	PENDING: 'pending',

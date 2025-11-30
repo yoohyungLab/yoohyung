@@ -1,10 +1,10 @@
 import React from 'react';
 import { User, Clock, Calendar, Monitor } from 'lucide-react';
 import { StatsCards } from '@/components/ui';
-import type { UserResponseStats } from '@pickid/supabase';
+import type { AdminUserResponseStats } from '@/types/user.types';
 
 interface ResponseStatsCardsProps {
-	stats: UserResponseStats;
+	stats: AdminUserResponseStats;
 }
 
 export function ResponseStatsCards({ stats }: ResponseStatsCardsProps) {

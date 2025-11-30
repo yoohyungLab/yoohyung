@@ -1,6 +1,6 @@
 import React from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './select';
-import { cn } from '../../lib/utils';
+import { cn } from '@pickid/shared';
 
 export interface SelectOption {
 	value: string;

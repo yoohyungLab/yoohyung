@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { categoryService } from '@/services/category.service';
-import type { Category } from '@pickid/supabase';
+import type { CategoryWithDescription } from '@/types/category.types';
 import { Button } from '@pickid/ui';
 import { ArrowUpDown, X, GripVertical } from 'lucide-react';
 
@@ -8,18 +8,17 @@ interface CategorySortModalProps {
 	isOpen: boolean;
 	onClose: () => void;
 	onSuccess: () => void;
-	categories: Category[];
+	categories: CategoryWithDescription[];
 }
 
 export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: CategorySortModalProps) {
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState<string | null>(null);
-	const [sortedCategories, setSortedCategories] = useState<Category[]>([]);
+	const [sortedCategories, setSortedCategories] = useState<CategoryWithDescription[]>([]);
 
 	useEffect(() => {
 		if (isOpen) {
-			// 현재 sort_order로 정렬된 카테고리 목록
-			setSortedCategories([...categories].sort((a, b) => a.sort_order - b.sort_order));
+			setSortedCategories([...categories].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)));
 		}
 	}, [isOpen, categories]);
 
@@ -133,12 +132,8 @@ export function CategorySortModal({ isOpen, onClose, onSuccess, categories }: Ca
 
 					{/* 버튼 */}
 					<div className="flex justify-end space-x-2 pt-4 mt-6 border-t border-gray-200">
-						<Button type="button" variant="outline" onClick={handleClose} disabled={loading}>
-							취소
-						</Button>
-						<Button onClick={handleSave} loading={loading} loadingText="저장 중...">
-							순서 저장
-						</Button>
+						<Button type="button" variant="outline" onClick={handleClose} disabled={loading} text="취소" />
+						<Button onClick={handleSave} loading={loading} loadingText="저장 중..." text="순서 저장" />
 					</div>
 				</div>
 			</div>

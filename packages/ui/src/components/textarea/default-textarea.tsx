@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Textarea } from './textarea';
-import { cn } from '../../lib/utils';
+import { cn } from '@pickid/shared';
 
 export interface DefaultTextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
 	label?: string;

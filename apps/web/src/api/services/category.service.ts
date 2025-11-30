@@ -1,11 +1,6 @@
 import { createServerClient, supabase } from '@pickid/supabase';
 import type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCategoriesData } from '@pickid/supabase';
 
-// Type re-exports
-export type { Category, Test, CategoryWithTestCount, CategoryPageData, AllCategoriesData };
-
-// Category Service - 카테고리 관리
-// SSR이 필요한 경우 명시적으로 createServerClient() 사용
 export const categoryService = {
 	async getActiveCategories(): Promise<Category[]> {
 		const { data, error } = await supabase
@@ -98,11 +93,7 @@ export const categoryService = {
 
 		const [categoryResult, allCategoriesResult] = await Promise.all([
 			supabaseServer.from('categories').select('*').eq('slug', slug).eq('status', 'active').single(),
-			supabaseServer
-				.from('categories')
-				.select('*')
-				.eq('status', 'active')
-				.order('sort_order', { ascending: true }),
+			supabaseServer.from('categories').select('*').eq('status', 'active').order('sort_order', { ascending: true }),
 		]);
 
 		if (categoryResult.error) {
@@ -154,5 +145,4 @@ export const categoryService = {
 
 		return { allCategories: categories, allTests: tests };
 	},
-
 };

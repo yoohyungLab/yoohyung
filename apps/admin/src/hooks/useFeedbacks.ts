@@ -4,7 +4,8 @@ import { feedbackService } from '@/services';
 import { queryKeys } from '@pickid/shared';
 import { FEEDBACK_STATUS } from '@/constants';
 import { useToast } from '@pickid/shared';
-import type { Feedback, FeedbackFilters, FeedbackStats } from '@pickid/supabase';
+import type { Feedback } from '@pickid/supabase';
+import type { FeedbackFilters, FeedbackStats } from '@/types/feedback.types';
 
 export const useFeedbacks = () => {
 	const queryClient = useQueryClient();

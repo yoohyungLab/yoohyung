@@ -3,21 +3,10 @@ import type { TestResult, TestResultInsert } from '@pickid/supabase';
 import { isNotFoundError } from '@pickid/shared';
 import { findMatchingResult } from '@/lib/test-result-matching';
 
-interface ITestResultRow {
-	result_name: string;
-	description: string | null;
-	theme_color: string | null;
-	match_conditions: { min?: number; max?: number; type?: string } | null;
-}
+type TestResultRow = Pick<TestResult, 'result_name' | 'description' | 'theme_color' | 'match_conditions'>;
 
-// Type re-exports
-export type { TestResult, TestResultInsert, ITestResultRow };
-
-// Test Result Service - 결과 조회
-// 매칭 로직은 lib/test-result-matching.ts에서 처리
 export const testResultService = {
-	// 퀴즈 결과 메시지 조회
-	async getQuizResultMessages(testId: string): Promise<ITestResultRow[]> {
+	async getQuizResultMessages(testId: string): Promise<TestResultRow[]> {
 		const { data, error } = await supabase
 			.from('test_results')
 			.select('result_name, description, theme_color, match_conditions')
@@ -28,7 +17,7 @@ export const testResultService = {
 			throw new Error(`퀴즈 결과 메시지 조회 실패: ${error.message}`);
 		}
 
-		return (data as ITestResultRow[]) || [];
+		return (data as TestResultRow[]) || [];
 	},
 
 	// 테스트 결과 저장
@@ -68,8 +57,6 @@ export const testResultService = {
 		return data || [];
 	},
 
-	// 응답 데이터 기반 결과 조회
-	// SessionStorage 및 DB에서 응답 조회 후 매칭 결과 반환
 	async getResponseData(testId: string) {
 		// SessionStorage에서 저장된 결과 확인
 		if (typeof window !== 'undefined') {
@@ -80,13 +67,10 @@ export const testResultService = {
 				try {
 					const parsedResult = JSON.parse(storedResult);
 					return parsedResult;
-				} catch {
-					// JSON 파싱 실패 시 무시하고 DB 조회로 진행
-				}
+				} catch {}
 			}
 		}
 
-		// DB에서 응답 조회
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
@@ -114,7 +98,6 @@ export const testResultService = {
 		return responseData;
 	},
 
-	// 점수/코드 기반 결과 매칭 (lib 함수 사용)
 	findMatchingResult(
 		results: TestResult[],
 		totalScore: number,

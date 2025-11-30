@@ -1,5 +1,96 @@
-import type { QuestionWithChoices, ResultWithDetails, QuestionData, ResultData, ChoiceData } from '../types/test.types';
+import type { QuestionWithChoices, TestResult, TestType, TestStatus } from '@pickid/supabase';
+import type {
+	TestFormQuestion as QuestionData,
+	TestFormChoice as ChoiceData,
+	TestFormResult as ResultData,
+} from '../types/test-form';
 import { DEFAULT_BASIC_INFO } from '../constants/test';
+
+// 테스트 타입/상태 정보
+
+export const TEST_TYPE_CONFIG = {
+	psychology: {
+		name: '심리형',
+		description: 'MBTI, 색상/동물 등 성향 분석',
+	},
+	balance: {
+		name: '밸런스형',
+		description: '2지선다/다지선다 선택',
+	},
+	character: {
+		name: '캐릭터 매칭형',
+		description: '특정 IP/캐릭터와 매칭',
+	},
+	quiz: {
+		name: '퀴즈형',
+		description: '지식/정답 기반',
+	},
+	meme: {
+		name: '밈형',
+		description: '밈/이모지 매칭',
+	},
+	lifestyle: {
+		name: '라이프스타일형',
+		description: '취향 기반',
+	},
+} as const;
+
+export const TEST_STATUS_CONFIG = {
+	draft: {
+		name: '초안',
+	},
+	published: {
+		name: '공개',
+	},
+	scheduled: {
+		name: '예약',
+	},
+	archived: {
+		name: '보관',
+	},
+} as const;
+
+export function getTestTypeInfo(type: TestType | string) {
+	return (
+		TEST_TYPE_CONFIG[type as TestType] || {
+			name: '알 수 없음',
+			description: '알 수 없는 테스트 유형',
+		}
+	);
+}
+
+export function getTestStatusInfo(status: TestStatus | string) {
+	return (
+		TEST_STATUS_CONFIG[status as TestStatus] || {
+			name: '알 수 없음',
+		}
+	);
+}
+
+// 테스트 통계 계산
+export function calculateTestStats(questions: unknown[] = [], results: unknown[] = []) {
+	return {
+		totalQuestions: questions.length,
+		totalResults: results.length,
+	};
+}
+
+// 카테고리 ID 배열을 카테고리 이름 배열로 변환
+export function getCategoryNames(
+	categoryIds: string[] | null | undefined,
+	categories: Array<{ id: string; name: string }>
+): string[] {
+	if (!categoryIds || categoryIds.length === 0) {
+		return [];
+	}
+
+	return categoryIds
+		.map((id) => {
+			const category = categories.find((cat) => cat.id === id);
+			return category?.name || '';
+		})
+		.filter((name) => name !== '');
+}
 
 // 데이터 변환 유틸리티
 
@@ -72,7 +163,7 @@ export const convertQuestionsData = (questionsData: QuestionWithChoices[]): Ques
 /**
  * 결과 데이터를 UI용으로 변환
  */
-export const convertResultsData = (resultsData: ResultWithDetails[]): ResultData[] => {
+export const convertResultsData = (resultsData: TestResult[]): ResultData[] => {
 	if (!resultsData || resultsData.length === 0) {
 		return [
 			{
@@ -88,20 +179,54 @@ export const convertResultsData = (resultsData: ResultWithDetails[]): ResultData
 		];
 	}
 
-	return resultsData.map((r) => ({
-		result_name: r.result_name || '',
-		result_order: r.result_order || 0,
-		description: r.description,
-		match_conditions: r.match_conditions || {
-			type: 'score' as const,
-			min: 0,
-			max: 30,
-		},
-		background_image_url: r.background_image_url,
-		theme_color: r.theme_color || '#3B82F6',
-		features: r.features || {},
-		target_gender: r.target_gender || null,
-	}));
+	return resultsData.map((r) => {
+		let matchConditions: ResultData['match_conditions'] = null;
+
+		if (r.match_conditions) {
+			// match_conditions가 객체인 경우 타입 확인
+			if (typeof r.match_conditions === 'object' && !Array.isArray(r.match_conditions)) {
+				if ('type' in r.match_conditions && r.match_conditions.type === 'score') {
+					matchConditions = {
+						type: 'score',
+						min:
+							typeof (r.match_conditions as { min?: number }).min === 'number'
+								? (r.match_conditions as { min: number }).min
+								: 0,
+						max:
+							typeof (r.match_conditions as { max?: number }).max === 'number'
+								? (r.match_conditions as { max: number }).max
+								: 30,
+					};
+				} else if ('type' in r.match_conditions && r.match_conditions.type === 'code') {
+					matchConditions = {
+						type: 'code',
+						codes: Array.isArray((r.match_conditions as { codes?: unknown }).codes)
+							? (r.match_conditions as { codes: string[] }).codes
+							: [],
+					};
+				}
+			}
+		}
+
+		if (!matchConditions) {
+			matchConditions = {
+				type: 'score' as const,
+				min: 0,
+				max: 30,
+			};
+		}
+
+		return {
+			result_name: r.result_name || '',
+			result_order: r.result_order || 0,
+			description: r.description,
+			match_conditions: matchConditions,
+			background_image_url: r.background_image_url,
+			theme_color: r.theme_color || '#3B82F6',
+			features: r.features || {},
+			target_gender: r.target_gender || null,
+		};
+	});
 };
 
 // 코드 생성 유틸리티
@@ -136,7 +261,6 @@ export const generateSlug = (title: string): string => {
 		.replace(/^-|-$/g, '') // 앞뒤 하이픈 제거
 		.substring(0, 50); // 최대 50자로 제한
 };
-
 
 /**
  * 기본 정보와 함께 짧은 코드 생성

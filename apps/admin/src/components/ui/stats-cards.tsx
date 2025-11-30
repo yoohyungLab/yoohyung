@@ -1,6 +1,6 @@
 import React from 'react';
 import { Card, CardContent } from '@pickid/ui';
-import { cn } from '@pickid/ui';
+import { cn } from '@pickid/shared';
 import {
 	Hash,
 	TrendingUp,
@@ -20,7 +20,7 @@ import {
 export interface StatCard {
 	id: string;
 	label: string;
-	value: number;
+	value: string | number;
 	color?: 'blue' | 'green' | 'yellow' | 'red' | 'purple' | 'indigo' | 'pink' | 'gray';
 	icon?: React.ReactNode;
 }

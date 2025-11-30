@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import { Input } from './input';
-import { cn } from '../../lib/utils';
+import { cn } from '@pickid/shared';
 
 export interface InputPasswordProps extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'type'> {
 	label?: string;

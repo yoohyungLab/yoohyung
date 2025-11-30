@@ -4,11 +4,7 @@ import { TestSection } from './test-section';
 import BalanceGameSection from './balance-game-section';
 import { AdBannerInline } from './ad-banner-inline';
 import type { Category, TestCard } from '@pickid/supabase';
-
-interface Banner {
-	id: string;
-	image: string;
-}
+import { HOME_BANNERS } from '@/constants';
 
 interface HomeContainerProps {
 	tests: TestCard[];
@@ -21,18 +17,10 @@ interface HomeContainerProps {
 export function HomeContainer(props: HomeContainerProps) {
 	const { tests, categories, popularTests, recommendedTests, topByType } = props;
 
-	const banners: Banner[] = [
-		{ id: '73c68247-907f-49c7-a5c5-e74f4b990232', image: '/images/banner-5.svg' },
-		{ id: 'e0b80003-0c7c-4daf-a792-076dd0a284ee', image: '/images/banner-4.svg' },
-		{ id: 'eec5eb18-3629-4e44-b18a-88fc3b8f2446', image: '/images/banner-2.png' },
-		{ id: '1f3bf2c8-4f8d-4df2-80f8-5f551654a025', image: '/images/banner-1.svg' },
-		{ id: '73c68247-907f-49c7-a5c5-e74f4b990232', image: '/images/banner-3.svg' },
-	];
-
 	return (
 		<>
 			<header role="banner">
-				<BannerCarousel banners={banners} />
+				<BannerCarousel banners={HOME_BANNERS} />
 			</header>
 
 			<main className="min-h-screen bg-gray-50">
@@ -49,7 +37,6 @@ export function HomeContainer(props: HomeContainerProps) {
 
 					{tests.length > 0 && <TestSection tests={tests} title="새로 추가된 테스트" sectionType="new" />}
 
-					{/* 중간 영역 광고 배너 */}
 					<AdBannerInline />
 
 					<TestSection tests={recommendedTests} title="추천 테스트" sectionType="recommended" />

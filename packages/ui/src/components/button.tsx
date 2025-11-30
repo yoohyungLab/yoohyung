@@ -3,7 +3,7 @@ import { Slot } from '@radix-ui/react-slot';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { Loader2 } from 'lucide-react';
 
-import { cn } from '../lib/utils';
+import { cn } from '@pickid/shared';
 
 const buttonVariants = cva(
 	'cursor-pointer inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0',
@@ -47,6 +47,7 @@ export interface ButtonProps
 	asChild?: boolean;
 	loading?: boolean;
 	loadingText?: string;
+	text?: string;
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -58,6 +59,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 			asChild = false,
 			loading = false,
 			loadingText = '로딩 중...',
+			text,
 			children,
 			disabled,
 			...props
@@ -66,8 +68,6 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 	) => {
 		const Comp = asChild ? Slot : 'button';
 		const isDisabled = disabled || loading;
-
-		// kakao variant일 때는 size를 무시하고 variant만 사용
 		const effectiveSize = variant === 'kakao' ? undefined : size;
 
 		return (
@@ -83,7 +83,7 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
 						{loadingText}
 					</>
 				) : (
-					children
+					children ?? text
 				)}
 			</Comp>
 		);

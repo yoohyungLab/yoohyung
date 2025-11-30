@@ -1,59 +1,6 @@
 import { supabase } from '@pickid/supabase';
-import type { UserTestResponse } from '@pickid/supabase';
-export interface UserResponse extends UserTestResponse {
-	test_title: string;
-	test_slug: string;
-	category_names: string[];
-	result_name: string | null;
-}
-export interface ResponseFilters {
-	test_id?: string;
-	category_id?: string;
-	device_type?: UserTestResponse['device_type'];
-	date_from?: string;
-	date_to?: string;
-	search_query?: string;
-	limit?: number;
-	offset?: number;
-}
-export interface ResponseStats {
-	total_responses: number;
-	completed_responses: number;
-	completion_rate: number;
-	avg_completion_time: number;
-	mobile_count: number;
-	desktop_count: number;
-	mobile_ratio: number;
-	stats_generated_at: string;
-}
-export interface ResponseChartData {
-	daily_responses: Array<{ date: string; count: number }>;
-	device_breakdown: Array<{ device: string; count: number }>;
-	result_breakdown: Array<{ result: string; count: number }>;
-	period_days: number;
-	generated_at: string;
-}
-export interface UserResponseDetail extends UserTestResponse {
-	test: { id: string; title: string; slug: string; type: string };
-	result: { id: string; name: string; description: string | null } | null;
-	timing: { started_at: string | null; completed_at: string | null; duration_seconds: number | null };
-	environment: {
-		ip_address: string | null;
-		user_agent: string | null;
-		device_type: string | null;
-		referrer: string | null;
-	};
-}
-export interface ExportData {
-	response_id: string;
-	test_title: string;
-	result_name: string;
-	score: UserTestResponse['total_score'];
-	completed_at: UserTestResponse['completed_at'];
-	duration_seconds: UserTestResponse['completion_time_seconds'];
-	device_type: UserTestResponse['device_type'];
-	responses_json: string;
-}
+import type { UserResponse, ResponseFilters, ResponseStats, UserResponseDetail } from '@/types/user-responses.types';
+
 export const userResponsesService = {
 	async getResponses(): Promise<UserResponse[]> {
 		const { data, error } = await supabase
@@ -365,6 +312,7 @@ export const userResponsesService = {
 		};
 	},
 };
+
 export const ResponseUtils = {
 	formatDuration(seconds: number | null): string {
 		if (!seconds) return '0초';
@@ -389,20 +337,5 @@ export const ResponseUtils = {
 		if (response.completed_at) return 'completed';
 		if (response.started_at) return 'started';
 		return 'abandoned';
-	},
-	validateDateRange(dateFrom: string, dateTo: string): boolean {
-		return new Date(dateFrom) <= new Date(dateTo);
-	},
-	calculatePagination(currentPage: number, itemsPerPage: number, totalItems: number) {
-		const totalPages = Math.ceil(totalItems / itemsPerPage);
-		const startIndex = (currentPage - 1) * itemsPerPage;
-		const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-		return {
-			totalPages,
-			hasNextPage: currentPage < totalPages,
-			hasPrevPage: currentPage > 1,
-			startIndex: startIndex + 1,
-			endIndex,
-		};
 	},
 };

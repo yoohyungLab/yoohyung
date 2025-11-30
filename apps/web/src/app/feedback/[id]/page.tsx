@@ -30,8 +30,8 @@ export default function FeedbackDetailPage() {
 					<h1 className="text-2xl font-bold text-gray-900 mb-2">피드백을 찾을 수 없어요</h1>
 					<p className="text-gray-600 mb-4">요청하신 피드백이 존재하지 않습니다</p>
 					<div className="space-x-4">
-						<Button onClick={() => router.back()}>뒤로가기</Button>
-						<Button onClick={() => router.push('/')}>홈으로</Button>
+						<Button onClick={() => router.back()} text="뒤로가기" />
+						<Button onClick={() => router.push('/')} text="홈으로" />
 					</div>
 				</div>
 			</div>

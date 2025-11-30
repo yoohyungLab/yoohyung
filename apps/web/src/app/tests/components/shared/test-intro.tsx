@@ -72,6 +72,7 @@ export function TestIntro({ test, onStart, theme }: TestIntroProps) {
 							fill
 							className="object-cover"
 							sizes="(max-width: 768px) 100vw, 420px"
+							quality={95}
 							priority
 						/>
 					</figure>
@@ -112,9 +113,8 @@ export function TestIntro({ test, onStart, theme }: TestIntroProps) {
 					style={{
 						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.3)',
 					}}
-				>
-					시작하기
-				</Button>
+					text="시작하기"
+				/>
 
 				{showGenderModal && <GenderSelectModal onSelect={handleGenderSelect} />}
 			</article>

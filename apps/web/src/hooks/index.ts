@@ -1,1 +1,1 @@
-export { useCurrentWeekBalanceGame, useVoteBalanceGame, useHomeBalanceGame } from './useHomeBalanceGame';
+export { useHomeBalanceGame } from './useHomeBalanceGame';

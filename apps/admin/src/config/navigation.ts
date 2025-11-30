@@ -1,31 +1,4 @@
-/**
- * NavEntry: Discriminated Union 타입
- * - type 필드로 section(섹션 헤더) vs item(네비게이션 항목) 구분
- * - TypeScript가 타입을 자동으로 좁혀주어 안전한 타입 체크 가능
- */
-export type NavEntry =
-	| {
-			type: 'section';
-			name: string;
-	  }
-	| {
-			type: 'item';
-			name: string;
-			href: string;
-			icon: string;
-			description?: string;
-			badge?: string;
-			// 활성 매칭 우선순위 향상을 위한 prefix(여러 개 가능)
-			match?: string[];
-	  };
-
-/**
- * Navigation 설정
- * - href: 클릭 시 이동할 경로
- * - match: 이 메뉴를 활성 상태로 표시할 경로 목록 (하위 경로 포함)
- *   예: '/tests'를 클릭해도 '/tests/create'에서는 '테스트 관리' 메뉴가 활성화됨
- */
-export const navigation: NavEntry[] = [
+export const navigation = [
 	{
 		type: 'item',
 		name: '대시보드',
@@ -79,7 +52,6 @@ export const navigation: NavEntry[] = [
 		match: ['/analytics', '/analytics/tests'],
 	},
 
-	// ✅ 신규: 마케팅 분석 (유입·퍼널·가입 중심, 결과 분석과 별개)
 	{
 		type: 'item',
 		name: '성장 분석',
@@ -109,7 +81,7 @@ export const navigation: NavEntry[] = [
 ];
 
 // 헬퍼 함수
-export function isActivePath(pathname: string, entry: NavEntry) {
+export function isActivePath(pathname: string, entry: (typeof navigation)[number]) {
 	if (entry.type !== 'item') return false;
 	if (entry.href === '/') return pathname === '/';
 	const prefixes = entry.match ?? [entry.href];

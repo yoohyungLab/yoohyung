@@ -1,16 +1,8 @@
 import { supabase } from '@pickid/supabase';
-import type { Feedback } from '@pickid/supabase';
-
-// Type definitions
-type ISubmitFeedbackParams = Pick<Feedback, 'title' | 'category'> & {
-	content: string;
-};
-
-// Type re-exports
-export type { Feedback, ISubmitFeedbackParams };
+import type { Feedback, FeedbackInsert } from '@pickid/supabase';
 
 export const feedbackService = {
-	async submitFeedback(feedbackData: ISubmitFeedbackParams): Promise<Feedback> {
+	async submitFeedback(feedbackData: Pick<FeedbackInsert, 'title' | 'category' | 'content'>): Promise<Feedback> {
 		const {
 			data: { session },
 		} = await supabase.auth.getSession();
