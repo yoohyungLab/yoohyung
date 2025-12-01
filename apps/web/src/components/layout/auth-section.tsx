@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/app/auth/hooks/useAuth';
 import { SITE_CONFIG } from '@/constants/site-config';
+import { ROUTES } from '@/constants';
 import { MenuContent } from './menu-content';
 
 interface AuthSectionProps {
@@ -20,7 +21,7 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 		try {
 			await signOut();
 			onMenuClose();
-			router.push('/');
+			router.push(ROUTES.HOME);
 		} catch (error) {
 			console.error('Logout failed:', error);
 		}
@@ -32,7 +33,7 @@ export function AuthSection({ onMenuClose }: AuthSectionProps) {
 	};
 
 	const handleAuthClick = () => {
-		handleMenuClick('/auth/login');
+		handleMenuClick(ROUTES.AUTH_LOGIN);
 	};
 
 	if (user) {

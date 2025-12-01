@@ -1,20 +1,12 @@
 'use client';
 
-import { FEEDBACK_CATEGORIES } from '@/constants';
+import { FEEDBACK_CATEGORIES } from '@/constants/feedback';
 
 interface FeedbackCategorySelectorProps {
 	selectedCategory: string;
 	onCategoryChange: (category: string) => void;
 	error?: string;
 }
-
-const CATEGORY_CONFIG = {
-	bug: { emoji: '🐛', description: '오류나 문제점을 신고해주세요' },
-	feature: { emoji: '💡', description: '새로운 기능을 제안해주세요' },
-	ui: { emoji: '🎨', description: '디자인 개선사항을 알려주세요' },
-	content: { emoji: '📝', description: '콘텐츠 관련 의견을 주세요' },
-	other: { emoji: '💭', description: '기타 의견을 남겨주세요' },
-} as const;
 
 export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, error }: FeedbackCategorySelectorProps) {
 	return (
@@ -23,9 +15,8 @@ export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, e
 				카테고리 <span className="text-red-500">*</span>
 			</label>
 			<div className="grid grid-cols-2 gap-2">
-				{Object.entries(FEEDBACK_CATEGORIES).map(([key, label]) => {
+				{Object.entries(FEEDBACK_CATEGORIES).map(([key, config]) => {
 					const isSelected = selectedCategory === key;
-					const config = CATEGORY_CONFIG[key as keyof typeof CATEGORY_CONFIG];
 
 					return (
 						<button
@@ -39,10 +30,10 @@ export function FeedbackCategorySelector({ selectedCategory, onCategoryChange, e
 							`}
 						>
 							<div className="flex items-start gap-2">
-								<span className="text-lg flex-shrink-0">{config.emoji}</span>
+								<span className="text-lg flex-shrink-0">{config.EMOJI}</span>
 								<div className="flex-1 min-w-0">
-									<div className="text-xs font-bold text-gray-900 mb-0.5">{label}</div>
-									<div className="text-[10px] text-gray-500 line-clamp-1">{config.description}</div>
+									<div className="text-xs font-bold text-gray-900 mb-0.5">{config.LABEL}</div>
+									<div className="text-[10px] text-gray-500 line-clamp-1">{config.DESCRIPTION}</div>
 								</div>
 								{isSelected && (
 									<div className="w-4 h-4 bg-gray-900 rounded-full flex items-center justify-center flex-shrink-0">

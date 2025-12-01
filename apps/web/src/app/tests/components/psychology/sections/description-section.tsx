@@ -1,6 +1,5 @@
 'use client';
 
-import { parseDescription } from '@/lib/format-utils';
 import { getThemedColors, createCardStyles, createDecorationStyle } from '@/lib/color-utils';
 
 interface IDescriptionSectionProps {
@@ -9,7 +8,7 @@ interface IDescriptionSectionProps {
 }
 
 export function DescriptionSection({ description, themeColor }: IDescriptionSectionProps) {
-	const descriptionLines = parseDescription(description);
+	const descriptionLines = description.split('\n').filter((line) => line.trim());
 	const colors = getThemedColors(themeColor);
 	const cardStyles = createCardStyles(colors);
 	

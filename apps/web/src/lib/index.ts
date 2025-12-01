@@ -8,15 +8,9 @@ export {
 	findOverwhelmingChoice,
 } from './balance-game.utils';
 
-export {
-	adjustColor,
-	getBackgroundGradient,
-	getThemedColors,
-	createCardStyles,
-	createDecorationStyle,
-} from './color-utils';
+export { getBackgroundGradient, getThemedColors, createCardStyles, createDecorationStyle } from './color-utils';
 
-export { formatDate, formatDateTime, parseDescription, parseStringOrArray } from './format-utils';
+export { parseStringOrArray } from './format-utils';
 
 export { preloadImage } from './image-preload';
 

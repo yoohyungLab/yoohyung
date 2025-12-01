@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { ETC_MENUS, MAIN_MENUS } from '@/constants/menu';
+import { ETC_MENUS, MAIN_MENUS } from '@/constants/ui';
 
 interface MenuContentProps {
 	onMenuClick: () => void;

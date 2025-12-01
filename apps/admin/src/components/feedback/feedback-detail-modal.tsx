@@ -3,7 +3,7 @@ import type { Feedback } from '@pickid/supabase';
 import { Badge, IconBadge, IconButton } from '@pickid/ui';
 import { AdminCard, AdminCardHeader, AdminCardContent } from '@/components/ui/admin-card';
 import { Calendar, CheckCircle, Clock, Eye, Mail, MessageSquare, Paperclip, Reply, User, X } from 'lucide-react';
-import { getColor, getStatusConfig } from '@/utils/utils';
+import { FEEDBACK_STATUSES } from '@/constants';
 
 interface FeedbackDetailModalProps {
 	feedback: Feedback;
@@ -34,8 +34,9 @@ export function FeedbackDetailModal(props: FeedbackDetailModalProps) {
 
 								<div className="flex items-center gap-3 mb-3">
 									{(() => {
-										const statusConfig = getStatusConfig('feedback', feedback.status);
-										const statusText = statusConfig.text || feedback.status;
+										const statusKey = feedback.status as keyof typeof FEEDBACK_STATUSES;
+										const statusConfig = FEEDBACK_STATUSES[statusKey] || { value: feedback.status, label: feedback.status, variant: 'default' as const };
+										const statusText = statusConfig.label || feedback.status;
 
 										const statusIcon = (() => {
 											switch (feedback.status) {

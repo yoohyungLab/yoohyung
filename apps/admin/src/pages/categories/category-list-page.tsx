@@ -1,17 +1,15 @@
-import React, { useCallback, useState, useMemo } from 'react';
-import { usePagination } from '@pickid/shared';
-import { DataTable, type Column, DefaultPagination, Badge, Button } from '@pickid/ui';
-import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { CategoryCreateModal, CategorySortModal } from '@/components/category';
-import { useColumnRenderers } from '@/hooks/use-column-renderers';
+import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
+import { PAGINATION, CATEGORY_STATUSES } from '@/constants';
+import { useTableColumns } from '@/hooks/useTableColumns';
 import { useCategories } from '@/hooks/useCategories';
-import { PAGINATION, CATEGORY_STATUS_OPTIONS } from '@/constants';
-import { getStatusConfig } from '@/utils/utils';
+import { toOptions } from '@/utils/options';
+import { usePagination } from '@pickid/shared';
 import type { Category } from '@pickid/supabase';
+import { Button, DataTable, DefaultPagination } from '@pickid/ui';
+import { useMemo, useState } from 'react';
 
 export default function CategoryListPage() {
-	const renderers = useColumnRenderers();
-
 	const {
 		categories,
 		loading,
@@ -28,48 +26,18 @@ export default function CategoryListPage() {
 	const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 	const pagination = usePagination({
 		totalItems: categories.length,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+		defaultPageSize: PAGINATION.pageSize,
 	});
 
 	const [showCreateModal, setShowCreateModal] = useState(false);
 	const [showSortModal, setShowSortModal] = useState(false);
 	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 
-	const handleStatusChange = useCallback(
-		async (categoryId: string, isActive: boolean) => {
-			await updateCategoryStatus(categoryId, isActive);
-		},
-		[updateCategoryStatus]
-	);
-
 	const handleBulkStatusChange = async (isActive: boolean) => {
 		if (selectedCategories.length === 0) return;
 		await bulkUpdateStatus(selectedCategories, isActive);
 		setSelectedCategories([]);
 	};
-
-	const handleDeleteCategory = useCallback(
-		async (categoryId: string) => {
-			const category = categories.find((c) => c.id === categoryId);
-			const categoryName = category?.name || '이 카테고리';
-
-			if (!confirm(`정말로 "${categoryName}" 카테고리를 삭제하시겠습니까?`)) return;
-
-			await deleteCategory(categoryId);
-		},
-		[deleteCategory, categories]
-	);
-
-	const handleEditCategory = useCallback(
-		(categoryId: string) => {
-			const category = categories.find((c) => c.id === categoryId);
-			if (category) {
-				setEditingCategory(category);
-				setShowCreateModal(true);
-			}
-		},
-		[categories]
-	);
 
 	const handleCreateSuccess = async (categoryData?: {
 		name: string;
@@ -91,75 +59,104 @@ export default function CategoryListPage() {
 		setShowSortModal(false);
 	};
 
-	const columns: Column<Category>[] = useMemo(
-		() => [
+	const columnConfigs = useMemo(() => {
+		const handleStatusChange = async (categoryId: string, isActive: boolean) => {
+			await updateCategoryStatus(categoryId, isActive);
+		};
+
+		const handleDeleteCategory = async (categoryId: string) => {
+			const category = categories.find((c) => c.id === categoryId);
+			const categoryName = category?.name || '이 카테고리';
+
+			if (!confirm(`정말로 "${categoryName}" 카테고리를 삭제하시겠습니까?`)) return;
+
+			await deleteCategory(categoryId);
+		};
+
+		const handleEditCategory = (categoryId: string) => {
+			const category = categories.find((c) => c.id === categoryId);
+			if (category) {
+				setEditingCategory(category);
+				setShowCreateModal(true);
+			}
+		};
+
+		return [
 			{
 				id: 'name',
 				header: '카테고리명',
-				cell: ({ row }) => (
-					<Badge variant="outline" className="whitespace-nowrap">
-						{row.original.name}
-					</Badge>
-				),
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Category) => data.name,
+					getVariant: () => 'outline' as const,
+				},
 			},
 			{
 				id: 'sort_order',
 				header: '순서',
-				cell: ({ row }) => (
-					<Badge variant="outline" className="font-mono whitespace-nowrap">
-						{row.original.sort_order}
-					</Badge>
-				),
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Category) => String(data.sort_order || 0),
+					getVariant: () => 'outline' as const,
+				},
+				className: 'font-mono',
 			},
 			{
 				id: 'status',
 				header: '상태',
-				cell: ({ row }) => {
-					const statusConfig = getStatusConfig('category', row.original.status || 'inactive');
-					const statusColor = statusConfig.color || '';
-					const statusText = statusConfig.text || row.original.status;
-					return (
-						<Badge variant="outline" className="whitespace-nowrap">
-							{statusText}
-						</Badge>
-					);
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Category) => data.status || 'inactive',
+					getVariant: (value: string) => {
+						const statusKey = value as keyof typeof CATEGORY_STATUSES;
+						return (CATEGORY_STATUSES[statusKey]?.variant || 'default') as
+							| 'success'
+							| 'outline'
+							| 'info'
+							| 'destructive'
+							| 'default';
+					},
+					getLabel: (value: string) => {
+						const statusKey = value as keyof typeof CATEGORY_STATUSES;
+						return CATEGORY_STATUSES[statusKey]?.label || value;
+					},
 				},
 			},
 			{
 				id: 'created_at',
 				header: '생성일',
-				cell: ({ row }) => (
-					<div className="text-xs text-neutral-600">
-						{new Date(row.original.created_at).toLocaleDateString('ko-KR')}
-					</div>
-				),
+				type: 'date' as const,
+				accessor: 'created_at',
+				className: 'text-xs text-neutral-600',
 			},
 			{
 				id: 'actions',
 				header: '액션',
-				cell: ({ row }) =>
-					renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
-						{
-							type: 'edit',
-							onClick: (id) => handleEditCategory(id),
+				type: 'actions' as const,
+				actions: [
+					{
+						type: 'edit' as const,
+						onClick: (id: string) => handleEditCategory(id),
+					},
+					{
+						type: 'status' as const,
+						onClick: (id: string, data?: Category) => {
+							if (!data?.status) return;
+							const isActive = data.status === 'active';
+							handleStatusChange(id, !isActive);
 						},
-						{
-							type: 'status',
-							onClick: (id, data) => {
-								const isActive = data?.status === 'active';
-								handleStatusChange(id, !isActive);
-							},
-							statusOptions: [...CATEGORY_STATUS_OPTIONS],
-						},
-						{
-							type: 'delete',
-							onClick: (id) => handleDeleteCategory(id),
-						},
-					]),
+						statusOptions: toOptions(CATEGORY_STATUSES),
+					},
+					{
+						type: 'delete' as const,
+						onClick: (id: string) => handleDeleteCategory(id),
+					},
+				],
 			},
-		],
-		[renderers, handleStatusChange, handleDeleteCategory, handleEditCategory]
-	);
+		];
+	}, [updateCategoryStatus, deleteCategory, categories, setEditingCategory, setShowCreateModal]);
+
+	const { columns } = useTableColumns<Category>(columnConfigs);
 
 	return (
 		<div className="space-y-6 p-6">

@@ -12,7 +12,7 @@ import {
 	TypeSelectionStep,
 } from '@/components/test/test-create';
 import { TEST_CREATION_STEPS } from '@/constants/test';
-import { PATH } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 import { COMMON_MESSAGES } from '@pickid/shared';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useTests } from '@/hooks/useTests';
@@ -81,7 +81,7 @@ export function CreateTestPage() {
 
 			await saveTest({ testData, questionsData, resultsData });
 			alert(COMMON_MESSAGES.CREATED);
-			navigate(PATH.TESTS);
+			navigate(ROUTES.tests);
 		} catch (err) {
 			console.error('저장 실패:', err);
 			alert(COMMON_MESSAGES.FAILED);

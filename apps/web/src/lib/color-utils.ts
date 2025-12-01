@@ -18,28 +18,6 @@ function getThemeBackgroundGradient(themeColor: string): string {
 	return `linear-gradient(135deg, rgba(${rgb}, 0.1) 0%, rgba(${rgb}, 0.25) 100%)`;
 }
 
-// 색상 밝기 조정
-export function adjustColor(hex: string, lum: number): string {
-	// validate hex string
-	hex = hex.replace(/[^0-9a-f]/gi, '');
-	if (hex.length < 6) {
-		hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
-	}
-	lum = lum || 0;
-
-	// convert to decimal and change luminosity
-	let rgb = '#',
-		c,
-		i;
-	for (i = 0; i < 3; i++) {
-		c = parseInt(hex.substr(i * 2, 2), 16);
-		c = Math.round(Math.min(Math.max(0, c + c * lum), 255)).toString(16);
-		rgb += ('00' + c).substr(c.length);
-	}
-
-	return rgb;
-}
-
 // 테마 색상에 따른 배경 그라디언트 생성
 export function getBackgroundGradient(themeColor: string): string {
 	return getThemeBackgroundGradient(themeColor || '#3B82F6');

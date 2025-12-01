@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAdminAuth } from '@/hooks';
 import { AdminSidebar } from './admin-sidebar';
 import { AdminHeader } from './admin-header';
-import { PATH } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 
 export function AdminLayout() {
 	const navigate = useNavigate();
@@ -21,7 +21,7 @@ export function AdminLayout() {
 
 	useEffect(() => {
 		if (!loading && !adminUser) {
-			navigate(PATH.AUTH, { replace: true });
+			navigate(ROUTES.auth, { replace: true });
 		}
 	}, [loading, adminUser, navigate]);
 

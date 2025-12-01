@@ -1,28 +1,23 @@
-export type TQuizGrade = 'S' | 'A' | 'B' | 'C' | 'D';
+// ============================================
+// constants/quiz.ts
+// 퀴즈 관련 설정
+// ============================================
 
-// 등급별 임계값 (점수 %)
-export const QUIZ_GRADE_THRESHOLDS = {
-	S: 95,
-	A: 85,
-	B: 70,
-	C: 50,
-	D: 0,
+export const QUIZ_GRADES = {
+	S: { threshold: 95, label: '완벽!', emoji: '🏆' },
+	A: { threshold: 85, label: '우수', emoji: '🥇' },
+	B: { threshold: 70, label: '양호', emoji: '🥈' },
+	C: { threshold: 50, label: '보통', emoji: '🥉' },
+	D: { threshold: 0, label: '노력 필요', emoji: '📝' },
 } as const;
 
-// 등급별 이모지
-export const QUIZ_GRADE_EMOJI = {
-	S: '🏆',
-	A: '🥇',
-	B: '🥈',
-	C: '🥉',
-	D: '📝',
-} as const;
+export type QuizGrade = keyof typeof QUIZ_GRADES;
 
-// 등급별 레이블
-export const QUIZ_GRADE_LABEL = {
-	S: '완벽!',
-	A: '우수',
-	B: '양호',
-	C: '보통',
-	D: '노력 필요',
-} as const;
+// 점수로 등급 계산 (유틸이지만 여기가 자연스러움)
+export function getQuizGrade(score: number): QuizGrade {
+	if (score >= 95) return 'S';
+	if (score >= 85) return 'A';
+	if (score >= 70) return 'B';
+	if (score >= 50) return 'C';
+	return 'D';
+}

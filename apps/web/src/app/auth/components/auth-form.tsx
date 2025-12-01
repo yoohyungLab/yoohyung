@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button, DefaultInput, InputPassword, IconButton } from '@pickid/ui';
 import { useAuth } from '@/app/auth/hooks';
 import { mapAuthError } from '@/lib';
+import { ROUTES } from '@/constants';
 import { loginSchema, registerSchema, type LoginFormData, type RegisterFormData } from '../utils/auth.schema';
 
 export interface AuthFormProps {
@@ -52,7 +53,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 				const registerData = data as RegisterFormData;
 				await signUp(registerData.email, registerData.password, registerData.name);
 			}
-			router.push('/');
+			router.push(ROUTES.HOME);
 		} catch (err) {
 			// 에러는 form.setError로 처리
 			currentForm.setError('root', {
@@ -208,7 +209,7 @@ export function AuthForm({ mode, children }: AuthFormProps) {
 			<p className="text-center mt-8 pt-6 border-t border-gray-100 text-gray-600 text-sm">
 				{isLogin ? '아직 계정이 없으신가요?' : '이미 계정이 있으신가요?'}{' '}
 				<a
-					href={isLogin ? '/auth/register' : '/auth/login'}
+					href={isLogin ? ROUTES.AUTH_REGISTER : ROUTES.AUTH_LOGIN}
 					className="text-rose-600 hover:text-rose-700 font-semibold hover:underline"
 				>
 					{isLogin ? '회원가입하기' : '로그인하기'}

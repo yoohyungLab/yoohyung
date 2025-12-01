@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import type { TestResult } from '@pickid/supabase';
 import { testResultService } from '@/api/services/test-result.service';
-import { adjustColor } from '@/lib/color-utils';
 import { Loading } from '@/components/loading';
 import { TestCTAButtons } from '../shared/test-cta-buttons';
 import { TestResultHeader } from './test-result-header';
@@ -65,7 +64,17 @@ export function SharedResultLanding(props: SharedResultLandingProps) {
 							<div
 								className="inline-block px-4 py-2 rounded-2xl text-white font-black text-sm leading-tight mb-3 max-w-full break-words"
 								style={{
-									background: `linear-gradient(135deg, ${themeColor as string} 0%, ${adjustColor(themeColor as string, -0.2)} 100%)`,
+									background: (() => {
+										const hex = (themeColor as string).replace(/[^0-9a-f]/gi, '');
+										const cleanHex = hex.length < 6 ? hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2] : hex;
+										let darker = '#';
+										for (let i = 0; i < 3; i++) {
+											const c = parseInt(cleanHex.substr(i * 2, 2), 16);
+											const adjusted = Math.round(Math.min(Math.max(0, c + c * -0.2), 255)).toString(16);
+											darker += ('00' + adjusted).substr(adjusted.length);
+										}
+										return `linear-gradient(135deg, ${themeColor as string} 0%, ${darker} 100%)`;
+									})(),
 									boxShadow: `0 4px 12px ${themeColor as string}40`,
 								}}
 							>

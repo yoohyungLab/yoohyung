@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { ROUTES } from '@/constants';
 import { useHomeBalanceGame } from '@/hooks';
 import { BALANCE_GAME_COLORS } from '@pickid/ui/constants/colors';
 
@@ -126,7 +127,7 @@ export default function BalanceGameSection() {
 
 						<div className="grid grid-cols-2 gap-2">
 							<Link
-								href="/tests"
+								href={ROUTES.TESTS}
 								className="py-2.5 bg-gray-900 text-white text-sm font-bold rounded-lg hover:bg-gray-800 transition-all text-center flex items-center justify-center"
 							>
 								다른 테스트 둘러보기
@@ -144,7 +145,7 @@ export default function BalanceGameSection() {
 
 				{!showResult && (
 					<Link
-						href="/tests/balance"
+						href={`${ROUTES.TESTS}?type=balance`}
 						className="block text-center text-xs text-gray-500 hover:text-gray-900 mt-4 w-full py-1 font-medium transition-colors"
 					>
 						더 많은 밸런스게임 보기 →

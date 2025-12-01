@@ -1,23 +1,20 @@
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
-import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
+import { PAGINATION, TEST_STATUSES } from '@/constants';
+import { HREF } from '@/constants/routes';
 import { useAnalytics } from '@/hooks';
-import { useColumnRenderers } from '@/hooks/use-column-renderers';
-import { PAGINATION } from '@/constants';
-import { getStatusConfig } from '@/utils/utils';
+import { useTableColumns } from '@/hooks/useTableColumns';
 import { usePagination } from '@pickid/shared';
 import type { AnalyticsFilters, Test } from '@pickid/supabase';
-import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
-import { Clock, Users } from 'lucide-react';
+import { DataTable, DefaultPagination } from '@pickid/ui';
+import { Users } from 'lucide-react';
 import React, { useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HREF } from '@/constants/routes';
 
 type TestWithAnalytics = Test & {
 	avg_completion_time?: number;
 };
 
 export function AnalyticsPage() {
-	const renderers = useColumnRenderers();
 	const navigate = useNavigate();
 
 	const [filters, setFilters] = React.useState<AnalyticsFilters>({
@@ -34,12 +31,12 @@ export function AnalyticsPage() {
 
 	const pagination = usePagination({
 		totalItems: totalTests,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+		defaultPageSize: PAGINATION.pageSize,
 	});
 
 	const handleTestSelect = useCallback(
 		(test: Test) => {
-			navigate(HREF.ANALYTICS_TEST_DETAIL(test.id));
+			navigate(HREF.analyticsTest(test.id));
 		},
 		[navigate]
 	);
@@ -48,48 +45,55 @@ export function AnalyticsPage() {
 		setFilters((prev: AnalyticsFilters) => ({ ...prev, ...newFilters }));
 	}, []);
 
-	const columns: Column<TestWithAnalytics>[] = useMemo(
+	const columnConfigs = useMemo(
 		() => [
 			{
 				id: 'title',
 				header: '테스트명',
-				cell: ({ row }) => (
-					<div className="min-w-0">
-						<div className="font-medium text-neutral-900 truncate">{row.original.title}</div>
-					</div>
-				),
+				type: 'text' as const,
+				accessor: 'title',
+				className: 'font-medium text-neutral-900',
+				maxLength: 50,
 			},
 			{
 				id: 'status',
 				header: '상태',
-				cell: ({ row }) => {
-					const status = row.original.status;
-					const statusConfig = getStatusConfig('test', status || 'draft');
-					return (
-						<Badge variant="outline" className="whitespace-nowrap">
-							{statusConfig.text}
-						</Badge>
-					);
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: TestWithAnalytics) => data.status || 'draft',
+					getVariant: (value: string) => {
+						const statusKey = value as keyof typeof TEST_STATUSES;
+						return (TEST_STATUSES[statusKey]?.variant || 'default') as
+							| 'success'
+							| 'outline'
+							| 'info'
+							| 'destructive'
+							| 'default';
+					},
+					getLabel: (value: string) => {
+						const statusKey = value as keyof typeof TEST_STATUSES;
+						return TEST_STATUSES[statusKey]?.label || value;
+					},
 				},
 			},
 			{
 				id: 'responses',
 				header: '응답수',
-				cell: ({ row }) => (
+				type: 'custom' as const,
+				customRender: (data: TestWithAnalytics) => (
 					<div className="flex items-center gap-1">
 						<Users className="w-4 h-4 text-gray-500" />
-						<span className="font-medium">{row.original.response_count?.toLocaleString() || 0}</span>
+						<span className="font-medium">{(data.response_count || 0).toLocaleString()}</span>
 					</div>
 				),
 			},
 			{
 				id: 'completion_rate',
 				header: '완료율',
-				cell: ({ row }) => {
+				type: 'custom' as const,
+				customRender: (data: TestWithAnalytics) => {
 					const rate =
-						row.original.response_count && row.original.start_count
-							? Math.round((row.original.response_count / row.original.start_count) * 100)
-							: 0;
+						data.response_count && data.start_count ? Math.round((data.response_count / data.start_count) * 100) : 0;
 					return (
 						<div className="flex items-center gap-2">
 							<div className="w-16 bg-neutral-200 rounded-full h-2">
@@ -103,8 +107,9 @@ export function AnalyticsPage() {
 			{
 				id: 'avg_time',
 				header: '평균 소요시간',
-				cell: ({ row }) => {
-					const avgTime = row.original.avg_completion_time || 0;
+				type: 'custom' as const,
+				customRender: (data: TestWithAnalytics) => {
+					const avgTime = data.avg_completion_time || 0;
 					const minutes = Math.floor(avgTime / 60);
 					const seconds = avgTime % 60;
 					const timeText = minutes > 0 ? `${minutes}분 ${seconds}초` : `${seconds}초`;
@@ -115,11 +120,14 @@ export function AnalyticsPage() {
 			{
 				id: 'created_at',
 				header: '생성일',
-				cell: ({ row }) => renderers.renderDate(row.original.created_at),
+				type: 'date' as const,
+				accessor: 'created_at',
 			},
 		],
-		[renderers]
+		[]
 	);
+
+	const { columns } = useTableColumns<TestWithAnalytics>(columnConfigs);
 
 	return (
 		<div className="space-y-6 p-6">
@@ -176,7 +184,7 @@ export function AnalyticsPage() {
 
 			<BulkActions selectedCount={selectedTests.length} actions={[]} onClear={() => setSelectedTests([])} />
 
-			<DataState loading={loading} data={tests} emptyMessage="분석할 테스트가 없습니다. 테스트를 생성해보세요.">
+			<DataState loading={loading} data={tests}>
 				<DataTable
 					data={tests}
 					columns={columns}

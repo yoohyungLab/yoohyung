@@ -2,7 +2,8 @@
 
 import Link from 'next/link';
 import { Feedback } from '@pickid/supabase';
-import { formatDate } from '@/lib'; import { getCategoryInfo, getStatusInfo, getStatusClassName } from '@/app/feedback/utils/utils';
+import { FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from '@/constants/feedback';
+import { ROUTES } from '@/constants';
 
 interface FeedbackListProps {
 	feedbacks: Feedback[];
@@ -24,14 +25,16 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 	return (
 		<div className="space-y-2">
 			{feedbacks.map((feedback) => {
-				const categoryInfo = getCategoryInfo(feedback.category as string);
-				const statusInfo = getStatusInfo(feedback.status as string);
+				const categoryKey = feedback.category as keyof typeof FEEDBACK_CATEGORIES;
+				const categoryInfo = FEEDBACK_CATEGORIES[categoryKey] ?? FEEDBACK_CATEGORIES.OTHER;
+				const statusKey = feedback.status as keyof typeof FEEDBACK_STATUSES;
+				const statusInfo = FEEDBACK_STATUSES[statusKey] ?? FEEDBACK_STATUSES.PENDING;
 				const hasAdminReply = (feedback.admin_reply as string)?.trim();
 
 				return (
 					<Link
 						key={feedback.id as string}
-						href={`/feedback/${feedback.id as string}`}
+						href={ROUTES.feedbackDetail(feedback.id as string)}
 						className="block bg-white rounded-lg border border-gray-200 p-4 hover:shadow-md hover:border-gray-300 transition-all"
 					>
 						<div className="flex gap-3">
@@ -42,15 +45,11 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 							<div className="flex-1 min-w-0">
 								<div className="flex items-start justify-between gap-2 mb-2">
 									<div className="flex items-center gap-2 min-w-0">
-										<span className="text-sm">{categoryInfo.emoji}</span>
+										<span className="text-sm">{categoryInfo.EMOJI}</span>
 										<h3 className="text-sm font-bold text-gray-900 truncate">{feedback.title as string}</h3>
 									</div>
-									<span
-										className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded ${getStatusClassName(
-											statusInfo.color
-										)}`}
-									>
-										{statusInfo.label}
+									<span className={`flex-shrink-0 text-[10px] font-bold px-2 py-0.5 rounded ${statusInfo.CLASS_NAME}`}>
+										{statusInfo.LABEL}
 									</span>
 								</div>
 
@@ -64,7 +63,12 @@ export function FeedbackList({ feedbacks }: FeedbackListProps) {
 								)}
 
 								<div className="text-xs text-gray-500">
-									{(feedback.author_name as string) || '익명'} · {formatDate(feedback.created_at as string)}
+									{(feedback.author_name as string) || '익명'} ·{' '}
+									{new Date(feedback.created_at as string).toLocaleDateString('ko-KR', {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric',
+									})}
 								</div>
 							</div>
 						</div>

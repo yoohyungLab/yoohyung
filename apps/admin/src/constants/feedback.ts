@@ -1,66 +1,30 @@
-export const FEEDBACK_CATEGORIES = [
-	{
-		name: 'bug',
-		label: '버그 신고',
-		description: '오류나 문제점을 발견했어요',
-		emoji: '🐛',
-	},
-	{
-		name: 'feature',
-		label: '기능 제안',
-		description: '새로운 기능을 제안해요',
-		emoji: '💡',
-	},
-	{
-		name: 'improvement',
-		label: '개선 사항',
-		description: '기존 기능을 개선하고 싶어요',
-		emoji: '⚡',
-	},
-	{
-		name: 'ui',
-		label: 'UI/UX',
-		description: '디자인이나 사용성을 개선하고 싶어요',
-		emoji: '🎨',
-	},
-	{
-		name: 'performance',
-		label: '성능',
-		description: '속도나 최적화 관련 피드백이에요',
-		emoji: '🚀',
-	},
-	{
-		name: 'other',
-		label: '기타',
-		description: '다른 의견이나 제안이에요',
-		emoji: '💬',
-	},
-] as const;
+// ============================================
+// constants/feedback.ts
+// 피드백 관련 설정
+// ============================================
 
-export const FEEDBACK_STATUS_OPTIONS = [
-	{ value: 'pending', label: '검토중' },
-	{ value: 'in_progress', label: '진행중' },	{ value: 'completed', label: '완료' },
-	{ value: 'replied', label: '답변완료' },
-	{ value: 'rejected', label: '반려' },
-] as const;
+export const FEEDBACK_STATUSES = {
+	pending: { value: 'pending', label: '대기중', variant: 'warning' as const },
+	in_progress: { value: 'in_progress', label: '진행중', variant: 'info' as const },
+	completed: { value: 'completed', label: '완료', variant: 'success' as const },
+	replied: { value: 'replied', label: '답변완료', variant: 'secondary' as const },
+	rejected: { value: 'rejected', label: '거부', variant: 'destructive' as const },
+} as const;
 
-export const FEEDBACK_CATEGORY_OPTIONS = FEEDBACK_CATEGORIES.map((cat) => ({
-	value: cat.name,
-	label: cat.label,
-})) as const;
+export type FeedbackStatus = keyof typeof FEEDBACK_STATUSES;
 
-export const FILTER_FEEDBACK_STATUS_OPTIONS = [
-	{ value: 'all', label: '전체 상태' },
-	...FEEDBACK_STATUS_OPTIONS,
-] as const;
+export const FEEDBACK_CATEGORIES = {
+	bug: { value: 'bug', label: '버그 신고', emoji: '🐛' },
+	feature: { value: 'feature', label: '기능 제안', emoji: '💡' },
+	improvement: { value: 'improvement', label: '개선 사항', emoji: '🔧' },
+	ui: { value: 'ui', label: 'UI/UX', emoji: '🎨' },
+	performance: { value: 'performance', label: '성능', emoji: '⚡' },
+	other: { value: 'other', label: '기타', emoji: '💭' },
+} as const;
 
-export const FILTER_FEEDBACK_CATEGORY_OPTIONS = [
-	{ value: 'all', label: '전체 카테고리' },
-	...FEEDBACK_CATEGORY_OPTIONS,
-] as const;
+export type FeedbackCategory = keyof typeof FEEDBACK_CATEGORIES;
 
-
-
+// 레거시 호환성 (기존 코드에서 사용 중)
 export const FEEDBACK_STATUS = {
 	PENDING: 'pending',
 	IN_PROGRESS: 'in_progress',
@@ -68,3 +32,22 @@ export const FEEDBACK_STATUS = {
 	REPLIED: 'replied',
 	REJECTED: 'rejected',
 } as const;
+
+export const FEEDBACK_CATEGORY = {
+	BUG: 'bug',
+	FEATURE: 'feature',
+	IMPROVEMENT: 'improvement',
+	UI: 'ui',
+	PERFORMANCE: 'performance',
+	OTHER: 'other',
+} as const;
+
+// 레거시 호환성 (기존 코드에서 사용 중)
+export const FEEDBACK_CATEGORY_OPTIONS = [
+	{ value: 'bug', label: '버그 신고' },
+	{ value: 'feature', label: '기능 제안' },
+	{ value: 'improvement', label: '개선 사항' },
+	{ value: 'ui', label: 'UI/UX' },
+	{ value: 'performance', label: '성능' },
+	{ value: 'other', label: '기타' },
+] as const;

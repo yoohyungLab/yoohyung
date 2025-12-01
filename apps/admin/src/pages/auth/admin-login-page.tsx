@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
-import { PATH } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 import { AUTH_MESSAGES as AUTH } from '@pickid/shared';
 
 export function AdminLoginPage() {
@@ -19,7 +19,7 @@ export function AdminLoginPage() {
 
 	useEffect(() => {
 		if (adminUser) {
-			navigate(PATH.INDEX, { replace: true });
+			navigate(ROUTES.home, { replace: true });
 		}
 	}, [adminUser, navigate]);
 
@@ -43,7 +43,7 @@ export function AdminLoginPage() {
 
 		if (result.success) {
 			setTimeout(() => {
-				navigate(PATH.INDEX, { replace: true });
+				navigate(ROUTES.home, { replace: true });
 			}, 100);
 		} else {
 			setError(result.error || AUTH.LOGIN_FAILED);

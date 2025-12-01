@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { type Category } from '@pickid/supabase';
+import type { Category } from '@pickid/supabase';
 import { Button, DefaultInput, DefaultTextarea } from '@pickid/ui';
 import { Plus, X, Pencil } from 'lucide-react';
 
@@ -144,7 +144,9 @@ export function CategoryCreateModal({ isOpen, onClose, onSuccess, editCategory }
 
 				<form onSubmit={handleSubmit} className="p-6 space-y-4">
 					{error && (
-						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm">{error}</div>
+						<div className="bg-neutral-50 border border-neutral-200 text-neutral-700 px-4 py-3 rounded-md text-sm">
+							{error}
+						</div>
 					)}
 
 					<DefaultInput

@@ -1,30 +1,32 @@
-export const PATH = {
-	INDEX: '/',
-	AUTH: '/auth',
+// ============================================
+// constants/routes.ts
+// 라우팅 경로 관리
+// ============================================
 
-	TESTS: '/tests',
-	TEST_CREATE: '/tests/create',
-	TEST_EDIT: '/tests/:testId/edit',
+export const ROUTES = {
+	home: '/',
+	auth: '/auth',
 
-	CATEGORIES: '/categories',
+	tests: '/tests',
+	testCreate: '/tests/create',
 
-	USERS: '/users',
-	RESPONSES: '/responses',
+	categories: '/categories',
+	users: '/users',
+	responses: '/responses',
+	feedbacks: '/feedbacks',
 
-	FEEDBACKS: '/feedbacks',
+	analytics: '/analytics',
 
-	ANALYTICS: '/analytics',
-	ANALYTICS_TEST_DETAIL: '/analytics/tests/:testId',
-
-	GROWTH: '/growth',
-	GROWTH_FUNNEL: '/growth/funnel',
-	GROWTH_CHANNELS: '/growth/channels',
-	GROWTH_LANDINGS: '/growth/landings',
-	GROWTH_COHORTS: '/growth/cohorts',
+	growth: '/growth',
+	growthFunnel: '/growth/funnel',
+	growthChannels: '/growth/channels',
+	growthLandings: '/growth/landings',
+	growthCohorts: '/growth/cohorts',
 } as const;
 
+// 동적 경로
 export const HREF = {
-	TEST_EDIT: (testId: string | number) => `/tests/${testId}/edit`,
-	TEST_DETAIL: (testId: string | number) => `/tests/${testId}`,
-	ANALYTICS_TEST_DETAIL: (testId: string | number) => `/analytics/tests/${testId}`,
+	testEdit: (testId: string | number) => `/tests/${testId}/edit`,
+	testDetail: (testId: string | number) => `/tests/${testId}`,
+	analyticsTest: (testId: string | number) => `/analytics/tests/${testId}`,
 } as const;

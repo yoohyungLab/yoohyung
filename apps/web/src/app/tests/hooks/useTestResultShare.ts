@@ -14,16 +14,12 @@ export function useTestResultShare({ testId, resultName }: UseTestResultSharePro
 		const shareText = `나의 결과는 "${resultName}"이에요! 당신도 테스트해보세요 ✨\n\n${shareUrl}`;
 
 		if (navigator.share) {
-			try {
-				await navigator.share({
-					title: resultName,
-					text: shareText,
-					url: shareUrl,
-				});
-				trackResultShared('native', testId, resultName);
-			} catch {
-				// 사용자가 공유를 취소함
-			}
+			await navigator.share({
+				title: resultName,
+				text: shareText,
+				url: shareUrl,
+			});
+			trackResultShared('native', testId, resultName);
 		} else {
 			try {
 				await navigator.clipboard.writeText(shareText);

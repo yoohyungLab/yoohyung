@@ -1,5 +1,5 @@
 import { ReactNode } from 'react';
-import { formatNumber, formatGrowth, getGrowthColor, getGrowthIcon } from '@/utils/utils';
+import { formatNumber } from '@pickid/shared';
 import { AdminCard, AdminCardContent } from '@/components/ui/admin-card';
 
 type ColorVariant = 'blue' | 'green' | 'purple' | 'orange';
@@ -42,9 +42,35 @@ export function KPICard({
 						{subtitle && <p className="text-sm text-neutral-500 mt-1">{subtitle}</p>}
 						{showGrowth && growth !== undefined && (
 							<div className="flex items-center gap-1 mt-1">
-								<span className={`text-sm flex items-center gap-1 ${getGrowthColor(growth)}`}>
-									<span>{getGrowthIcon(growth)}</span>
-									{formatGrowth(growth)}
+								<span
+									className={`text-sm flex items-center gap-1 ${
+										typeof growth === 'string'
+											? growth === 'up'
+												? 'text-green-600'
+												: growth === 'down'
+													? 'text-red-600'
+													: 'text-gray-600'
+											: growth > 0
+												? 'text-green-600'
+												: growth < 0
+													? 'text-red-600'
+													: 'text-gray-600'
+									}`}
+								>
+									<span>
+										{typeof growth === 'string'
+											? growth === 'up'
+												? '↗️'
+												: growth === 'down'
+													? '↘️'
+													: '→'
+											: growth > 0
+												? '↗️'
+												: growth < 0
+													? '↘️'
+													: '→'}
+									</span>
+									{typeof growth === 'string' ? growth : `${growth > 0 ? '+' : ''}${growth.toFixed(1)}%`}
 								</span>
 								<span className="text-sm text-neutral-500">{growthLabel}</span>
 							</div>

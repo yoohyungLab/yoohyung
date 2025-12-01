@@ -24,7 +24,8 @@ import {
 	MessageSquare,
 	Image as ImageIcon,
 } from 'lucide-react';
-import { getTestTypeInfo, getTestStatusInfo, calculateTestStats, getCategoryNames } from '@/utils/test.utils';
+import { getTestTypeInfo, getTestStatusInfo } from '@/utils/config.utils';
+import { calculateTestStats, getCategoryNames } from '@/utils/test.utils';
 import { useTestDetail } from '@/hooks/useTestDetail';
 import { useCategories } from '@/hooks';
 import type { TestDetailModalProps, TabType } from '@/types/test.types';
@@ -78,8 +79,7 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 		}
 	};
 
-	const handleDuplicate = () => {
-	};
+	const handleDuplicate = () => {};
 
 	return (
 		<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4 !mt-0">
@@ -158,7 +158,9 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 								<Users className="w-4 h-4 text-neutral-600" />
 								<span className="text-sm text-neutral-600">응답수</span>
 							</div>
-							<div className="text-lg font-semibold text-neutral-900">{(test.response_count || 0).toLocaleString()}</div>
+							<div className="text-lg font-semibold text-neutral-900">
+								{(test.response_count || 0).toLocaleString()}
+							</div>
 						</div>
 						<div className="bg-white rounded-lg p-3 border border-neutral-200">
 							<div className="flex items-center gap-2">
@@ -473,7 +475,9 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																)}
 																{result.background_image_url && <ImageIcon className="w-4 h-4 text-neutral-400" />}
 															</div>
-															{result.description && <p className="text-sm text-neutral-600 mb-3">{result.description}</p>}
+															{result.description && (
+																<p className="text-sm text-neutral-600 mb-3">{result.description}</p>
+															)}
 															{result.background_image_url && (
 																<div className="mb-3">
 																	<img
@@ -497,7 +501,10 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																		<span className="text-neutral-500">특징:</span>
 																		<div className="mt-1 flex flex-wrap gap-1">
 																			{Object.entries(result.features).map(([key, value]) => (
-																				<span key={key} className="px-2 py-1 bg-neutral-100 text-neutral-700 rounded text-xs">
+																				<span
+																					key={key}
+																					className="px-2 py-1 bg-neutral-100 text-neutral-700 rounded text-xs"
+																				>
 																					{key}: {String(value)}
 																				</span>
 																			))}
@@ -720,7 +727,9 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 																			}}
 																		/>
 																	)}
-																	<h4 className="font-semibold text-neutral-900">{testDetails.results[0].result_name}</h4>
+																	<h4 className="font-semibold text-neutral-900">
+																		{testDetails.results[0].result_name}
+																	</h4>
 																</div>
 																{testDetails.results[0].description && (
 																	<p className="text-sm text-neutral-600">{testDetails.results[0].description}</p>
@@ -728,7 +737,12 @@ export function TestDetailModal({ test, onClose, onTogglePublish, onDelete }: Te
 															</div>
 														)}
 													</div>
-													<Button onClick={() => setPreviewQuestionIndex(-1)} variant="outline" className="w-full mt-6" text="다시 시작하기" />
+													<Button
+														onClick={() => setPreviewQuestionIndex(-1)}
+														variant="outline"
+														className="w-full mt-6"
+														text="다시 시작하기"
+													/>
 												</div>
 											)}
 										</div>

@@ -6,8 +6,6 @@ export * from './quiz';
 
 export * from './feedback';
 
-export * from './common';
-
-export * from './home';
+export * from './ui';
 
 export * from './site-config';

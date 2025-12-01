@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import { ROUTES } from '@/constants';
 import type { Category } from '@pickid/supabase';
 
 interface CategoryFilterProps {
@@ -19,7 +20,7 @@ export function CategoryFilter({ categories }: CategoryFilterProps) {
 	// 카테고리 클릭 핸들러
 	const handleCategoryClick = useCallback(
 		(slug: string) => {
-			router.push(`/category?category=${slug}`);
+			router.push(`${ROUTES.TESTS_CATEGORY}?category=${slug}`);
 		},
 		[router]
 	);

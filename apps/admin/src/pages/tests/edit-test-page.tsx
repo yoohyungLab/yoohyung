@@ -16,7 +16,7 @@ import { TEST_CREATION_STEPS } from '@/constants/test';
 import { useTestDetail } from '@/hooks';
 import type { Test, TestInsert, TestQuestionInsert, TestResultInsert, TestStatus, TestType } from '@pickid/supabase';
 import { convertQuestionsData, convertResultsData } from '@/utils/test.utils';
-import { HREF, PATH } from '@/constants/routes';
+import { ROUTES, HREF } from '@/constants/routes';
 import { COMMON_MESSAGES } from '@pickid/shared';
 import { useTestForm } from '@/providers/TestCreationFormProvider';
 import { useTests } from '@/hooks/useTests';
@@ -43,7 +43,7 @@ export function EditTestPage() {
 
 	useEffect(() => {
 		if (!id) {
-			navigate(PATH.TESTS);
+			navigate(ROUTES.tests);
 		}
 	}, [id, navigate]);
 
@@ -134,7 +134,7 @@ export function EditTestPage() {
 
 			await saveTest({ testData, questionsData, resultsData });
 			alert(COMMON_MESSAGES.UPDATED);
-			navigate(PATH.TESTS);
+			navigate(ROUTES.tests);
 		} catch (err) {
 			console.error('테스트 업데이트 실패:', err);
 			alert(COMMON_MESSAGES.FAILED);
@@ -157,7 +157,7 @@ export function EditTestPage() {
 						<IconButton
 							icon={<ArrowLeft className="w-4 h-4" />}
 							text="테스트 목록으로"
-							onClick={() => navigate(PATH.TESTS)}
+							onClick={() => navigate(ROUTES.tests)}
 						/>
 						<div>
 							<h1 className="text-2xl font-bold text-gray-900">테스트 수정</h1>

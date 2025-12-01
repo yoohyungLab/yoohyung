@@ -2,8 +2,8 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import { useFeedbackDetail } from '@/app/feedback/hooks/useFeedback';
-import { formatDateTime } from '@/lib';
-import { getCategoryInfo, getStatusInfo, getStatusClassName } from '@/app/feedback/utils/utils';
+import { FEEDBACK_CATEGORIES, FEEDBACK_STATUSES } from '@/constants/feedback';
+import { ROUTES } from '@/constants';
 import { Button } from '@pickid/ui';
 import { ArrowLeft } from 'lucide-react';
 
@@ -31,15 +31,17 @@ export default function FeedbackDetailPage() {
 					<p className="text-gray-600 mb-4">요청하신 피드백이 존재하지 않습니다</p>
 					<div className="space-x-4">
 						<Button onClick={() => router.back()} text="뒤로가기" />
-						<Button onClick={() => router.push('/')} text="홈으로" />
+						<Button onClick={() => router.push(ROUTES.HOME)} text="홈으로" />
 					</div>
 				</div>
 			</div>
 		);
 	}
 
-	const categoryInfo = getCategoryInfo(feedback.category as string);
-	const statusInfo = getStatusInfo(feedback.status as string);
+	const categoryKey = feedback.category as keyof typeof FEEDBACK_CATEGORIES;
+	const categoryInfo = FEEDBACK_CATEGORIES[categoryKey] ?? FEEDBACK_CATEGORIES.OTHER;
+	const statusKey = feedback.status as keyof typeof FEEDBACK_STATUSES;
+	const statusInfo = FEEDBACK_STATUSES[statusKey] ?? FEEDBACK_STATUSES.PENDING;
 
 	return (
 		<div className="min-h-screen bg-gray-50">
@@ -60,18 +62,25 @@ export default function FeedbackDetailPage() {
 					<div className="p-6 border-b border-gray-200">
 						<div className="flex items-start gap-4">
 							<div className="flex-shrink-0 w-10 h-10 bg-gray-100 rounded-md flex items-center justify-center text-xl">
-								{categoryInfo.emoji}
+								{categoryInfo.EMOJI}
 							</div>
 							<div className="flex-1 min-w-0">
 								<div className="flex items-center gap-2 mb-2">
-									<span className="text-xs font-semibold text-gray-600">{categoryInfo.label}</span>
-									<span className={`text-[10px] font-bold px-2 py-0.5 rounded ${getStatusClassName(statusInfo.color)}`}>
-										{statusInfo.label}
+									<span className="text-xs font-semibold text-gray-600">{categoryInfo.LABEL}</span>
+									<span className={`text-[10px] font-bold px-2 py-0.5 rounded ${statusInfo.CLASS_NAME}`}>
+										{statusInfo.LABEL}
 									</span>
 								</div>
 								<h1 className="text-xl font-bold text-gray-900 mb-2">{feedback.title as string}</h1>
 								<div className="text-xs text-gray-500">
-									{(feedback.author_name as string) || '익명'} · {formatDateTime(feedback.created_at as string)}
+									{(feedback.author_name as string) || '익명'} ·{' '}
+									{new Date(feedback.created_at as string).toLocaleString('ko-KR', {
+										year: 'numeric',
+										month: 'short',
+										day: 'numeric',
+										hour: '2-digit',
+										minute: '2-digit',
+									})}
 								</div>
 							</div>
 						</div>
@@ -93,7 +102,13 @@ export default function FeedbackDetailPage() {
 									<span className="text-xs font-bold text-blue-900">관리자 답변</span>
 									{feedback.admin_reply_at && (
 										<span className="text-[10px] text-blue-600 ml-auto">
-											{formatDateTime(feedback.admin_reply_at as string)}
+											{new Date(feedback.admin_reply_at as string).toLocaleString('ko-KR', {
+												year: 'numeric',
+												month: 'short',
+												day: 'numeric',
+												hour: '2-digit',
+												minute: '2-digit',
+											})}
 										</span>
 									)}
 								</div>

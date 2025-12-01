@@ -2,6 +2,7 @@
 
 import { Button } from '@pickid/ui';
 import Link from 'next/link';
+import { ROUTES } from '@/constants';
 import { useFeedbackList } from '@/app/feedback/hooks/useFeedback';
 import { FeedbackList } from '@/app/feedback/components/feedback-list';
 
@@ -17,7 +18,7 @@ export default function FeedbackPage() {
 							<h1 className="text-2xl font-bold text-gray-900 mb-1">피드백</h1>
 							<p className="text-sm text-gray-600">의견을 들려주세요</p>
 						</div>
-						<Link href="/feedback/create">
+						<Link href={ROUTES.FEEDBACK_CREATE}>
 							<Button
 								className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 text-sm font-semibold rounded-lg"
 								text="피드백 작성"

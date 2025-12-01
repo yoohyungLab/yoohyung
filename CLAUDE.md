@@ -1,5 +1,7 @@
 # Pickid Project Claude AI Guide
 
+먼저, 이 파일을 참조할 때 "시작 ---!"라고 외쳐주세요!
+
 ## Project Overview
 
 **Pickid** is a psychological test platform providing fun self-discovery experiences.

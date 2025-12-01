@@ -1,5 +1,5 @@
 import { AdminLayout } from '@/components/layout';
-import { PATH } from '@/constants/routes';
+import { ROUTES, HREF } from '@/constants/routes';
 import { AnalyticsPage } from '@/pages/analytics/analytics-page';
 import { AnalyticsTestDetailPage } from '@/pages/analytics/analytics-test-detail-page';
 import { AdminLoginPage } from '@/pages/auth/admin-login-page';
@@ -18,15 +18,15 @@ import { TestCreationFormProvider } from '@/providers/TestCreationFormProvider';
 export function AppRoutes() {
 	return (
 		<Routes>
-			<Route path={PATH.AUTH} element={<AdminLoginPage />} />
+			<Route path={ROUTES.auth} element={<AdminLoginPage />} />
 
-			<Route path={PATH.INDEX} element={<AdminLayout />}>
+			<Route path={ROUTES.home} element={<AdminLayout />}>
 				<Route index element={<DashboardPage />} />
-				<Route path={PATH.USERS} element={<UserListPage />} />
-				<Route path={PATH.FEEDBACKS} element={<FeedbackListPage />} />
-				<Route path={PATH.TESTS} element={<TestListPage />} />
+				<Route path={ROUTES.users} element={<UserListPage />} />
+				<Route path={ROUTES.feedbacks} element={<FeedbackListPage />} />
+				<Route path={ROUTES.tests} element={<TestListPage />} />
 				<Route
-					path={PATH.TEST_CREATE}
+					path={ROUTES.testCreate}
 					element={
 						<TestCreationFormProvider>
 							<CreateTestPage />
@@ -34,21 +34,21 @@ export function AppRoutes() {
 					}
 				/>
 				<Route
-					path={PATH.TEST_EDIT}
+					path={HREF.testEdit(':testId')}
 					element={
 						<TestCreationFormProvider>
 							<EditTestPage />
 						</TestCreationFormProvider>
 					}
 				/>
-				<Route path={PATH.CATEGORIES} element={<CategoryListPage />} />
-				<Route path={PATH.RESPONSES} element={<UserResponsesPage />} />
-				<Route path={PATH.ANALYTICS} element={<AnalyticsPage />} />
-				<Route path={PATH.ANALYTICS_TEST_DETAIL} element={<AnalyticsTestDetailPage />} />
-				<Route path={PATH.GROWTH} element={<GrowthPage />} />
+				<Route path={ROUTES.categories} element={<CategoryListPage />} />
+				<Route path={ROUTES.responses} element={<UserResponsesPage />} />
+				<Route path={ROUTES.analytics} element={<AnalyticsPage />} />
+				<Route path={HREF.analyticsTest(':testId')} element={<AnalyticsTestDetailPage />} />
+				<Route path={ROUTES.growth} element={<GrowthPage />} />
 			</Route>
 
-			<Route path="*" element={<Navigate to={PATH.AUTH} replace />} />
+			<Route path="*" element={<Navigate to={ROUTES.auth} replace />} />
 		</Routes>
 	);
 }

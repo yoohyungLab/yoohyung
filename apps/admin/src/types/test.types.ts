@@ -28,3 +28,40 @@ export interface FeatureInput {
 	key: string;
 	value: string;
 }
+
+export interface ChoiceData {
+	id: string;
+	choice_text: string;
+	choice_order: number;
+	score: number;
+	is_correct: boolean;
+	code: string | null;
+	response_count: number;
+	last_updated: string | null;
+}
+
+export interface QuestionData {
+	id?: string;
+	question_text: string;
+	question_order: number;
+	image_url: string | null;
+	question_type: string;
+	correct_answers: string[] | null;
+	explanation: string | null;
+	choices: ChoiceData[];
+}
+
+export interface ResultData {
+	result_name: string;
+	result_order: number;
+	description: string | null;
+	match_conditions: {
+		type: string;
+		min: number;
+		max: number;
+	};
+	background_image_url: string | null;
+	theme_color: string;
+	features: Record<string, unknown>;
+	target_gender: string | null;
+}

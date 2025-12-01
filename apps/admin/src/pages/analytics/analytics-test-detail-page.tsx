@@ -7,7 +7,7 @@ import {
 	TrendsTab,
 } from '@/components/analytics';
 import { LoadingState } from '@/components/ui';
-import { PATH } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 import { analyticsService } from '@/services';
 import type { GetTestBasicStatsReturn, GetTestAnalyticsDataReturn, Test } from '@pickid/supabase';
 import { ErrorState } from '@pickid/ui';
@@ -55,7 +55,7 @@ export function AnalyticsTestDetailPage() {
 			if (foundTest) {
 				setTest(foundTest);
 			} else {
-				navigate(PATH.ANALYTICS);
+				navigate(ROUTES.analytics);
 				return;
 			}
 
@@ -102,7 +102,7 @@ export function AnalyticsTestDetailPage() {
 					title="테스트를 찾을 수 없습니다"
 					message={'요청하신 테스트가 존재하지 않거나 삭제되었습니다'}
 					actionLabel="분석 목록으로 돌아가기"
-					onAction={() => navigate(PATH.ANALYTICS)}
+					onAction={() => navigate(ROUTES.analytics)}
 				/>
 			</div>
 		);
@@ -123,7 +123,7 @@ export function AnalyticsTestDetailPage() {
 				timeRange={timeRange}
 				loading={loading}
 				onTimeRangeChange={setTimeRange}
-				onBack={() => navigate(PATH.ANALYTICS)}
+				onBack={() => navigate(ROUTES.analytics)}
 			/>
 
 			<AnalyticsStatsCards basicStats={basicStats} />

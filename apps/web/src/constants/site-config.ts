@@ -1,5 +1,3 @@
-// 사이트 메타데이터 설정 (중앙 관리)
-
 export const SITE_CONFIG = {
 	name: '픽키드',
 	title: '픽키드 | 나를 알아가는 심리테스트',

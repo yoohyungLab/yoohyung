@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Plus } from 'lucide-react';
 import { navigation, isActivePath, type NavEntry } from '@/config/navigation';
-import { PATH } from '@/constants/routes';
+import { ROUTES } from '@/constants/routes';
 import type { AdminUser } from '@pickid/supabase';
 
 interface IAdminHeaderProps {
@@ -38,7 +38,7 @@ export function AdminHeader({ user, onLogout }: IAdminHeaderProps) {
 	}, [userMenuOpen]);
 
 	const handleCreateTest = () => {
-		navigate(PATH.TEST_CREATE);
+		navigate(ROUTES.testCreate);
 	};
 
 	const handleToggleMenu = () => {

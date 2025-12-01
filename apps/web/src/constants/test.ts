@@ -1,37 +1,62 @@
-// 테스트 타입 값
-export const TEST_TYPE = {
-	PSYCHOLOGY: 'psychology',
-	BALANCE: 'balance',
-	QUIZ: 'quiz',
-	PERSONALITY: 'personality',
+// ============================================
+// constants/test.ts
+// 테스트 관련 모든 설정
+// ============================================
+
+export const TEST_TYPES = {
+	psychology: {
+		value: 'psychology',
+		label: '심리 테스트',
+		icon: '🧠',
+	},
+	balance: {
+		value: 'balance',
+		label: '밸런스 게임',
+		icon: '⚖️',
+	},
+	quiz: {
+		value: 'quiz',
+		label: '퀴즈',
+		icon: '❓',
+	},
+	personality: {
+		value: 'personality',
+		label: '성격 테스트',
+		icon: '👤',
+	},
 } as const;
 
-// TODO: 왜 분리해서 써야하는지? 실제로 사용하고 잇는게맞는지? TTestType을 여기저기서 만히 쓰는데 하나로만 쓰게 해주고 굳이 타입화해야하는지도 확인해보기. 필요없으면 제거
-export type TTestType = (typeof TEST_TYPE)[keyof typeof TEST_TYPE];
-
-// 테스트 상태
-export const TEST_STATUS = {
-	DRAFT: 'draft',
-	PUBLISHED: 'published',
-	SCHEDULED: 'scheduled',
-	ARCHIVED: 'archived',
+export const TEST_STATUSES = {
+	draft: {
+		value: 'draft',
+		label: '초안',
+		color: 'gray',
+	},
+	published: {
+		value: 'published',
+		label: '게시됨',
+		color: 'green',
+	},
+	scheduled: {
+		value: 'scheduled',
+		label: '예약됨',
+		color: 'blue',
+	},
+	archived: {
+		value: 'archived',
+		label: '보관됨',
+		color: 'red',
+	},
 } as const;
 
-// TODO: 왜 분리해서 써야하는지? 실제로 사용하고 잇는게맞는지? TTestStatus 여기저기서 만히 쓰는데 하나로만 쓰게 해주고 굳이 타입화해야하는지도 확인해보기. 필요없으면 제거
-export type TTestStatus = (typeof TEST_STATUS)[keyof typeof TEST_STATUS];
-
-// 테스트 상태 레이블
-export const TEST_STATUS_LABEL = {
-	draft: '초안',
-	published: '게시됨',
-	scheduled: '예약됨',
-	archived: '보관됨',
+export const TEST_SECTIONS = {
+	popular: { badge: 'HOT', variant: 'hot' as const },
+	new: { badge: 'NEW', variant: 'new' as const },
+	recommended: { badge: 'PICK', variant: 'recommended' as const },
+	trending: { badge: 'TOP', variant: 'trending' as const },
 } as const;
 
-// 테스트 타입 레이블
-export const TEST_TYPE_LABEL = {
-	psychology: '심리 테스트',
-	balance: '밸런스 게임',
-	quiz: '퀴즈',
-	personality: '성격 테스트',
-} as const;
+// 타입 - 실제 DB에 저장되는 값
+export type TestType = keyof typeof TEST_TYPES;
+export type TestStatus = keyof typeof TEST_STATUSES;
+export type TestSection = keyof typeof TEST_SECTIONS;

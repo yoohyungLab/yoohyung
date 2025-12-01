@@ -1,23 +1,16 @@
-import React, { useCallback, useState, useMemo } from 'react';
+import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
+import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
+import { PAGINATION, FEEDBACK_STATUSES, FEEDBACK_CATEGORIES, FEEDBACK_CATEGORY_OPTIONS } from '@/constants';
+import { useFeedbacks } from '@/hooks';
+import { useTableColumns } from '@/hooks/useTableColumns';
+import { toOptions, toFilterOptions } from '@/utils/options';
 import { usePagination } from '@pickid/shared';
 import type { Feedback } from '@pickid/supabase';
-import { DataTable, type Column, DefaultPagination, Badge, type BadgeProps } from '@pickid/ui';
-import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
-import { FeedbackDetailModal, FeedbackReplyModal } from '@/components/feedback';
-import { useColumnRenderers } from '@/hooks/use-column-renderers';
-import { useFeedbacks } from '@/hooks';
-import {
-	PAGINATION,
-	FILTER_FEEDBACK_STATUS_OPTIONS,
-	FILTER_FEEDBACK_CATEGORY_OPTIONS,
-	FEEDBACK_STATUS_OPTIONS,
-	FEEDBACK_CATEGORY_OPTIONS,
-} from '@/constants';
-import { getStatusConfig } from '@/utils/utils';
+import { DataTable, DefaultPagination } from '@pickid/ui';
+import { FileText } from 'lucide-react';
+import { useMemo, useState } from 'react';
 
 export function FeedbackListPage() {
-	const renderers = useColumnRenderers();
-
 	const {
 		feedbacks,
 		loading,
@@ -36,121 +29,121 @@ export function FeedbackListPage() {
 
 	const pagination = usePagination({
 		totalItems: feedbacks.length,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+		defaultPageSize: PAGINATION.pageSize,
 	});
 
-	const handleBulkStatusChange = useCallback(
-		async (status: Feedback['status']) => {
-			if (selectedFeedbacks.length === 0) return;
-			await bulkUpdateStatus({ feedbackIds: selectedFeedbacks, status });
-			setSelectedFeedbacks([]);
-		},
-		[selectedFeedbacks, bulkUpdateStatus]
-	);
+	const handleBulkStatusChange = async (status: Feedback['status']) => {
+		if (selectedFeedbacks.length === 0) return;
+		await bulkUpdateStatus({ feedbackIds: selectedFeedbacks, status });
+		setSelectedFeedbacks([]);
+	};
 
-	const handleAddReply = useCallback(
-		async (reply: string) => {
-			if (!showReplyModal || !reply.trim()) return;
-			await addReply({ id: showReplyModal, reply });
-			setShowReplyModal(null);
-		},
-		[showReplyModal, addReply]
-	);
+	const handleAddReply = async (reply: string) => {
+		if (!showReplyModal || !reply.trim()) return;
+		await addReply({ id: showReplyModal, reply });
+		setShowReplyModal(null);
+	};
 
-	const columns: Column<Feedback>[] = useMemo(
+	const columnConfigs = useMemo(
 		() => [
 			{
 				id: 'title',
 				header: '제목',
-				accessorKey: 'title',
-				cell: ({ row }) => (
+				type: 'custom' as const,
+				customRender: (data: Feedback) => (
 					<div className="flex items-center gap-2">
-						{renderers.renderTitleWithContent(row.original.title, row.original.content)}
-						{renderers.renderFileAttachment(row.original.attached_file_url)}
+						<div>
+							<div className="font-medium text-gray-900">
+								{data.title.length > 50 ? `${data.title.substring(0, 50)}...` : data.title}
+							</div>
+							<div className="text-sm text-gray-500">
+								{data.content.length > 30 ? `${data.content.substring(0, 30)}...` : data.content}
+							</div>
+						</div>
+						{data.attached_file_url && <FileText className="w-4 h-4 text-blue-500" />}
 					</div>
 				),
 			},
 			{
 				id: 'category',
 				header: '카테고리',
-				cell: ({ row }) => {
-					const categoryLabel =
-						FEEDBACK_CATEGORY_OPTIONS.find((option) => option.value === row.original.category)?.label ||
-						row.original.category;
-
-					return (
-						<Badge variant="outline" className="whitespace-nowrap">
-							{categoryLabel}
-						</Badge>
-					);
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Feedback) => data.category || '',
+					getLabel: (value: string) =>
+						FEEDBACK_CATEGORY_OPTIONS.find((option) => option.value === value)?.label || value,
+					getVariant: () => 'outline' as const,
 				},
 			},
 			{
 				id: 'author',
 				header: '작성자',
-				cell: ({ row }) => renderers.renderAuthor(row.original.author_name || ''),
+				type: 'text' as const,
+				accessor: 'author_name',
 			},
 			{
 				id: 'status',
 				header: '상태',
-				cell: ({ row }) => {
-					const statusConfig = getStatusConfig('feedback', row.original.status);
-					const statusVariant = (('variant' in statusConfig ? statusConfig.variant : undefined) ||
-						'default') as BadgeProps['variant'];
-					const statusColor = statusConfig.color || '';
-					const statusText = statusConfig.text || row.original.status;
-
-					return (
-						<Badge variant={statusVariant} className="whitespace-nowrap">
-							<span className="flex items-center gap-1">{statusText}</span>
-						</Badge>
-					);
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Feedback) => data.status || 'pending',
+					getVariant: (value: string) => {
+						const statusKey = value as keyof typeof FEEDBACK_STATUSES;
+						const variant = FEEDBACK_STATUSES[statusKey]?.variant || 'default';
+						return variant === 'warning' || variant === 'secondary' ? 'outline' : variant;
+					},
+					getLabel: (value: string) => {
+						const statusKey = value as keyof typeof FEEDBACK_STATUSES;
+						return FEEDBACK_STATUSES[statusKey]?.label || value;
+					},
 				},
 			},
 			{
 				id: 'created_at',
 				header: '작성일',
-				cell: ({ row }) => renderers.renderDate(row.original.created_at),
+				type: 'date' as const,
+				accessor: 'created_at',
 			},
 			{
 				id: 'views',
 				header: '조회수',
-				cell: ({ row }) => renderers.renderNumber(row.original.views),
+				type: 'number' as const,
+				accessor: 'views',
 			},
 			{
 				id: 'actions',
 				header: '액션',
-				cell: ({ row }) => {
-					const feedback = row.original;
-					return renderers.renderActions(feedback.id, feedback, [
-						{
-							type: 'reply',
-							onClick: () => setShowReplyModal(feedback.id),
-							condition: (data) => !data.admin_reply,
+				type: 'actions' as const,
+				actions: [
+					{
+						type: 'reply' as const,
+						onClick: (id: string) => setShowReplyModal(id),
+						condition: (data: Feedback) => !data.admin_reply,
+					},
+					{
+						type: 'status' as const,
+						onClick: async (id: string, data?: Feedback) => {
+							await updateStatus({
+								id,
+								status: data?.status || 'pending',
+							});
 						},
-						{
-							type: 'status',
-							onClick: async () => {
-								await updateStatus({
-									id: feedback.id,
-									status: feedback.status || 'pending',
-								});
-							},
-							statusOptions: [...FEEDBACK_STATUS_OPTIONS],
+						statusOptions: toOptions(FEEDBACK_STATUSES),
+					},
+					{
+						type: 'delete' as const,
+						onClick: async (id: string) => {
+							if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
+							await deleteFeedback(id);
 						},
-						{
-							type: 'delete',
-							onClick: async () => {
-								if (!confirm('정말로 이 피드백을 삭제하시겠습니까?')) return;
-								await deleteFeedback(feedback.id);
-							},
-						},
-					]);
-				},
+					},
+				],
 			},
 		],
-		[renderers, updateStatus, deleteFeedback]
+		[updateStatus, deleteFeedback]
 	);
+
+	const { columns } = useTableColumns<Feedback>(columnConfigs);
 
 	return (
 		<div className="space-y-6 p-6">
@@ -170,10 +163,13 @@ export function FeedbackListPage() {
 				filters={{
 					search: true,
 					status: {
-						options: [...FILTER_FEEDBACK_STATUS_OPTIONS],
+						options: toFilterOptions(FEEDBACK_STATUSES, '전체 상태'),
 					},
 					category: {
-						options: [...FILTER_FEEDBACK_CATEGORY_OPTIONS],
+						options: [
+							{ value: 'all', label: '전체 카테고리' },
+							...Object.values(FEEDBACK_CATEGORIES).map((c) => ({ value: c.value, label: c.label })),
+						],
 					},
 				}}
 				values={{

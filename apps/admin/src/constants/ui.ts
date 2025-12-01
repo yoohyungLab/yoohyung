@@ -1,6 +1,0 @@
-export const PAGINATION = {
-	DEFAULT_PAGE_SIZE: 20,
-	MAX_PAGE_SIZE: 100,
-	PAGE_SIZE_OPTIONS: [10, 20, 50, 100] as const,
-	DEBOUNCE_DELAY: 300,
-} as const;

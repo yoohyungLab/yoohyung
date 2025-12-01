@@ -6,14 +6,15 @@ import { Share2, RotateCcw, Home, Play } from 'lucide-react';
 import { Button } from '@pickid/ui';
 import { useShareToast } from '@pickid/shared';
 import { SITE_CONFIG } from '@/constants/site-config';
+import { ROUTES } from '@/constants';
 
 interface TestCTAButtonsProps {
 	testId: string;
-	mode: 'result' | 'shared'; // 본인 결과 vs 공유 결과
+	mode: 'result' | 'shared';
 	onShare?: () => void;
 	resultName?: string;
 	userName?: string;
-	isBalanceGame?: boolean; // 밸런스게임 여부
+	isBalanceGame?: boolean;
 	className?: string;
 }
 
@@ -22,17 +23,14 @@ export function TestCTAButtons(props: TestCTAButtonsProps) {
 	const router = useRouter();
 	const { showShareSuccessToast } = useShareToast();
 
-	// 다시하기/테스트하기 핸들러
 	const handleTest = useCallback(() => {
-		router.push(`/tests/${testId}`);
+		router.push(ROUTES.testDetail(testId));
 	}, [router, testId]);
 
-	// 공유 핸들러
 	const handleShare = useCallback(async () => {
-		// 밸런스게임은 테스트 페이지로, 일반 테스트는 결과 페이지로 공유
 		const shareUrl = isBalanceGame
-			? `${SITE_CONFIG.url}/tests/${testId}?ref=share`
-			: `${SITE_CONFIG.url}/tests/${testId}/result?ref=share`;
+			? `${SITE_CONFIG.url}${ROUTES.testDetail(testId)}?ref=share`
+			: `${SITE_CONFIG.url}${ROUTES.testResult(testId)}?ref=share`;
 
 		const displayName = userName || '친구';
 		const shareTitle = `${displayName}님의 ${resultName || '테스트'} 결과`;
@@ -40,7 +38,6 @@ export function TestCTAButtons(props: TestCTAButtonsProps) {
 			resultName || '테스트 결과'
 		}"\n\n나도 테스트해보기: ${shareUrl}`;
 
-		// 모바일에서는 시스템 공유 우선 사용
 		const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
 		if (isMobile && navigator.share) {
 			try {
@@ -66,17 +63,14 @@ export function TestCTAButtons(props: TestCTAButtonsProps) {
 			await navigator.clipboard.writeText(shareUrl);
 			showShareSuccessToast();
 		} catch {
-			// 클립보드 API가 없으면 기존 모달 열기
 			onShare?.();
 		}
 	}, [testId, resultName, userName, isBalanceGame, onShare, showShareSuccessToast]);
 
-	// 홈 핸들러
 	const handleHome = useCallback(() => {
-		router.push('/');
+		router.push(ROUTES.HOME);
 	}, [router]);
 
-	// 본인 결과 페이지 (다시하기 + 공유하기 + 홈)
 	if (mode === 'result') {
 		return (
 			<div className={`space-y-4 pb-8 ${className}`}>

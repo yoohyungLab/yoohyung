@@ -1,6 +1,7 @@
 import { EmptyState, LoadingState } from '@/components/ui';
 import { AdminCard, AdminCardContent, AdminCardHeader } from '@/components/ui/admin-card';
-import { formatDate, getDaysSinceJoin, getLabelText, getStatusConfig } from '@/lib';
+import { formatDate } from '@pickid/shared';
+import { USER_STATUSES } from '@/constants';
 import { userService } from '@/services';
 import { formatDuration } from '@pickid/shared';
 import type { Feedback, UserActivityItem, UserWithActivity } from '@pickid/supabase';
@@ -42,14 +43,11 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 	}, [loadActivities]);
 
 	const getStatusBadge = (status: string) => {
-		const statusConfig = getStatusConfig('profile', status);
+		const statusKey = status as keyof typeof USER_STATUSES;
+		const config = USER_STATUSES[statusKey] || { value: status, label: '알수없음', variant: 'default' as const };
 		return (
-			<Badge
-				variant={
-					statusConfig.variant as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'
-				}
-			>
-				{statusConfig.text}
+			<Badge variant={config.variant as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning' | 'info'}>
+				{config.label}
 			</Badge>
 		);
 	};
@@ -95,14 +93,24 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 
 								<div className="flex items-center gap-3 mb-3">
 									<IconBadge
-										icon={getStatusConfig('profile', user.status || 'active').icon || <User className="w-3 h-3" />}
-										text={getStatusConfig('profile', user.status || 'active').text}
+										icon={
+											USER_STATUSES[(user.status || 'active') as keyof typeof USER_STATUSES]?.icon || (
+												<User className="w-3 h-3" />
+											)
+										}
+										text={USER_STATUSES[(user.status || 'active') as keyof typeof USER_STATUSES]?.label || '알수없음'}
 										variant="outline"
 										className="bg-white"
 									/>
 									<IconBadge
 										icon={<Mail className="w-3 h-3" />}
-										text={getLabelText('provider', user.provider || 'email')}
+										text={
+											user.provider === 'google'
+												? '구글'
+												: user.provider === 'kakao'
+													? '카카오'
+													: '이메일'
+										}
 										variant="outline"
 										className="bg-white"
 									/>
@@ -224,7 +232,15 @@ export function UserDetailModal({ user, onClose }: UserDetailModalProps) {
 											<div>
 												<span className="text-neutral-600">가입 경과일</span>
 												<div className="font-medium text-neutral-900">
-													{getDaysSinceJoin(user.created_at || new Date())}일
+													{(() => {
+														const created = typeof user.created_at === 'string' ? new Date(user.created_at) : user.created_at || new Date();
+														const now = new Date();
+														const nowInKorea = new Date(now.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+														const createdInKorea = new Date(created.toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
+														const nowDate = new Date(nowInKorea.getFullYear(), nowInKorea.getMonth(), nowInKorea.getDate());
+														const createdDate = new Date(createdInKorea.getFullYear(), createdInKorea.getMonth(), createdInKorea.getDate());
+														return Math.floor((nowDate.getTime() - createdDate.getTime()) / (1000 * 60 * 60 * 24));
+													})()}일
 												</div>
 											</div>
 											<div>

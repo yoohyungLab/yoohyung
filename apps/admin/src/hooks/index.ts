@@ -9,4 +9,4 @@ export { useCategories } from './useCategories';
 export { useDashboard } from './useDashboard';
 export { useFeedbacks } from './useFeedbacks';
 export { useUsers } from './useUsers';
-export { useColumnRenderers } from './use-column-renderers';
+export { useTableColumns } from './useTableColumns';

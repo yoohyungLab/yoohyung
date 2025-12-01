@@ -1,28 +1,26 @@
 import { TestDetailModal } from '@/components/test/test-detail-modal';
 import { BulkActions, DataState, FilterBar, StatsCards } from '@/components/ui';
 import { useTests } from '@/hooks/useTests';
-import { useColumnRenderers } from '@/hooks';
-import { PAGINATION, TEST_STATUS_OPTIONS } from '@/constants';
-import { getTestTypeInfo } from '@/utils/test.utils';
-import { getStatusConfig } from '@/utils/utils';
+import { useTableColumns } from '@/hooks/useTableColumns';
+import { PAGINATION, TEST_STATUSES, TEST_TYPES } from '@/constants';
+import { toOptions } from '@/utils/options';
 import { usePagination } from '@pickid/shared';
 import type { Test, TestStatus } from '@pickid/supabase';
-import { Badge, DataTable, DefaultPagination, type Column } from '@pickid/ui';
-import { useState } from 'react';
+import { DataTable, DefaultPagination } from '@pickid/ui';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HREF } from '@/constants/routes';
 import { COMMON_MESSAGES } from '@pickid/shared';
 
 export function TestListPage() {
 	const navigate = useNavigate();
-	const renderers = useColumnRenderers();
 	const { tests, loading, filters, stats, updateTestStatus, deleteTest, updateFilters } = useTests();
 	const [modalTest, setModalTest] = useState<Test | null>(null);
 	const [selectedTests, setSelectedTests] = useState<string[]>([]);
 
 	const pagination = usePagination({
 		totalItems: tests.length,
-		defaultPageSize: PAGINATION.DEFAULT_PAGE_SIZE,
+		defaultPageSize: PAGINATION.pageSize,
 	});
 
 	const handleTogglePublish = async (testId: string, newStatus: string) => {
@@ -51,75 +49,94 @@ export function TestListPage() {
 		setSelectedTests([]);
 	};
 
-	const columns: Column<Test>[] = [
-		{
-			id: 'title',
-			header: '테스트',
-			cell: ({ row }) => (
-				<div className="min-w-0">
-					<div className="font-medium text-neutral-900 truncate">{row.original.title}</div>
-				</div>
-			),
-		},
-		{
-			id: 'type',
-			header: '유형',
-			cell: ({ row }) => {
-				const typeInfo = getTestTypeInfo(row.original.type || 'psychology');
-				return (
-					<Badge variant="outline" className="whitespace-nowrap">
-						{typeInfo.name}
-					</Badge>
-				);
+	const columnConfigs = useMemo(() => {
+		const handleTogglePublishAction = async (id: string, data?: Record<string, unknown>) => {
+			await handleTogglePublish(id, data?.status as string);
+		};
+
+		const handleDeleteAction = async (id: string) => {
+			await handleDelete(id);
+		};
+
+		return [
+			{
+				id: 'title',
+				header: '테스트',
+				type: 'text' as const,
+				accessor: 'title',
+				className: 'font-medium text-neutral-900',
+				maxLength: 50,
 			},
-		},
-		{
-			id: 'status',
-			header: '상태',
-			cell: ({ row }) => {
-				const status = row.original.status || 'draft';
-				const statusConfig = getStatusConfig('test', status);
-				return (
-					<Badge
-						variant={statusConfig.variant as 'success' | 'outline' | 'info' | 'destructive' | 'default'}
-						className="whitespace-nowrap"
-					>
-						{statusConfig.text}
-					</Badge>
-				);
+			{
+				id: 'type',
+				header: '유형',
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Test) => data.type || 'psychology',
+					getLabel: (value: string) => {
+						const typeKey = value as keyof typeof TEST_TYPES;
+						return TEST_TYPES[typeKey]?.name || value;
+					},
+					getVariant: () => 'outline' as const,
+				},
 			},
-		},
-		{
-			id: 'responses',
-			header: '참여수',
-			cell: ({ row }) => renderers.renderNumber(row.original.response_count || 0),
-		},
-		{
-			id: 'created_at',
-			header: '생성일',
-			cell: ({ row }) => renderers.renderDate(row.original.created_at),
-		},
-		{
-			id: 'actions',
-			header: '액션',
-			cell: ({ row }) =>
-				renderers.renderActions(row.original.id, row.original as unknown as Record<string, unknown>, [
+			{
+				id: 'status',
+				header: '상태',
+				type: 'badge' as const,
+				badge: {
+					getValue: (data: Test) => data.status || 'draft',
+					getVariant: (value: string) => {
+						const statusKey = value as keyof typeof TEST_STATUSES;
+						return (TEST_STATUSES[statusKey]?.variant || 'default') as
+							| 'success'
+							| 'outline'
+							| 'info'
+							| 'destructive'
+							| 'default';
+					},
+					getLabel: (value: string) => {
+						const statusKey = value as keyof typeof TEST_STATUSES;
+						return TEST_STATUSES[statusKey]?.label || value;
+					},
+				},
+			},
+			{
+				id: 'responses',
+				header: '참여수',
+				type: 'number' as const,
+				accessor: 'response_count',
+			},
+			{
+				id: 'created_at',
+				header: '생성일',
+				type: 'date' as const,
+				accessor: 'created_at',
+			},
+			{
+				id: 'actions',
+				header: '액션',
+				type: 'actions' as const,
+				actions: [
 					{
-						type: 'edit',
-						onClick: () => navigate(HREF.TEST_EDIT(row.original.id)),
+						type: 'edit' as const,
+						onClick: (id: string) => navigate(HREF.testEdit(id)),
 					},
 					{
-						type: 'status',
-						onClick: (id, data) => handleTogglePublish(id, data?.status as string),
-						statusOptions: [...TEST_STATUS_OPTIONS],
+						type: 'status' as const,
+						onClick: handleTogglePublishAction,
+						statusOptions: toOptions(TEST_STATUSES),
 					},
 					{
-						type: 'delete',
-						onClick: (id) => handleDelete(id),
+						type: 'delete' as const,
+						onClick: handleDeleteAction,
 					},
-				]),
-		},
-	];
+				],
+			},
+		];
+	}, [navigate, updateTestStatus, deleteTest]);
+
+	const { columns } = useTableColumns<Test>(columnConfigs);
 
 	return (
 		<div className="space-y-6 p-6">

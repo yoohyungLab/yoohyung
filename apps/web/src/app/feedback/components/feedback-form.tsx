@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DefaultInput, DefaultTextarea, Button } from '@pickid/ui';
+import { ROUTES } from '@/constants';
 import { useFeedbackSubmit } from '../hooks/useFeedback';
 import { FeedbackCategorySelector } from './feedback-category-selector';
 
@@ -35,7 +36,7 @@ export function FeedbackForm() {
 			{ title: title.trim(), content: content.trim(), category },
 			{
 				onSuccess: () => {
-					router.push('/feedback');
+					router.push(ROUTES.FEEDBACK);
 				},
 				onError: (error) => {
 					setErrors({ submit: error instanceof Error ? error.message : '피드백 제출에 실패했습니다.' });
